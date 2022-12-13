@@ -10,20 +10,47 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
+import dj_database_url
 from pathlib import Path
+from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+class EnvironmentSettings(BaseSettings):
+    """
+    Defines Django environment variables.
+
+    The default settings defined here should only be used in development environments and are not suitable for
+    production. In production environments, these settings should be defined using environment variables or a .env file
+    in the root project directory.
+    """
+
+    # TODO Find/create types for other databases. In the meantime, allow str.
+    DATABASE_URL: PostgresDsn | str = f'sqlite:///{BASE_DIR}/db.sqlite3'
+    CONN_MAX_AGE: int = 600
+    SSL_REQUIRED: bool = False
+    SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
+    DEBUG: bool = True
+
+    class Config:
+        env_file = f'{BASE_DIR}.env'
+        case_sensitive = True
+
+
+config = EnvironmentSettings()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^4rr^aez71u^j=r86id%l7s=!^vvdpb6r$ebwnxa@+9*c_d9#e'
+SECRET_KEY = config.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = []
 
@@ -54,8 +81,7 @@ ROOT_URLCONF = 'hydroserver.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,11 +100,13 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+os.environ["DATABASE_URL"] = config.DATABASE_URL
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        conn_max_age=config.CONN_MAX_AGE,
+        ssl_require=config.SSL_REQUIRED
+    )
 }
 
 
