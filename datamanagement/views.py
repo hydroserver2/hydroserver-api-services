@@ -17,11 +17,11 @@ api = NinjaAPI(
 
 
 @api.post(
-    '/result-values/',
+    '/{datastore_name}/result-values/',
     auth=django_auth,
     tags=['Result Values']
 )
-def result_values_post(request):
+def result_values_post(request, datastore_name: str):
     """
     Endpoint for posting result values.
 
@@ -33,11 +33,11 @@ def result_values_post(request):
 
 
 @api.post(
-    '/result-values-file/',
+    '/{datastore_name}/result-values-file/',
     auth=django_auth,
     tags=['Result Values']
 )
-def result_values_file_post(request, file: UploadedFile = File(...)):
+def result_values_file_post(request, datastore_name: str, file: UploadedFile = File(...)):
     """
     Endpoint for posting result values files.
 
@@ -51,11 +51,11 @@ def result_values_file_post(request, file: UploadedFile = File(...)):
 
 
 @api.get(
-    '/result-values-file/{task_id}/',
+    '/{datastore_name}/result-values-file/{task_id}/',
     auth=django_auth,
     tags=['Result Values']
 )
-def result_values_file_status(request, task_id: str):
+def result_values_file_status(request, datastore_name: str, task_id: str):
     """
     Endpoint for getting result values file loading status.
 
