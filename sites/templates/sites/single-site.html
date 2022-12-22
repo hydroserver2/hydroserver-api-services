@@ -1,0 +1,6 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<h1>single site page for "{{ site }}"</h1>
+    <button><a href="{% url 'delete-site' site.id %}">Delete Site</a></button>
+{% endblock content%}

@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+{% block content %}
+
+<h1>Add Site</h1>
+<form class="form" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- Input:Text -->
+    {% for field in form %}
+        <label for="formInput#text">{{ field.label}}</label>
+        {{ field }}
+    {% endfor%}
+
+    <input type="submit" value="Add Site" />
+</form>
+
+{% endblock %}

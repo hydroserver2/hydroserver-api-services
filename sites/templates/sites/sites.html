@@ -1,0 +1,12 @@
+{% extends 'main.html' %}
+{% block content %}
+    <h1>Sites page</h1>
+
+    <h2>My Sites</h2>
+    {% for site in sites %}
+        <p><a href ="{% url 'site' site.id %}">{{ site }}</a></p>
+    {% endfor %}
+    <h2>Followed Sites</h2>
+
+    <a href="{% url 'add-site' %}"><button>Register a New Site</button></a>
+{% endblock content %}
