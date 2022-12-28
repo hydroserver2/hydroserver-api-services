@@ -2,11 +2,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from datamanagement.views import api as datamanagement_api
+from django.apps import apps
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('data-management/', datamanagement_api.urls),
+    path(f'{apps.get_app_config("sensorthings").api_prefix}/', include('sensorthings.urls')),
     path('', include('sites.urls')),
 ]
 

@@ -52,7 +52,7 @@ SECRET_KEY = config.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -65,9 +65,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sites.apps.SitesConfig',
-    'datamanagement',
-    'dataservices',
-    'datastores'
+    'datastores',
+    'sensorthings'
 ]
 
 MIDDLEWARE = [
@@ -78,6 +77,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'sensorthings.middleware.SensorThingsRouter'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
