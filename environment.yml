@@ -12,3 +12,6 @@ dependencies:
   - pyyaml=6.0
 
   - sqlalchemy=1.4.45
+
+  - pip:
+      - sqlalchemy-json=0.5.0

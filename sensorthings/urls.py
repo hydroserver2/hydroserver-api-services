@@ -1,5 +1,5 @@
 from django.urls import path
-from sensorthings.views import api
+from sensorthings.api import api
 
 
 urlpatterns = [
