@@ -3,13 +3,12 @@ from ninja.security import django_auth
 from sensorthings.api.schemas import Filters
 
 
-router = Router()
+router = Router(tags=['Historical Locations'])
 
 
 @router.get(
-    '/HistoricalLocations/',
-    auth=django_auth,
-    tags=['Historical Locations']
+    '/HistoricalLocations',
+    auth=django_auth
 )
 def get_historical_locations(request, filters: Filters = Query(...)):
     """"""
@@ -18,9 +17,8 @@ def get_historical_locations(request, filters: Filters = Query(...)):
 
 
 @router.get(
-    '/HistoricalLocations({historical_location_id})/',
-    auth=django_auth,
-    tags=['Historical Locations']
+    '/HistoricalLocations({historical_location_id})',
+    auth=django_auth
 )
 def get_historical_location(request, historical_location_id: str):
     """"""
@@ -29,9 +27,8 @@ def get_historical_location(request, historical_location_id: str):
 
 
 @router.post(
-    '/HistoricalLocations/',
-    auth=django_auth,
-    tags=['Historical Locations']
+    '/HistoricalLocations',
+    auth=django_auth
 )
 def create_historical_location(request):
     """"""
@@ -40,9 +37,8 @@ def create_historical_location(request):
 
 
 @router.patch(
-    '/HistoricalLocations({historical_location_id})/',
-    auth=django_auth,
-    tags=['Historical Locations']
+    '/HistoricalLocations({historical_location_id})',
+    auth=django_auth
 )
 def update_historical_location(request, historical_location_id: str):
     """"""
@@ -51,9 +47,8 @@ def update_historical_location(request, historical_location_id: str):
 
 
 @router.delete(
-    '/HistoricalLocations({historical_location_id})/',
-    auth=django_auth,
-    tags=['Historical Locations']
+    '/HistoricalLocations({historical_location_id})',
+    auth=django_auth
 )
 def delete_historical_location(request, historical_location_id: str):
     """"""

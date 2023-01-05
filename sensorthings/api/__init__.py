@@ -1,5 +1,6 @@
-from ninja import NinjaAPI
-from django.contrib.admin.views.decorators import staff_member_required
+from ninja import NinjaAPI, Router
+from django.conf import settings
+from .root.views import router as root_router
 from .datastreams.views import router as datastreams_router
 from .featuresofinterest.views import router as featuresofinterest_router
 from .historicallocations.views import router as historicallocations_router
@@ -10,22 +11,18 @@ from .sensors.views import router as sensors_router
 from .things.views import router as things_router
 
 
-api = NinjaAPI(
-    title='HydroServer SensorThings API',
-    version='1.1',
-    description='''
-        The HydroServer API can be used to create and update monitoring site metadata, and post  
-        results data to HydroServer data stores.
-    ''',
-    csrf=True,
-    docs_decorator=staff_member_required
-)
+api_router = Router()
 
-api.add_router('', datastreams_router)
-api.add_router('', featuresofinterest_router)
-api.add_router('', historicallocations_router)
-api.add_router('', locations_router)
-api.add_router('', observations_router)
-api.add_router('', observedproperties_router)
-api.add_router('', sensors_router)
-api.add_router('', things_router)
+api_router.add_router('', datastreams_router)
+api_router.add_router('', featuresofinterest_router)
+api_router.add_router('', historicallocations_router)
+api_router.add_router('', locations_router)
+api_router.add_router('', observations_router)
+api_router.add_router('', observedproperties_router)
+api_router.add_router('', sensors_router)
+api_router.add_router('', things_router)
+
+api = NinjaAPI(**settings.ST_API)
+
+api.add_router('', root_router)
+api.add_router(f'v{settings.ST_VERSION}/', api_router)

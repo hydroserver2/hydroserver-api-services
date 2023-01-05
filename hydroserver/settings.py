@@ -14,6 +14,7 @@ import os
 import dj_database_url
 from pathlib import Path
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,7 +34,7 @@ class EnvironmentSettings(BaseSettings):
     CONN_MAX_AGE: int = 600
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
-    DEBUG: bool = True
+    DEBUG: bool = False
 
     class Config:
         env_file = f'{BASE_DIR}.env'
@@ -160,3 +161,65 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# SensorThings API Settings
+
+ST_VERSION = '1.1'
+
+ST_API = {
+    'title': 'HydroServer SensorThings API',
+    'version': ST_VERSION,
+    'description': '''
+        The HydroServer API can be used to create and update monitoring site metadata, and post  
+        results data to HydroServer data stores.
+    ''',
+    'csrf': True,
+    'docs_url': f'/v{ST_VERSION}/docs',
+    'openapi_url': f'/v{ST_VERSION}/openapi.json',
+    'docs_decorator': staff_member_required
+}
+
+ST_CONFORMANCE = [
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/resource-path/resource-path-to-entities',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/request-data',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/create-entity',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/link-to-existing-entities',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/deep-insert',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/deep-insert-status-code',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/update-entity',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/delete-entity',
+    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/historical-location-auto-creation'
+]
+
+ST_CAPABILITIES = [
+    {
+        'NAME': 'Things',
+        'VIEW': 'get_things'
+    },
+    {
+        'NAME': 'Locations',
+        'VIEW': 'get_locations'
+    },
+    {
+        'NAME': 'Datastreams',
+        'VIEW': 'get_data_streams'
+    },
+    {
+        'NAME': 'Sensors',
+        'VIEW': 'get_sensors'
+    },
+    {
+        'NAME': 'Observations',
+        'VIEW': 'get_observations'
+    },
+    {
+        'NAME': 'ObservedProperties',
+        'VIEW': 'get_observed_properties'
+    },
+    {
+        'NAME': 'FeaturesOfInterest',
+        'VIEW': 'get_features_of_interest'
+    },
+]

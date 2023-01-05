@@ -3,13 +3,12 @@ from ninja.security import django_auth
 from sensorthings.api.schemas import Filters
 
 
-router = Router()
+router = Router(tags=['Features Of Interest'])
 
 
 @router.get(
-    '/FeaturesOfInterest/',
-    auth=django_auth,
-    tags=['Features Of Interest']
+    '/FeaturesOfInterest',
+    auth=django_auth
 )
 def get_features_of_interest(request, filters: Filters = Query(...)):
     """"""
@@ -18,9 +17,8 @@ def get_features_of_interest(request, filters: Filters = Query(...)):
 
 
 @router.get(
-    '/FeaturesOfInterest({feature_of_interest_id})/',
-    auth=django_auth,
-    tags=['Features Of Interest']
+    '/FeaturesOfInterest({feature_of_interest_id})',
+    auth=django_auth
 )
 def get_feature_of_interest(request, feature_of_interest_id: str):
     """"""
@@ -29,9 +27,8 @@ def get_feature_of_interest(request, feature_of_interest_id: str):
 
 
 @router.post(
-    '/FeaturesOfInterest/',
-    auth=django_auth,
-    tags=['Features Of Interest']
+    '/FeaturesOfInterest',
+    auth=django_auth
 )
 def create_feature_of_interest(request):
     """"""
@@ -40,9 +37,8 @@ def create_feature_of_interest(request):
 
 
 @router.patch(
-    '/FeaturesOfInterest({feature_of_interest_id})/',
-    auth=django_auth,
-    tags=['Features Of Interest']
+    '/FeaturesOfInterest({feature_of_interest_id})',
+    auth=django_auth
 )
 def update_feature_of_interest(request, feature_of_interest_id: str):
     """"""
@@ -51,9 +47,8 @@ def update_feature_of_interest(request, feature_of_interest_id: str):
 
 
 @router.delete(
-    '/FeaturesOfInterest({feature_of_interest_id})/',
-    auth=django_auth,
-    tags=['Features Of Interest']
+    '/FeaturesOfInterest({feature_of_interest_id})',
+    auth=django_auth
 )
 def delete_feature_of_interest(request, feature_of_interest_id: str):
     """"""

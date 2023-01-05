@@ -3,13 +3,12 @@ from ninja.security import django_auth
 from sensorthings.api.schemas import Filters
 
 
-router = Router()
+router = Router(tags=['Data Streams'])
 
 
 @router.get(
-    '/DataStreams/',
-    auth=django_auth,
-    tags=['Data Streams']
+    '/DataStreams',
+    auth=django_auth
 )
 def get_data_streams(request, filters: Filters = Query(...)):
     """"""
@@ -18,9 +17,8 @@ def get_data_streams(request, filters: Filters = Query(...)):
 
 
 @router.get(
-    '/DataStreams({data_stream_id})/',
-    auth=django_auth,
-    tags=['Data Streams']
+    '/DataStreams({data_stream_id})',
+    auth=django_auth
 )
 def get_data_stream(request, data_stream_id: str):
     """"""
@@ -29,9 +27,8 @@ def get_data_stream(request, data_stream_id: str):
 
 
 @router.post(
-    '/DataStreams/',
-    auth=django_auth,
-    tags=['Data Streams']
+    '/DataStreams',
+    auth=django_auth
 )
 def create_data_stream(request):
     """"""
@@ -40,9 +37,8 @@ def create_data_stream(request):
 
 
 @router.patch(
-    '/DataStreams({data_stream_id})/',
-    auth=django_auth,
-    tags=['Data Streams']
+    '/DataStreams({data_stream_id})',
+    auth=django_auth
 )
 def update_data_stream(request, data_stream_id: str):
     """"""
@@ -51,9 +47,8 @@ def update_data_stream(request, data_stream_id: str):
 
 
 @router.delete(
-    '/DataStreams({data_stream_id})/',
-    auth=django_auth,
-    tags=['Data Streams']
+    '/DataStreams({data_stream_id})',
+    auth=django_auth
 )
 def delete_data_stream(request, data_stream_id: str):
     """"""

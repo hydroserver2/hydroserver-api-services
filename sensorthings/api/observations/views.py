@@ -3,13 +3,12 @@ from ninja.security import django_auth
 from sensorthings.api.schemas import Filters
 
 
-router = Router()
+router = Router(tags=['Observations'])
 
 
 @router.get(
-    '/Observations/',
-    auth=django_auth,
-    tags=['Observations']
+    '/Observations',
+    auth=django_auth
 )
 def get_observations(request, filters: Filters = Query(...)):
     """"""
@@ -18,9 +17,8 @@ def get_observations(request, filters: Filters = Query(...)):
 
 
 @router.get(
-    '/Observations({observation_id})/',
-    auth=django_auth,
-    tags=['Observations']
+    '/Observations({observation_id})',
+    auth=django_auth
 )
 def get_observation(request, observation_id: str):
     """"""
@@ -29,9 +27,8 @@ def get_observation(request, observation_id: str):
 
 
 @router.post(
-    '/Observations/',
-    auth=django_auth,
-    tags=['Observations']
+    '/Observations',
+    auth=django_auth
 )
 def create_observation(request):
     """"""
@@ -40,9 +37,8 @@ def create_observation(request):
 
 
 @router.patch(
-    '/Observations({observation_id})/',
-    auth=django_auth,
-    tags=['Observations']
+    '/Observations({observation_id})',
+    auth=django_auth
 )
 def update_observation(request, observation_id: str):
     """"""
@@ -51,9 +47,8 @@ def update_observation(request, observation_id: str):
 
 
 @router.delete(
-    '/Observations({observation_id})/',
-    auth=django_auth,
-    tags=['Observations']
+    '/Observations({observation_id})',
+    auth=django_auth
 )
 def delete_observation(request, observation_id: str):
     """"""
