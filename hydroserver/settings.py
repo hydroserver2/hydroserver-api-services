@@ -34,7 +34,7 @@ class EnvironmentSettings(BaseSettings):
     CONN_MAX_AGE: int = 600
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
-    DEBUG: bool = False
+    DEBUG: bool = True
 
     class Config:
         env_file = f'{BASE_DIR}.env'

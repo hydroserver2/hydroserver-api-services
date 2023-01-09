@@ -1,5 +1,9 @@
 from ninja import NinjaAPI, Router
 from django.conf import settings
+
+from .things.models import ThingProps, ThingRelations, Thing
+from .locations.models import LocationProps, LocationRelations, Location
+
 from .root.views import router as root_router
 from .datastreams.views import router as datastreams_router
 from .featuresofinterest.views import router as featuresofinterest_router

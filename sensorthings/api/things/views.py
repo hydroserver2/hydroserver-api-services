@@ -1,7 +1,6 @@
 from ninja import Router, Query
 from ninja.security import django_auth
 from sensorthings.api.schemas import Filters
-from .schemas import *
 
 
 router = Router(tags=['Things'])
@@ -10,8 +9,9 @@ router = Router(tags=['Things'])
 @router.get(
     '/Things',
     auth=django_auth,
-    response=ThingsResponseBody,
-    by_alias=True
+    # response=ThingsResponseBody,
+    by_alias=True,
+    url_name='list_thing'
 )
 def get_things(request, filters: Filters = Query(...)):
     """"""
@@ -22,7 +22,7 @@ def get_things(request, filters: Filters = Query(...)):
 @router.get(
     '/Things({thing_id})',
     auth=django_auth,
-    response=ThingResponseBody,
+    # response=ThingResponseBody,
     by_alias=True
 )
 def get_thing(request, thing_id: str):
@@ -35,7 +35,7 @@ def get_thing(request, thing_id: str):
     '/Things',
     auth=django_auth
 )
-def create_thing(request, thing: Thing):
+def create_thing(request):
     """"""
 
     return {}
@@ -45,7 +45,7 @@ def create_thing(request, thing: Thing):
     '/Things({thing_id})',
     auth=django_auth
 )
-def update_thing(request, thing_id: str, thing: Thing):
+def update_thing(request, thing_id: str):
     """"""
 
     return {}
