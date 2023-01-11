@@ -1,6 +1,6 @@
 from ninja import Router, Query
 from ninja.security import django_auth
-from sensorthings.api.schemas import Filters
+from sensorthings.api.core.schemas import Filters
 
 
 router = Router(tags=['Historical Locations'])
