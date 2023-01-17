@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
     'datastores',
     'sensorthings'
@@ -114,6 +115,9 @@ DATABASES = {
     )
 }
 
+LOGIN_REDIRECT_URL = 'sites'
+LOGOUT_REDIRECT_URL = 'home'
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -177,7 +181,7 @@ ST_API = {
     'csrf': True,
     'docs_url': f'/v{ST_VERSION}/docs',
     'openapi_url': f'/v{ST_VERSION}/openapi.json',
-    'docs_decorator': staff_member_required
+    # 'docs_decorator': staff_member_required
 }
 
 ST_CONFORMANCE = [

@@ -16,7 +16,7 @@ def site(request, pk):
 
 
 # @login_required(login_url="login")
-def add_site(request):
+def register_site(request):
     form = SiteForm()
 
     if request.method == 'POST':
@@ -26,7 +26,7 @@ def add_site(request):
             return redirect('sites')
 
     context = {'form': form}
-    return render(request, "sites/site-form.html", context)
+    return render(request, "sites/site-registration.html", context)
 
 
 def delete_site(request, pk):
