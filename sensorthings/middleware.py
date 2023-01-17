@@ -1,9 +1,11 @@
 import inflection
 from django.utils.deprecation import MiddlewareMixin
-from django.urls import resolve
-from django.urls.exceptions import Resolver404, Http404
+from django.urls import resolve, ResolverMatch
+from django.urls.exceptions import Http404
 from django.apps import apps
+from django.http import HttpRequest
 from sensorthings import api as sta
+from sensorthings.api.core.main import SensorThings
 
 
 class SensorThingsRouter(MiddlewareMixin):
@@ -18,58 +20,113 @@ class SensorThingsRouter(MiddlewareMixin):
         'Thing'
     ]
 
-    def process_request(self, request) -> None:
-        """"""
+    def process_request(self, request: HttpRequest) -> None:
+        """
+        Middleware for resolving nested entities in URLs.
+
+        :param request: Django HttpRequest object.
+        :return: None
+        """
 
         if request.path_info.startswith(f'/{apps.get_app_config("sensorthings").api_prefix}/'):
-            path_entities = request.path_info.split('/')[3:]
-            path_prefix = '/'.join(request.path_info.split('/')[:3])
-            previous_entity = None
-            endpoint = None
+            resolved_path = resolve(request.path_info)
 
-            for i, raw_entity in enumerate(path_entities):
-                path = f'{path_prefix}/{raw_entity}'
-                resolved_path = resolve(path)
+            if resolved_path.url_name is not None:
+                request.entity = self.resolve_simple_entity(resolved_path)
+            elif resolved_path.url_name is None and request.method == 'GET':
+                request.entity = self.resolve_nested_entity(request)
+            else:
+                request.entity = None
 
-                if resolved_path.url_name and resolved_path.url_name.startswith('list'):
-                    prop_name = resolved_path.url_name.replace('list_', '')
-                    entity = inflection.camelize(prop_name)
-                    endpoint = f'{path_prefix}/{raw_entity}'
-                elif resolved_path.url_name and resolved_path.url_name.startswith('get'):
-                    prop_name = resolved_path.url_name.replace('get_', '')
-                    entity = inflection.camelize(prop_name)
-                    endpoint = f'{path_prefix}/{raw_entity}'
-                elif resolved_path.url_name is None and raw_entity in self.ST_ENTITIES:
-                    prop_name = inflection.underscore(raw_entity)
-                    entity = inflection.camelize(prop_name)
-                    if entity == 'FeatureOfInterest':
-                        endpoint = f'{path_prefix}/FeaturesOfInterest(1)'
-                    else:
-                        endpoint = f'{path_prefix}/{inflection.pluralize(raw_entity)}(1)'
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        """
+        Middleware for initializing a datastore engine for the request.
+
+        :param request: Django HttpRequest object.
+        :param view_func: The view function associated with this request.
+        :param view_args: The arguments that will be passed to the view function.
+        :param view_kwargs: The keyword arguments that will be passed to the view function.
+        :return: None
+        """
+
+        if hasattr(request, 'entity') and request.entity is not None:
+            request.engine = SensorThings(
+                host=request.get_host(),
+                path=request.path_info,
+                entity=request.entity
+            )
+        else:
+            request.engine = None
+
+    def resolve_simple_entity(self, resolved_path: ResolverMatch) -> str | None:
+        """
+        Resolves simple un-nested URLs and returns the associated SensorThings entity.
+
+        :param resolved_path: Django ResolverMatch object.
+        :return: One of ST_ENTITY.
+        """
+
+        entity = inflection.camelize(resolved_path.url_name.split('_', 1)[-1])
+
+        if entity in self.ST_ENTITIES:
+            return entity
+
+    def resolve_nested_entity(self, request: HttpRequest) -> str | None:
+        """
+        Resolves complex nested URLs, updates request.path_info, and returns the associated SensorThings entity.
+
+        :param request: Django HttpRequest object.
+        :return: One of ST_ENTITY.
+        """
+
+        path_components = request.path_info.split('/')[3:]
+        path_prefix = '/'.join(request.path_info.split('/')[:3])
+        previous_component = None
+        endpoint = None
+        entity = None
+
+        for i, raw_component in enumerate(path_components):
+            path = f'{path_prefix}/{raw_component}'
+            resolved_path = resolve(path)
+
+            if isinstance(resolved_path.url_name, str) and resolved_path.url_name.startswith('list'):
+                prop_name = resolved_path.url_name.replace('list_', '')
+                component = inflection.camelize(prop_name)
+                entity = component
+                endpoint = f'{path_prefix}/{raw_component}'
+            elif isinstance(resolved_path.url_name, str) and resolved_path.url_name.startswith('get'):
+                prop_name = resolved_path.url_name.replace('get_', '')
+                component = inflection.camelize(prop_name)
+                entity = component
+                endpoint = f'{path_prefix}/{raw_component}'
+            elif resolved_path.url_name is None and raw_component in self.ST_ENTITIES:
+                prop_name = inflection.underscore(raw_component)
+                component = inflection.camelize(prop_name)
+                entity = component
+                if component == 'FeatureOfInterest':
+                    endpoint = f'{path_prefix}/FeaturesOfInterest(1)'
                 else:
-                    prop_name = inflection.underscore(raw_entity)
-                    entity = raw_entity
+                    endpoint = f'{path_prefix}/{inflection.pluralize(raw_component)}(1)'
+            else:
+                prop_name = inflection.underscore(raw_component)
+                component = raw_component
 
-                if previous_entity and previous_entity in self.ST_ENTITIES:
-                    if prop_name not in getattr(sta, previous_entity).__fields__:
-                        raise Http404
-                elif previous_entity in ['$value', '$ref']:
+            if previous_component and previous_component in self.ST_ENTITIES:
+                if prop_name not in getattr(sta, previous_component).__fields__:
                     raise Http404
-                elif entity == '$value':
-                    pass
-                elif entity == '$ref':
-                    pass
-                else:
-                    pass
+            elif previous_component in ['$value', '$ref']:
+                raise Http404
+            elif component == '$value':
+                pass
+            elif component == '$ref':
+                pass
+            else:
+                pass
 
-                previous_entity = entity
+            previous_component = component
 
-            if endpoint:
-                request.path_info = endpoint
+        if endpoint:
+            request.path_info = endpoint
 
-
-
-            # try:
-            #     resolve(request.path_info)
-            # except Resolver404:
-            #     request.path_info = '/'.join(request.path_info.split('/')[:3] + request.path_info.split('/')[-2:])
+        if entity in self.ST_ENTITIES:
+            return entity

@@ -178,7 +178,7 @@ ST_API = {
         The HydroServer API can be used to create and update monitoring site metadata, and post  
         results data to HydroServer data stores.
     ''',
-    'csrf': True,
+    'csrf': False,
     'docs_url': f'/v{ST_VERSION}/docs',
     'openapi_url': f'/v{ST_VERSION}/openapi.json',
     # 'docs_decorator': staff_member_required

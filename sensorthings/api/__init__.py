@@ -1,18 +1,15 @@
 from ninja import NinjaAPI, Router
 from django.conf import settings
 
-from .things.models import ThingProps, ThingRelations, Thing
-from .locations.models import LocationProps, LocationRelations, Location
-
-from .root.views import router as root_router
-from .datastreams.views import router as datastreams_router
-from .featuresofinterest.views import router as featuresofinterest_router
-from .historicallocations.views import router as historicallocations_router
-from .locations.views import router as locations_router
-from .observations.views import router as observations_router
-from .observedproperties.views import router as observedproperties_router
-from .sensors.views import router as sensors_router
-from .things.views import router as things_router
+from sensorthings.api.entities.root.views import router as root_router
+from sensorthings.api.entities.datastreams.views import router as datastreams_router
+from sensorthings.api.entities.featuresofinterest.views import router as featuresofinterest_router
+from sensorthings.api.entities.historicallocations.views import router as historicallocations_router
+from sensorthings.api.entities.locations.views import router as locations_router
+from sensorthings.api.entities.observations.views import router as observations_router
+from sensorthings.api.entities.observedproperties.views import router as observedproperties_router
+from sensorthings.api.entities.sensors.views import router as sensors_router
+from sensorthings.api.entities.things.views import router as things_router
 
 
 api_router = Router()

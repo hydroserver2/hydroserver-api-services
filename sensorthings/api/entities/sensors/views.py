@@ -1,6 +1,6 @@
 from ninja import Router, Query
 from ninja.security import django_auth
-from sensorthings.api.schemas import Filters
+from sensorthings.api.core.schemas import Filters
 
 
 router = Router(tags=['Sensors'])
@@ -8,7 +8,7 @@ router = Router(tags=['Sensors'])
 
 @router.get(
     '/Sensors',
-    auth=django_auth
+    #auth=django_auth
 )
 def get_sensors(request, filters: Filters = Query(...)):
     """"""
@@ -18,7 +18,7 @@ def get_sensors(request, filters: Filters = Query(...)):
 
 @router.get(
     '/Sensors({sensor_id})',
-    auth=django_auth
+    #auth=django_auth
 )
 def get_sensor(request, sensor_id: str):
     """"""
@@ -28,7 +28,7 @@ def get_sensor(request, sensor_id: str):
 
 @router.post(
     '/Sensors',
-    auth=django_auth
+    #auth=django_auth
 )
 def create_sensor(request):
     """"""
@@ -38,7 +38,7 @@ def create_sensor(request):
 
 @router.patch(
     '/Sensors({sensor_id})',
-    auth=django_auth
+    #auth=django_auth
 )
 def update_sensor(request, sensor_id: str):
     """"""
@@ -48,7 +48,7 @@ def update_sensor(request, sensor_id: str):
 
 @router.delete(
     '/Sensors({sensor_id})',
-    auth=django_auth
+    #auth=django_auth
 )
 def delete_sensor(request, sensor_id: str):
     """"""
