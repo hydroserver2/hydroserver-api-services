@@ -1,12 +1,16 @@
 {% extends 'main.html' %}
 {% block content %}
-    <h1>Sites page</h1>
 
-    <h2>My Sites</h2>
+    <h3>My Sites</h3>
+    <button>Status</button>
+    <hr>
+
+    <h3>My Registered Sites</h3>
+    <a href="{% url 'register-site' %}"><button>Register a New Site</button></a>
     {% for site in sites %}
-        <p><a href ="{% url 'site' site.id %}">{{ site }}</a></p>
+        <p><a href ="{% url 'site' site.id %}">{{ site.name }}</a></p>
     {% endfor %}
-    <h2>Followed Sites</h2>
+    <h3>Followed Sites</h3>
 
-    <a href="{% url 'add-site' %}"><button>Register a New Site</button></a>
+
 {% endblock content %}
