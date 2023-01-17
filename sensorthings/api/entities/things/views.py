@@ -1,10 +1,8 @@
 from ninja import Router, Query
 from ninja.security import django_auth
-from django.http import HttpRequest, HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
-from django.urls.exceptions import Http404
+from django.http import HttpResponse
 from sensorthings.api.core.schemas import Filters
-from sensorthings.models import Thing
+from sensorthings.api.core.main import SensorThingsRequest
 from .schemas import ThingPostBody, ThingPatchBody, ThingListResponse, ThingGetResponse
 
 
@@ -13,12 +11,12 @@ router = Router(tags=['Things'])
 
 @router.get(
     '/Things',
-    auth=django_auth,
-    response=ThingListResponse,
+    # auth=django_auth,
+    # response={200, ThingListResponse},
     by_alias=True,
     url_name='list_thing'
 )
-def get_things(request: HttpRequest, filters: Filters = Query(...)):
+def get_things(request: SensorThingsRequest, filters: Filters = Query(...)):
     """"""
 
     return {}
@@ -26,11 +24,11 @@ def get_things(request: HttpRequest, filters: Filters = Query(...)):
 
 @router.get(
     '/Things({thing_id})',
-    auth=django_auth,
-    response=ThingGetResponse,
+    # auth=django_auth,
+    # response={200, ThingGetResponse},
     by_alias=True
 )
-def get_thing(request: HttpRequest, thing_id: str):
+def get_thing(request: SensorThingsRequest, thing_id: str):
     """"""
 
     return {}
@@ -38,46 +36,75 @@ def get_thing(request: HttpRequest, thing_id: str):
 
 @router.post(
     '/Things',
-    auth=django_auth,
+    # auth=django_auth,
     response={201: None}
 )
-def create_thing(request: HttpRequest, response: HttpResponse, thing: ThingPostBody):
-    """"""
+def create_thing(request: SensorThingsRequest, response: HttpResponse, thing: ThingPostBody):
+    """
+    Create a new Thing entity.
 
-    thing = Thing(**thing.dict())
-    thing.save()
+    Links:
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/properties" target="_blank">\
+      Thing Properties</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/relations" target="_blank">\
+      Thing Relations</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/create-entity" target="_blank">\
+      Create Entity</a>
+    """
 
-    response['location'] = thing.get_ref(request)
+    thing_id = request.engine.create(
+        entity_body=thing
+    )
+
+    response['location'] = request.engine.get_ref(
+        entity_id=thing_id
+    )
 
     return 201, None
 
 
 @router.patch(
     '/Things({thing_id})',
-    auth=django_auth,
+    # auth=django_auth,
     response={204: None}
 )
-def update_thing(request: HttpRequest, thing_id: str, thing: ThingPatchBody):
-    """"""
+def update_thing(request: SensorThingsRequest, thing_id: str, thing: ThingPatchBody):
+    """
+    Update an existing Thing entity.
 
-    try:
-        db_thing = Thing.objects.get(pk=thing_id)
-    except ObjectDoesNotExist:
-        raise Http404
+    Links:
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/properties" target="_blank">\
+      Thing Properties</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/relations" target="_blank">\
+      Thing Relations</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/update-entity" target="_blank">\
+      Update Entity</a>
+    """
 
-    for attr, value in thing.dict(exclude_unset=True).items():
-        setattr(db_thing, attr, value)
-
-    db_thing.save()
+    request.engine.update(
+        entity_id=thing_id,
+        entity_body=thing
+    )
 
     return 204, None
 
 
 @router.delete(
     '/Things({thing_id})',
-    auth=django_auth
+    # auth=django_auth,
+    response={204: None}
 )
-def delete_thing(request: HttpRequest, thing_id: str):
-    """"""
+def delete_thing(request: SensorThingsRequest, thing_id: str):
+    """
+    Delete a Thing entity.
 
-    return {}
+    Links:
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/delete-entity" target="_blank">\
+      Delete Entity</a>
+    """
+
+    request.engine.delete(
+        entity_id=thing_id
+    )
+
+    return 204, None

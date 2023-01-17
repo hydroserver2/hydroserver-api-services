@@ -1,11 +1,13 @@
 from typing import TYPE_CHECKING
-from ninja import Schema
 from pydantic import Field, HttpUrl
-from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBody, BasePatchBody
+from ninja import Schema
+from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBody, BasePatchBody, EntityId, NestedEntity
 from sensorthings.api.core.utils import allow_partial
 
 if TYPE_CHECKING:
     from sensorthings.api.entities.locations.schemas import Location
+    from sensorthings.api.entities.historicallocations.schemas import HistoricalLocation
+    from sensorthings.api.entities.datastreams.schemas import Datastream
 
 
 class ThingFields(Schema):
@@ -15,7 +17,9 @@ class ThingFields(Schema):
 
 
 class ThingRelations(Schema):
-    location: 'list[Location]' = []
+    locations: list['Location'] = []
+    historical_locations: list['HistoricalLocation'] = []
+    datastreams: list['Datastream'] = []
 
 
 class Thing(ThingFields, ThingRelations):
@@ -23,18 +27,26 @@ class Thing(ThingFields, ThingRelations):
 
 
 class ThingPostBody(BasePostBody, ThingFields):
-    pass
+    locations: list[EntityId | NestedEntity] = Field(
+        [], alias='Locations', nested_class='LocationPostBody'
+    )
+    historical_locations: list[NestedEntity] = Field(
+        [], alias='HistoricalLocations', nested_class='HistoricalLocationPostBody'
+    )
+    datastreams: list[NestedEntity] = Field(
+        [], alias='Datastreams', nestable=True
+    )
 
 
 @allow_partial
 class ThingPatchBody(BasePatchBody, ThingFields):
-    pass
+    locations: list[EntityId] = Field([], alias='Locations')
 
 
-class ThingGetResponse(ThingFields, BaseGetResponse):
+class ThingGetResponse(BaseGetResponse, ThingFields):
     locations_link: HttpUrl = Field(..., alias='Locations@iot.navigationLink')
-    datastreams_link: HttpUrl = Field(..., alias='Datastreams@iot.navigationLink')
     historical_locations_link: HttpUrl = Field(..., alias='HistoricalLocations@iot.navigationLink')
+    datastreams_link: HttpUrl = Field(..., alias='Datastreams@iot.navigationLink')
 
 
 class ThingListResponse(BaseListResponse):

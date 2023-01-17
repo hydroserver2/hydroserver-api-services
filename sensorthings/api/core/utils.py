@@ -1,8 +1,38 @@
 import inspect
+import sensorthings.api.core.schemas as core_schemas
+import sensorthings.api.entities as sensorthings_entities
 from pydantic import BaseModel
 
 
-def whitespace_to_none(value: str) -> str:
+def nested_entities_check(value, field):
+    """
+    Validation for nested entities.
+
+    Runs validation on nested entities in request bodies to avoid circular relationships in the API documentation.
+
+    :param value: The input value.
+    :param field: The field being validated.
+    :return value: The output value.
+    """
+
+    nested_class_name = field.field_info.extra.get('nested_class')
+
+    if nested_class_name:
+        nested_class = getattr(sensorthings_entities, nested_class_name)
+
+        if isinstance(value, list):
+            value = [
+                nested_class(**sub_value.dict()) if isinstance(sub_value, core_schemas.NestedEntity) else sub_value
+                for sub_value in value
+            ]
+
+        elif isinstance(value, core_schemas.NestedEntity):
+            value = nested_class(**value.dict())
+
+    return value
+
+
+def whitespace_to_none(value):
     """
     Validation for whitespace values.
 
@@ -12,7 +42,7 @@ def whitespace_to_none(value: str) -> str:
     :return value: The output value.
     """
 
-    if hasattr(value, 'isspace') and (value == '' or value.isspace()):
+    if isinstance(value, str) and (value == '' or value.isspace()):
         return None
 
     return value

@@ -1,9 +1,21 @@
 from pydantic import Field, Extra, HttpUrl, validator
 from ninja import Schema
-from sensorthings.api.core.utils import whitespace_to_none
+from sensorthings.api.core.utils import whitespace_to_none, nested_entities_check
+
+
+class EntityId(Schema):
+    id: int = Field(..., alias='@iot.id')
+
+
+class NestedEntity(Schema):
+
+    class Config:
+        extra = Extra.allow
 
 
 class BasePostBody(Schema):
+
+    _nested_entity_validator = validator('*', allow_reuse=True, check_fields=False)(nested_entities_check)
 
     class Config:
         extra = Extra.forbid

@@ -1,33 +1,27 @@
 from django.db import models
 
 
-# TODO: Figure out where to put these utils.
-class SensorThingsUtils:
-    def get_ref(self, request):
-        return f'{request.get_host()}{request.path_info}({self.id})'
-
-
-class Thing(models.Model, SensorThingsUtils):
+class Thing(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     properties = models.TextField(null=True)
 
 
-class Location(models.Model, SensorThingsUtils):
+class Location(models.Model):
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
     location = models.TextField()
     properties = models.TextField(null=True)
-    things = models.ManyToManyField(Thing)
+    things = models.ManyToManyField(Thing, related_name='locations')
 
 
-class HistoricalLocation(models.Model, SensorThingsUtils):
+class HistoricalLocation(models.Model):
     time = models.DateTimeField()
-    thing = models.ForeignKey(Thing, on_delete=models.CASCADE)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True)
+    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='historical_locations')
+    locations = models.ManyToManyField(Location, related_name='historical_locations')
 
 
-class Sensor(models.Model, SensorThingsUtils):
+class Sensor(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
@@ -35,14 +29,14 @@ class Sensor(models.Model, SensorThingsUtils):
     properties = models.TextField(null=True)
 
 
-class ObservedProperty(models.Model, SensorThingsUtils):
+class ObservedProperty(models.Model):
     name = models.CharField(max_length=255)
     definition = models.TextField()
     description = models.TextField()
     properties = models.TextField(null=True)
 
 
-class FeatureOfInterest(models.Model, SensorThingsUtils):
+class FeatureOfInterest(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
@@ -50,7 +44,7 @@ class FeatureOfInterest(models.Model, SensorThingsUtils):
     properties = models.TextField(null=True)
 
 
-class DataStream(models.Model, SensorThingsUtils):
+class DataStream(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     unit_of_measurement = models.TextField()
@@ -59,11 +53,12 @@ class DataStream(models.Model, SensorThingsUtils):
     observed_area = models.TextField(null=True)
     phenomenon_time = models.DateTimeField(null=True)
     result_time = models.DateTimeField(null=True)
+    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.CASCADE)
 
 
-class Observation(models.Model, SensorThingsUtils):
+class Observation(models.Model):
     result = models.CharField(max_length=255)
     result_time = models.DateTimeField()
     result_quality = models.CharField(max_length=255, null=True)

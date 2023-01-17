@@ -1,37 +1,46 @@
 from typing import TYPE_CHECKING, Literal
 from pydantic import Field, HttpUrl
 from ninja import Schema
-from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBody, BasePatchBody
+from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBody, BasePatchBody, EntityId, NestedEntity
+from sensorthings.api.core.utils import allow_partial
 
 if TYPE_CHECKING:
     from sensorthings.api.entities.things.schemas import Thing
+    from sensorthings.api.entities.historicallocations.schemas import HistoricalLocation
 
 
 locationEncodingTypes = Literal['application/geo+json']
 
 
 class LocationFields(Schema):
-    name: str
     description: str
-    encodingType: locationEncodingTypes
+    encoding_type: locationEncodingTypes = Field(..., alias='encodingType')
     location: dict
     properties: dict = {}
 
 
 class LocationRelations(Schema):
-    thing: 'list[Thing]' = []
+    things: list['Thing'] = []
+    historical_locations: list['HistoricalLocation'] = []
 
 
 class Location(LocationFields, LocationRelations):
     pass
 
 
-class LocationPostBody(LocationFields, BasePostBody):
-    pass
+class LocationPostBody(BasePostBody, LocationFields):
+    things: list[EntityId | NestedEntity] = Field(
+        [], alias='Things', nested_class='ThingPostBody'
+    )
+    historical_locations: list[EntityId | NestedEntity] = Field(
+        [], alias='HistoricalLocations', nested_class='HistoricalLocationPostBody'
+    )
 
 
-class LocationPatchBody(BasePatchBody, LocationFields):
-    pass
+@allow_partial
+class LocationPatchBody(LocationFields, BasePatchBody):
+    things: list[EntityId] = Field([], alias='Things')
+    historical_locations: list[EntityId] = Field([], alias='HistoricalLocations')
 
 
 class LocationGetResponse(BaseGetResponse, LocationFields):

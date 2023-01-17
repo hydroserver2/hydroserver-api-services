@@ -10,7 +10,7 @@ router = Router()
 
 @router.get(
     f'v{settings.ST_VERSION}',
-    auth=django_auth,
+    #auth=django_auth,
     include_in_schema=False,
     by_alias=True,
     response=ServerRootResponse

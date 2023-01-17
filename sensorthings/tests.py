@@ -1,5 +1,6 @@
 from django.test import TestCase
 from pydantic import BaseModel, ValidationError, validator
+from .api.entities import ThingPostBody, LocationPostBody
 from .api.core.utils import whitespace_to_none, allow_partial
 
 
@@ -9,6 +10,7 @@ class AllowPartialDecorator(TestCase):
         """
         Defines a simple class with some required fields to test the allow_partial class decorator on.
         """
+
         class Thing(BaseModel):
             id: int
             name: str
@@ -64,6 +66,7 @@ class WhitespaceValidator(TestCase):
         """
         Defines a simple class with the whitespace_to_none included.
         """
+
         class Thing(BaseModel):
             name: str
 
@@ -86,3 +89,68 @@ class WhitespaceValidator(TestCase):
         """
 
         self.assertRaises(ValidationError, self.Thing, name='  	')
+
+
+class NestedEntityValidator(TestCase):
+
+    def setUp(self):
+        """
+        Defines test data for creating nested instances of Things and Locations.
+        """
+
+        self.thing_data = [
+            {
+                'name': 'test_sensor',
+                'description': 'A test sensor.'
+            }
+        ]
+
+        self.location_data = [
+            {
+                'description': 'Logan, UT',
+                'encodingType': 'application/geo+json',
+                'location': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [41.74, -111.83]
+                    }
+                }
+            }
+        ]
+
+    def test_single_depth_entity(self):
+        """
+        Initializes a Thing with one related Location. Tests whether the nested_entities_check finds the nested
+        Location object and converts it to a LocationPostBody type.
+        """
+
+        thing = ThingPostBody(
+            **self.thing_data[0],
+            Locations=[
+                self.location_data[0]
+            ]
+        )
+
+        self.assertIsInstance(thing.locations[0], LocationPostBody)
+
+    def test_double_depth_entity(self):
+        """
+        Initializes a Thing with one related Location, which has one related Thing. Tests whether the
+        nested_entities_check finds the nested Location object and its related Thing and converts it to a
+        ThingPostBody type.
+        """
+
+        thing = ThingPostBody(
+            **self.thing_data[0],
+            Locations=[
+                {
+                    **self.location_data[0],
+                    'Things': [
+                        self.thing_data[0]
+                    ]
+                }
+            ]
+        )
+
+        self.assertIsInstance(getattr(thing.locations[0], 'things')[0], ThingPostBody)
