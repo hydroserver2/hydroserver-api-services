@@ -1,6 +1,97 @@
 {% extends 'main.html' %}
 
 {% block content %}
-<h1>single site page for "{{ site }}"</h1>
-    <button><a href="{% url 'delete-site' site.id %}">Delete Site</a></button>
+    <h3>{{ thing.name }}</h3>
+    <hr>
+    {% if is_authenticated %}
+        {%if thing_ownership.owns_thing %}
+            <div class="col-12 text-right">
+                <a href="#">View Token UUID List</a>
+                <a style="background: #34bb97; color:#FFF;" href="#">Edit</a>
+                <button type="button" data-toggle="modal" data-target="#site-delete-dialog"
+                        style="background: #d9534f; color:#FFF;">Delete
+                </button>
+            </div>
+        {% else %}
+            <form method="post" action="{% url 'update_follow' thing.id%}" id="update-follow-form">
+              {% csrf_token %}
+              <input type="checkbox" name="follow" id="follow-checkbox"
+                     {% if thing_ownership.follows_thing %}checked{% endif %} onchange="submitForm()">
+              <label>Follow</label>
+            </form>
+        {% endif %}
+    {% endif %}
+
+    <table>
+        <tr>
+            <td>Deployment By</td>
+            <td>{{ thing_ownership.person_id.first_name }} {{ thing_ownership.person_id.last_name }}</td>
+        </tr>
+        <tr>
+            <td>Organization</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Registration Date</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Deployment Date</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Latitude</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Longitude</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Elevation (m)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Elevation Datum</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Site Type</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Major Watershed</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Sub Basin</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Closest Town</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Notes</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Registration Token</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Sampling Feature UUID</td>
+            <td></td>
+        </tr>
+    </table>
+    <br>
+
+    <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
+
+<script>
+  function submitForm() {
+    document.getElementById("update-follow-form").submit();
+  }
+</script>
+
 {% endblock content%}

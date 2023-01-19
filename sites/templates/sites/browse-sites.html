@@ -1,0 +1,11 @@
+{% extends 'main.html' %}
+{% block content %}
+
+    <title>Browse Sites</title>
+    <span>Browse Data Collection Sites&nbsp;</span>
+
+    {% for thing in things %}
+        <p><a href ="{% url 'site' thing.id %}">{{ thing.name }}</a></p>
+    {% endfor %}
+
+{% endblock content %}

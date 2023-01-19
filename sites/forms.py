@@ -1,12 +1,8 @@
-from .models import Site
+from sensorthings.models import Thing
 from django.forms import ModelForm
-from django import forms
 
 
-class SiteForm(ModelForm):
+class ThingForm(ModelForm):
     class Meta:
-        model = Site
-        fields = ['name', 'latitude', 'longitude', 'elevation']
-        # widgets = {
-        #     'name': forms.CheckboxSelectMultiple(),
-        # }
+        model = Thing
+        fields = ['name', 'description']
