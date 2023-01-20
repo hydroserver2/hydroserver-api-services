@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sensorthings', '0003_remove_historicallocation_location_and_more'),
+        ('sensorthings', '0001_initial'),
     ]
 
     operations = [
