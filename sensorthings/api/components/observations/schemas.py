@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING, Literal
-from pydantic import Field, HttpUrl
+from pydantic import Field, HttpUrl, validator
+from datetime import datetime
 from ninja import Schema
 from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBody, BasePatchBody, EntityId, NestedEntity
+from sensorthings.api.core.iso_types import ISOTime, ISOInterval
 from sensorthings.api.core.utils import allow_partial
 
 if TYPE_CHECKING:
@@ -25,11 +27,11 @@ class UnitOfMeasurement(Schema):
 
 
 class ObservationFields(Schema):
-    phenomenon_time: str | None = Field(..., alias='phenomenonTime')
+    phenomenon_time: ISOTime | ISOInterval | None = Field(..., alias='phenomenonTime')
     result: str
-    result_time: str | None = Field(..., alias='resultTime')
+    result_time: ISOTime | None = Field(..., alias='resultTime')
     result_quality: str | None = Field(None, alias='resultQuality')
-    valid_time: str | None = Field(None, alias='validTime')
+    valid_time: ISOInterval | None = Field(None, alias='validTime')
     parameters: dict = {}
 
 

@@ -8,8 +8,8 @@ class CreateObservationTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.observation_data = {
-            'phenomenonTime': '2023-01-01T11:11:11.111Z',
-            'resultTime': '2023-01-01T11:11:11.111Z',
+            'phenomenonTime': '2023-01-01T11:11:11+00:00',
+            'resultTime': '2023-01-01T11:11:11+00:00',
             'result': 'test',
             'FeatureOfInterest': {
                 'name': 'test',
