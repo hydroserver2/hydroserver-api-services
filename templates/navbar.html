@@ -14,7 +14,7 @@
     </label>
     <ul class="header__menu">
       <li class="header__menuItem"><a href="{% url 'sites' %}">My Sites</a></li>
-      <li class="header__menuItem"><a href="">Browse</a></li>
+      <li class="header__menuItem"><a href="{% url 'browse' %}">Browse</a></li>
       <li class="header__menuItem"><a href="">Time Series Visualization</a></li>
 
       {% if request.user.is_authenticated %}

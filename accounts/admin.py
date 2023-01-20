@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.apps import AppConfig
+from .models import CustomUser
 
-
-class AccountsConfig(AppConfig):
-    name = 'accounts'
+admin.site.register(CustomUser)

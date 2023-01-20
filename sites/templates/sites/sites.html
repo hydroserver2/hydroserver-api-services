@@ -7,10 +7,17 @@
 
     <h3>My Registered Sites</h3>
     <a href="{% url 'register-site' %}"><button>Register a New Site</button></a>
-    {% for site in sites %}
-        <p><a href ="{% url 'site' site.id %}">{{ site.name }}</a></p>
+
+
+    {% for thing in owned_things %}
+        <p><a href ="{% url 'site' thing.id %}">{{ thing.name }}</a></p>
     {% endfor %}
+
     <h3>Followed Sites</h3>
+
+    {% for thing in followed_things %}
+        <p><a href ="{% url 'site' thing.id %}">{{ thing.name }}</a></p>
+    {% endfor %}
 
 
 {% endblock content %}

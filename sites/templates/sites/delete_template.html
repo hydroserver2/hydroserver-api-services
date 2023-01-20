@@ -4,7 +4,7 @@
 
 <form action="" method="POST">
     {% csrf_token %}
-    <p>Are you sure you want to delete "{{ object }}"</p>
+    <p>Are you sure you want to delete "{{ object.name }}"</p>
 
     <a href="{% url 'site' object.id %}">
         Go Back

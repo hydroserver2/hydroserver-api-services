@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
     'datastores',
-    'sensorthings'
+    'sensorthings',
 ]
 
 MIDDLEWARE = [
