@@ -5,9 +5,9 @@ from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBod
 from sensorthings.api.core.utils import allow_partial
 
 if TYPE_CHECKING:
-    from sensorthings.api.entities.locations.schemas import Location
-    from sensorthings.api.entities.historicallocations.schemas import HistoricalLocation
-    from sensorthings.api.entities.datastreams.schemas import Datastream
+    from sensorthings.api.components.locations.schemas import Location
+    from sensorthings.api.components.historicallocations.schemas import HistoricalLocation
+    from sensorthings.api.components.datastreams.schemas import Datastream
 
 
 class ThingFields(Schema):
@@ -34,7 +34,7 @@ class ThingPostBody(BasePostBody, ThingFields):
         [], alias='HistoricalLocations', nested_class='HistoricalLocationPostBody'
     )
     datastreams: list[NestedEntity] = Field(
-        [], alias='Datastreams', nestable=True
+        [], alias='Datastreams', nested_class='DatastreamPostBody'
     )
 
 

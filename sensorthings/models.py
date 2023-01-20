@@ -10,6 +10,7 @@ class Thing(models.Model):
 
 
 class Location(models.Model):
+    name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
     location = models.TextField()
@@ -46,7 +47,7 @@ class FeatureOfInterest(models.Model):
     properties = models.TextField(null=True)
 
 
-class DataStream(models.Model):
+class Datastream(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     unit_of_measurement = models.TextField()
@@ -61,10 +62,11 @@ class DataStream(models.Model):
 
 
 class Observation(models.Model):
+    phenomenon_time = models.DateTimeField()
     result = models.CharField(max_length=255)
     result_time = models.DateTimeField()
     result_quality = models.CharField(max_length=255, null=True)
     valid_time = models.DateTimeField(null=True)
-    properties = models.TextField(null=True)
-    data_stream = models.ForeignKey(DataStream, on_delete=models.CASCADE)
+    parameters = models.TextField(null=True)
+    datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
     feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)

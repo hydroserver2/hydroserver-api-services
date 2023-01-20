@@ -2,7 +2,7 @@ import inflection
 from django.utils.deprecation import MiddlewareMixin
 from django.urls import resolve, ResolverMatch
 from django.urls.exceptions import Http404
-from django.apps import apps
+from django.conf import settings
 from django.http import HttpRequest
 from sensorthings import api as sta
 from sensorthings.api.core.main import SensorThings
@@ -10,7 +10,7 @@ from sensorthings.api.core.main import SensorThings
 
 class SensorThingsRouter(MiddlewareMixin):
     ST_ENTITIES = [
-        'DataStream',
+        'Datastream',
         'FeatureOfInterest',
         'HistoricalLocation',
         'Location',
@@ -22,13 +22,13 @@ class SensorThingsRouter(MiddlewareMixin):
 
     def process_request(self, request: HttpRequest) -> None:
         """
-        Middleware for resolving nested entities in URLs.
+        Middleware for resolving nested components in URLs.
 
         :param request: Django HttpRequest object.
         :return: None
         """
 
-        if request.path_info.startswith(f'/{apps.get_app_config("sensorthings").api_prefix}/'):
+        if request.path_info.startswith(f'/{settings.ST_PREFIX}/'):
             resolved_path = resolve(request.path_info)
 
             if resolved_path.url_name is not None:

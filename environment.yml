@@ -11,8 +11,8 @@ dependencies:
   - dj-database-url=0.5.0
   - pyyaml=6.0
   - inflection=0.5.1
-
   - sqlalchemy=1.4.45
 
   - pip:
       - sqlalchemy-json==0.5.0
+      - geojson-pydantic==0.5.0

@@ -170,6 +170,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SensorThings API Settings
 
 ST_VERSION = '1.1'
+ST_PREFIX = 'sta'
+ST_BASE_URL = f'/{ST_PREFIX}/v{ST_VERSION}'
 
 ST_API = {
     'title': 'HydroServer SensorThings API',
@@ -200,30 +202,30 @@ ST_CONFORMANCE = [
 ST_CAPABILITIES = [
     {
         'NAME': 'Things',
-        'VIEW': 'get_things'
+        'VIEW': 'list_thing'
     },
     {
         'NAME': 'Locations',
-        'VIEW': 'get_locations'
+        'VIEW': 'list_location'
     },
     {
         'NAME': 'Datastreams',
-        'VIEW': 'get_data_streams'
+        'VIEW': 'list_datastream'
     },
     {
         'NAME': 'Sensors',
-        'VIEW': 'get_sensors'
+        'VIEW': 'list_sensor'
     },
     {
         'NAME': 'Observations',
-        'VIEW': 'get_observations'
+        'VIEW': 'list_observation'
     },
     {
         'NAME': 'ObservedProperties',
-        'VIEW': 'get_observed_properties'
+        'VIEW': 'list_observed_property'
     },
     {
         'NAME': 'FeaturesOfInterest',
-        'VIEW': 'get_features_of_interest'
+        'VIEW': 'list_feature_of_interest'
     },
 ]
