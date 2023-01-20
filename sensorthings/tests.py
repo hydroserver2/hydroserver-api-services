@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pydantic import BaseModel, ValidationError, validator
-from .api.entities import ThingPostBody, LocationPostBody
+from .api.components import ThingPostBody, LocationPostBody
 from .api.core.utils import whitespace_to_none, allow_partial
 
 
@@ -107,6 +107,7 @@ class NestedEntityValidator(TestCase):
 
         self.location_data = [
             {
+                'name': 'logan',
                 'description': 'Logan, UT',
                 'encodingType': 'application/geo+json',
                 'location': {

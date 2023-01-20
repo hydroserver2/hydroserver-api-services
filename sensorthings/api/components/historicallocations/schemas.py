@@ -6,8 +6,8 @@ from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBod
 from sensorthings.api.core.utils import allow_partial
 
 if TYPE_CHECKING:
-    from sensorthings.api.entities.things.schemas import Thing
-    from sensorthings.api.entities.locations.schemas import Location
+    from sensorthings.api.components.things.schemas import Thing
+    from sensorthings.api.components.locations.schemas import Location
 
 
 class HistoricalLocationFields(Schema):
@@ -25,17 +25,17 @@ class HistoricalLocation(HistoricalLocationFields, HistoricalLocationRelations):
 
 class HistoricalLocationPostBody(BasePostBody, HistoricalLocationFields):
     thing: EntityId | NestedEntity = Field(
-        {}, alias='Thing', nested_class='ThingPostBody'
+        ..., alias='Thing', nested_class='ThingPostBody'
     )
     locations: list[EntityId | NestedEntity] = Field(
-        [], alias='Locations', nested_class='LocationPostBody'
+        ..., alias='Locations', nested_class='LocationPostBody'
     )
 
 
 @allow_partial
 class HistoricalLocationPatchBody(HistoricalLocationFields, BasePatchBody):
     thing: EntityId = Field(..., alias='Thing')
-    locations: list[EntityId] = Field([], alias='Locations')
+    locations: list[EntityId] = Field(..., alias='Locations')
 
 
 class HistoricalLocationGetResponse(BaseGetResponse, HistoricalLocationFields):

@@ -10,13 +10,15 @@ router = Router()
 
 @router.get(
     f'v{settings.ST_VERSION}',
-    #auth=django_auth,
+    # auth=django_auth,
     include_in_schema=False,
     by_alias=True,
     response=ServerRootResponse
 )
 def get_root(request):
-    """"""
+    """
+    Get SensorThings server capabilities.
+    """
 
     host_url = request.get_host()
     response = {

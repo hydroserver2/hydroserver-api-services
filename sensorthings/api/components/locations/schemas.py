@@ -5,14 +5,15 @@ from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBod
 from sensorthings.api.core.utils import allow_partial
 
 if TYPE_CHECKING:
-    from sensorthings.api.entities.things.schemas import Thing
-    from sensorthings.api.entities.historicallocations.schemas import HistoricalLocation
+    from sensorthings.api.components.things.schemas import Thing
+    from sensorthings.api.components.historicallocations.schemas import HistoricalLocation
 
 
 locationEncodingTypes = Literal['application/geo+json']
 
 
 class LocationFields(Schema):
+    name: str
     description: str
     encoding_type: locationEncodingTypes = Field(..., alias='encodingType')
     location: dict

@@ -1,14 +1,14 @@
 import inspect
 import sensorthings.api.core.schemas as core_schemas
-import sensorthings.api.entities as sensorthings_entities
+import sensorthings.api.components as sensorthings_entities
 from pydantic import BaseModel
 
 
 def nested_entities_check(value, field):
     """
-    Validation for nested entities.
+    Validation for nested components.
 
-    Runs validation on nested entities in request bodies to avoid circular relationships in the API documentation.
+    Runs validation on nested components in request bodies to avoid circular relationships in the API documentation.
 
     :param value: The input value.
     :param field: The field being validated.
