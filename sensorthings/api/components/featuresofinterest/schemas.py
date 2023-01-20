@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Literal
 from pydantic import Field, HttpUrl
+from geojson_pydantic import Feature
 from ninja import Schema
 from sensorthings.api.core import BaseListResponse, BaseGetResponse, BasePostBody, BasePatchBody, EntityId, NestedEntity
 from sensorthings.api.core.utils import allow_partial
@@ -15,7 +16,7 @@ class FeatureOfInterestFields(Schema):
     name: str
     description: str
     encoding_type: featureEncodingTypes = Field(..., alias='encodingType')
-    feature: dict
+    feature: Feature
     properties: dict = {}
 
 
