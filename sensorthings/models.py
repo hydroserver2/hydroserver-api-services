@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import models
 
 
@@ -81,5 +79,5 @@ class Observation(models.Model):
     feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.data_stream.thing.name}: " \
-               f"{self.data_stream.observed_property.name} - {self.result_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"{self.datastream.thing.name}: " \
+               f"{self.datastream.observed_property.name} - {self.result_time.strftime('%Y-%m-%d %H:%M:%S')}"

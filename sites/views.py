@@ -91,16 +91,16 @@ def export_csv(request, thing_pk):
     response = StreamingHttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(thing.name)
 
-    observations = Observation.objects.filter(data_stream__thing_id=thing_pk).select_related('data_stream__observed_property')
+    observations = Observation.objects.filter(datastream__thing_id=thing_pk).select_related('datastream__observed_property')
 
     def csv_iter():
-        observed_property_names = list(observations.values_list('data_stream__observed_property__name', flat=True).distinct())
+        observed_property_names = list(observations.values_list('datastream__observed_property__name', flat=True).distinct())
         yield f'DateTime,{",".join(observed_property_names)}\n'
 
         # Group observations by result_time and yield row by row
         observations_by_time = defaultdict(lambda: {name: '' for name in observed_property_names})
         for obs in observations:
-            observations_by_time[obs.result_time][obs.data_stream.observed_property.name] = obs.result
+            observations_by_time[obs.result_time][obs.datastream.observed_property.name] = obs.result
 
         for result_time, props in observations_by_time.items():
             yield f'{result_time.strftime("%m/%d/%Y %I:%M:%S %p")},' + ','.join(props.values()) + '\n'
