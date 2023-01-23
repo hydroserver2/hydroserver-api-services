@@ -7,10 +7,8 @@
         {%if thing_ownership.owns_thing %}
             <div class="col-12 text-right">
                 <a href="#">View Token UUID List</a>
-                <a style="background: #34bb97; color:#FFF;" href="#">Edit</a>
-                <button type="button" data-toggle="modal" data-target="#site-delete-dialog"
-                        style="background: #d9534f; color:#FFF;">Delete
-                </button>
+                <button><a href="">Edit Site</a></button>
+                <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
             </div>
         {% else %}
             <form method="post" action="{% url 'update_follow' thing.id%}" id="update-follow-form">
@@ -86,7 +84,8 @@
     </table>
     <br>
 
-    <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
+    <hr>
+    <button id="download-button"><a href="{% url "export_csv" thing.pk %}">Download Site Data</a></button>
 
 <script>
   function submitForm() {

@@ -1,10 +1,10 @@
-import json
+from collections import defaultdict
 
-from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import StreamingHttpResponse
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
-from sensorthings.models import Thing
+from sensorthings.models import Thing, Observation
 from .forms import ThingForm
 
 from .models import ThingOwnership
@@ -78,3 +78,32 @@ def browse_sites(request):
     things = Thing.objects.all()
     context = {'things': things}
     return render(request,  'sites/browse-sites.html', context)
+
+
+def export_csv(request, thing_pk):
+    """
+    This algorithm exports all the observations associated with the passed in thing_pk into a CSV file in O(n) time.
+    The use of select_related() improves the efficiency of the algorithm by reducing the number of database queries.
+    This iterates over the observations once, storing the observations in a dictionary, then yields the rows one by one.
+    This algorithm is memory-efficient since it doesn't load the whole data into memory.
+    """
+    thing = Thing.objects.get(id=thing_pk)
+    response = StreamingHttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(thing.name)
+
+    observations = Observation.objects.filter(data_stream__thing_id=thing_pk).select_related('data_stream__observed_property')
+
+    def csv_iter():
+        observed_property_names = list(observations.values_list('data_stream__observed_property__name', flat=True).distinct())
+        yield f'DateTime,{",".join(observed_property_names)}\n'
+
+        # Group observations by result_time and yield row by row
+        observations_by_time = defaultdict(lambda: {name: '' for name in observed_property_names})
+        for obs in observations:
+            observations_by_time[obs.result_time][obs.data_stream.observed_property.name] = obs.result
+
+        for result_time, props in observations_by_time.items():
+            yield f'{result_time.strftime("%m/%d/%Y %I:%M:%S %p")},' + ','.join(props.values()) + '\n'
+
+    response.streaming_content = csv_iter()
+    return response

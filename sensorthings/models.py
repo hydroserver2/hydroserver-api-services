@@ -8,6 +8,9 @@ class Thing(models.Model):
     description = models.TextField(null=True, blank=True)
     properties = models.TextField(null=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Location(models.Model):
     name = models.CharField(max_length=255)
@@ -31,12 +34,18 @@ class Sensor(models.Model):
     sensor_metadata = models.TextField(null=True)
     properties = models.TextField(null=True)
 
+    def __str__(self):
+        return self.name
+
 
 class ObservedProperty(models.Model):
     name = models.CharField(max_length=255)
     definition = models.TextField()
     description = models.TextField()
     properties = models.TextField(null=True)
+
+    def __str__(self):
+        return self.name
 
 
 class FeatureOfInterest(models.Model):
@@ -70,3 +79,7 @@ class Observation(models.Model):
     parameters = models.TextField(null=True)
     datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
     feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.data_stream.thing.name}: " \
+               f"{self.data_stream.observed_property.name} - {self.result_time.strftime('%Y-%m-%d %H:%M:%S')}"
