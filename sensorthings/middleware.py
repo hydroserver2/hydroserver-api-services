@@ -9,15 +9,8 @@ from sensorthings.api.core.main import SensorThings
 
 
 class SensorThingsRouter(MiddlewareMixin):
-    ST_ENTITIES = [
-        'Datastream',
-        'FeatureOfInterest',
-        'HistoricalLocation',
-        'Location',
-        'Observation',
-        'ObservedProperty',
-        'Sensor',
-        'Thing'
+    st_components = [
+        capability['SINGULAR_NAME'] for capability in settings.ST_CAPABILITIES
     ]
 
     def process_request(self, request: HttpRequest) -> None:
@@ -68,7 +61,7 @@ class SensorThingsRouter(MiddlewareMixin):
 
         entity = inflection.camelize(resolved_path.url_name.split('_', 1)[-1])
 
-        if entity in self.ST_ENTITIES:
+        if entity in self.st_components:
             return entity
 
     def resolve_nested_entity(self, request: HttpRequest) -> str | None:
@@ -99,7 +92,7 @@ class SensorThingsRouter(MiddlewareMixin):
                 component = inflection.camelize(prop_name)
                 entity = component
                 endpoint = f'{path_prefix}/{raw_component}'
-            elif resolved_path.url_name is None and raw_component in self.ST_ENTITIES:
+            elif resolved_path.url_name is None and raw_component in self.st_components:
                 prop_name = inflection.underscore(raw_component)
                 component = inflection.camelize(prop_name)
                 entity = component
@@ -111,7 +104,7 @@ class SensorThingsRouter(MiddlewareMixin):
                 prop_name = inflection.underscore(raw_component)
                 component = raw_component
 
-            if previous_component and previous_component in self.ST_ENTITIES:
+            if previous_component and previous_component in self.st_components:
                 if prop_name not in getattr(sta, previous_component).__fields__:
                     raise Http404
             elif previous_component in ['$value', '$ref']:
@@ -128,5 +121,5 @@ class SensorThingsRouter(MiddlewareMixin):
         if endpoint:
             request.path_info = endpoint
 
-        if entity in self.ST_ENTITIES:
+        if entity in self.st_components:
             return entity

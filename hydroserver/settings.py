@@ -202,30 +202,37 @@ ST_CONFORMANCE = [
 ST_CAPABILITIES = [
     {
         'NAME': 'Things',
+        'SINGULAR_NAME': 'Thing',
         'VIEW': 'list_thing'
     },
     {
         'NAME': 'Locations',
+        'SINGULAR_NAME': 'Location',
         'VIEW': 'list_location'
     },
     {
         'NAME': 'Datastreams',
+        'SINGULAR_NAME': 'Datastream',
         'VIEW': 'list_datastream'
     },
     {
         'NAME': 'Sensors',
+        'SINGULAR_NAME': 'Sensor',
         'VIEW': 'list_sensor'
     },
     {
         'NAME': 'Observations',
+        'SINGULAR_NAME': 'Observation',
         'VIEW': 'list_observation'
     },
     {
         'NAME': 'ObservedProperties',
+        'SINGULAR_NAME': 'ObservedProperty',
         'VIEW': 'list_observed_property'
     },
     {
         'NAME': 'FeaturesOfInterest',
+        'SINGULAR_NAME': 'FeatureOfInterest',
         'VIEW': 'list_feature_of_interest'
     },
 ]
