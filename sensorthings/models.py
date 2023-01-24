@@ -14,7 +14,7 @@ class Location(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
-    location = models.JSONField()
+    location = models.TextField()
     properties = models.TextField(null=True)
     things = models.ManyToManyField(Thing, related_name='locations')
 

@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 
 from django.http import StreamingHttpResponse
@@ -26,7 +27,11 @@ def site(request, pk):
     # Multiple users can follow the same site, therefore:
     # Get all the ThingOwnerships related to this thing
     thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
-    location = Location.objects.filter(things=thing).first().location['geometry']['coordinates']
+    location = Location.objects.filter(things=thing).first().location
+    try:
+        location = json.loads(location)['geometry']['coordinates']
+    except:
+        location = [None, None]
     thing_ownership = False
     if request.user.is_authenticated:
         thing_ownership = thing_ownerships.filter(thing_id=thing, person_id=request.user).first()
@@ -56,6 +61,7 @@ def register_site(request):
                     "coordinates": [float(form.cleaned_data['longitude']), float(form.cleaned_data['latitude'])]
                 }
             }
+            location_data = json.dumps(location_data)
             new_location = Location.objects.create(name='Location for ' + new_thing.name,
                                                    description=new_thing.description,
                                                    encoding_type="application/geo+json",
