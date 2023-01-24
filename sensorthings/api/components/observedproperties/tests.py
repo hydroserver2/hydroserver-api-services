@@ -27,4 +27,4 @@ class CreateObservedPropertyTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.headers.get('location'), 'testserver/sta/v1.1/ObservedProperties(1)')
+        self.assertEqual(response.headers.get('location'), 'http://testserver/sta/v1.1/ObservedProperties(1)')

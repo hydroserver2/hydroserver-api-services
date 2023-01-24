@@ -1,5 +1,5 @@
 from ninja import Router, Query
-from ninja.security import django_auth
+from ninja.security import django_auth, HttpBasicAuth
 from django.http import HttpResponse
 from sensorthings.api.core.schemas import Filters
 from sensorthings.api.core.main import SensorThingsRequest
@@ -12,14 +12,24 @@ router = Router(tags=['Things'])
 @router.get(
     '/Things',
     # auth=django_auth,
-    # response={200, ThingListResponse},
+    response={200: ThingListResponse},
     by_alias=True,
-    url_name='list_thing'
+    url_name='list_thing',
+    exclude_none=True
 )
 def get_things(request: SensorThingsRequest, filters: Filters = Query(...)):
-    """"""
+    """
+    Get a collection of Thing entities.
 
-    return {}
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/properties" target="_blank">\
+      Thing Properties</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/relations" target="_blank">\
+      Thing Relations</a>
+    """
+
+    response = request.engine.list(**filters.dict())
+
+    return 200, response
 
 
 @router.get(
@@ -29,7 +39,14 @@ def get_things(request: SensorThingsRequest, filters: Filters = Query(...)):
     by_alias=True
 )
 def get_thing(request: SensorThingsRequest, thing_id: str):
-    """"""
+    """
+    Get a Thing entity.
+
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/properties" target="_blank">\
+      Thing Properties</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/thing/relations" target="_blank">\
+      Thing Relations</a>
+    """
 
     return {}
 

@@ -182,8 +182,7 @@ ST_API = {
     ''',
     'csrf': False,
     'docs_url': f'/v{ST_VERSION}/docs',
-    'openapi_url': f'/v{ST_VERSION}/openapi.json',
-    # 'docs_decorator': staff_member_required
+    'openapi_url': f'/v{ST_VERSION}/openapi.json'
 }
 
 ST_CONFORMANCE = [
@@ -209,6 +208,11 @@ ST_CAPABILITIES = [
         'NAME': 'Locations',
         'SINGULAR_NAME': 'Location',
         'VIEW': 'list_location'
+    },
+    {
+        'NAME': 'HistoricalLocations',
+        'SINGULAR_NAME': 'HistoricalLocation',
+        'VIEW': 'list_historical_location'
     },
     {
         'NAME': 'Datastreams',

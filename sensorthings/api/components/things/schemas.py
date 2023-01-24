@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class ThingFields(Schema):
     name: str
     description: str
-    properties: dict = {}
+    properties: dict | str = {}
 
 
 class ThingRelations(Schema):
@@ -43,7 +43,7 @@ class ThingPatchBody(BasePatchBody, ThingFields):
     locations: list[EntityId] = Field([], alias='Locations')
 
 
-class ThingGetResponse(BaseGetResponse, ThingFields):
+class ThingGetResponse(ThingFields, BaseGetResponse):
     locations_link: HttpUrl = Field(..., alias='Locations@iot.navigationLink')
     historical_locations_link: HttpUrl = Field(..., alias='HistoricalLocations@iot.navigationLink')
     datastreams_link: HttpUrl = Field(..., alias='Datastreams@iot.navigationLink')
@@ -51,3 +51,4 @@ class ThingGetResponse(BaseGetResponse, ThingFields):
 
 class ThingListResponse(BaseListResponse):
     value: list[ThingGetResponse]
+

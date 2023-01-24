@@ -45,6 +45,7 @@ class SensorThingsRouter(MiddlewareMixin):
         if hasattr(request, 'entity') and request.entity is not None:
             request.engine = SensorThings(
                 host=request.get_host(),
+                scheme=request.scheme,
                 path=request.path_info,
                 entity=request.entity
             )
