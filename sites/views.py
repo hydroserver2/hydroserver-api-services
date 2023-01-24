@@ -4,7 +4,7 @@ from django.http import StreamingHttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
-from sensorthings.models import Thing, Observation
+from sensorthings.models import Thing, Observation, Location
 from .forms import ThingForm
 
 from .models import ThingOwnership
@@ -26,12 +26,15 @@ def site(request, pk):
     # Multiple users can follow the same site, therefore:
     # Get all the ThingOwnerships related to this thing
     thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
+    location = Location.objects.filter(things=thing).first().location['geometry']['coordinates']
     thing_ownership = False
     if request.user.is_authenticated:
         thing_ownership = thing_ownerships.filter(thing_id=thing, person_id=request.user).first()
 
     return render(request, 'sites/single-site.html', {
         'thing': thing,
+        'latitude': location[0],
+        'longitude': location[1],
         'thing_ownership': thing_ownership,
         'is_authenticated': request.user.is_authenticated
     })
@@ -45,8 +48,21 @@ def register_site(request):
         form = ThingForm(request.POST, request.FILES)
         if form.is_valid():
             new_thing = form.save()
-            thing_ownership = ThingOwnership(thing_id=new_thing, person_id=request.user, owns_thing=True)
-            thing_ownership.save()
+
+            location_data = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [float(form.cleaned_data['longitude']), float(form.cleaned_data['latitude'])]
+                }
+            }
+            new_location = Location.objects.create(name='Location for ' + new_thing.name,
+                                                   description=new_thing.description,
+                                                   encoding_type="application/geo+json",
+                                                   location=location_data)
+
+            new_location.things.add(new_thing)
+            thing_ownership = ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
             return redirect('sites')
 
     context = {'form': form}
@@ -77,7 +93,7 @@ def update_follow(request, pk):
 def browse_sites(request):
     things = Thing.objects.all()
     context = {'things': things}
-    return render(request,  'sites/browse-sites.html', context)
+    return render(request, 'sites/browse-sites.html', context)
 
 
 def export_csv(request, thing_pk):
@@ -91,10 +107,12 @@ def export_csv(request, thing_pk):
     response = StreamingHttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(thing.name)
 
-    observations = Observation.objects.filter(datastream__thing_id=thing_pk).select_related('datastream__observed_property')
+    observations = Observation.objects.filter(datastream__thing_id=thing_pk).select_related(
+        'datastream__observed_property')
 
     def csv_iter():
-        observed_property_names = list(observations.values_list('datastream__observed_property__name', flat=True).distinct())
+        observed_property_names = list(
+            observations.values_list('datastream__observed_property__name', flat=True).distinct())
         yield f'DateTime,{",".join(observed_property_names)}\n'
 
         # Group observations by result_time and yield row by row

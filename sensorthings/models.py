@@ -14,9 +14,12 @@ class Location(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
-    location = models.TextField()
+    location = models.JSONField()
     properties = models.TextField(null=True)
     things = models.ManyToManyField(Thing, related_name='locations')
+
+    def __str__(self):
+        return self.name
 
 
 class HistoricalLocation(models.Model):

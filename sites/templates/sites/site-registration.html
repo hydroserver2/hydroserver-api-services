@@ -6,8 +6,10 @@
     {% csrf_token %}
     <!-- Input:Text -->
     {% for field in form %}
+        <p>
         <label for="formInput#text">{{ field.label}}</label>
         {{ field }}
+        </p>
     {% endfor%}
 
     <input type="submit" value="Add Site" />
