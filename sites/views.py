@@ -41,8 +41,25 @@ def site(request, pk):
         'latitude': location[0],
         'longitude': location[1],
         'thing_ownership': thing_ownership,
+        'thing_owner': thing_ownerships.filter(thing_id=thing, owns_thing=True).first().person_id,
         'is_authenticated': request.user.is_authenticated
     })
+
+
+def register_location(new_thing, form):
+    location_data = {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [float(form.cleaned_data['longitude']), float(form.cleaned_data['latitude'])]
+        }
+    }
+    location_data = json.dumps(location_data)
+    new_location = Location.objects.create(name='Location for ' + new_thing.name,
+                                           description=new_thing.description,
+                                           encoding_type="application/geo+json",
+                                           location=location_data)
+    new_location.things.add(new_thing)
 
 
 @login_required(login_url="login")
@@ -53,22 +70,8 @@ def register_site(request):
         form = ThingForm(request.POST, request.FILES)
         if form.is_valid():
             new_thing = form.save()
-
-            location_data = {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [float(form.cleaned_data['longitude']), float(form.cleaned_data['latitude'])]
-                }
-            }
-            location_data = json.dumps(location_data)
-            new_location = Location.objects.create(name='Location for ' + new_thing.name,
-                                                   description=new_thing.description,
-                                                   encoding_type="application/geo+json",
-                                                   location=location_data)
-
-            new_location.things.add(new_thing)
-            thing_ownership = ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
+            register_location(new_thing, form)
+            ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
             return redirect('sites')
 
     context = {'form': form}

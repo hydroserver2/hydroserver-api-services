@@ -23,11 +23,11 @@
     <table>
         <tr>
             <td>Deployment By</td>
-            <td>{{ thing_ownership.person_id.first_name }} {{ thing_ownership.person_id.last_name }}</td>
+            <td>{{ thing_owner.first_name }} {{ thing_owner.last_name }}</td>
         </tr>
         <tr>
             <td>Organization</td>
-            <td></td>
+            <td>{{ thing_owner.organization }}</td>
         </tr>
         <tr>
             <td>Registration Date</td>
