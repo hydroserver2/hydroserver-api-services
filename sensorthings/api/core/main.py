@@ -1,7 +1,10 @@
+import json
+import pandas as pd
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
 from django.urls.exceptions import Http404
 from pydantic.fields import SHAPE_LIST
+from pydantic import BaseModel
 from sensorthings import models
 from sensorthings.api.core.schemas import BasePostBody
 from sensorthings.api import components as component_schemas
@@ -16,7 +19,7 @@ class SensorThings:
         self.path = path
         self.model = getattr(models, entity)
 
-    def get_ref(self, entity_id: int | None = None) -> str:
+    def get_ref(self, entity_id: int | None = None, related_component: str | None = None) -> str:
         """
         Builds a reference URL for a given resource.
 
@@ -28,6 +31,9 @@ class SensorThings:
 
         if entity_id is not None:
             ref_url = f'{ref_url}({entity_id})'
+
+        if related_component is not None:
+            ref_url = f'{ref_url}/{related_component}'
 
         return ref_url
 
@@ -59,10 +65,13 @@ class SensorThings:
         if top is not None or skip != 0:
             queryset = self.apply_pagination(queryset, top, skip)
 
-        response_value = list(queryset)
-        response_value = self.build_related_links(response_value)
-        response_value = self.build_self_links(response_value)
-        response['value'] = response_value
+        response_df = pd.DataFrame(list(queryset))
+
+        response_df = self.deserialize_json_fields(response_df)
+        response_df = self.build_related_links(response_df)
+        response_df = self.build_self_links(response_df)
+
+        response['value'] = response_df.to_dict('records')
 
         if top is not None and (top + skip) < response_count:
             response['next_link'] = self.build_next_link(top, skip)
@@ -96,6 +105,10 @@ class SensorThings:
                         model=getattr(models, nested_entity)
                     ) if issubclass(type(sub_value), BasePostBody) else sub_value.id for sub_value in value
                 ]
+            elif issubclass(type(value), BaseModel):
+                entity_data[field] = json.dumps(value.dict())
+            elif isinstance(value, dict):
+                entity_data[field] = json.dumps(value)
             else:
                 entity_data[field] = value
 
@@ -186,39 +199,52 @@ class SensorThings:
 
         return f'{self.get_ref()}?$top={top}&$skip={top+skip}'
 
-    def build_related_links(self, response_value):
+    def deserialize_json_fields(self, response_df):
         """"""
 
-        relations = getattr(component_schemas, f'{self.model.__name__}Relations')
+        for name, field in getattr(component_schemas, f'{self.model.__name__}Fields').__fields__.items():
+            if field.type_ == dict:
+                response_df[name] = response_df.apply(
+                    lambda row: json.loads(getattr(row, name)) if getattr(row, name) is not None else None,
+                    axis=1
+                )
+            elif issubclass(field.type_, BaseModel):
+                response_df[name] = response_df.apply(
+                    lambda row: json.loads(getattr(row, name).dict()) if getattr(row, name) is not None else None,
+                    axis=1
+                )
 
-        for name, field in relations.__fields__.items():
+        return response_df
+
+    def build_related_links(self, response_df):
+        """"""
+
+        for name, field in getattr(component_schemas, f'{self.model.__name__}Relations').__fields__.items():
             if field.shape == SHAPE_LIST:
-                related_field_name = [
+                related_component = [
                     component for component
                     in settings.ST_CAPABILITIES
                     if component['SINGULAR_NAME'] == field.type_.__name__
                 ][0]['NAME']
             else:
-                related_field_name = field.type_.__name__
+                related_component = field.type_.__name__
 
-            response_value = [
-                {
-                    f'{name}_link': f'{self.get_ref(entity["id"])}/{related_field_name}',
-                    **entity
-                } for entity in response_value
-            ]
+            response_df[f'{name}_link'] = response_df.apply(
+                lambda row: self.get_ref(row.id, related_component),
+                axis=1
+            )
 
-        return response_value
+        return response_df
 
-    def build_self_links(self, response_value):
+    def build_self_links(self, response_df):
         """"""
 
-        return [
-            {
-                'self_link': self.get_ref(entity.get('id')),
-                **entity
-            } for entity in response_value
-        ]
+        response_df['self_link'] = response_df.apply(
+            lambda row: self.get_ref(row.id),
+            axis=1
+        )
+
+        return response_df
 
 
 class SensorThingsRequest(HttpRequest):

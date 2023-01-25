@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class ThingFields(Schema):
     name: str
     description: str
-    properties: dict | str = {}
+    properties: dict | None = None
 
 
 class ThingRelations(Schema):
