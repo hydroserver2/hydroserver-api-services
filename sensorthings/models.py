@@ -70,6 +70,9 @@ class Datastream(models.Model):
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.name
+
 
 class Observation(models.Model):
     phenomenon_time = models.DateTimeField()

@@ -3,7 +3,7 @@ from django.db import models
 import uuid
 
 from accounts.models import CustomUser
-from sensorthings.models import Thing
+from sensorthings.models import Thing, Sensor
 
 
 # class Site(models.Model):
@@ -22,3 +22,19 @@ class ThingOwnership(models.Model):
     person_id = ForeignKey(CustomUser, on_delete=models.CASCADE)
     owns_thing = models.BooleanField(default=False)
     follows_thing = models.BooleanField(default=False)
+
+
+class SensorManufacturer(models.Model):
+    name = models.CharField(max_length=255, primary_key=True)
+
+    def __str__(self):
+        return self.name
+
+
+class SensorModel(models.Model):
+    name = models.CharField(max_length=255, primary_key=True)
+    manufacturer = models.ForeignKey(SensorManufacturer, on_delete=models.CASCADE)
+    sensor = models.OneToOneField(Sensor, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name

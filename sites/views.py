@@ -1,14 +1,14 @@
 import json
 from collections import defaultdict
 
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
-from sensorthings.models import Thing, Observation, Location
-from .forms import ThingForm
+from sensorthings.models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
+from .forms import ThingForm, SensorForm
 
-from .models import ThingOwnership
+from .models import ThingOwnership, SensorManufacturer, SensorModel
 
 
 @login_required(login_url="login")
@@ -103,6 +103,75 @@ def browse_sites(request):
     things = Thing.objects.all()
     context = {'things': things}
     return render(request, 'sites/browse-sites.html', context)
+
+
+def sensors(request, thing_pk):
+    thing = Thing.objects.prefetch_related('datastreams__sensor').get(id=thing_pk)
+    datastreams = [datastream for datastream in thing.datastreams.all()]
+    sensors = [datastream.sensor for datastream in thing.datastreams.all()]
+    return render(request, 'sites/manage-sensors.html', {'thing': thing, 'sensors': sensors, 'datastreams': datastreams})
+
+
+def register_datastream(request, thing_pk):
+    thing = Thing.objects.get(pk=thing_pk)
+    if request.method == 'POST':
+        form = SensorForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            # This needs to go somewhere in the model: data['sampled_medium']
+            observed_property = ObservedProperty.objects.get(name=data['observed_property'])
+            sensor = Sensor.objects.get(name=data['sensor_manufacturer'].name + ":" + data['sensor_model'].name)
+            datastream, _ = Datastream.objects.get_or_create(name='datastream for ' + thing.name + '.' + sensor.name,
+                                                             description='datastream for ' + thing.name,
+                                                             unit_of_measurement=data['unit_of_measurement'],
+                                                             observation_type='temp observation type',
+                                                             thing=thing,
+                                                             sensor=sensor,
+                                                             observed_property=observed_property)
+            return redirect('sensors', thing_pk)
+    else:
+        form = SensorForm()
+    return render(request, 'sites/register-sensor.html', {'form': form, 'thing': thing})
+
+
+def update_datastream(request, datastream_pk):
+    datastream = Datastream.objects.get(id=datastream_pk)
+    if request.method == 'POST':
+        form = SensorForm(request.POST, datastream=datastream)
+        if form.is_valid():
+            # Get the related sensor, sensor_manufacturer, sensor_model and observed_property
+            sensor_manufacturer = SensorManufacturer.objects.get(name=form.cleaned_data['sensor_manufacturer'])
+            sensor_model = SensorModel.objects.get(name=form.cleaned_data['sensor_model'])
+            sensor = Sensor.objects.get(name=sensor_manufacturer.name + ':' + sensor_model.name)
+            observed_property = ObservedProperty.objects.get(name=form.cleaned_data['observed_property'])
+            # Update the fields
+            datastream.unit_of_measurement = form.cleaned_data['unit_of_measurement']
+            datastream.observed_property = observed_property
+            datastream.sensor = sensor
+            datastream.save()
+            return redirect('sensors', thing_pk=datastream.thing.id)
+    else:
+        form = SensorForm(datastream=datastream)
+    return render(request, 'sites/update-sensor.html', {'form': form})
+
+
+def remove_datastream(request, datastream_pk):
+    datastream = Datastream.objects.get(id=datastream_pk)
+    thing_pk = datastream.thing.id
+    datastream.delete()
+    observations = Observation.objects.filter(datastream=datastream)
+    observations.delete()
+
+    return redirect('sensors', thing_pk=thing_pk)
+
+
+def get_sensor_models(request):
+    manufacturer = request.GET.get('manufacturer')
+    if manufacturer:
+        sensor_models = list(SensorModel.objects.filter(manufacturer=manufacturer).values_list('name', flat=True))
+        return JsonResponse(sensor_models, safe=False)
+    else:
+        return JsonResponse([], safe=False)
 
 
 def export_csv(request, thing_pk):
