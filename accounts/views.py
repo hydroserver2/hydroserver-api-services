@@ -1,11 +1,10 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import login, get_user_model
 
-from .forms import SignUpForm
+from .forms import SignUpForm, UpdateAccountForm
+from .models import CustomUser
 
 
 def home_view(request):
@@ -17,16 +16,13 @@ def login_view(request):
         username = request.POST['username']
         password = request.POST['password']
 
-        if User.objects.filter(username=request.POST['username']).exists():
-            user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=username, password=password)
 
-            if user is not None:
-                login(request, user)
-                return redirect('sites')
-            else:
-                messages.error(request, 'Username or password is incorrect')
+        if user is not None:
+            login(request, user)
+            return redirect('sites')
         else:
-            messages.error(request, 'Username does not exist')
+            messages.error(request, 'Username or password is incorrect')
 
     return render(request, 'registration/login.html')
 
@@ -49,3 +45,39 @@ def signup(request):
     else:
         form = SignUpForm()
     return render(request, 'registration/signup.html', {'form': form})
+
+
+@login_required(login_url="login")
+def profile(request):
+    user = request.user
+    custom_user = CustomUser.objects.get(username=user)
+    organization = custom_user.organization
+    return render(request, 'registration/profile.html', {'user': custom_user, 'organization': organization})
+
+
+@login_required(login_url="login")
+def update_account(request):
+    if request.method == 'POST':
+        form = UpdateAccountForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been updated!')
+            return redirect('profile')
+    else:
+        form = UpdateAccountForm(instance=request.user)
+    return render(request, 'registration/update-account.html', {'form': form})
+
+
+@login_required(login_url="login")
+def remove_account(request):
+    if request.method == 'POST':
+        user_confirm = request.POST.get('confirm')
+        if user_confirm == 'yes' and request.user.is_authenticated:
+            request.user.delete()
+            logout(request)
+            messages.success(request, 'Your account has been removed!')
+            return redirect('home')
+        else:
+            messages.info(request, 'Account removal cancelled.')
+            return redirect('profile')
+    return render(request, 'registration/remove-account.html')

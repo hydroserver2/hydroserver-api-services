@@ -13,6 +13,3 @@ class Organization(models.Model):
 class CustomUser(AbstractUser):
     email = models.EmailField(max_length=254, unique=True, blank=False)
     organization = models.ForeignKey(Organization, null=True, blank=True, on_delete=models.SET_NULL)
-
-
-
