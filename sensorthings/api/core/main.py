@@ -13,17 +13,18 @@ from django.conf import settings
 
 class SensorThings:
 
-    def __init__(self, host: str, scheme: str, path: str, entity: str):
+    def __init__(self, host: str, scheme: str, path: str, component: str):
         self.host = host
         self.scheme = scheme
         self.path = path
-        self.model = getattr(models, entity)
+        self.model = getattr(models, component)
 
     def get_ref(self, entity_id: int | None = None, related_component: str | None = None) -> str:
         """
         Builds a reference URL for a given resource.
 
         :param entity_id: The id of the resource.
+        :param related_component: The related component to be appended to the ref URL.
         :return: The resource's reference URL.
         """
 
@@ -203,12 +204,12 @@ class SensorThings:
         """"""
 
         for name, field in getattr(component_schemas, f'{self.model.__name__}Fields').__fields__.items():
-            if field.type_ == dict:
+            if field.type_ == dict and not response_df.empty:
                 response_df[name] = response_df.apply(
                     lambda row: json.loads(getattr(row, name)) if getattr(row, name) is not None else None,
                     axis=1
                 )
-            elif issubclass(field.type_, BaseModel):
+            elif isinstance(field, BaseModel) and not response_df.empty:
                 response_df[name] = response_df.apply(
                     lambda row: json.loads(getattr(row, name).dict()) if getattr(row, name) is not None else None,
                     axis=1
@@ -220,29 +221,31 @@ class SensorThings:
         """"""
 
         for name, field in getattr(component_schemas, f'{self.model.__name__}Relations').__fields__.items():
-            if field.shape == SHAPE_LIST:
-                related_component = [
-                    component for component
-                    in settings.ST_CAPABILITIES
-                    if component['SINGULAR_NAME'] == field.type_.__name__
-                ][0]['NAME']
-            else:
-                related_component = field.type_.__name__
+            if not response_df.empty:
+                if field.shape == SHAPE_LIST:
+                    related_component = [
+                        component for component
+                        in settings.ST_CAPABILITIES
+                        if component['SINGULAR_NAME'] == field.type_.__name__
+                    ][0]['NAME']
+                else:
+                    related_component = field.type_.__name__
 
-            response_df[f'{name}_link'] = response_df.apply(
-                lambda row: self.get_ref(row.id, related_component),
-                axis=1
-            )
+                response_df[f'{name}_link'] = response_df.apply(
+                    lambda row: self.get_ref(row.id, related_component),
+                    axis=1
+                )
 
         return response_df
 
     def build_self_links(self, response_df):
         """"""
 
-        response_df['self_link'] = response_df.apply(
-            lambda row: self.get_ref(row.id),
-            axis=1
-        )
+        if not response_df.empty:
+            response_df['self_link'] = response_df.apply(
+                lambda row: self.get_ref(row.id),
+                axis=1
+            )
 
         return response_df
 

@@ -59,7 +59,7 @@ class ObservationPatchBody(BasePatchBody, ObservationFields):
     feature_of_interest: EntityId = Field(..., alias='FeatureOfInterest')
 
 
-class ObservationGetResponse(BaseGetResponse, ObservationFields):
+class ObservationGetResponse(ObservationFields, BaseGetResponse):
     datastream_link: HttpUrl = Field(..., alias='Datastream@iot.navigationLink')
     feature_of_interest_link: HttpUrl = Field(..., alias='FeatureOfInterest@iot.navigationLink')
 

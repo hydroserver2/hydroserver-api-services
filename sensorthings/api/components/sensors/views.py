@@ -12,14 +12,24 @@ router = Router(tags=['Sensors'])
 @router.get(
     '/Sensors',
     # auth=django_auth,
-    # response={200, SensorListResponse},
+    response={200: SensorListResponse},
     by_alias=True,
-    url_name='list_sensor'
+    url_name='list_sensor',
+    exclude_none=True
 )
 def get_sensors(request, filters: Filters = Query(...)):
-    """"""
+    """
+    Get a collection of Sensor entities.
 
-    return {}
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/sensor/properties" target="_blank">\
+      Sensor Properties</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/sensor/relations" target="_blank">\
+      Sensor Relations</a>
+    """
+
+    response = request.engine.list(**filters.dict())
+
+    return 200, response
 
 
 @router.get(

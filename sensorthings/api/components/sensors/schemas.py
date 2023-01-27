@@ -45,7 +45,7 @@ class SensorPatchBody(BasePatchBody, SensorFields):
     pass
 
 
-class SensorGetResponse(BaseGetResponse, SensorFields):
+class SensorGetResponse(SensorFields, BaseGetResponse):
     datastreams_link: HttpUrl = Field(..., alias='Datastreams@iot.navigationLink')
 
 

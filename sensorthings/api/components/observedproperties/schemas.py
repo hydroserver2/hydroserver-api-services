@@ -34,7 +34,7 @@ class ObservedPropertyPatchBody(BasePatchBody, ObservedPropertyFields):
     pass
 
 
-class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields):
+class ObservedPropertyGetResponse(ObservedPropertyFields, BaseGetResponse):
     datastreams_link: HttpUrl = Field(..., alias='Datastreams@iot.navigationLink')
 
 

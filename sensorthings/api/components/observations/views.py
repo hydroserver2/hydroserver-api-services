@@ -12,14 +12,24 @@ router = Router(tags=['Observations'])
 @router.get(
     '/Observations',
     # auth=django_auth,
-    # response={200, ObservationListResponse},
+    response={200: ObservationListResponse},
     by_alias=True,
-    url_name='list_observation'
+    url_name='list_observation',
+    exclude_none=True
 )
 def get_observations(request: SensorThingsRequest, filters: Filters = Query(...)):
-    """"""
+    """
+    Get a collection of Observation entities.
 
-    return {}
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/observation/properties" target="_blank">\
+      Observation Properties</a> -
+    <a href="http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel/observation/relations" target="_blank">\
+      Observation Relations</a>
+    """
+
+    response = request.engine.list(**filters.dict())
+
+    return 200, response
 
 
 @router.get(

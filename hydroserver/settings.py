@@ -79,7 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'sensorthings.middleware.SensorThingsRouter'
+    'sensorthings.middleware.SensorThingsMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
