@@ -5,93 +5,31 @@
     <hr>
     {% if is_authenticated %}
         {%if thing_ownership.owns_thing %}
-            <div class="col-12 text-right">
-                <a href="#">View Token UUID List</a>
+            <div>
                 <button><a href="">Edit Site</a></button>
                 <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
             </div>
         {% else %}
-            <form method="post" action="{% url 'update_follow' thing.id%}" id="update-follow-form">
-              {% csrf_token %}
-              <input type="checkbox" name="follow" id="follow-checkbox"
-                     {% if thing_ownership.follows_thing %}checked{% endif %} onchange="submitForm()">
-              <label>Follow</label>
+            <form method="post" action="{% url 'update_follow' thing.id%}">
+                {% csrf_token %}
+                <input type="checkbox" name="follow" id="follow-checkbox"
+                     {% if thing_ownership.follows_thing %}checked{% endif %} onchange="this.form.submit()">
+                <label>Follow</label>
             </form>
         {% endif %}
     {% endif %}
 
     <table>
-        <tr>
-            <td>Deployment By</td>
-            <td>{{ thing_owner.first_name }} {{ thing_owner.last_name }}</td>
-        </tr>
-        <tr>
-            <td>Organization</td>
-            <td>{{ thing_owner.organization }}</td>
-        </tr>
-        <tr>
-            <td>Registration Date</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Deployment Date</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Latitude</td>
-            <td>{{ latitude }}</td>
-        </tr>
-        <tr>
-            <td>Longitude</td>
-            <td>{{ longitude }}</td>
-        </tr>
-        <tr>
-            <td>Elevation (m)</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Elevation Datum</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Site Type</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Major Watershed</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Sub Basin</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Closest Town</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Notes</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Registration Token</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Sampling Feature UUID</td>
-            <td></td>
-        </tr>
+        {% for row in table_data %}
+            <tr><td>{{ row.label }}</td><td>{{ row.value }}</td></tr>
+        {% endfor %}
     </table>
-    <br>
 
-    <hr>
+    <br><hr>
+
     <button id="download-button"><a href="{% url "export_csv" thing.pk %}">Download Site Data</a></button>
     <button id="download-button"><a href="{% url "sensors" thing.pk %}">Manage Sensors</a></button>
 
-<script>
-  function submitForm() {
-    document.getElementById("update-follow-form").submit();
-  }
-</script>
+    {% include 'sites/site-map.html' %}
 
 {% endblock content%}

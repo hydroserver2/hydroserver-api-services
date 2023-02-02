@@ -1,7 +1,7 @@
 import json
 from collections import defaultdict
+from datetime import datetime
 
-from decouple import config
 from django.http import StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -43,13 +43,33 @@ def site(request, pk):
     thing_ownership = False
     if request.user.is_authenticated:
         thing_ownership = thing_ownerships.filter(thing_id=thing, person_id=request.user).first()
+    markers = collect_markers([thing])
+    thing_owner = thing_ownerships.filter(thing_id=thing, owns_thing=True).first().person_id
+
+    table_data = [
+        {'label': 'Deployment By', 'value': f"{thing_owner.first_name} {thing_owner.last_name}"},
+        {'label': 'Organization', 'value': thing_owner.organization},
+        {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
+        {'label': 'Deployment Date', 'value': ''},
+        {'label': 'Latitude', 'value': location[0]},
+        {'label': 'Longitude', 'value': location[1]},
+        {'label': 'Elevation (m)', 'value': markers[0].get('elevation', '')},
+        {'label': 'Elevation Datum', 'value': ''},
+        {'label': 'Site Type', 'value': ''},
+        {'label': 'Major Watershed', 'value': ''},
+        {'label': 'Sub Basin', 'value': ''},
+        {'label': 'Closest Town', 'value': markers[0].get('city', '')},
+        {'label': 'Notes', 'value': ''},
+        {'label': 'Registration Token', 'value': ''},
+        {'label': 'Sampling Feature UUID', 'value': ''},
+    ]
 
     return render(request, 'sites/single-site.html', {
         'thing': thing,
-        'latitude': location[0],
-        'longitude': location[1],
+        'table_data': table_data,
         'thing_ownership': thing_ownership,
-        'thing_owner': thing_ownerships.filter(thing_id=thing, owns_thing=True).first().person_id,
+        'google_maps_api_key': GOOGLE_MAPS_API_KEY,
+        'markers': markers,
         'is_authenticated': request.user.is_authenticated
     })
 
@@ -67,7 +87,8 @@ def register_location(new_thing, form):
     properties = {
         "city": form.cleaned_data['nearest_town'],
         "state": form.cleaned_data['state'],
-        "country": form.cleaned_data['country']
+        "country": form.cleaned_data['country'],
+        "elevation": form.cleaned_data['elevation']
     }
     properties = json.dumps(properties)
     new_location = Location.objects.create(name='Location for ' + new_thing.name,
@@ -87,6 +108,9 @@ def register_site(request):
         if form.is_valid():
             new_thing = form.save()
             register_location(new_thing, form)
+            properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+            new_thing.properties = json.dumps(properties)
+            new_thing.save()
             ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
             return redirect('sites')
 
@@ -130,6 +154,7 @@ def collect_markers(things):
             'city': properties.get('city', ''),
             'state': properties.get('state', ''),
             'country': properties.get('country', ''),
+            'elevation': properties.get('elevation', '')
         }
         markers.append(marker_info)
     return markers
