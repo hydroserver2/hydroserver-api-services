@@ -12,6 +12,7 @@ dependencies:
   - pyyaml=6.0
   - inflection=0.5.1
   - sqlalchemy=1.4.45
+  - python-decouple=4.1.2
 
   - pip:
       - sqlalchemy-json==0.5.0

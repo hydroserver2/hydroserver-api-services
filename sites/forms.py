@@ -1,17 +1,20 @@
 from sensorthings.models import Thing, ObservedProperty, Sensor
-from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField
+from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
 
 from sites.models import SensorManufacturer, SensorModel
 
 
 class ThingForm(ModelForm):
-    latitude = FloatField(required=True)
-    longitude = FloatField(required=True)
-    elevation = FloatField(required=True)
+    latitude = FloatField(required=True, widget=TextInput(attrs={'id': 'id_latitude'}))
+    longitude = FloatField(required=True, widget=TextInput(attrs={'id': 'id_longitude'}))
+    elevation = FloatField(required=True, widget=TextInput(attrs={'id': 'id_elevation'}))
+    nearest_town = CharField(required=True, widget=TextInput(attrs={'id': 'id_nearest_town'}))
+    state = CharField(required=True, widget=TextInput(attrs={'id': 'id_state'}))
+    country = CharField(required=True, widget=TextInput(attrs={'id': 'id_country'}))
 
     class Meta:
         model = Thing
-        fields = ['name', 'description', 'latitude', 'longitude', 'elevation']
+        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'nearest_town', 'state', 'country']
 
 
 class SensorForm(ModelForm):

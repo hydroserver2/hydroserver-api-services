@@ -1,9 +1,11 @@
 import json
 from collections import defaultdict
 
+from decouple import config
 from django.http import StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 
 from sensorthings.models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm
@@ -18,8 +20,13 @@ def sites(request):
     owned_things = [to.thing_id for to in thing_ownerships if to.owns_thing]
     followed_things = [to.thing_id for to in thing_ownerships if to.follows_thing]
 
-    context = {'owned_things': owned_things, 'followed_things': followed_things}
-    return render(request, 'sites/sites.html', context)
+    markers = collect_markers(owned_things + followed_things)
+
+    return render(request, 'sites/sites.html', {
+        'owned_things': owned_things,
+        'followed_things': followed_things,
+        'google_maps_api_key': config('GOOGLE_MAPS_API_KEY'),
+        'markers': markers})
 
 
 def site(request, pk):
@@ -51,14 +58,22 @@ def register_location(new_thing, form):
         "type": "Feature",
         "geometry": {
             "type": "Point",
-            "coordinates": [float(form.cleaned_data['longitude']), float(form.cleaned_data['latitude'])]
+            "coordinates": [float(form.cleaned_data['latitude']), float(form.cleaned_data['longitude'])]
         }
     }
     location_data = json.dumps(location_data)
+
+    properties = {
+        "city": form.cleaned_data['nearest_town'],
+        "state": form.cleaned_data['state'],
+        "country": form.cleaned_data['country']
+    }
+    properties = json.dumps(properties)
     new_location = Location.objects.create(name='Location for ' + new_thing.name,
                                            description=new_thing.description,
                                            encoding_type="application/geo+json",
-                                           location=location_data)
+                                           location=location_data,
+                                           properties=properties)
     new_location.things.add(new_thing)
 
 
@@ -74,7 +89,7 @@ def register_site(request):
             ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
             return redirect('sites')
 
-    context = {'form': form}
+    context = {'form': form, 'google_maps_api_key': config('GOOGLE_MAPS_API_KEY')}
     return render(request, "sites/site-registration.html", context)
 
 
@@ -99,17 +114,44 @@ def update_follow(request, pk):
     return redirect('site', pk=str(thing.id))
 
 
+def collect_markers(things):
+    markers = []
+    for thing in things:
+        location = Location.objects.filter(things=thing).first()
+        properties = json.loads(location.properties) if location.properties and location.properties != 'None' else {}
+        coordinates = json.loads(location.location)['geometry']['coordinates'] if location.location else [None, None]
+        marker_info = {
+            'latitude': coordinates[0],
+            'longitude': coordinates[1],
+            'name': thing.name,
+            'description': thing.description,
+            'site_url': reverse('site', args=[thing.id]),
+            'city': properties.get('city', ''),
+            'state': properties.get('state', ''),
+            'country': properties.get('country', ''),
+        }
+        markers.append(marker_info)
+    return markers
+
+
 def browse_sites(request):
     things = Thing.objects.all()
-    context = {'things': things}
-    return render(request, 'sites/browse-sites.html', context)
+    return render(request, 'sites/browse-sites.html', {
+        'things': things,
+        'google_maps_api_key': config('GOOGLE_MAPS_API_KEY'),
+        'markers': collect_markers(things)
+    })
 
 
 def sensors(request, thing_pk):
     thing = Thing.objects.prefetch_related('datastreams__sensor').get(id=thing_pk)
     datastreams = [datastream for datastream in thing.datastreams.all()]
     sensors = [datastream.sensor for datastream in thing.datastreams.all()]
-    return render(request, 'sites/manage-sensors.html', {'thing': thing, 'sensors': sensors, 'datastreams': datastreams})
+    return render(request, 'sites/manage-sensors.html', {
+        'thing': thing,
+        'sensors': sensors,
+        'datastreams': datastreams
+    })
 
 
 def register_datastream(request, thing_pk):
