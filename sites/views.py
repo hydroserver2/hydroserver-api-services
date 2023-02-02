@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
+from hydroserver.settings import GOOGLE_MAPS_API_KEY
 from sensorthings.models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm
 
@@ -25,7 +26,7 @@ def sites(request):
     return render(request, 'sites/sites.html', {
         'owned_things': owned_things,
         'followed_things': followed_things,
-        'google_maps_api_key': config('GOOGLE_MAPS_API_KEY'),
+        'google_maps_api_key': GOOGLE_MAPS_API_KEY,
         'markers': markers})
 
 
@@ -89,7 +90,7 @@ def register_site(request):
             ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
             return redirect('sites')
 
-    context = {'form': form, 'google_maps_api_key': config('GOOGLE_MAPS_API_KEY')}
+    context = {'form': form, 'google_maps_api_key': GOOGLE_MAPS_API_KEY}
     return render(request, "sites/site-registration.html", context)
 
 
@@ -138,7 +139,7 @@ def browse_sites(request):
     things = Thing.objects.all()
     return render(request, 'sites/browse-sites.html', {
         'things': things,
-        'google_maps_api_key': config('GOOGLE_MAPS_API_KEY'),
+        'google_maps_api_key': GOOGLE_MAPS_API_KEY,
         'markers': collect_markers(things)
     })
 

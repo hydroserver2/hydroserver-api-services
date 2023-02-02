@@ -15,9 +15,12 @@ import dj_database_url
 from pathlib import Path
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 from django.contrib.admin.views.decorators import staff_member_required
-from decouple import config
+from decouple import config, UndefinedValueError
 
-GMAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+try:
+    GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+except UndefinedValueError:
+    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
