@@ -12,4 +12,9 @@ class Organization(models.Model):
 
 class CustomUser(AbstractUser):
     email = models.EmailField(max_length=254, unique=True, blank=False)
-    organization = models.ForeignKey(Organization, null=True, blank=True, on_delete=models.SET_NULL)
+    organizations = models.ManyToManyField(Organization, blank=True, through='Membership')
+
+
+class Membership(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True)

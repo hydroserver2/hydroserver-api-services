@@ -51,8 +51,8 @@ def signup(request):
 def profile(request):
     user = request.user
     custom_user = CustomUser.objects.get(username=user)
-    organization = custom_user.organization
-    return render(request, 'registration/profile.html', {'user': custom_user, 'organization': organization})
+    organizations = custom_user.organizations.all()
+    return render(request, 'registration/profile.html', {'user': custom_user, 'organizations': organizations})
 
 
 @login_required(login_url="login")

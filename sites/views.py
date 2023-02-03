@@ -48,7 +48,7 @@ def site(request, pk):
 
     table_data = [
         {'label': 'Deployment By', 'value': f"{thing_owner.first_name} {thing_owner.last_name}"},
-        {'label': 'Organization', 'value': thing_owner.organization},
+        {'label': 'Organizations', 'value': ",".join([str(org) for org in thing_owner.organizations.all()])},
         {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
         {'label': 'Deployment Date', 'value': ''},
         {'label': 'Latitude', 'value': location[0]},

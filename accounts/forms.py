@@ -18,13 +18,13 @@ class UpdateAccountForm(forms.ModelForm):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    organization = forms.ModelChoiceField(queryset=Organization.objects.all(),
-                                          required=False,
-                                          widget=Select(attrs={'class': 'form-control', 'id': 'id_organization_model'}))
+    organizations = forms.ModelMultipleChoiceField(queryset=Organization.objects.all(),
+                                                   required=False,
+                                                   widget=forms.CheckboxSelectMultiple)
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'first_name', 'last_name', 'organization')
+        fields = ('email', 'first_name', 'last_name', 'organizations')
 
     def __init__(self, *args, **kwargs):
         super(UpdateAccountForm, self).__init__(*args, **kwargs)
@@ -33,7 +33,7 @@ class UpdateAccountForm(forms.ModelForm):
             self.fields['email'].initial = instance.email
             self.fields['first_name'].initial = instance.first_name
             self.fields['last_name'].initial = instance.last_name
-            self.fields['organization'].initial = instance.organization
+            self.fields['organizations'].initial = instance.organizations.all()
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
