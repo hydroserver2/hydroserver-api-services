@@ -1,3 +1,5 @@
+from django.db import OperationalError
+
 from sensorthings.models import Thing, ObservedProperty, Sensor
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
 
@@ -32,10 +34,8 @@ class SensorForm(ModelForm):
                                        choices=[(unit, unit) for unit in allowed_units],
                                        widget=Select(attrs={'class': 'form-control'}))
 
-    allowed_properties = ObservedProperty.objects.all().values_list('name', flat=True)
-    observed_property = ChoiceField(label='Observed Property',
-                                       choices=[(var, var) for var in allowed_properties],
-                                       widget=Select(attrs={'class': 'form-control'}))
+    observed_property = ModelChoiceField(queryset=ObservedProperty.objects.all(),
+                                         widget=Select(attrs={'class': 'form-control', 'id': 'id_sensor_manufacturer'}))
 
     def __init__(self, *args, **kwargs):
         datastream = kwargs.pop('datastream', None)
