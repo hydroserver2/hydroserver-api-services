@@ -6,7 +6,7 @@
     {% if is_authenticated %}
         {%if thing_ownership.owns_thing %}
             <div>
-                <button><a href="">Edit Site</a></button>
+                <button><a href="{% url 'update_site' thing.id %}">Manage Site</a></button>
                 <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
             </div>
         {% else %}

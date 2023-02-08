@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+
+{% block content %}
+    <h1>Update Organization</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+        <button type="submit"><a href="{% url 'delete_organization' organization_pk%}">Delete</a></button>
+    </form>
+
+    <br><br>
+    <button type="submit"><a href="{% url 'add_organization_admin' organization_pk%}">Add Organization Admin</a></button>
+{% endblock %}

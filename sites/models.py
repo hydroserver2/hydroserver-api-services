@@ -1,6 +1,5 @@
-from django.db.models import DecimalField, ForeignKey
+from django.db.models import ForeignKey
 from django.db import models
-import uuid
 
 from accounts.models import CustomUser
 from sensorthings.models import Thing, Sensor
@@ -17,7 +16,6 @@ from sensorthings.models import Thing, Sensor
 
 
 class ThingOwnership(models.Model):
-    # id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     thing_id = ForeignKey(Thing, on_delete=models.CASCADE)
     person_id = ForeignKey(CustomUser, on_delete=models.CASCADE)
     owns_thing = models.BooleanField(default=False)

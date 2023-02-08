@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+
+{% block content %}
+    <h3>Elevate a user's permissions to be an admin of this organization</h3>
+    <form method="post">
+        {% csrf_token %}
+
+        <label>
+            <input type="text" name="username"
+                   placeholder="new admin username..">
+        </label>
+        <button type="submit" >Add Admin</button>
+    </form>
+{% endblock %}

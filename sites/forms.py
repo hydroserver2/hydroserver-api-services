@@ -1,6 +1,8 @@
+import json
+
 from django.db import OperationalError
 
-from sensorthings.models import Thing, ObservedProperty, Sensor
+from sensorthings.models import Thing, ObservedProperty, Sensor, Location
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
 
 from sites.models import SensorManufacturer, SensorModel
@@ -17,6 +19,20 @@ class ThingForm(ModelForm):
     class Meta:
         model = Thing
         fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'nearest_town', 'state', 'country']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        thing = kwargs.get('instance')
+        if thing:
+            location = Location.objects.filter(things=thing).first()
+            properties = json.loads(location.properties) if location.properties and location.properties != 'None' else {}
+            coordinates = json.loads(location.location)['geometry']['coordinates'] if location.location else [None, None]
+            self.fields['latitude'].initial = coordinates[0]
+            self.fields['longitude'].initial = coordinates[1]
+            self.fields['elevation'].initial = properties.get('elevation', '')
+            self.fields['nearest_town'].initial = properties.get('city', '')
+            self.fields['state'].initial = properties.get('state', '')
+            self.fields['country'].initial = properties.get('country', '')
 
 
 class SensorForm(ModelForm):

@@ -4,7 +4,9 @@ from . import views
 urlpatterns = [
     path('', views.sites, name="sites"),
     path('register-site/', views.register_site, name="register-site"),
+    path('update-site/<str:pk>', views.update_site, name="update_site"),
     path('delete-site/<str:pk>', views.delete_site, name="delete-site"),
+    path('add-owner/<str:pk>', views.add_owner, name="add_owner"),
     path('update_follow/<path:pk>/', views.update_follow, name='update_follow'),
     path('browse/', views.browse_sites, name='browse'),
     path('sensors/<str:thing_pk>/', views.sensors, name='sensors'),

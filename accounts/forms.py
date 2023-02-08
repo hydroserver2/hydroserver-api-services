@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from django.forms import Select
 
 from .models import CustomUser, Organization
 
@@ -40,3 +39,9 @@ class UpdateAccountForm(forms.ModelForm):
         if email and get_user_model().objects.filter(email=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("This email is already in use by another user.")
         return email
+
+
+class OrganizationForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = ['name', 'description']

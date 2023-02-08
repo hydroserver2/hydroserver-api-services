@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    <h1>DANGER ZONE:</h1>
+    <form method="post">
+        {% csrf_token %}
+        <p>Are you sure you want to permanently delete this organization for all users?
+            This will completely remove this organization from the database. Users that are associated with
+            this organization won't be deleted, nor will the sites they're owners of, but the website will no
+            longer show they are associated with this organization.</p><br>
+        <p>If you're looking to remove just yourself from this organization, go to "update account"
+            on your profile page</p><br>
+        <input type="submit" name="confirm" value="Permanently Delete Organization">
+        <input type="submit" name="confirm" value="Go Back">
+    </form>
+{% endblock %}

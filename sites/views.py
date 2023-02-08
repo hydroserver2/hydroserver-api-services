@@ -2,11 +2,13 @@ import json
 from collections import defaultdict
 from datetime import datetime
 
+from django.contrib import messages
 from django.http import StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
+from accounts.models import CustomUser
 from hydroserver.settings import GOOGLE_MAPS_API_KEY
 from sensorthings.models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm
@@ -118,6 +120,18 @@ def register_site(request):
     return render(request, "sites/site-registration.html", context)
 
 
+def update_site(request, pk):
+    thing = Thing.objects.get(id=pk)
+    if request.method == 'POST':
+        form = ThingForm(request.POST, instance=thing)
+        if form.is_valid():
+            form.save()
+            return redirect('site', pk=str(thing.id))
+    else:
+        form = ThingForm(instance=thing)
+    return render(request, 'sites/manage_site.html', {'form': form, 'thing': thing})
+
+
 def delete_site(request, pk):
     thing = Thing.objects.get(id=pk)
     if request.method == 'POST':
@@ -137,6 +151,29 @@ def update_follow(request, pk):
         thing_ownership = ThingOwnership.objects.filter(thing_id=thing, person_id=request.user.id)
         thing_ownership.delete()
     return redirect('site', pk=str(thing.id))
+
+
+def add_owner(request, pk):
+    thing = Thing.objects.get(id=pk)
+    if request.method == 'POST':
+        try:
+            username = request.POST['username']
+            user = CustomUser.objects.get(username=username)
+        except CustomUser.DoesNotExist:
+            messages.info(request, f'User does not exist in the system.')
+            return redirect('site', pk=pk)
+
+        try:
+            thing_ownership = ThingOwnership.objects.get(thing_id=thing, person_id=user)
+            thing_ownership.owns_thing = True
+            thing_ownership.follows_thing = False
+            thing_ownership.save()
+        except ThingOwnership.DoesNotExist:
+            thing_ownership = ThingOwnership(thing_id=thing, person_id=user, owns_thing=True, follows_thing=False)
+            thing_ownership.save()
+
+        return redirect('site', pk=pk)
+    return render(request, 'sites/add-site-owner.html', {'pk': pk})
 
 
 def collect_markers(things):

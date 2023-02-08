@@ -17,4 +17,17 @@ class CustomUser(AbstractUser):
 
 class Membership(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True)
+    is_admin = models.BooleanField(default=False)
+
+    def __str__(self):
+        name = 'no name'
+        if self.user:
+            if self.user.first_name:
+                name = self.user.first_name
+        org = 'no org'
+        if self.organization:
+            if self.organization.name:
+                org = self.organization.name
+        membership = ' is admin of ' if self.is_admin else ' is member of '
+        return name + membership + org
