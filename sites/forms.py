@@ -1,7 +1,6 @@
 import json
 
-from django.db import OperationalError
-
+from accounts.models import Organization
 from sensorthings.models import Thing, ObservedProperty, Sensor, Location
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
 
@@ -15,15 +14,23 @@ class ThingForm(ModelForm):
     nearest_town = CharField(required=True, widget=TextInput(attrs={'id': 'id_nearest_town'}))
     state = CharField(required=True, widget=TextInput(attrs={'id': 'id_state'}))
     country = CharField(required=True, widget=TextInput(attrs={'id': 'id_country'}))
+    organizations = ModelChoiceField(queryset=Organization.objects.all(), required=False, widget=Select)
 
     class Meta:
         model = Thing
-        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'nearest_town', 'state', 'country']
+        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'nearest_town', 'state', 'country',
+                  'organizations']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         thing = kwargs.get('instance')
         if thing:
+            organization_id = json.loads(thing.properties).get('organization_id', None)
+            try:
+                thing_organization = Organization.objects.get(pk=organization_id)
+                self.fields['organizations'].initial = thing_organization
+            except Organization.DoesNotExist:
+                pass
             location = Location.objects.filter(things=thing).first()
             properties = json.loads(location.properties) if location.properties and location.properties != 'None' else {}
             coordinates = json.loads(location.location)['geometry']['coordinates'] if location.location else [None, None]

@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Organization
 from hydroserver.settings import GOOGLE_MAPS_API_KEY
 from sensorthings.models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm
@@ -34,9 +34,14 @@ def sites(request):
 
 def site(request, pk):
     thing = Thing.objects.get(id=pk)
-    # Multiple users can follow the same site, therefore:
-    # Get all the ThingOwnerships related to this thing
     thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
+
+    organization_id = json.loads(thing.properties).get('organization_id', None)
+    try:
+        thing_organization = Organization.objects.get(pk=organization_id)
+    except Organization.DoesNotExist:
+        thing_organization = "-"
+
     location = Location.objects.filter(things=thing).first().location
     try:
         location = json.loads(location)['geometry']['coordinates']
@@ -50,7 +55,7 @@ def site(request, pk):
 
     table_data = [
         {'label': 'Deployment By', 'value': f"{thing_owner.first_name} {thing_owner.last_name}"},
-        {'label': 'Organizations', 'value': ",".join([str(org) for org in thing_owner.organizations.all()])},
+        {'label': 'Organization', 'value': thing_organization},
         {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
         {'label': 'Deployment Date', 'value': ''},
         {'label': 'Latitude', 'value': location[0]},
@@ -110,7 +115,8 @@ def register_site(request):
         if form.is_valid():
             new_thing = form.save()
             register_location(new_thing, form)
-            properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+            properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                          "organization_id": form.cleaned_data['organizations'].pk}
             new_thing.properties = json.dumps(properties)
             new_thing.save()
             ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
@@ -125,6 +131,9 @@ def update_site(request, pk):
     if request.method == 'POST':
         form = ThingForm(request.POST, instance=thing)
         if form.is_valid():
+            properties = json.loads(thing.properties) if thing.properties and thing.properties != 'None' else {}
+            properties["organization_id"] = form.cleaned_data['organizations'].pk
+            thing.properties = json.dumps(properties)
             form.save()
             return redirect('site', pk=str(thing.id))
     else:
