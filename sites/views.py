@@ -15,7 +15,6 @@ from .forms import ThingForm, SensorForm
 
 from .models import ThingOwnership, SensorManufacturer, SensorModel
 from functools import wraps
-from django.contrib.auth.decorators import login_required
 
 
 def thing_ownership_required(func):
@@ -116,7 +115,7 @@ def site(request, pk):
 
 def register_location(new_thing, form):
     """
-    View that takes a Thing and associated form data and registers it at a geographical location
+    View that takes a Thing and associated form data and registers it at a geographic location
     """
     location_data = {
         "type": "Feature",

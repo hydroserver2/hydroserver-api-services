@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Thing(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     description = models.TextField(null=True, blank=True)
     properties = models.TextField(null=True)
 
