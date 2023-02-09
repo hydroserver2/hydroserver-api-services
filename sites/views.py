@@ -14,11 +14,41 @@ from sensorthings.models import Thing, Observation, Location, Sensor, ObservedPr
 from .forms import ThingForm, SensorForm
 
 from .models import ThingOwnership, SensorManufacturer, SensorModel
+from functools import wraps
+from django.contrib.auth.decorators import login_required
+
+
+def thing_ownership_required(func):
+    """
+    Decorator for site views that checks the user is logged in and is an owner of the related thing. Redirects if not
+    """
+    @login_required(login_url="login")
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        try:
+            pk = kwargs.get('pk')
+        except KeyError:
+            datastream = Datastream.objects.get(id=kwargs.get('datastream_pk'))
+            pk = datastream.thing.id
+
+        thing = Thing.objects.get(id=pk)
+        try:
+            thing_ownership = ThingOwnership.objects.get(thing_id=thing, person_id=request.user)
+            if not thing_ownership.owns_thing:
+                return redirect("sites")
+        except ThingOwnership.DoesNotExist:
+            return redirect("sites")
+
+        return func(*args, **kwargs)
+    return wrapper
 
 
 @login_required(login_url="login")
 def sites(request):
-    # Get all Things owned by the current user
+    """
+    Get all Things owned by the current user
+    """
     thing_ownerships = ThingOwnership.objects.filter(person_id=request.user.id)
     owned_things = [to.thing_id for to in thing_ownerships if to.owns_thing]
     followed_things = [to.thing_id for to in thing_ownerships if to.follows_thing]
@@ -33,6 +63,9 @@ def sites(request):
 
 
 def site(request, pk):
+    """
+    View that gets all data related to the selected site and renders on page
+    """
     thing = Thing.objects.get(id=pk)
     thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
 
@@ -82,6 +115,9 @@ def site(request, pk):
 
 
 def register_location(new_thing, form):
+    """
+    View that takes a Thing and associated form data and registers it at a geographical location
+    """
     location_data = {
         "type": "Feature",
         "geometry": {
@@ -108,6 +144,9 @@ def register_location(new_thing, form):
 
 @login_required(login_url="login")
 def register_site(request):
+    """
+    registers a new site to be associated with the active user and selected organization
+    """
     form = ThingForm()
 
     if request.method == 'POST':
@@ -126,6 +165,7 @@ def register_site(request):
     return render(request, "sites/site-registration.html", context)
 
 
+@thing_ownership_required
 def update_site(request, pk):
     thing = Thing.objects.get(id=pk)
     if request.method == 'POST':
@@ -141,6 +181,7 @@ def update_site(request, pk):
     return render(request, 'sites/manage_site.html', {'form': form, 'thing': thing})
 
 
+@thing_ownership_required
 def delete_site(request, pk):
     thing = Thing.objects.get(id=pk)
     if request.method == 'POST':
@@ -151,6 +192,9 @@ def delete_site(request, pk):
 
 
 def update_follow(request, pk):
+    """
+    View which toggles if the user is following the Site
+    """
     thing = Thing.objects.get(id=pk)
     follow = request.POST.get('follow')
     if follow:
@@ -162,7 +206,11 @@ def update_follow(request, pk):
     return redirect('site', pk=str(thing.id))
 
 
+@thing_ownership_required
 def add_owner(request, pk):
+    """
+    View which allows the user to elevate another user's permissions to 'owner' for the selected Thing
+    """
     thing = Thing.objects.get(id=pk)
     if request.method == 'POST':
         try:
@@ -186,6 +234,9 @@ def add_owner(request, pk):
 
 
 def collect_markers(things):
+    """
+    View which creates a list of Google Maps makers info from a collection of Things
+    """
     markers = []
     for thing in things:
         location = Location.objects.filter(things=thing).first()
@@ -207,6 +258,9 @@ def collect_markers(things):
 
 
 def browse_sites(request):
+    """
+    View which collects the data for all the Things in the database to be displayed on the browse page
+    """
     things = Thing.objects.all()
     return render(request, 'sites/browse-sites.html', {
         'things': things,
@@ -215,8 +269,12 @@ def browse_sites(request):
     })
 
 
-def sensors(request, thing_pk):
-    thing = Thing.objects.prefetch_related('datastreams__sensor').get(id=thing_pk)
+@thing_ownership_required
+def sensors(request, pk):
+    """
+    View which collects the sensor and datastreams for the selected Thing
+    """
+    thing = Thing.objects.prefetch_related('datastreams__sensor').get(id=pk)
     datastreams = [datastream for datastream in thing.datastreams.all()]
     sensors = [datastream.sensor for datastream in thing.datastreams.all()]
     return render(request, 'sites/manage-sensors.html', {
@@ -226,8 +284,12 @@ def sensors(request, thing_pk):
     })
 
 
-def register_datastream(request, thing_pk):
-    thing = Thing.objects.get(pk=thing_pk)
+@thing_ownership_required
+def register_datastream(request, pk):
+    """
+    View which creates a new datastream for the selected Thing
+    """
+    thing = Thing.objects.get(pk=pk)
     if request.method == 'POST':
         form = SensorForm(request.POST)
         if form.is_valid():
@@ -242,12 +304,13 @@ def register_datastream(request, thing_pk):
                                                              thing=thing,
                                                              sensor=sensor,
                                                              observed_property=observed_property)
-            return redirect('sensors', thing_pk)
+            return redirect('sensors', pk)
     else:
         form = SensorForm()
     return render(request, 'sites/register-sensor.html', {'form': form, 'thing': thing})
 
 
+@thing_ownership_required
 def update_datastream(request, datastream_pk):
     datastream = Datastream.objects.get(id=datastream_pk)
     if request.method == 'POST':
@@ -269,6 +332,7 @@ def update_datastream(request, datastream_pk):
     return render(request, 'sites/update-sensor.html', {'form': form})
 
 
+@thing_ownership_required
 def remove_datastream(request, datastream_pk):
     datastream = Datastream.objects.get(id=datastream_pk)
     thing_pk = datastream.thing.id
@@ -280,6 +344,9 @@ def remove_datastream(request, datastream_pk):
 
 
 def get_sensor_models(request):
+    """
+    View which gets the list of hardware models associated with the selected manufacturer
+    """
     manufacturer = request.GET.get('manufacturer')
     if manufacturer:
         sensor_models = list(SensorModel.objects.filter(manufacturer=manufacturer).values_list('name', flat=True))

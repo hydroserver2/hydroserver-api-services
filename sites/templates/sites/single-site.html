@@ -8,6 +8,7 @@
             <div>
                 <button><a href="{% url 'update_site' thing.id %}">Manage Site</a></button>
                 <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
+                <button><a href="{% url "sensors" thing.pk %}">Manage Sensors</a></button>
             </div>
         {% else %}
             <form method="post" action="{% url 'update_follow' thing.id%}">
@@ -28,7 +29,6 @@
     <br><hr>
 
     <button id="download-button"><a href="{% url "export_csv" thing.pk %}">Download Site Data</a></button>
-    <button id="download-button"><a href="{% url "sensors" thing.pk %}">Manage Sensors</a></button>
 
     {% include 'sites/site-map.html' %}
 
