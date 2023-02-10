@@ -55,7 +55,6 @@ DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -170,7 +169,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SensorThings API Settings
 
 ST_VERSION = '1.1'
-ST_PREFIX = 'sta'
+ST_PREFIX = 'sensorthings'
 ST_BASE_URL = f'/{ST_PREFIX}/v{ST_VERSION}'
 
 ST_API = {
@@ -180,9 +179,7 @@ ST_API = {
         The HydroServer API can be used to create and update monitoring site metadata, and post  
         results data to HydroServer data stores.
     ''',
-    'csrf': False,
-    'docs_url': f'/v{ST_VERSION}/docs',
-    'openapi_url': f'/v{ST_VERSION}/openapi.json'
+    'csrf': False
 }
 
 ST_CONFORMANCE = [

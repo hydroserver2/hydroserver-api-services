@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pydantic import BaseModel
-from sensorthings.api.core.iso_types import ISOTime
+from sensorthings.core.extras.iso_types import ISOTime
 
 
 class ISOTimeTypeTest(TestCase):

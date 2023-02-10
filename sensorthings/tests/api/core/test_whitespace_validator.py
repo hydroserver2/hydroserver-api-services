@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pydantic import BaseModel, ValidationError, validator
-from sensorthings.api.core.utils import whitespace_to_none
+from sensorthings.core.utils import whitespace_to_none
 
 
 class WhitespaceValidatorTest(TestCase):

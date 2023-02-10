@@ -1,5 +1,5 @@
 from django.test import TestCase
-from sensorthings.api.components.sensors.utils import metadata_validator
+from sensorthings.core.components import metadata_validator
 
 
 class MetadataFieldValidatorTest(TestCase):

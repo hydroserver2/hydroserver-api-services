@@ -1,40 +1,15 @@
 import inflection
-from typing import Literal
 from django.utils.deprecation import MiddlewareMixin
 from django.urls import resolve
 from django.urls.exceptions import Http404
 from django.conf import settings
 from django.http import HttpRequest
-from sensorthings.api import components as component_schemas
-from sensorthings.api.core.main import SensorThings
+from sensorthings.core import components as component_schemas
+from sensorthings.core.utils import lookup_component
+from sensorthings.mappers.st.engine import SensorThingsEngine
 
 
 class SensorThingsMiddleware(MiddlewareMixin):
-    st_components = [
-        {
-            'snake_singular': inflection.underscore(capability['SINGULAR_NAME']),
-            'snake_plural': inflection.underscore(capability['NAME']),
-            'camel_singular': capability['SINGULAR_NAME'],
-            'camel_plural': capability['NAME']
-        } for capability in settings.ST_CAPABILITIES
-    ]
-
-    def _lookup_component(
-            self,
-            input_value: str,
-            input_type: Literal['snake_singular', 'snake_plural', 'camel_singular', 'camel_plural'],
-            output_type: Literal['snake_singular', 'snake_plural', 'camel_singular', 'camel_plural']
-    ) -> str:
-        """
-        Accepts a component value and type and attempts to return an alternate form of the component name.
-
-        :param input_value: The name of the component to lookup.
-        :param input_type: The type of the component to lookup.
-        :param output_type: The type of the component to return.
-        :return output_value: The matching component name.
-        """
-
-        return next((c[output_type] for c in self.st_components if c[input_type] == input_value))
 
     def process_request(self, request: HttpRequest) -> None:
         """
@@ -53,6 +28,11 @@ class SensorThingsMiddleware(MiddlewareMixin):
             # Path is not part of the SensorThings app. Proceed normally.
             return None
 
+        if request.path_info == settings.ST_BASE_URL:
+            # Need to redirect the base URL without slash to the root view.
+            request.path_info = f'{request.path_info}/'
+            return None
+
         try:
             resolved_path = resolve(request.path_info)
             if resolved_path.url_name is None:
@@ -60,7 +40,7 @@ class SensorThingsMiddleware(MiddlewareMixin):
                 raise Http404
 
             try:
-                request.component = self._lookup_component(
+                request.component = lookup_component(
                     input_value=resolved_path.url_name.split('_', 1)[-1],
                     input_type='snake_singular',
                     output_type='camel_singular'
@@ -92,12 +72,12 @@ class SensorThingsMiddleware(MiddlewareMixin):
                         raise Http404
                     if resolved_path.url_name.startswith('list'):
                         # This sub-path represents a collection of entities.
-                        component = self._lookup_component(
+                        component = lookup_component(
                             input_value=resolved_path.url_name.replace('list_', ''),
                             input_type='snake_singular',
                             output_type='camel_singular'
                         )
-                        field_name = self._lookup_component(
+                        field_name = lookup_component(
                             input_value=component,
                             input_type='camel_singular',
                             output_type='snake_plural'
@@ -106,12 +86,12 @@ class SensorThingsMiddleware(MiddlewareMixin):
                         endpoint = f'{path_prefix}/{raw_component}'
                     elif resolved_path.url_name.startswith('get'):
                         # This sub-path explicitly represents a single entity.
-                        component = self._lookup_component(
+                        component = lookup_component(
                             input_value=resolved_path.url_name.replace('get_', ''),
                             input_type='snake_singular',
                             output_type='camel_singular'
                         )
-                        field_name = self._lookup_component(
+                        field_name = lookup_component(
                             input_value=component,
                             input_type='camel_singular',
                             output_type='snake_singular'
@@ -121,12 +101,12 @@ class SensorThingsMiddleware(MiddlewareMixin):
                 except Http404:
                     try:
                         # This sub-path may be an implicit relation and needs to be converted to an explicit path.
-                        component_plural = self._lookup_component(
+                        component_plural = lookup_component(
                             input_value=raw_component,
                             input_type='camel_singular',
                             output_type='camel_plural'
                         )
-                        field_name = self._lookup_component(
+                        field_name = lookup_component(
                             input_value=raw_component,
                             input_type='camel_singular',
                             output_type='snake_singular'
@@ -138,7 +118,7 @@ class SensorThingsMiddleware(MiddlewareMixin):
                         component = raw_component
                         field_name = inflection.underscore(raw_component)
 
-                if previous_component in [c['camel_singular'] for c in self.st_components]:
+                if previous_component in [c['SINGULAR_NAME'] for c in settings.ST_CAPABILITIES]:
                     # Check that this component is a valid child of the previous part of the path.
                     if field_name not in getattr(component_schemas, previous_component).__fields__:
                         raise Http404
@@ -158,7 +138,7 @@ class SensorThingsMiddleware(MiddlewareMixin):
 
             if endpoint:
                 request.path_info = endpoint
-            if primary_component in [c['camel_singular'] for c in self.st_components]:
+            if primary_component in [c['SINGULAR_NAME'] for c in settings.ST_CAPABILITIES]:
                 request.component = primary_component
 
     def process_view(self, request, view_func, view_args, view_kwargs) -> None:
@@ -177,7 +157,7 @@ class SensorThingsMiddleware(MiddlewareMixin):
         """
 
         if hasattr(request, 'component') and request.component is not None:
-            request.engine = SensorThings(
+            request.engine = SensorThingsEngine(
                 host=request.get_host(),
                 scheme=request.scheme,
                 path=request.path_info,

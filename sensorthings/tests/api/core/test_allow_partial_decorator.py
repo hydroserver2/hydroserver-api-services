@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pydantic import BaseModel, ValidationError
-from sensorthings.api.core.utils import allow_partial
+from sensorthings.core.utils import allow_partial
 
 
 class AllowPartialDecoratorTest(TestCase):
