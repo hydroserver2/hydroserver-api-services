@@ -8,13 +8,13 @@ from sites.models import SensorManufacturer, SensorModel
 
 
 class ThingForm(ModelForm):
-    latitude = FloatField(required=True, widget=TextInput(attrs={'id': 'id_latitude'}))
-    longitude = FloatField(required=True, widget=TextInput(attrs={'id': 'id_longitude'}))
-    elevation = FloatField(required=True, widget=TextInput(attrs={'id': 'id_elevation'}))
-    city = CharField(required=True, widget=TextInput(attrs={'id': 'id_nearest_town'}))
-    state = CharField(required=True, widget=TextInput(attrs={'id': 'id_state'}))
-    country = CharField(required=True, widget=TextInput(attrs={'id': 'id_country'}))
-    organizations = ModelChoiceField(queryset=Organization.objects.all(), required=False, widget=Select)
+    latitude = FloatField(widget=TextInput(attrs={'id': 'id_latitude'}))
+    longitude = FloatField(widget=TextInput(attrs={'id': 'id_longitude'}))
+    elevation = FloatField(widget=TextInput(attrs={'id': 'id_elevation'}))
+    city = CharField(widget=TextInput(attrs={'id': 'id_nearest_town'}))
+    state = CharField(widget=TextInput(attrs={'id': 'id_state'}))
+    country = CharField(widget=TextInput(attrs={'id': 'id_country'}))
+    organizations = ModelChoiceField(queryset=Organization.objects.all(), widget=Select)
 
     class Meta:
         model = Thing

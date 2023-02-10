@@ -1,3 +1,5 @@
+import uuid
+
 from django.db.models import ForeignKey
 from django.db import models
 
@@ -5,6 +7,7 @@ from accounts.models import CustomUser
 
 
 class Thing(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(null=True, blank=True)
     properties = models.TextField(null=True)
