@@ -4,17 +4,17 @@
     <h3>{{ thing.name }}</h3>
     <hr>
     {% if is_authenticated %}
-        {%if thing_ownership.owns_thing %}
+        {%if owns_thing %}
             <div>
-                <button><a href="{% url 'update_site' thing.id %}">Manage Site</a></button>
-                <button><a href="{% url 'delete-site' thing.id %}">Delete Site</a></button>
+                <button><a href="{% url 'update_site' thing.pk %}">Manage Site</a></button>
+                <button><a href="{% url 'delete-site' thing.pk %}">Delete Site</a></button>
                 <button><a href="{% url "sensors" thing.pk %}">Manage Sensors</a></button>
             </div>
         {% else %}
             <form method="post" action="{% url 'update_follow' thing.id%}">
                 {% csrf_token %}
                 <input type="checkbox" name="follow" id="follow-checkbox"
-                     {% if thing_ownership.follows_thing %}checked{% endif %} onchange="this.form.submit()">
+                     {% if follows_thing %}checked{% endif %} onchange="this.form.submit()">
                 <label>Follow</label>
             </form>
         {% endif %}
@@ -28,7 +28,7 @@
 
     <br><hr>
 
-    <button id="download-button"><a href="{% url "export_csv" thing.pk %}">Download Site Data</a></button>
+    <button><a href="{% url "export_csv" thing.pk %}">Download Site Data</a></button>
 
     {% include 'sites/site-map.html' %}
 

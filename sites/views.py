@@ -13,7 +13,7 @@ from hydroserver.settings import GOOGLE_MAPS_API_KEY
 from .models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm
 
-from .models import ThingOwnership, SensorManufacturer, SensorModel
+from .models import ThingAssociation, SensorManufacturer, SensorModel
 from functools import wraps
 
 
@@ -32,11 +32,7 @@ def thing_ownership_required(func):
             pk = datastream.thing.id
 
         thing = Thing.objects.get(id=pk)
-        try:
-            thing_ownership = ThingOwnership.objects.get(thing_id=thing, person_id=request.user)
-            if not thing_ownership.owns_thing:
-                return redirect("sites")
-        except ThingOwnership.DoesNotExist:
+        if not request.user.thing_associations.filter(thing=thing, owns_thing=True).exists():
             return redirect("sites")
 
         return func(*args, **kwargs)
@@ -46,24 +42,20 @@ def thing_ownership_required(func):
 @login_required(login_url="login")
 def sites(request):
     """
-    Get all Things owned by the current user
+    Get all Things the user is associated with
     """
-    thing_ownerships = ThingOwnership.objects.filter(person_id=request.user.id)
-    owned_things = [to.thing_id for to in thing_ownerships if to.owns_thing]
-    followed_things = [to.thing_id for to in thing_ownerships if to.follows_thing]
-
-    markers = collect_markers(owned_things + followed_things)
+    thing_associations = request.user.thing_associations.all()
 
     return render(request, 'sites/sites.html', {
-        'owned_things': owned_things,
-        'followed_things': followed_things,
+        'owned_things': [ta.thing for ta in thing_associations.filter(owns_thing=True)],
+        'followed_things': [ta.thing for ta in thing_associations.filter(follows_thing=True)],
         'google_maps_api_key': GOOGLE_MAPS_API_KEY,
-        'markers': markers})
+        'markers': collect_markers([ta.thing for ta in thing_associations])})
 
 
 def site(request, pk):
     """
-    View that gets all data related to the selected site and renders on page
+    View that gets all data related to the site to be rendered on page
     """
     thing = Thing.objects.get(id=pk)
 
@@ -73,22 +65,15 @@ def site(request, pk):
     except Organization.DoesNotExist:
         thing_organization = "-"
 
-    thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
-    thing_ownership = False
-    if request.user.is_authenticated:
-        thing_ownership = thing_ownerships.filter(thing_id=thing, person_id=request.user).first()
-    markers = collect_markers([thing])
-    thing_owner = thing_ownerships.filter(thing_id=thing, owns_thing=True).first().person_id
-
     table_data = [
-        {'label': 'Deployment By', 'value': f"{thing_owner.first_name} {thing_owner.last_name}"},
+        {'label': 'Site Owners', 'value':
+            ', '.join([associate.person.get_full_name() for associate in thing.associates.filter(owns_thing=True)])},
         {'label': 'Organization', 'value': thing_organization},
         {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
         {'label': 'Deployment Date', 'value': ''},
         {'label': 'Latitude', 'value': thing.location.latitude},
         {'label': 'Longitude', 'value': thing.location.longitude},
         {'label': 'Elevation (m)', 'value': thing.location.elevation},
-        # {'label': 'Elevation Datum', 'value': ''},
         {'label': 'Site Type', 'value': ''},
         {'label': 'Major Watershed', 'value': ''},
         {'label': 'Sub Basin', 'value': ''},
@@ -98,13 +83,16 @@ def site(request, pk):
         {'label': 'Sampling Feature UUID', 'value': ''},
     ]
 
+    is_auth = request.user.is_authenticated
+
     return render(request, 'sites/single-site.html', {
         'thing': thing,
         'table_data': table_data,
-        'thing_ownership': thing_ownership,
+        'owns_thing': is_auth and request.user.thing_associations.filter(thing=thing, owns_thing=True).exists(),
+        'follows_thing': is_auth and request.user.thing_associations.filter(thing=thing, follows_thing=True).exists(),
         'google_maps_api_key': GOOGLE_MAPS_API_KEY,
-        'markers': markers,
-        'is_authenticated': request.user.is_authenticated
+        'markers': collect_markers([thing]),
+        'is_authenticated': is_auth
     })
 
 
@@ -140,7 +128,7 @@ def register_site(request):
                           "organization_id": form.cleaned_data['organizations'].pk}
             new_thing.properties = json.dumps(properties)
             new_thing.save()
-            ThingOwnership.objects.create(thing_id=new_thing, person_id=request.user, owns_thing=True)
+            ThingAssociation.objects.create(thing=new_thing, person=request.user, owns_thing=True)
             return redirect('sites')
 
     context = {'form': form, 'google_maps_api_key': GOOGLE_MAPS_API_KEY}
@@ -180,11 +168,11 @@ def update_follow(request, pk):
     thing = Thing.objects.get(id=pk)
     follow = request.POST.get('follow')
     if follow:
-        thing_ownership = ThingOwnership(thing_id=thing, person_id=request.user, follows_thing=True)
-        thing_ownership.save()
+        thing_association = ThingAssociation(thing=thing, person=request.user, follows_thing=True)
+        thing_association.save()
     else:
-        thing_ownership = ThingOwnership.objects.filter(thing_id=thing, person_id=request.user.id)
-        thing_ownership.delete()
+        thing_association = ThingAssociation.objects.filter(thing=thing, person=request.user.id)
+        thing_association.delete()
     return redirect('site', pk=str(thing.id))
 
 
@@ -202,15 +190,10 @@ def add_owner(request, pk):
             messages.info(request, f'User does not exist in the system.')
             return redirect('site', pk=pk)
 
-        try:
-            thing_ownership = ThingOwnership.objects.get(thing_id=thing, person_id=user)
-            thing_ownership.owns_thing = True
-            thing_ownership.follows_thing = False
-            thing_ownership.save()
-        except ThingOwnership.DoesNotExist:
-            thing_ownership = ThingOwnership(thing_id=thing, person_id=user, owns_thing=True, follows_thing=False)
-            thing_ownership.save()
-
+        thing_association, _ = ThingAssociation.objects.get_or_create(thing=thing, person=user)
+        thing_association.owns_thing = True
+        thing_association.follows_thing = False
+        thing_association.save()
         return redirect('site', pk=pk)
     return render(request, 'sites/add-site-owner.html', {'pk': pk})
 

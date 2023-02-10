@@ -40,6 +40,7 @@ class HistoricalLocation(models.Model):
 
 
 class Sensor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
@@ -100,11 +101,14 @@ class Observation(models.Model):
                f"{self.datastream.observed_property.name} - {self.result_time.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
-class ThingOwnership(models.Model):
-    thing_id = ForeignKey(Thing, on_delete=models.CASCADE)
-    person_id = ForeignKey(CustomUser, on_delete=models.CASCADE)
+class ThingAssociation(models.Model):
+    thing = ForeignKey(Thing, on_delete=models.CASCADE, related_name='associates')
+    person = ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='thing_associations')
     owns_thing = models.BooleanField(default=False)
     follows_thing = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("thing", "person")
 
 
 class SensorManufacturer(models.Model):
