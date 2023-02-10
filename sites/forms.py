@@ -1,7 +1,7 @@
 import json
 
 from accounts.models import Organization
-from sensorthings.models import Thing, ObservedProperty, Sensor, Location
+from .models import Thing, ObservedProperty, Sensor
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
 
 from sites.models import SensorManufacturer, SensorModel
@@ -11,14 +11,14 @@ class ThingForm(ModelForm):
     latitude = FloatField(required=True, widget=TextInput(attrs={'id': 'id_latitude'}))
     longitude = FloatField(required=True, widget=TextInput(attrs={'id': 'id_longitude'}))
     elevation = FloatField(required=True, widget=TextInput(attrs={'id': 'id_elevation'}))
-    nearest_town = CharField(required=True, widget=TextInput(attrs={'id': 'id_nearest_town'}))
+    city = CharField(required=True, widget=TextInput(attrs={'id': 'id_nearest_town'}))
     state = CharField(required=True, widget=TextInput(attrs={'id': 'id_state'}))
     country = CharField(required=True, widget=TextInput(attrs={'id': 'id_country'}))
     organizations = ModelChoiceField(queryset=Organization.objects.all(), required=False, widget=Select)
 
     class Meta:
         model = Thing
-        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'nearest_town', 'state', 'country',
+        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'city', 'state', 'country',
                   'organizations']
 
     def __init__(self, *args, **kwargs):
@@ -31,15 +31,8 @@ class ThingForm(ModelForm):
                 self.fields['organizations'].initial = thing_organization
             except Organization.DoesNotExist:
                 pass
-            location = Location.objects.filter(things=thing).first()
-            properties = json.loads(location.properties) if location.properties and location.properties != 'None' else {}
-            coordinates = json.loads(location.location)['geometry']['coordinates'] if location.location else [None, None]
-            self.fields['latitude'].initial = coordinates[0]
-            self.fields['longitude'].initial = coordinates[1]
-            self.fields['elevation'].initial = properties.get('elevation', '')
-            self.fields['nearest_town'].initial = properties.get('city', '')
-            self.fields['state'].initial = properties.get('state', '')
-            self.fields['country'].initial = properties.get('country', '')
+            for field in ['latitude', 'longitude', 'elevation', 'city', 'state', 'country']:
+                self.fields[field].initial = getattr(thing.location, field)
 
 
 class SensorForm(ModelForm):

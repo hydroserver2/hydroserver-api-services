@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from accounts.models import CustomUser, Organization
 from hydroserver.settings import GOOGLE_MAPS_API_KEY
-from sensorthings.models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
+from .models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm
 
 from .models import ThingOwnership, SensorManufacturer, SensorModel
@@ -66,7 +66,6 @@ def site(request, pk):
     View that gets all data related to the selected site and renders on page
     """
     thing = Thing.objects.get(id=pk)
-    thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
 
     organization_id = json.loads(thing.properties).get('organization_id', None)
     try:
@@ -74,11 +73,7 @@ def site(request, pk):
     except Organization.DoesNotExist:
         thing_organization = "-"
 
-    location = Location.objects.filter(things=thing).first().location
-    try:
-        location = json.loads(location)['geometry']['coordinates']
-    except:
-        location = [None, None]
+    thing_ownerships = ThingOwnership.objects.filter(thing_id=thing)
     thing_ownership = False
     if request.user.is_authenticated:
         thing_ownership = thing_ownerships.filter(thing_id=thing, person_id=request.user).first()
@@ -90,14 +85,14 @@ def site(request, pk):
         {'label': 'Organization', 'value': thing_organization},
         {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
         {'label': 'Deployment Date', 'value': ''},
-        {'label': 'Latitude', 'value': location[0]},
-        {'label': 'Longitude', 'value': location[1]},
-        {'label': 'Elevation (m)', 'value': markers[0].get('elevation', '')},
-        {'label': 'Elevation Datum', 'value': ''},
+        {'label': 'Latitude', 'value': thing.location.latitude},
+        {'label': 'Longitude', 'value': thing.location.longitude},
+        {'label': 'Elevation (m)', 'value': thing.location.elevation},
+        # {'label': 'Elevation Datum', 'value': ''},
         {'label': 'Site Type', 'value': ''},
         {'label': 'Major Watershed', 'value': ''},
         {'label': 'Sub Basin', 'value': ''},
-        {'label': 'Closest Town', 'value': markers[0].get('city', '')},
+        {'label': 'Closest Town', 'value': thing.location.city},
         {'label': 'Notes', 'value': ''},
         {'label': 'Registration Token', 'value': ''},
         {'label': 'Sampling Feature UUID', 'value': ''},
@@ -117,28 +112,16 @@ def register_location(new_thing, form):
     """
     View that takes a Thing and associated form data and registers it at a geographic location
     """
-    location_data = {
-        "type": "Feature",
-        "geometry": {
-            "type": "Point",
-            "coordinates": [float(form.cleaned_data['latitude']), float(form.cleaned_data['longitude'])]
-        }
-    }
-    location_data = json.dumps(location_data)
-
-    properties = {
-        "city": form.cleaned_data['nearest_town'],
-        "state": form.cleaned_data['state'],
-        "country": form.cleaned_data['country'],
-        "elevation": form.cleaned_data['elevation']
-    }
-    properties = json.dumps(properties)
-    new_location = Location.objects.create(name='Location for ' + new_thing.name,
-                                           description=new_thing.description,
-                                           encoding_type="application/geo+json",
-                                           location=location_data,
-                                           properties=properties)
-    new_location.things.add(new_thing)
+    new_thing.location = Location.objects.create(name='Location for ' + new_thing.name,
+                                                 description=new_thing.description,
+                                                 encoding_type="application/geo+json",
+                                                 latitude=float(form.cleaned_data['latitude']),
+                                                 longitude=float(form.cleaned_data['longitude']),
+                                                 elevation=float(form.cleaned_data['elevation']),
+                                                 city=form.cleaned_data['city'],
+                                                 state=form.cleaned_data['state'],
+                                                 country=form.cleaned_data['country'],
+                                                 thing=new_thing)
 
 
 @login_required(login_url="login")
@@ -236,24 +219,20 @@ def collect_markers(things):
     """
     View which creates a list of Google Maps makers info from a collection of Things
     """
-    markers = []
-    for thing in things:
-        location = Location.objects.filter(things=thing).first()
-        properties = json.loads(location.properties) if location.properties and location.properties != 'None' else {}
-        coordinates = json.loads(location.location)['geometry']['coordinates'] if location.location else [None, None]
-        marker_info = {
-            'latitude': coordinates[0],
-            'longitude': coordinates[1],
+    return [
+        {
             'name': thing.name,
             'description': thing.description,
+            'latitude': thing.location.latitude,
+            'longitude': thing.location.longitude,
+            'elevation': thing.location.elevation,
+            'city': thing.location.city,
+            'state': thing.location.state,
+            'country': thing.location.country,
             'site_url': reverse('site', args=[thing.id]),
-            'city': properties.get('city', ''),
-            'state': properties.get('state', ''),
-            'country': properties.get('country', ''),
-            'elevation': properties.get('elevation', '')
         }
-        markers.append(marker_info)
-    return markers
+        for thing in things
+    ]
 
 
 def browse_sites(request):
