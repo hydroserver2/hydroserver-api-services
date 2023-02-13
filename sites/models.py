@@ -41,7 +41,7 @@ class HistoricalLocation(models.Model):
 
 class Sensor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
     sensor_metadata = models.TextField(null=True)
@@ -52,7 +52,7 @@ class Sensor(models.Model):
 
 
 class ObservedProperty(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     definition = models.TextField()
     description = models.TextField()
     properties = models.TextField(null=True)
@@ -121,7 +121,7 @@ class SensorManufacturer(models.Model):
 class SensorModel(models.Model):
     name = models.CharField(max_length=255, primary_key=True)
     manufacturer = models.ForeignKey(SensorManufacturer, on_delete=models.CASCADE)
-    sensor = models.OneToOneField(Sensor, on_delete=models.CASCADE)
+    sensor = models.OneToOneField(Sensor, on_delete=models.CASCADE, related_name='model')
 
     def __str__(self):
         return self.name
@@ -135,3 +135,21 @@ class SensorModel(models.Model):
 #     elevation = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
 #     # registration_date = models.DateTimeField(auto_now_add=True)
 #     # id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+# class SensorAssociation(models.Model):
+#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+#     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+#     custom_manufacturer = models.CharField(max_length=255, null=True, blank=True)
+#     custom_model = models.CharField(max_length=255, null=True, blank=True)
+#
+#     class Meta:
+#         unique_together = ("user", "sensor")
+#
+#     def get_manufacturer_model(self):
+#         if self.custom_manufacturer and self.custom_model:
+#             return f"{self.custom_manufacturer} {self.custom_model}"
+#         else:
+#             return self.sensor.get_manufacturer_model()
+#
+#     def __str__(self):
+#         return f"{self.sensor} ({self.user})"
