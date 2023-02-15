@@ -79,7 +79,7 @@ class Datastream(models.Model):
     phenomenon_time = models.DateTimeField(null=True)
     result_time = models.DateTimeField(null=True)
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name='datastreams')
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -89,16 +89,16 @@ class Datastream(models.Model):
 class Observation(models.Model):
     phenomenon_time = models.DateTimeField()
     result = models.CharField(max_length=255)
-    result_time = models.DateTimeField()
+    result_time = models.DateTimeField(null=True)
     result_quality = models.CharField(max_length=255, null=True)
     valid_time = models.DateTimeField(null=True)
     parameters = models.TextField(null=True)
     datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
-    feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)
+    # feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.datastream.thing.name}: " \
-               f"{self.datastream.observed_property.name} - {self.result_time.strftime('%Y-%m-%d %H:%M:%S')}"
+               f"{self.datastream.observed_property.name} - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
 class ThingAssociation(models.Model):

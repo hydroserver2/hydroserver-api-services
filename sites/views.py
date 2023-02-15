@@ -1,17 +1,20 @@
 import json
+import os
 from collections import defaultdict
 from datetime import datetime
 
+import pandas as pd
 from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
 from django.http import StreamingHttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
 from accounts.models import CustomUser, Organization
-from hydroserver.settings import GOOGLE_MAPS_API_KEY
+from hydroserver.settings import GOOGLE_MAPS_API_KEY, LOCAL_CSV_STORAGE
 from .models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
-from .forms import ThingForm, SensorForm
+from .forms import ThingForm, SensorForm, SensorSelectionForm
 
 from .models import ThingAssociation, SensorManufacturer, SensorModel
 from functools import wraps
@@ -27,6 +30,9 @@ def thing_ownership_required(func):
         request = args[0]
         try:
             pk = kwargs.get('pk')
+            if not pk:
+                datastream = Datastream.objects.get(id=kwargs.get('datastream_pk'))
+                pk = datastream.thing.id
         except KeyError:
             datastream = Datastream.objects.get(id=kwargs.get('datastream_pk'))
             pk = datastream.thing.id
@@ -233,15 +239,12 @@ def browse_sites(request):
 @thing_ownership_required
 def sensors(request, pk):
     """
-    View which collects the sensor and datastreams for the selected Thing
+    View which collects the datastreams for the selected Thing
     """
-    thing = Thing.objects.prefetch_related('datastreams__sensor').get(id=pk)
-    datastreams = [datastream for datastream in thing.datastreams.all()]
-    sensors = [datastream.sensor for datastream in thing.datastreams.all()]
-    return render(request, 'sites/manage-sensors.html', {
+    thing = get_object_or_404(Thing.objects.prefetch_related('datastreams'), id=pk)
+    return render(request, 'sites/manage-datastreams.html', {
         'thing': thing,
-        'sensors': sensors,
-        'datastreams': datastreams
+        'datastreams': thing.datastreams.all()
     })
 
 
@@ -268,7 +271,7 @@ def register_datastream(request, pk):
             return redirect('sensors', pk)
     else:
         form = SensorForm()
-    return render(request, 'sites/register-sensor.html', {'form': form, 'thing': thing})
+    return render(request, 'sites/register-datastream.html', {'form': form, 'thing': thing})
 
 
 @thing_ownership_required
@@ -287,7 +290,7 @@ def update_datastream(request, datastream_pk):
             datastream.observed_property = observed_property
             datastream.sensor = sensor
             datastream.save()
-            return redirect('sensors', thing_pk=datastream.thing.id)
+            return redirect('sensors', pk=datastream.thing.id)
     else:
         form = SensorForm(datastream=datastream)
     return render(request, 'sites/update-sensor.html', {'form': form})
@@ -301,7 +304,7 @@ def remove_datastream(request, datastream_pk):
     observations = Observation.objects.filter(datastream=datastream)
     observations.delete()
 
-    return redirect('sensors', thing_pk=thing_pk)
+    return redirect('sensors', pk=thing_pk)
 
 
 def get_sensor_models(request):
@@ -338,10 +341,63 @@ def export_csv(request, thing_pk):
         # Group observations by result_time and yield row by row
         observations_by_time = defaultdict(lambda: {name: '' for name in observed_property_names})
         for obs in observations:
-            observations_by_time[obs.result_time][obs.datastream.observed_property.name] = obs.result
+            observations_by_time[obs.phenomenon_time][obs.datastream.observed_property.name] = obs.result
 
         for result_time, props in observations_by_time.items():
             yield f'{result_time.strftime("%m/%d/%Y %I:%M:%S %p")},' + ','.join(props.values()) + '\n'
 
     response.streaming_content = csv_iter()
     return response
+
+
+@thing_ownership_required
+def upload_csv(request, pk):
+    thing = get_object_or_404(Thing, pk=pk)
+    sensors = Sensor.objects.filter(datastreams__thing=thing).distinct()
+
+    if not sensors:
+        return render(request, 'sites/upload_csv.html', {'thing': thing})
+
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        sensor_form = SensorSelectionForm(request.POST, sensors=sensors)
+
+        if sensor_form.is_valid():
+            csv_file = request.FILES['csv_file']
+            fs = FileSystemStorage(location=LOCAL_CSV_STORAGE)
+            filename = fs.save(csv_file.name, csv_file)
+            file_path = os.path.join(LOCAL_CSV_STORAGE, filename)
+            process_csv_file(file_path, sensors.get(pk=sensor_form.cleaned_data['sensor']))
+
+            return render(request, 'sites/upload_csv.html', {'success': True})
+    else:
+        sensor_form = SensorSelectionForm(sensors=sensors)
+
+    return render(request, 'sites/upload_csv.html', {
+        'thing': thing,
+        'form': sensor_form,
+        'has_sensors': True
+    })
+
+
+def process_csv_file(file_path, sensor):
+    metadata = pd.read_csv(file_path, nrows=1, header=None).values.tolist()[0]
+    df = pd.read_csv(file_path, header=1,
+                     usecols=[datastream.observed_property.name for datastream in sensor.datastreams.all() if
+                              datastream.observed_property] + ["TIMESTAMP"])
+    units = df.iloc[0]
+    measurement_type = df.iloc[1]
+    df = df.drop([0, 1])
+
+    time_series = df.iloc[:, 0]
+
+    observations = []
+    for datastream in sensor.datastreams.all():
+        column_name = datastream.observed_property.name
+        if column_name not in df.columns:
+            continue
+        data = df[column_name]
+
+        for j, time in enumerate(time_series):
+            observations.append(Observation(phenomenon_time=time, result=data[j], datastream=datastream))
+
+        Observation.objects.bulk_create(observations)

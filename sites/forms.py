@@ -47,8 +47,8 @@ class SensorForm(ModelForm):
                                        widget=Select(attrs={'class': 'form-control'}))
     allowed_units = ['Degrees Celsius', 'Degrees Fahrenheit', 'Feet', 'Meters']
     unit_of_measurement = ChoiceField(label='Unit Of Measurement',
-                                       choices=[(unit, unit) for unit in allowed_units],
-                                       widget=Select(attrs={'class': 'form-control'}))
+                                      choices=[(unit, unit) for unit in allowed_units],
+                                      widget=Select(attrs={'class': 'form-control'}))
 
     observed_property = ModelChoiceField(queryset=ObservedProperty.objects.all(),
                                          widget=Select(attrs={'class': 'form-control', 'id': 'id_sensor_manufacturer'}))
@@ -73,3 +73,17 @@ class SensorForm(ModelForm):
     class Meta:
         model = Sensor
         fields = ['sensor_manufacturer', 'sensor_model', 'sampled_medium', 'unit_of_measurement', 'observed_property']
+
+
+class SensorSelectionForm(ModelForm):
+    sensor = ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        sensors = kwargs.pop('sensors', None)
+        super().__init__(*args, **kwargs)
+        sensor_choices = [(s.pk, s.name) for s in sensors]
+        self.fields['sensor'] = ChoiceField(choices=sensor_choices, widget=Select())
+
+    class Meta:
+        model = Sensor
+        fields = ['sensor']

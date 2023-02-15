@@ -1,11 +1,11 @@
 {% extends 'main.html' %}
 {% block content %}
 
-    <h3>Add New Sensor</h3>
+    <h3>Add New Datastream</h3>
     <form method="post" action="{% url 'register_datastream' thing.pk %}">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" value="Add New Sensor">
+        <input type="submit" value="Add New Datastream">
     </form>
 
     {# Get this out of here and connect to manage-sensors as well#}

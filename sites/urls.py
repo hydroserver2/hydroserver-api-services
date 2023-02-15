@@ -14,5 +14,6 @@ urlpatterns = [
     path('update_datastream/<str:datastream_pk>/', views.update_datastream, name='update_datastream'),
     path('get_sensor_models/', views.get_sensor_models, name='get_sensor_models'),
     path('remove_datastream/<int:datastream_pk>', views.remove_datastream, name='remove_datastream'),
+    path('upload_csv/<str:pk>/', views.upload_csv, name='upload_csv'),
     path('export_csv/<str:thing_pk>/', views.export_csv, name='export_csv'),
 ]
