@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
 from django.core.management.base import BaseCommand
-from sensorthings.models_sa import Base
+from odmst.sa_models import Base
 
 
 class Command(BaseCommand):
