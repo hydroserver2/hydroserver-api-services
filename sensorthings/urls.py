@@ -12,5 +12,5 @@ st_odm2c_api = build_api_extension(
 )
 
 urlpatterns = [
-    path('v1.1/', st_core_api.urls)
+    path('v1.1/', st_odm2c_api.urls)
 ]
