@@ -1,0 +1,31 @@
+{% extends 'main.html' %}
+{% block content %}
+
+    <h3>Add New Datastream</h3>
+    <form method="post" action="{% url 'register_datastream' thing.pk %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Add New Datastream">
+    </form>
+
+    {# Get this out of here and connect to manage-sensors as well#}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function(){
+        $('#id_sensor_manufacturer').change(function(){
+            let manufacturer = $(this).val();
+            $.ajax({
+                url: '{% url 'get_sensor_models' %}',
+                data: {'manufacturer': manufacturer},
+                success: function(data){
+                    let options = '';
+                    for (let i = 0; i < data.length; i++) {
+                        options += '<option value="' + data[i] + '">' + data[i] + '</option>';
+                    }
+                    $('#id_sensor_model').html(options);
+                }
+            });
+        });
+    });
+    </script>
+{% endblock content %}

@@ -28,25 +28,6 @@ jobs:
           environment-file: environment.yml
           use-mamba: true
 
-#         # caching dependency will make our build faster.
-#       - name: Cache dependency
-#         uses: actions/cache@v2
-#         with:
-#           path: ~/.cache/pip
-#           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-#           restore-keys: |
-#             ${{ runner.os }}-pip-
-
-#       - name: Set Up Python ${{ matrix.python-version }}
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: ${{ matrix.python-version }}
-
-#       - name: Install requirements
-#         run: |
-#           pip install -r requirements.txt
-
       - name: Run tests
         run: |
             python manage.py test
-

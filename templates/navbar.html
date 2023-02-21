@@ -18,7 +18,7 @@
       <li class="header__menuItem"><a href="">Time Series Visualization</a></li>
 
       {% if request.user.is_authenticated %}
-        <li class="header__menuItem"><a href="">Account</a></li>
+        <li class="header__menuItem"><a href="{% url 'profile' %}">Account</a></li>
         <li class="header__menuItem"><a href="{% url 'logout' %}" class="btn btn--sub">Logout</a></li>
       {% else %}
           <li class="header__menuItem"><a href="{% url 'login' %}" class="btn btn--sub">Login/Sign Up</a></li>

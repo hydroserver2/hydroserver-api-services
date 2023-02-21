@@ -1,0 +1,33 @@
+{% extends 'main.html' %}
+{% block content %}
+
+    <h2>Manage Datastreams for {{ thing.name }}</h2>
+
+    <table border=".5">
+        <thead>
+            <tr>
+                <td>Name</td>
+                <td>Observed Property</td>
+                <td>Unit</td>
+                <td>Sampled Medium</td>
+                <td>Description</td>
+                <td>Edit</td>
+                <td>Delete</td>
+            </tr>
+        </thead>
+        {% for datastream in datastreams %}
+            <tr>
+                <td>{{ datastream.sensor.name }}</td>
+                <td>{{ datastream.observed_property }}</td>
+                <td>{{ datastream.unit_of_measurement }}</td>
+                <td></td>
+                <td>{{ datastream.description }}</td>
+                <td><button><a href="{% url 'update_datastream' datastream.pk %}">Edit</a></button></td>
+                <td><button><a href="{% url 'remove_datastream' datastream.id %}">Delete</a></button></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <button id="download-button"><a href="{% url 'register_datastream' thing.pk %}">Add Sensor</a></button>
+
+{% endblock content %}

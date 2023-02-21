@@ -15,6 +15,15 @@ import dj_database_url
 from pathlib import Path
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 from django.contrib.admin.views.decorators import staff_member_required
+from decouple import config, UndefinedValueError
+
+try:
+    GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+except UndefinedValueError:
+    GOOGLE_MAPS_API_KEY = None
+    # GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+
+LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -153,7 +162,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]

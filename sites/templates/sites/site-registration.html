@@ -1,16 +1,16 @@
 {% extends 'main.html' %}
 {% block content %}
 
-<h1>Register a Site</h1>
-<form class="form" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <!-- Input:Text -->
-    {% for field in form %}
-        <label for="formInput#text">{{ field.label}}</label>
-        {{ field }}
-    {% endfor%}
+    <h1>Register a Site</h1>
+    <form class="form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-    <input type="submit" value="Add Site" />
-</form>
+        {% for field in form %}
+            <p><label for="formInput#text">{{ field.label}}</label>{{ field }}</p>
+        {% endfor%}
 
+        <input type="submit" value="Add Site" />
+    </form>
+
+    {% include 'sites/site-map.html' %}
 {% endblock %}
