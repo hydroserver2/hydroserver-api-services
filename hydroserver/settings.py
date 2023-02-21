@@ -37,7 +37,7 @@ class EnvironmentSettings(BaseSettings):
     DEBUG: bool = True
 
     class Config:
-        env_file = f'{BASE_DIR}.env'
+        env_file = f'{BASE_DIR}/.env'
         case_sensitive = True
 
 
@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'sites.apps.SitesConfig',
     'datastores',
     'sensorthings',
+    'odmst'
 ]
 
 MIDDLEWARE = [
