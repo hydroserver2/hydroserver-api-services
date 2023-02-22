@@ -1,6 +1,3 @@
-import json
-
-from accounts.models import Organization
 from .models import Thing, ObservedProperty, Sensor
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
 
@@ -14,23 +11,15 @@ class ThingForm(ModelForm):
     city = CharField(widget=TextInput(attrs={'id': 'id_nearest_town'}))
     state = CharField(widget=TextInput(attrs={'id': 'id_state'}))
     country = CharField(widget=TextInput(attrs={'id': 'id_country'}))
-    organizations = ModelChoiceField(queryset=Organization.objects.all(), widget=Select)
 
     class Meta:
         model = Thing
-        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'city', 'state', 'country',
-                  'organizations']
+        fields = ['name', 'description', 'latitude', 'longitude', 'elevation', 'city', 'state', 'country']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         thing = kwargs.get('instance')
         if thing:
-            organization_id = json.loads(thing.properties).get('organization_id', None)
-            try:
-                thing_organization = Organization.objects.get(pk=organization_id)
-                self.fields['organizations'].initial = thing_organization
-            except Organization.DoesNotExist:
-                pass
             for field in ['latitude', 'longitude', 'elevation', 'city', 'state', 'country']:
                 self.fields[field].initial = getattr(thing.location, field)
 

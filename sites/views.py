@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
-from accounts.models import CustomUser, Organization
+from accounts.models import CustomUser
 from hydroserver.settings import GOOGLE_MAPS_API_KEY, LOCAL_CSV_STORAGE
 from .models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream
 from .forms import ThingForm, SensorForm, SensorSelectionForm
@@ -65,16 +65,11 @@ def site(request, pk):
     """
     thing = Thing.objects.get(id=pk)
 
-    organization_id = json.loads(thing.properties).get('organization_id', None)
-    try:
-        thing_organization = Organization.objects.get(pk=organization_id)
-    except Organization.DoesNotExist:
-        thing_organization = "-"
-
+    site_owners = thing.associates.filter(owns_thing=True)
     table_data = [
-        {'label': 'Site Owners', 'value':
-            ', '.join([associate.person.get_full_name() for associate in thing.associates.filter(owns_thing=True)])},
-        {'label': 'Organization', 'value': thing_organization},
+        {'label': f'Site Owner{"s" if len(site_owners) != 1 else ""}',
+         'value': ', '.join([f"{owner.person.get_full_name()} ({owner.person.organization or 'No Org'})"
+                             for owner in site_owners])},
         {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
         {'label': 'Deployment Date', 'value': ''},
         {'label': 'Latitude', 'value': thing.location.latitude},
@@ -121,7 +116,7 @@ def register_location(new_thing, form):
 @login_required(login_url="login")
 def register_site(request):
     """
-    registers a new site to be associated with the active user and selected organization
+    registers a new site to be associated with the active user
     """
     form = ThingForm()
 
@@ -130,8 +125,7 @@ def register_site(request):
         if form.is_valid():
             new_thing = form.save()
             register_location(new_thing, form)
-            properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                          "organization_id": form.cleaned_data['organizations'].pk}
+            properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             new_thing.properties = json.dumps(properties)
             new_thing.save()
             ThingAssociation.objects.create(thing=new_thing, person=request.user, owns_thing=True)
@@ -147,9 +141,9 @@ def update_site(request, pk):
     if request.method == 'POST':
         form = ThingForm(request.POST, instance=thing)
         if form.is_valid():
-            properties = json.loads(thing.properties) if thing.properties and thing.properties != 'None' else {}
-            properties["organization_id"] = form.cleaned_data['organizations'].pk
-            thing.properties = json.dumps(properties)
+            # properties = json.loads(thing.properties) if thing.properties and thing.properties != 'None' else {}
+            # properties["organization_id"] = form.cleaned_data['organizations'].pk
+            # thing.properties = json.dumps(properties)
             form.save()
             return redirect('site', pk=str(thing.id))
     else:
