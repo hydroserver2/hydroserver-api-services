@@ -3,8 +3,11 @@
 {% block content %}
     <h1>Welcome, {{ user.username }}</h1>
     <p>First name: {{ user.first_name }}</p>
+    <p>Middle name: {{ user.middle_name }}</p>
     <p>Last name: {{ user.last_name }}</p>
-    <br><p>Organization: {{ organization|default:"None" }}</p><br><br>
+    <br><p>Organization: {{ user.organization|default:"None" }}</p><br>
+    <p>Phone Number: {{ user.phone }}</p>
+    <p>Address: {{ user.address }}</p><br>
 
     <button type="submit" class="btn btn-primary"><a href="{% url 'update_account' %}">Update Account</a></button>
     <button type="submit" class="btn btn-danger"><a href="{% url 'remove_account' %}">Remove Account</a></button>

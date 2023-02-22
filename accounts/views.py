@@ -50,7 +50,7 @@ def signup(request):
 @login_required(login_url="login")
 def profile(request):
     custom_user = CustomUser.objects.get(username=request.user.username)
-    return render(request, 'registration/profile.html', {'user': custom_user, 'organization': custom_user.organization})
+    return render(request, 'registration/profile.html', {'user': custom_user})
 
 
 @login_required(login_url="login")
