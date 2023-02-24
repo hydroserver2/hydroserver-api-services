@@ -1,31 +1,90 @@
 {% extends 'main.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/modal.css' %}">
+{% endblock %}
+
 {% block content %}
+    <h3>Datastream Setup Page</h3>
+    <p>Select Data Collection Method or create a new one</p>
+    <button id="add-sensor-button">Add New</button>
+    {{ form.as_p }}
 
-    <h3>Add New Datastream</h3>
-    <form method="post" action="{% url 'register_datastream' thing.pk %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Add New Datastream">
-    </form>
+    <div id="add-sensor-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4>Add a New Sensor/Data Collection Method</h4>
+            <form id="add-sensor-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_method_type">Method Type:</label>
+                    <select name="method_type" id="id_method_type">
+                        <option value="derivation">Derivation</option>
+                        <option value="estimation">Estimation</option>
+                        <option value="instrumentDeployment">Instrument Deployment</option>
+                        <option value="observation">Observation</option>
+                        <option value="simulation">Simulation</option>
+                        <option value="specimenAnalysis">Specimen Analysis</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                </div>
+                <div class="form-group" id="manufacturer-field">
+                    <label for="id_manufacturer">Manufacturer:</label>
+                    <input type="text" name="manufacturer" id="id_manufacturer">
+                </div>
+                <div class="form-group" id="model-field">
+                    <label for="id_model">Model:</label>
+                    <input type="text" name="model" id="id_model">
+                </div>
+                <div class="form-group">
+                    <label for="id_name">Name:</label>
+                    <input type="text" name="name" id="id_name" placeholder="Sensor time series">
+                </div>
+                <div class="form-group">
+                    <label for="id_description">Description:</label>
+                    <input type="text" name="description" id="id_description" placeholder="A time series of observations derived from a sensor">
+                </div>
+                <div class="form-group">
+                    <label for="id_method_code">Method Code:</label>
+                    <input type="text" name="method_code" id="id_method_code">
+                </div>
+                <div class="form-group">
+                    <label for="id_method_link">Method Link:</label>
+                    <input type="text" name="method_link" id="id_method_link">
+                </div>
+                <button id="submit-sensor-data" type="submit" data-url="{% url 'add_sensor' %}">Add Sensor</button>
+            </form>
+        </div>
+    </div>
 
-    {# Get this out of here and connect to manage-sensors as well#}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-    $(document).ready(function(){
-        $('#id_sensor_manufacturer').change(function(){
-            let manufacturer = $(this).val();
-            $.ajax({
-                url: '{% url 'get_sensor_models' %}',
-                data: {'manufacturer': manufacturer},
-                success: function(data){
-                    let options = '';
-                    for (let i = 0; i < data.length; i++) {
-                        options += '<option value="' + data[i] + '">' + data[i] + '</option>';
-                    }
-                    $('#id_sensor_model').html(options);
-                }
-            });
-        });
-    });
-    </script>
+    <script src="{% static 'js/modal.js' %}"></script>
 {% endblock content %}
+
+{#    <button><a href="{% url 'add_sensor_model' thing.pk%}">Add Sensor Model</a></button>#}
+{#    <form method="post" action="{% url 'register_datastream' thing.pk %}">#}
+{#        {% csrf_token %}#}
+{#        {{ form.as_p }}#}
+{#        <input type="submit" value="Add New Datastream">#}
+{#    </form>#}
+{##}
+    {# Get this out of here and connect to manage-sensors as well#}
+{#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+{#    <script>#}
+{#    $(document).ready(function(){#}
+{#        $('#id_sensor_manufacturer').change(function(){#}
+{#            let manufacturer = $(this).val();#}
+{#            $.ajax({#}
+{#                url: '{% url 'get_sensor_models' %}',#}
+{#                data: {'manufacturer': manufacturer},#}
+{#                success: function(data){#}
+{#                    let options = '';#}
+{#                    for (let i = 0; i < data.length; i++) {#}
+{#                        options += '<option value="' + data[i] + '">' + data[i] + '</option>';#}
+{#                    }#}
+{#                    $('#id_sensor_model').html(options);#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#    });#}
+{#    </script>#}

@@ -1,7 +1,5 @@
-from .models import Thing, ObservedProperty, Sensor
+from .models import Thing, ObservedProperty, Sensor, Datastream
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, TextInput, CharField
-
-from sites.models import SensorManufacturer, SensorModel
 
 
 class ThingForm(ModelForm):
@@ -24,11 +22,9 @@ class ThingForm(ModelForm):
                 self.fields[field].initial = getattr(thing.location, field)
 
 
-class SensorForm(ModelForm):
-    sensor_manufacturer = ModelChoiceField(queryset=SensorManufacturer.objects.all(),
-                                           widget=Select(attrs={'class': 'form-control', 'id': 'id_sensor_manufacturer'}))
-    sensor_model = ModelChoiceField(queryset=SensorModel.objects.all(),
-                                    widget=Select(attrs={'class': 'form-control', 'id': 'id_sensor_model'}))
+class DatastreamForm(ModelForm):
+    method = ModelChoiceField(queryset=Sensor.objects.none(),
+                              widget=Select(attrs={'class': 'form-control', 'id': 'id_method_select'}))
 
     allowed_sample_medium = ['Air', 'Soil', 'Sediment', 'Liquid aqueous', 'Equipment', 'Not applicable', 'Other']
     sampled_medium = ChoiceField(label='Sampled Medium',
@@ -40,28 +36,19 @@ class SensorForm(ModelForm):
                                       widget=Select(attrs={'class': 'form-control'}))
 
     observed_property = ModelChoiceField(queryset=ObservedProperty.objects.all(),
-                                         widget=Select(attrs={'class': 'form-control', 'id': 'id_sensor_manufacturer'}))
-
-    def __init__(self, *args, **kwargs):
-        datastream = kwargs.pop('datastream', None)
-        super().__init__(*args, **kwargs)
-        self.fields['sensor_manufacturer'] = ModelChoiceField(queryset=SensorManufacturer.objects.all())
-        self.fields['sensor_model'] = ModelChoiceField(queryset=SensorModel.objects.all())
-        if datastream:
-            sensor_name = datastream.sensor.name
-            try:
-                sensor_manufacturer = SensorManufacturer.objects.get(name=sensor_name.split(':')[0])
-                self.fields['sensor_manufacturer'].initial = sensor_manufacturer
-                sensor_model = SensorModel.objects.get(name=sensor_name.split(':')[1], manufacturer=sensor_manufacturer)
-                self.fields['sensor_model'].initial = sensor_model
-            except (SensorManufacturer.DoesNotExist, SensorModel.DoesNotExist):
-                pass
-            self.fields['unit_of_measurement'].initial = datastream.unit_of_measurement
-            self.fields['observed_property'].initial = datastream.observed_property
+                                         widget=Select(attrs={'class': 'form-control', 'id': 'id_observed_property'}))
 
     class Meta:
-        model = Sensor
-        fields = ['sensor_manufacturer', 'sensor_model', 'sampled_medium', 'unit_of_measurement', 'observed_property']
+        model = Datastream
+        fields = ['method', 'unit_of_measurement']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['method'] = ModelChoiceField(
+                queryset=user.sensor_set.all().order_by('manufacturer', 'model', 'method_type'),
+                widget=Select(attrs={'class': 'form-control', 'id': 'id_method_select'}))
 
 
 class SensorSelectionForm(ModelForm):
