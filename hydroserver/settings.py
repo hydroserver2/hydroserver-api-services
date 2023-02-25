@@ -75,9 +75,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
-    'datastores',
     'sensorthings',
-    'odmst'
 ]
 
 MIDDLEWARE = [
@@ -88,7 +86,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'sensorthings.middleware.SensorThingsMiddleware'
+    'hydrothings.middleware.SensorThingsMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
@@ -178,72 +176,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # SensorThings API Settings
 
-ST_VERSION = '1.1'
-ST_PREFIX = 'sensorthings'
-ST_BASE_URL = f'/{ST_PREFIX}/v{ST_VERSION}'
-
-ST_API = {
-    'title': 'HydroServer SensorThings API',
-    'version': ST_VERSION,
-    'description': '''
-        The HydroServer API can be used to create and update monitoring site metadata, and post  
-        results data to HydroServer data stores.
-    ''',
-    'csrf': False
-}
-
-ST_CONFORMANCE = [
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/resource-path/resource-path-to-entities',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/request-data',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/create-entity',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/link-to-existing-entities',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/deep-insert',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/deep-insert-status-code',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/update-entity',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/delete-entity',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/historical-location-auto-creation'
-]
-
-ST_CAPABILITIES = [
-    {
-        'NAME': 'Things',
-        'SINGULAR_NAME': 'Thing',
-        'VIEW': 'list_thing'
-    },
-    {
-        'NAME': 'Locations',
-        'SINGULAR_NAME': 'Location',
-        'VIEW': 'list_location'
-    },
-    {
-        'NAME': 'HistoricalLocations',
-        'SINGULAR_NAME': 'HistoricalLocation',
-        'VIEW': 'list_historical_location'
-    },
-    {
-        'NAME': 'Datastreams',
-        'SINGULAR_NAME': 'Datastream',
-        'VIEW': 'list_datastream'
-    },
-    {
-        'NAME': 'Sensors',
-        'SINGULAR_NAME': 'Sensor',
-        'VIEW': 'list_sensor'
-    },
-    {
-        'NAME': 'Observations',
-        'SINGULAR_NAME': 'Observation',
-        'VIEW': 'list_observation'
-    },
-    {
-        'NAME': 'ObservedProperties',
-        'SINGULAR_NAME': 'ObservedProperty',
-        'VIEW': 'list_observed_property'
-    },
-    {
-        'NAME': 'FeaturesOfInterest',
-        'SINGULAR_NAME': 'FeatureOfInterest',
-        'VIEW': 'list_feature_of_interest'
-    },
-]
+STAPI_TITLE = 'HydroServer SensorThings API'
+STAPI_DESCRIPTION = '''
+    The HydroServer API can be used to create and update monitoring site metadata, and post
+    results data to HydroServer data stores.
+'''
+STAPI_VERSION = '1.1'
