@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        # ('sensorthings', '0007_alter_location_location'),
+        ('sensorthings', '0007_alter_location_location'),
         ('sites', '0001_initial'),
     ]
 
