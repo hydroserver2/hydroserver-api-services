@@ -8,7 +8,7 @@
             <div>
                 <button><a href="{% url 'update_site' thing.pk %}">Manage Site</a></button>
                 <button><a href="{% url 'delete-site' thing.pk %}">Delete Site</a></button>
-                <button><a href="{% url "sensors" thing.pk %}">Manage Datastreams</a></button>
+                <button><a href="{% url 'register_datastream' thing.pk %}">Add New Datastream</a></button>
                 <button><a href="{% url "upload_csv" thing.pk %}">Upload Data</a></button>
             </div>
         {% else %}

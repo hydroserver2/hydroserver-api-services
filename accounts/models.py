@@ -1,33 +1,41 @@
+from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class Organization(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True, max_length=500)
-
-    def __str__(self):
-        return self.name
-
-
 class CustomUser(AbstractUser):
-    email = models.EmailField(max_length=254, unique=True, blank=False)
-    organizations = models.ManyToManyField(Organization, blank=True, through='Membership')
+    email = models.EmailField(unique=True)
+    organization = models.CharField(max_length=255, blank=True, null=True)
+    middle_name = models.CharField(max_length=30, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
 
-class Membership(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True)
-    is_admin = models.BooleanField(default=False)
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(email, password, **extra_fields)
 
-    def __str__(self):
-        name = 'no name'
-        if self.user:
-            if self.user.first_name:
-                name = self.user.first_name
-        org = 'no org'
-        if self.organization:
-            if self.organization.name:
-                org = self.organization.name
-        membership = ' is admin of ' if self.is_admin else ' is member of '
-        return name + membership + org
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(email, password, **extra_fields)
+
+    def _create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user

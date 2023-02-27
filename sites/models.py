@@ -33,22 +33,23 @@ class Location(models.Model):
         return self.name
 
 
-class HistoricalLocation(models.Model):
-    time = models.DateTimeField()
-    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='historical_locations')
-    locations = models.ManyToManyField(Location, related_name='historical_locations')
-
-
 class Sensor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField()
-    encoding_type = models.CharField(max_length=255)
-    sensor_metadata = models.TextField(null=True)
-    properties = models.TextField(null=True)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    encoding_type = models.CharField(max_length=255, blank=True, null=True)
+    manufacturer = models.CharField(max_length=255, null=True, blank=True)
+    model = models.CharField(max_length=255, null=True, blank=True)
+    method_type = models.CharField(max_length=100, blank=True, null=True)
+    method_link = models.CharField(max_length=500, blank=True, null=True)
+    method_code = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        if self.method_type == 'instrumentDeployment':
+            return f"{self.manufacturer}:{self.model}"
+        else:
+            return f"{self.method_type}:{self.method_code}"
 
 
 class ObservedProperty(models.Model):
@@ -111,21 +112,10 @@ class ThingAssociation(models.Model):
         unique_together = ("thing", "person")
 
 
-class SensorManufacturer(models.Model):
-    name = models.CharField(max_length=255, primary_key=True)
-
-    def __str__(self):
-        return self.name
-
-
-class SensorModel(models.Model):
-    name = models.CharField(max_length=255, primary_key=True)
-    manufacturer = models.ForeignKey(SensorManufacturer, on_delete=models.CASCADE)
-    sensor = models.OneToOneField(Sensor, on_delete=models.CASCADE, related_name='model')
-
-    def __str__(self):
-        return self.name
-
+# class HistoricalLocation(models.Model):
+#     time = models.DateTimeField()
+#     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='historical_locations')
+#     locations = models.ManyToManyField(Location, related_name='historical_locations')
 
 # class Site(models.Model):
 #     # This model should only contain the data related to how a Thing will be managed
@@ -136,20 +126,3 @@ class SensorModel(models.Model):
 #     # registration_date = models.DateTimeField(auto_now_add=True)
 #     # id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
-# class SensorAssociation(models.Model):
-#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-#     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
-#     custom_manufacturer = models.CharField(max_length=255, null=True, blank=True)
-#     custom_model = models.CharField(max_length=255, null=True, blank=True)
-#
-#     class Meta:
-#         unique_together = ("user", "sensor")
-#
-#     def get_manufacturer_model(self):
-#         if self.custom_manufacturer and self.custom_model:
-#             return f"{self.custom_manufacturer} {self.custom_model}"
-#         else:
-#             return self.sensor.get_manufacturer_model()
-#
-#     def __str__(self):
-#         return f"{self.sensor} ({self.user})"
