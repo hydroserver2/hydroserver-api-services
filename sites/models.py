@@ -10,13 +10,16 @@ class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(null=True, blank=True)
-    properties = models.TextField(null=True)
+    sampling_feature_type = models.CharField(max_length=200, null=True, blank=True)
+    sampling_feature_code = models.CharField(max_length=200, null=True, blank=True)
+    site_type = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
 class Location(models.Model):
+    thing = models.OneToOneField(Thing, related_name='location', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
@@ -26,8 +29,6 @@ class Location(models.Model):
     city = models.CharField(max_length=150, null=True, blank=True)
     state = models.CharField(max_length=150, null=True, blank=True)
     country = models.CharField(max_length=150, null=True, blank=True)
-    properties = models.TextField(null=True, blank=True)
-    thing = models.OneToOneField(Thing, related_name='location', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -41,12 +42,13 @@ class Sensor(models.Model):
     encoding_type = models.CharField(max_length=255, blank=True, null=True)
     manufacturer = models.CharField(max_length=255, null=True, blank=True)
     model = models.CharField(max_length=255, null=True, blank=True)
+    model_url = models.CharField(max_length=500, null=True, blank=True)
     method_type = models.CharField(max_length=100, blank=True, null=True)
     method_link = models.CharField(max_length=500, blank=True, null=True)
     method_code = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        if self.method_type == 'instrumentDeployment':
+        if self.method_type.strip().lower().replace(" ", "") == 'instrumentdeployment':
             return f"{self.manufacturer}:{self.model}"
         else:
             return f"{self.method_type}:{self.method_code}"
@@ -54,9 +56,11 @@ class Sensor(models.Model):
 
 class ObservedProperty(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     definition = models.TextField()
     description = models.TextField()
-    properties = models.TextField(null=True)
+    variable_type = models.CharField(max_length=50, blank=True, null=True)
+    variable_code = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -67,34 +71,71 @@ class FeatureOfInterest(models.Model):
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
     feature = models.TextField()
-    properties = models.TextField(null=True)
+
+
+class ProcessingLevel(models.Model):
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels')
+    processing_level_code = models.CharField(max_length=255)
+    definition = models.TextField()
+    explanation = models.TextField()
+
+    def __str__(self):
+        return self.processing_level_code
+
+
+class Unit(models.Model):
+    name = models.CharField(max_length=100)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    symbol = models.CharField(max_length=50)
+    definition = models.TextField()
+    unit_type = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Datastream(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    unit_of_measurement = models.TextField()
-    observation_type = models.CharField(max_length=255)
-    properties = models.TextField(null=True)
-    observed_area = models.TextField(null=True)
-    phenomenon_time = models.DateTimeField(null=True)
-    result_time = models.DateTimeField(null=True)
+    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name='datastreams')
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.CASCADE)
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.SET_NULL, null=True, blank=True)
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    observation_type = models.CharField(max_length=255, null=True, blank=True)
+    result_type = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=255, null=True, blank=True)
+    sampled_medium = models.CharField(max_length=255, null=True, blank=True)
+    value_count = models.IntegerField(null=True, blank=True)
+    no_data_value = models.FloatField(max_length=255, null=True, blank=True)
+    intended_time_spacing = models.FloatField(max_length=255, null=True, blank=True)
+    intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
+                                                    related_name='intended_time_spacing')
+    aggregation_statistic = models.CharField(max_length=255, null=True, blank=True)
+    time_aggregation_interval = models.FloatField(max_length=255, null=True, blank=True)
+    time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
+                                                        related_name='time_aggregation_interval')
+    # observed_area = models.TextField(null=True)
+    phenomenon_start_time = models.DateTimeField(null=True, blank=True)
+    phenomenon_end_time = models.DateTimeField(null=True, blank=True)
+    result_begin_time = models.DateTimeField(null=True, blank=True)
+    result_end_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
 class Observation(models.Model):
+    datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
     phenomenon_time = models.DateTimeField()
     result = models.CharField(max_length=255)
     result_time = models.DateTimeField(null=True)
     result_quality = models.CharField(max_length=255, null=True)
     valid_time = models.DateTimeField(null=True)
     parameters = models.TextField(null=True)
-    datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
+    valid_begin_time = models.DateTimeField(null=True)
+    valid_end_time = models.DateTimeField(null=True)
     # feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -107,6 +148,7 @@ class ThingAssociation(models.Model):
     person = ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='thing_associations')
     owns_thing = models.BooleanField(default=False)
     follows_thing = models.BooleanField(default=False)
+    is_primary_owner = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("thing", "person")

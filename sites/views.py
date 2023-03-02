@@ -6,16 +6,17 @@ from datetime import datetime
 import pandas as pd
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
-from django.http import StreamingHttpResponse, JsonResponse
+from django.http import StreamingHttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.views.decorators.http import require_POST
 
 from accounts.models import CustomUser
 from hydroserver.settings import GOOGLE_MAPS_API_KEY, LOCAL_CSV_STORAGE
-from .models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream, ThingAssociation
-from .forms import ThingForm, SensorSelectionForm, DatastreamForm
+from .models import Thing, Observation, Location, Sensor, ObservedProperty, Datastream, ThingAssociation, Unit, \
+    ProcessingLevel
+from .forms import ThingForm, SensorSelectionForm, DatastreamForm, MethodForm, ObservedPropertyForm, UnitForm, \
+    ProcessingLevelForm
 
 from functools import wraps
 
@@ -70,7 +71,7 @@ def site(request, pk):
         {'label': f'Site Owner{"s" if len(site_owners) != 1 else ""}',
          'value': ', '.join([f"{owner.person.get_full_name()} ({owner.person.organization or 'No Org'})"
                              for owner in site_owners])},
-        {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
+        # {'label': 'Registration Date', 'value': json.loads(thing.properties).get('registration_date', None)},
         {'label': 'Deployment Date', 'value': ''},
         {'label': 'Latitude', 'value': thing.location.latitude},
         {'label': 'Longitude', 'value': thing.location.longitude},
@@ -125,8 +126,8 @@ def register_site(request):
         if form.is_valid():
             new_thing = form.save()
             register_location(new_thing, form)
-            properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-            new_thing.properties = json.dumps(properties)
+            # properties = {"registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+            # new_thing.properties = json.dumps(properties)
             new_thing.save()
             ThingAssociation.objects.create(thing=new_thing, person=request.user, owns_thing=True)
             return redirect('sites')
@@ -141,9 +142,6 @@ def update_site(request, pk):
     if request.method == 'POST':
         form = ThingForm(request.POST, instance=thing)
         if form.is_valid():
-            # properties = json.loads(thing.properties) if thing.properties and thing.properties != 'None' else {}
-            # properties["organization_id"] = form.cleaned_data['organizations'].pk
-            # thing.properties = json.dumps(properties)
             form.save()
             return redirect('site', pk=str(thing.id))
     else:
@@ -242,20 +240,82 @@ def sensors(request, pk):
     })
 
 
-@require_POST
 def add_sensor(request):
-    sensor = Sensor.objects.create(
-        person=request.user,
-        name=request.POST.get('name', None) or 'Sensor time series',
-        description=request.POST.get('description', None) or 'A time series of observations derived from a sensor',
-        manufacturer=request.POST.get('manufacturer', None),
-        model=request.POST.get('model', None),
-        method_type=request.POST.get('method_type', None),
-        method_code=request.POST.get('method_code', None),
-        method_link=request.POST.get('method_link', None)
-    )
+    form = MethodForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        Sensor.objects.create(
+            person=request.user,
+            name=data.get('name', None) or 'Sensor time series',
+            description=data.get('description', None) or 'A time series of observations derived from a sensor',
+            manufacturer=data.get('manufacturer', None),
+            model=data.get('model', None),
+            method_type=data.get('method_type', None),
+            method_code=data.get('method_code', None),
+            method_link=data.get('method_link', None)
+        )
 
-    return JsonResponse({'success': True, 'id': str(sensor.id), 'name': sensor.name})
+
+def add_datastream(request, thing):
+    form = DatastreamForm(request.POST, user=request.user)
+    if form.is_valid():
+        data = form.cleaned_data
+        sensor = Sensor.objects.get(id=data['method'])
+        Datastream.objects.create(
+            name=str(sensor),
+            description='description',
+            observed_property=ObservedProperty.objects.get(id=data['observed_property'].id),
+            unit=Unit.objects.get(id=data['unit'].id),
+            processing_level=data.get('processing_level', None),
+            sampled_medium=data.get('sampled_medium', None),
+            status=data.get('status', None),
+            no_data_value=data.get('no_data_value', None),
+            aggregation_statistic=data.get('aggregation_statistic', None),
+            # intended_time_spacing=data.get('intended_time_spacing', None),
+            # intended_time_spacing_units=Unit.objects.get(id=data['intended_time_spacing_units'].id),
+            # time_aggregation_interval=data.get('time_aggregation_interval', None),
+            # time_aggregation_interval_units=Unit.objects.get(id=data['time_aggregation_interval_units'].id),
+            result_type='Time Series Coverage',
+            observation_type='OM_Measurement',
+            thing=thing,
+            sensor=sensor,
+        )
+
+
+def add_observed_property(request):
+    form = ObservedPropertyForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        ObservedProperty.objects.get_or_create(
+            name=data.get('name', None),
+            person=request.user,
+            definition=data.get('definition', None),
+            description=data.get('description', None)
+        )
+
+
+def add_unit(request):
+    form = UnitForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        Unit.objects.get_or_create(
+            name=data.get('name', None),
+            person=request.user,
+            definition=data.get('definition', None),
+            unit_type=data.get('unit_type', None)
+        )
+
+
+def add_processing_level(request):
+    form = ProcessingLevelForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        ProcessingLevel.objects.get_or_create(
+            processing_level_code=data.get('processing_level_code', None),
+            person=request.user,
+            definition=data.get('definition', None),
+            explanation=data.get('explanation', None)
+        )
 
 
 @thing_ownership_required
@@ -265,23 +325,32 @@ def register_datastream(request, pk):
     """
     thing = Thing.objects.get(pk=pk)
     if request.method == 'POST':
-        form = DatastreamForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            # This needs to go somewhere in the model: data['sampled_medium']
-            observed_property = ObservedProperty.objects.get(name=data['observed_property'])
-            # sensor = Sensor.objects.get(name=data['sensor_manufacturer'].name + ":" + data['sensor_model'].name)
-            # datastream, _ = Datastream.objects.get_or_create(name='datastream for ' + thing.name + '.' + sensor.name,
-            #                                                  description='datastream for ' + thing.name,
-            #                                                  unit_of_measurement=data['unit_of_measurement'],
-            #                                                  observation_type='temp observation type',
-            #                                                  thing=thing,
-            #                                                  sensor=sensor,
-            #                                                  observed_property=observed_property)
-            return redirect('sensors', pk)
-    else:
-        form = DatastreamForm(user=request.user)
-    return render(request, 'sites/register-datastream.html', {'form': form, 'thing': thing})
+        if 'datastream_form' in request.POST:
+            add_datastream(request, thing)
+        elif 'method_form' in request.POST:
+            add_sensor(request)
+        elif 'observed_property_form' in request.POST:
+            add_observed_property(request)
+        elif 'unit_form' in request.POST:
+            add_unit(request)
+        elif 'processing_level_form' in request.POST:
+            add_processing_level(request)
+        return HttpResponseRedirect(reverse('register_datastream', args=[pk]))
+
+    return render(request, 'sites/register-datastream.html', {
+        'datastream_form': DatastreamForm(user=request.user),
+        'method_form': MethodForm(),
+        'observed_property_form': ObservedPropertyForm(),
+        'unit_form': UnitForm(),
+        'processing_level_form': ProcessingLevelForm(),
+
+        # 'sampled_medium_form': SampledMediumForm(),
+        # 'status_form': StatusForm(),
+        # 'no_data_value_form': NoDataValueForm(),
+        # 'time_spacing_form': TimeSpacingForm(),
+        # 'aggregation_statistic_form': AggregationStatisticForm(),
+        # 'time_aggregation_interval_form': TimeAggregationIntervalForm(),
+        'thing': thing})
 
 
 @thing_ownership_required
