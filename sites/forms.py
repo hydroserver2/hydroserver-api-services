@@ -23,6 +23,24 @@ class ThingForm(ModelForm):
                 self.fields[field].initial = getattr(thing.location, field)
 
 
+def clean_selection(cleaned_data, custom_name, master_list_name, new_input_name):
+    master_input = cleaned_data.get(master_list_name, None)
+    new_input = cleaned_data.get(new_input_name, None)
+    custom_input = cleaned_data.get(custom_name, None)
+
+    # Ensure that only one field is filled
+    num_inputs = sum([bool(master_input), bool(new_input), bool(custom_input)])
+    if num_inputs > 1:
+        raise ValidationError("Please enter only one field")
+
+    # Set the field to the submitted value
+    if master_input:
+        cleaned_data[custom_name] = master_input
+    elif new_input:
+        cleaned_data[custom_name] = new_input
+    return cleaned_data
+
+
 class DatastreamForm(ModelForm):
     method = ChoiceField(choices=[])
     observed_property = ModelChoiceField(queryset=ObservedProperty.objects.none(), empty_label='--- Select an existing observed property ---', widget=Select())
@@ -46,7 +64,15 @@ class DatastreamForm(ModelForm):
     #                                     required=False)
     # intended_time_spacing_units = ChoiceField(choices=[("", "Select intended time spacing units")],
     #                                           label='Intended Time Spacing Units', required=False)
-    aggregation_statistic = ChoiceField(choices=[("", "Select aggregation statistic")],label='Aggregation Statistic', required=False)
+    agg_master_list = ChoiceField(choices=[("", "Select stat from master list..."), ("Mean", "Mean"),
+                                                      ("Median", "Median"), ("Maximum", "Maximum"),
+                                                      ("Minimum", "Minimum"),
+                                                      ("Count", "Count"), ("Sum", "Sum")],
+                                             label='Aggregation Statistic', required=False)
+    aggregation_statistic_new = CharField(max_length=100, required=False,
+                                          widget=TextInput(attrs={'placeholder': 'Enter new agg...'}))
+    aggregation_statistic = ChoiceField(choices=[("", "Select statistic from your list...")],
+                                        label='Aggregation Statistic', required=False)
     # time_aggregation_interval = ChoiceField(choices=[("", "Select time aggregation interval")],
     #                                         label='Time Aggregation Interval', required=False)
     # time_aggregation_interval_units = ChoiceField(choices=[("", "Select time aggregation interval units")],
@@ -56,7 +82,7 @@ class DatastreamForm(ModelForm):
         model = Datastream
         fields = ['method', 'status', 'status_new', 'status_master_list', 'sampled_medium', 'no_data_value', 'processing_level',
                   # 'intended_time_spacing',
-                  'aggregation_statistic',
+                  'aggregation_statistic', 'agg_master_list', 'aggregation_statistic_new',
                   # 'time_aggregation_interval'
                   ]
 
@@ -91,21 +117,16 @@ class DatastreamForm(ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        status_master_list = cleaned_data.get("status_master_list", None)
-        status_new = cleaned_data.get("status_new", None)
-        status = cleaned_data.get("status", None)
+        try:
+            cleaned_data = clean_selection(cleaned_data, "status", "status_master_list", "status_new")
+        except ValidationError as e:
+            self.add_error('status', e)
 
-        # Ensure that only one status field is filled
-        num_statuses = sum([bool(status_master_list), bool(status_new), bool(status)])
-        if num_statuses > 1:
-            print(ValidationError("Please enter only one status"))
-
-        # Set the status field to the submitted value
-        if status_master_list:
-            cleaned_data["status"] = status_master_list
-        elif status_new:
-            cleaned_data["status"] = status_new
-
+        try:
+            cleaned_data = clean_selection(cleaned_data, 'aggregation_statistic', 'agg_master_list',
+                                           'aggregation_statistic_new')
+        except ValidationError as e:
+            self.add_error('aggregation_statistic', e)
         return cleaned_data
 
 

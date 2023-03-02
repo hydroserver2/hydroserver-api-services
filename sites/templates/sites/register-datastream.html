@@ -43,7 +43,8 @@
         </div>
 
         <div>
-            <label for="id_status">Status</label>{{ datastream_form.status }} {{ datastream_form.status_master_list }} {{ datastream_form.status_new }}
+            <label for="id_status">Status</label>
+            {{ datastream_form.status }} {{ datastream_form.status_master_list }} {{ datastream_form.status_new }}
 {#            <button class="modal-button" data-modal="add_status_modal" type="button">Add New</button>#}
 {#            {% include 'sites/modal.html' with form=status_form modal_id='add_status_modal' modal_title='Add a new status' form_name='status_form' %}#}
         </div>
@@ -53,7 +54,8 @@
 {#            {% include 'sites/modal.html' with form=no_data_value_form modal_id='add_no_data_value_modal' modal_title='Add a new no data value' form_name='no_data_value_form' %}#}
         </div>
         <div>
-            <label for="id_aggregation_statistic">Aggregation Statistic</label>{{ datastream_form.aggregation_statistic }}
+            <label for="id_aggregation_statistic">Aggregation Statistic</label>
+            {{ datastream_form.aggregation_statistic }} {{ datastream_form.agg_master_list }} {{ datastream_form.aggregation_statistic_new }}
 {#            <button class="modal-button" data-modal="add_aggregation_statistic_modal" type="button">Add New</button>#}
 {#            {% include 'sites/modal.html' with form=aggregation_statistic_form modal_id='add_aggregation_statistic_modal' modal_title='Add a New Aggregation Statistic' form_name='aggregation_statistic_form' %}#}
         </div>
