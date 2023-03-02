@@ -1,33 +1,22 @@
 {% extends 'main.html' %}
 {% block content %}
-
-    <h2>Manage Datastreams for {{ thing.name }}</h2>
-
-    <table border=".5">
-        <thead>
-            <tr>
-                <td>Name</td>
-                <td>Observed Property</td>
-                <td>Unit</td>
-                <td>Sampled Medium</td>
-                <td>Description</td>
-                <td>Edit</td>
-                <td>Delete</td>
-            </tr>
-        </thead>
-        {% for datastream in datastreams %}
-            <tr>
-                <td>{{ datastream.sensor.name }}</td>
-                <td>{{ datastream.observed_property }}</td>
-                <td>{{ datastream.unit_of_measurement }}</td>
-                <td></td>
-                <td>{{ datastream.description }}</td>
-                <td><button><a href="{% url 'update_datastream' datastream.pk %}">Edit</a></button></td>
-                <td><button><a href="{% url 'remove_datastream' datastream.id %}">Delete</a></button></td>
-            </tr>
-        {% endfor %}
+    <h2>{{ datastream.sensor }}</h2>
+    <table>
+        <tr><td><strong>Unit:</strong></td><td>{{ datastream.unit }}</td></tr>
+        <tr><td><strong>Observed Property:</strong></td><td>{{ datastream.observed_property }}</td></tr>
+        <tr><td><strong>Processing Level:</strong></td><td>{{ datastream.processing_level }}</td></tr>
+        <tr><td><strong>Sampled Medium:</strong></td><td>{{ datastream.sampled_medium }}</td></tr>
+        <tr><td><strong>No Data Value:</strong></td><td>{{ datastream.no_data_value }}</td></tr>
+        <tr><td><strong>Status:</strong></td><td>{{ datastream.status }}</td></tr>
+        <tr><td><strong>Aggregation Statistic:</strong></td><td>{{ datastream.aggregation_statistic }}</td></tr>
     </table>
-
-    <button id="download-button"><a href="{% url 'register_datastream' thing.pk %}">Add Sensor</a></button>
-
+    <table>
+        <tr>
+            {% if owns_datastream %}
+                <td><button><a href="{% url 'update_datastream' datastream.pk %}">Edit</a></button></td>
+                <td><button><a href="{% url 'remove_datastream' datastream.pk %}">Delete</a></button></td>
+            {% endif %}
+            <td><button><a href="{% url "export_csv" datastream.pk %}">Download Data</a></button></td>
+        </tr>
+    </table>
 {% endblock content %}

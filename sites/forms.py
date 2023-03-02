@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from .models import Thing, ObservedProperty, Sensor, Datastream, Unit, ProcessingLevel
 from django.forms import ModelForm, FloatField, ChoiceField, Select, ModelChoiceField, \
     TextInput, CharField, Form, ValidationError
@@ -60,10 +62,6 @@ class DatastreamForm(ModelForm):
     status = ChoiceField(choices=[("", "Select status from your list")], label='Status', required=False)
 
     no_data_value = FloatField(label='No Data Value', required=False)
-    # intended_time_spacing = ChoiceField(choices=[("", "Select intended time spacing")], label='Intended Time Spacing',
-    #                                     required=False)
-    # intended_time_spacing_units = ChoiceField(choices=[("", "Select intended time spacing units")],
-    #                                           label='Intended Time Spacing Units', required=False)
     agg_master_list = ChoiceField(choices=[("", "Select stat from master list..."), ("Mean", "Mean"),
                                                       ("Median", "Median"), ("Maximum", "Maximum"),
                                                       ("Minimum", "Minimum"),
@@ -73,6 +71,10 @@ class DatastreamForm(ModelForm):
                                           widget=TextInput(attrs={'placeholder': 'Enter new agg...'}))
     aggregation_statistic = ChoiceField(choices=[("", "Select statistic from your list...")],
                                         label='Aggregation Statistic', required=False)
+    # intended_time_spacing = ChoiceField(choices=[("", "Select intended time spacing")], label='Intended Time Spacing',
+    #                                     required=False)
+    # intended_time_spacing_units = ChoiceField(choices=[("", "Select intended time spacing units")],
+    #                                           label='Intended Time Spacing Units', required=False)
     # time_aggregation_interval = ChoiceField(choices=[("", "Select time aggregation interval")],
     #                                         label='Time Aggregation Interval', required=False)
     # time_aggregation_interval_units = ChoiceField(choices=[("", "Select time aggregation interval units")],
@@ -80,11 +82,13 @@ class DatastreamForm(ModelForm):
 
     class Meta:
         model = Datastream
-        fields = ['method', 'status', 'status_new', 'status_master_list', 'sampled_medium', 'no_data_value', 'processing_level',
-                  # 'intended_time_spacing',
-                  'aggregation_statistic', 'agg_master_list', 'aggregation_statistic_new',
-                  # 'time_aggregation_interval'
-                  ]
+        fields = [
+            'method', 'status', 'status_new', 'status_master_list', 'sampled_medium', 'no_data_value',
+            'processing_level',
+            'observed_property', 'aggregation_statistic', 'agg_master_list', 'aggregation_statistic_new',
+            # 'intended_time_spacing',
+            # 'time_aggregation_interval'
+        ]
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -102,7 +106,6 @@ class DatastreamForm(ModelForm):
                 unique_statuses = set(existing_statuses)
                 self.fields['status'].choices = [("", "Select status from your list")] + [(status, status) for status in
                                                                                           unique_statuses]
-
             observed_properties = self.user.observedproperty_set.all()
             if observed_properties.exists():
                 self.fields['observed_property'].queryset = observed_properties
@@ -115,13 +118,28 @@ class DatastreamForm(ModelForm):
             if processing_levels.exists():
                 self.fields['processing_level'].queryset = processing_levels
 
+            datastream_pk = kwargs.get('instance').pk if kwargs.get('instance') else None
+            if datastream_pk:
+                datastream = get_object_or_404(Datastream, pk=datastream_pk)
+                self.fields['method'].initial = datastream.sensor.id
+                self.fields['observed_property'].initial = datastream.observed_property.id
+                self.fields['unit'].initial = datastream.unit.id
+                self.fields['processing_level'].initial = datastream.processing_level.id if datastream.processing_level else None
+                self.fields['sampled_medium'].initial = datastream.sampled_medium
+                self.fields['no_data_value'].initial = datastream.no_data_value
+                self.fields['status'].initial = datastream.status
+                self.fields['status_new'].initial = None
+                self.fields['status_master_list'].initial = None
+                self.fields['aggregation_statistic'].initial = datastream.aggregation_statistic
+                self.fields['agg_master_list'].initial = None
+                self.fields['aggregation_statistic_new'].initial = None
+
     def clean(self):
         cleaned_data = super().clean()
         try:
             cleaned_data = clean_selection(cleaned_data, "status", "status_master_list", "status_new")
         except ValidationError as e:
             self.add_error('status', e)
-
         try:
             cleaned_data = clean_selection(cleaned_data, 'aggregation_statistic', 'agg_master_list',
                                            'aggregation_statistic_new')

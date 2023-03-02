@@ -1,7 +1,5 @@
-import json
 import os
 from collections import defaultdict
-from datetime import datetime
 
 import pandas as pd
 from django.contrib import messages
@@ -89,6 +87,7 @@ def site(request, pk):
 
     return render(request, 'sites/single-site.html', {
         'thing': thing,
+        'datastreams': thing.datastreams.all(),
         'table_data': table_data,
         'owns_thing': is_auth and request.user.thing_associations.filter(thing=thing, owns_thing=True).exists(),
         'follows_thing': is_auth and request.user.thing_associations.filter(thing=thing, follows_thing=True).exists(),
@@ -228,18 +227,6 @@ def browse_sites(request):
     })
 
 
-@thing_ownership_required
-def sensors(request, pk):
-    """
-    View which collects the datastreams for the selected Thing
-    """
-    thing = get_object_or_404(Thing.objects.prefetch_related('datastreams'), id=pk)
-    return render(request, 'sites/manage-datastreams.html', {
-        'thing': thing,
-        'datastreams': thing.datastreams.all()
-    })
-
-
 def add_sensor(request):
     form = MethodForm(request.POST)
     if form.is_valid():
@@ -318,6 +305,15 @@ def add_processing_level(request):
         )
 
 
+@login_required
+def datastream(request, pk):
+    datastream = get_object_or_404(Datastream, pk=pk)
+    return render(request, 'sites/manage-datastreams.html', {
+        'datastream': datastream,
+        'owns_datastream': datastream.thing.associates.filter(person=request.user, owns_thing=True).exists()
+    })
+
+
 @thing_ownership_required
 def register_datastream(request, pk):
     """
@@ -327,6 +323,7 @@ def register_datastream(request, pk):
     if request.method == 'POST':
         if 'datastream_form' in request.POST:
             add_datastream(request, thing)
+            return HttpResponseRedirect(reverse('site', args=[pk]))
         elif 'method_form' in request.POST:
             add_sensor(request)
         elif 'observed_property_form' in request.POST:
@@ -355,24 +352,18 @@ def register_datastream(request, pk):
 
 @thing_ownership_required
 def update_datastream(request, datastream_pk):
-    datastream = Datastream.objects.get(id=datastream_pk)
+    datastream = get_object_or_404(Datastream, pk=datastream_pk)
+    form = DatastreamForm(request.POST or None, instance=datastream, user=request.user)
+
     if request.method == 'POST':
-        form = DatastreamForm(request.POST, datastream=datastream)
         if form.is_valid():
-            # Get the related sensor, sensor_manufacturer, sensor_model and observed_property
-            # sensor_manufacturer = SensorManufacturer.objects.get(name=form.cleaned_data['sensor_manufacturer'])
-            # sensor_model = SensorModel.objects.get(name=form.cleaned_data['sensor_model'])
-            # sensor = Sensor.objects.get(name=sensor_manufacturer.name + ':' + sensor_model.name)
-            observed_property = ObservedProperty.objects.get(name=form.cleaned_data['observed_property'])
-            # Update the fields
-            datastream.unit_of_measurement = form.cleaned_data['unit_of_measurement']
-            datastream.observed_property = observed_property
-            # datastream.sensor = sensor
-            datastream.save()
-            return redirect('sensors', pk=datastream.thing.id)
-    else:
-        form = DatastreamForm(datastream=datastream)
-    return render(request, 'sites/update-sensor.html', {'form': form})
+            new_datastream = form.save(commit=False)
+            new_datastream.sensor = Sensor.objects.get(pk=form.cleaned_data['method'])
+            new_datastream.save()
+            return redirect('site', pk=datastream.thing.pk)
+        else:
+            print(form.errors)
+    return render(request, 'sites/update_datastream.html', {'form': form})
 
 
 @thing_ownership_required
@@ -383,7 +374,7 @@ def remove_datastream(request, datastream_pk):
     observations = Observation.objects.filter(datastream=datastream)
     observations.delete()
 
-    return redirect('sensors', pk=thing_pk)
+    return redirect('site', pk=thing_pk)
 
 
 def export_csv(request, thing_pk):
