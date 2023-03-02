@@ -182,3 +182,5 @@ STAPI_DESCRIPTION = '''
     results data to HydroServer data stores.
 '''
 STAPI_VERSION = '1.1'
+
+FROST_BASE_URL = 'http://localhost:8080/FROST-Server'

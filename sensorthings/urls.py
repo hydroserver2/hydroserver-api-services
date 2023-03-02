@@ -5,17 +5,18 @@ from sensorthings.schemas import ThingGetResponse
 
 
 st_api_1_0 = SensorThingsAPI(
-    backend='sensorthings',
+    backend='frostserver',
     title=settings.STAPI_TITLE,
     version='1.0',
     description=settings.STAPI_DESCRIPTION
 )
 
 st_api_1_1 = SensorThingsAPI(
-    backend='sensorthings',
+    backend='frostserver',
     title=settings.STAPI_TITLE,
     version='1.1',
     description=settings.STAPI_DESCRIPTION,
+    id_qualifier="'",
     endpoints=[
         SensorThingsEndpoint(
             name='list_thing',
