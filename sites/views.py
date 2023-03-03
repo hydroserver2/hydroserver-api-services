@@ -320,10 +320,20 @@ def register_datastream(request, pk):
     View which creates a new datastream for the selected Thing
     """
     thing = Thing.objects.get(pk=pk)
+    thing_ids = request.user.thing_associations.filter(owns_thing=True).values('thing__id')
+    datastreams = Datastream.objects.filter(thing__id__in=thing_ids)
+    datastream_form = DatastreamForm(user=request.user)
     if request.method == 'POST':
         if 'datastream_form' in request.POST:
             add_datastream(request, thing)
             return HttpResponseRedirect(reverse('site', args=[pk]))
+        elif 'datastream_id' in request.POST:
+            pass
+            # This need to populate the form with the passed in datastream instance
+            # datastream_id = int(request.POST['datastream_id'])
+            # datastream = get_object_or_404(Datastream, pk=datastream_id)
+            # datastream = get_object_or_404(Datastream, pk=int(request.POST.get('datastream_id')))
+            # datastream_form = DatastreamForm(request.POST or None, instance=datastream, user=request.user)
         elif 'method_form' in request.POST:
             add_sensor(request)
         elif 'observed_property_form' in request.POST:
@@ -335,19 +345,14 @@ def register_datastream(request, pk):
         return HttpResponseRedirect(reverse('register_datastream', args=[pk]))
 
     return render(request, 'sites/register-datastream.html', {
-        'datastream_form': DatastreamForm(user=request.user),
+        'datastream_form': datastream_form,
         'method_form': MethodForm(),
         'observed_property_form': ObservedPropertyForm(),
         'unit_form': UnitForm(),
         'processing_level_form': ProcessingLevelForm(),
-
-        # 'sampled_medium_form': SampledMediumForm(),
-        # 'status_form': StatusForm(),
-        # 'no_data_value_form': NoDataValueForm(),
-        # 'time_spacing_form': TimeSpacingForm(),
-        # 'aggregation_statistic_form': AggregationStatisticForm(),
-        # 'time_aggregation_interval_form': TimeAggregationIntervalForm(),
-        'thing': thing})
+        'thing': thing,
+        'datastreams': datastreams,
+    })
 
 
 @thing_ownership_required
