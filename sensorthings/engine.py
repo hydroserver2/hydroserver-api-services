@@ -1,6 +1,8 @@
 import uuid
 import pandas as pd
 from typing import List
+from django.core.exceptions import ObjectDoesNotExist
+from django.urls.exceptions import Http404
 from hydrothings import SensorThingsAbstractEngine
 from sites import models as core_models
 
@@ -253,7 +255,19 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     ) -> str:
         """"""
 
-        return '0'
+        try:
+            entity = getattr(core_models, self.component).objects.get(pk=entity_id)
+        except ObjectDoesNotExist:
+            raise Http404
+
+        # entity_fields = self.transform_body(entity_body)
+        #
+        # for attr, value in entity_fields.items():
+        #     setattr(entity, attr, value)
+        #
+        # entity.save()
+
+        return entity_id
 
     def delete(
             self,
@@ -389,3 +403,40 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             )
 
         return response_df
+
+    def transform_body(self, entity_body):
+        """"""
+
+        if self.component == 'Thing':
+            entity_fields = {
+                'id': uuid.uuid4(),
+                'name': entity_body.name,
+                'description': entity_body.description,
+                'sampling_feature_code': entity_body.properties.get('sampling_feature_code'),
+                'sampling_feature_type': entity_body.properties.get('sampling_feature_type'),
+                'site_type': entity_body.properties.get('site_type')
+            }
+        elif self.component == 'Location':
+            entity_fields = {
+
+            }
+        elif self.component == 'ObservedProperty':
+            entity_fields = {
+
+            }
+        elif self.component == 'Sensor':
+            entity_fields = {
+
+            }
+        elif self.component == 'Datastream':
+            entity_fields = {
+
+            }
+        elif self.component == 'Observation':
+            entity_fields = {
+
+            }
+        else:
+            entity_fields = {}
+
+        return {}
