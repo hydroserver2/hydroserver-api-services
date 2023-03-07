@@ -19,18 +19,17 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 observation_table = """
                     CREATE TABLE sites_observation (
-                        uuid uuid NOT NULL,
-                        datastream_uuid uuid NOT NULL,
-                        phenomenon_time timestamp NOT NULL,
-                        result_time timestamp NOT NULL,
+                        id uuid NOT NULL,
+                        datastream_id uuid NOT NULL,
                         "result" float8 NOT NULL,
+                        result_time timestamp NOT NULL,
                         result_quality varchar(255) NULL,
+                        phenomenon_time timestamp NULL,
 	                    valid_begin_time timestamp NULL,
 	                    valid_end_time timestamp NULL,
-                        CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE (datastream_uuid, phenomenon_time),
-                        CONSTRAINT observation_pkey PRIMARY KEY (uuid, datastream_uuid, phenomenon_time),
-                        CONSTRAINT observation_datastream_uuid_fkey FOREIGN KEY (datastream_uuid) REFERENCES public.odmst_datastream(uuid),
-                        CONSTRAINT observation_result_quality_fkey FOREIGN KEY (result_quality) REFERENCES public.odmst_resultqualitycv("name")
+                        CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE (datastream_id, result_time),
+                        CONSTRAINT observation_pkey PRIMARY KEY (id, datastream_id, result_time),
+                        CONSTRAINT observation_datastream_id_fkey FOREIGN KEY (datastream_id) REFERENCES public.sites_datastream(id)
                     );
                 """
 

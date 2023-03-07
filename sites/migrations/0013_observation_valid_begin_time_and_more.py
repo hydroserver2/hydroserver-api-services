@@ -11,16 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='observation',
-            name='valid_begin_time',
-            field=models.DateTimeField(null=True),
-        ),
-        migrations.AddField(
-            model_name='observation',
-            name='valid_end_time',
-            field=models.DateTimeField(null=True),
-        ),
-        migrations.AddField(
             model_name='observedproperty',
             name='variable_code',
             field=models.CharField(blank=True, max_length=50, null=True),
