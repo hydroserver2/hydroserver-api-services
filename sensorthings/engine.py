@@ -1,4 +1,6 @@
+import uuid
 import pandas as pd
+from typing import List
 from hydrothings import SensorThingsAbstractEngine
 from sites import models as core_models
 
@@ -138,8 +140,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             skip,
             top,
             select,
-            expand,
-            result_format
+            expand
     ) -> dict:
         """"""
 
@@ -218,6 +219,32 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         """"""
 
         return '0'
+
+    def bulk_create(
+            self,
+            entity_bodies
+    ) -> List[str]:
+
+        if self.component == 'Observation':
+            entities = getattr(core_models, self.component).objects.bulk_create(
+                [
+                    getattr(core_models, self.component)(
+                        id=uuid.uuid4(),
+                        datastream_id=entity_body.datastream.id,
+                        result=entity_body.result,
+                        result_time=entity_body.result_time,
+                        result_quality=entity_body.result_quality,
+                        phenomenon_time=entity_body.phenomenon_time,
+                        valid_begin_time=entity_body.valid_time,
+                        valid_end_time=entity_body.valid_time,
+                    ) for entity_body in entity_bodies
+                ]
+            )
+
+        else:
+            entities = []
+
+        return [entity.id for entity in entities]
 
     def update(
             self,
