@@ -18,7 +18,7 @@ class Command(BaseCommand):
         ) as connection:
             with connection.cursor() as cursor:
                 observation_table = """
-                    CREATE TABLE sites_observation (
+                    CREATE TABLE IF NOT EXISTS sites_observation (
                         id uuid NOT NULL,
                         datastream_id uuid NOT NULL,
                         "result" float8 NOT NULL,
@@ -35,4 +35,4 @@ class Command(BaseCommand):
 
                 cursor.execute(observation_table)
                 cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
-                cursor.execute("SELECT create_hypertable('sites_observation', 'result_time');")
+                cursor.execute("SELECT create_hypertable('sites_observation', 'result_time', if_not_exists => TRUE);")
