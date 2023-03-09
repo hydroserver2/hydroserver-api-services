@@ -1,8 +1,17 @@
 from django.urls import path
 from django.conf import settings
+from django.contrib.auth import authenticate
+from ninja.security import HttpBasicAuth
 from hydrothings import SensorThingsAPI, SensorThingsComponent
 from sensorthings import schemas
 from sensorthings.engine import SensorThingsEngine
+
+
+class BasicAuth(HttpBasicAuth):
+    def authenticate(self, request, username, password):
+        user = authenticate(username=username, password=password)
+        if user and user.is_authenticated:
+            return user
 
 
 # st_api_1_0 = SensorThingsAPI(
@@ -13,6 +22,7 @@ from sensorthings.engine import SensorThingsEngine
 # )
 
 st_api_1_1 = SensorThingsAPI(
+    auth=BasicAuth(),
     engine=SensorThingsEngine,
     title=settings.STAPI_TITLE,
     version='1.1',

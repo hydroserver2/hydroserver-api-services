@@ -6,3 +6,8 @@ db.sqlite3
 *.db
 *test.ipynb
 *test.yaml
+# Elastic Beanstalk Files
+.ebextensions/
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

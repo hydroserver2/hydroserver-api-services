@@ -1,28 +1,28 @@
 from ninja import Schema, Field
 from pydantic import HttpUrl
-from typing import List, Literal
+from typing import List, Literal, Union
 from hydrothings import components as st_components
 from hydrothings.extras.iso_types import ISOInterval
 
 
 class DatastreamProperties(Schema):
     result_type: str = Field(..., alias='resultType')
-    status: str | None = None
+    status: Union[str, None] = None
     sampled_medium: str = Field(..., alias='sampledMedium')
-    value_count: int | None = Field(None, alias='valueCount')
+    value_count: Union[int, None] = Field(None, alias='valueCount')
     no_data_value: float = Field(..., alias='noDataValue')
     processing_level_code: str = Field(..., alias='processingLevelCode')
-    intended_time_spacing: float | None = Field(None, alias='intendedTimeSpacing')
-    intended_time_spacing_units: st_components.UnitOfMeasurement | None = Field(
+    intended_time_spacing: Union[float, None] = Field(None, alias='intendedTimeSpacing')
+    intended_time_spacing_units: Union[st_components.UnitOfMeasurement, None] = Field(
         None, alias='intendedTimeSpacingUnitOfMeasurement'
     )
-    aggregation_statistic: str | None = Field(None, alias='aggregationStatistic')
+    aggregation_statistic: Union[str, None] = Field(None, alias='aggregationStatistic')
     time_aggregation_interval: float = Field(None, alias='timeAggregationInterval')
-    time_aggregation_interval_units: st_components.UnitOfMeasurement | None = Field(
+    time_aggregation_interval_units: Union[st_components.UnitOfMeasurement, None] = Field(
         None, alias='timeAggregationIntervalUnitOfMeasurement'
     )
-    phenomenon_time: ISOInterval | None = Field(None, alias='phenomenonTime')
-    result_time: ISOInterval | None = Field(None, alias='resultTime')
+    phenomenon_time: Union[ISOInterval, None] = Field(None, alias='phenomenonTime')
+    result_time: Union[ISOInterval, None] = Field(None, alias='resultTime')
 
     class Config:
         allow_population_by_field_name = True
@@ -33,11 +33,11 @@ class Datastream(Schema):
 
 
 class LocationProperties(Schema):
-    city: str | None = None
-    state: str | None = None
-    county: str | None = None
-    elevation_m: float | None = None
-    elevation_datum: str | None = Field(None, alias='elevationDatum')
+    city: Union[str, None] = None
+    state: Union[str, None] = None
+    county: Union[str, None] = None
+    elevation_m: Union[float, None] = None
+    elevation_datum: Union[str, None] = Field(None, alias='elevationDatum')
 
     class Config:
         allow_population_by_field_name = True
@@ -61,7 +61,7 @@ class ObservedProperty(Schema):
 
 class SensorModel(Schema):
     sensor_model_name: str = Field(..., alias='sensorModelName')
-    sensor_model_url: HttpUrl | None = Field(None, alias='sensorModelURL')
+    sensor_model_url: Union[HttpUrl, None] = Field(None, alias='sensorModelURL')
     sensor_manufacturer: str = Field(..., alias='sensorManufacturer')
 
     class Config:
@@ -77,9 +77,9 @@ sensorEncodingTypes = Literal[
 
 
 class SensorProperties(Schema):
-    method_code: str | None = Field(None, alias='methodCode')
+    method_code: Union[str, None] = Field(None, alias='methodCode')
     method_type: str = Field(..., alias='methodType')
-    method_link: HttpUrl | None = Field(None, alias='methodLink')
+    method_link: Union[HttpUrl, None] = Field(None, alias='methodLink')
     sensor_model: SensorModel = Field(..., alias='sensorModel')
 
     class Config:

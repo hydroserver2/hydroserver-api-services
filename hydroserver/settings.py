@@ -14,14 +14,14 @@ import os
 import dj_database_url
 from pathlib import Path
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
+from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
 try:
     GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 except UndefinedValueError:
-    GOOGLE_MAPS_API_KEY = None
-    # GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
 
 LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
 
@@ -39,7 +39,8 @@ class EnvironmentSettings(BaseSettings):
     """
 
     # TODO Find/create types for other databases. In the meantime, allow str.
-    DATABASE_URL: PostgresDsn | str = f'sqlite:///{BASE_DIR}/db.sqlite3'
+    ALLOWED_HOSTS: str = '127.0.0.1,localhost'
+    DATABASE_URL: Union[PostgresDsn, str] = f'sqlite:///{BASE_DIR}/db.sqlite3'
     CONN_MAX_AGE: int = 600
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
@@ -50,19 +51,20 @@ class EnvironmentSettings(BaseSettings):
         case_sensitive = True
 
 
-config = EnvironmentSettings()
+env_config = EnvironmentSettings()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config.SECRET_KEY
+SECRET_KEY = env_config.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.DEBUG
+DEBUG = env_config.DEBUG
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
+
 
 # Application definition
 
@@ -113,12 +115,12 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config.DATABASE_URL
+os.environ["DATABASE_URL"] = env_config.DATABASE_URL
 
 DATABASES = {
     'default': dj_database_url.config(
-        conn_max_age=config.CONN_MAX_AGE,
-        ssl_require=config.SSL_REQUIRED
+        conn_max_age=env_config.CONN_MAX_AGE,
+        ssl_require=env_config.SSL_REQUIRED
     )
 }
 
