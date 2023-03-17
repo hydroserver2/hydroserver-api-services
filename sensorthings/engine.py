@@ -1,13 +1,20 @@
 import uuid
 import pandas as pd
-from typing import List
+from typing import List, Union, Tuple
+from odata_query.django.django_q import AstToDjangoQVisitor
+from odata_query.rewrite import AliasRewriter
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls.exceptions import Http404
 from hydrothings import SensorThingsAbstractEngine
+from hydrothings.utils import lookup_component
 from sites import models as core_models
 
 
 class SensorThingsEngine(SensorThingsAbstractEngine):
+
+    rewriter = AliasRewriter({
+        'Datastream': 'datastream',
+    })
 
     mapping = {
         'Thing': {
@@ -126,13 +133,40 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     def get_fields(self, select=None):
         """"""
 
+        if self.component == 'Observation':
+            extra_fields = ['datastream_id']
+        else:
+            extra_fields = []
+
         return [
             field for fields in [
                 db_field if isinstance(db_field, list) else [db_field]
                 for st_field, db_field in self.mapping[self.component].items()
                 if not select or st_field in select
             ] for field in fields
-        ]
+        ] + extra_fields
+
+    def resolve_entity_id_chain(self, entity_chain: List[Tuple[str, Union[uuid.UUID, int, str]]]) -> bool:
+        """"""
+
+        for i, entity in enumerate(entity_chain):
+            if i == 0:
+                if getattr(core_models, entity[0]).objects.filter(
+                    pk=entity[1]
+                ).exists() is False:
+                    return False
+            else:
+                if getattr(core_models, entity[0]).filter(
+                    **{
+                        f'{lookup_component(entity_chain[i-1][0], "camel_singular", "snake_singular")}_id':
+                        entity_chain[i-1][1]
+                    }
+                ).filter(
+                    pk=entity[1]
+                ).exists() is False:
+                    return False
+
+        return True
 
     def list(
             self,
@@ -155,13 +189,13 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
 
         response = {}
 
-        # if filter is not None:
-        #     query = self.apply_filters(query, filter)
+        if filters is not None:
+            query = self.apply_filters(query, filters)
 
         response_count = self.get_count(query)
 
-        # if order_by is not None:
-        #     query = self.apply_order(query, order_by)
+        if order_by is not None:
+            query = self.apply_order(query, order_by)
 
         # if expand is not None:
         #     query = self.apply_expand(query, expand)
@@ -179,8 +213,14 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
 
         response_value = response_df.to_dict('records')
 
-        response_value = self.build_related_links(response_value, is_collection=True)
-        response_value = self.build_self_links(response_value, is_collection=True)
+        response_value = [
+            self.build_related_links(entity, is_collection=True)
+            for entity in response_value
+        ]
+        response_value = [
+            self.build_self_links(entity, is_collection=True)
+            for entity in response_value
+        ]
 
         response['value'] = response_value
 
@@ -293,7 +333,9 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     def transform_response(self, response_df):
         """"""
 
-        if self.component == 'Thing':
+        if response_df.empty:
+            pass
+        elif self.component == 'Thing':
             response_df = response_df.rename(columns={
                 'thing__id': 'id', 'thing__name': 'name', 'thing__description': 'description',
                 'person__first_name': 'first_name', 'person__last_name': 'last_name', 'person__email': 'email',
@@ -440,3 +482,27 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             entity_fields = {}
 
         return {}
+
+    def apply_order(self, query, order_by):
+        """"""
+
+        order_map = {
+            'Datastreams/id': 'datastream_id'
+        }
+
+        query = query.order_by(*[
+            f"{'-' if order_field['direction'] == 'desc' else ''}{order_map.get(order_field['field'], order_field['field'])}"
+            for order_field in order_by
+        ])
+
+        return query
+
+    def apply_filters(self, query, filters):
+        """"""
+
+        filters = self.rewriter.visit(filters)
+        visitor = AstToDjangoQVisitor(getattr(core_models, self.component))
+        query_filter = visitor.visit(filters)
+        query = query.filter(query_filter)
+
+        return query
