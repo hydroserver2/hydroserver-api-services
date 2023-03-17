@@ -25,7 +25,7 @@ class Location(models.Model):
     encoding_type = models.CharField(max_length=255)
     latitude = models.DecimalField(max_digits=22, decimal_places=16)
     longitude = models.DecimalField(max_digits=22, decimal_places=16)
-    elevation_m = models.DecimalField(max_digits=22, decimal_places=16)
+    elevation = models.DecimalField(max_digits=22, decimal_places=16)
     elevation_datum = models.CharField(max_length=255)  # CV Table?
     city = models.CharField(max_length=150, null=True, blank=True)
     state = models.CharField(max_length=150, null=True, blank=True)
