@@ -2,20 +2,44 @@
 {% block content %}
 
     <h3>My Sites</h3>
-    <button>Status</button>
     <hr>
 
     {% include 'sites/site-map.html' %}
 
     <h3>My Registered Sites</h3>
     <a href="{% url 'register-site' %}"><button>Register a New Site</button></a>
-    {% for thing in owned_things %}
-        <p><a href ="{% url 'site' thing.id %}">{{ thing.name }}</a></p>
-    {% endfor %}
+    <div style="display: flex; flex-wrap: wrap;">
+        {% for thing in owned_things %}
+            <a href ="{% url 'site' thing.id %}">
+                <div style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s;">
+                    <h4>{{ thing.name }}</h4>
+                    <p><strong>Number of Datastreams:</strong> {{ thing.datastreams.count }}</p>
+                    <p><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</p>
+                    <p><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</p>
+                    <p><strong>Site Type:</strong> {{ thing.site_type }}</p>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
 
     <h3>Followed Sites</h3>
-    {% for thing in followed_things %}
-        <p><a href ="{% url 'site' thing.id %}">{{ thing.name }}</a></p>
-    {% endfor %}
+    <div style="display: flex; flex-wrap: wrap;">
+        {% for thing in followed_things %}
+            <a href ="{% url 'site' thing.id %}">
+                <div style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s;">
+                    <h4>{{ thing.name }}</h4>
+                    <p><strong>Number of Datastreams:</strong> {{ thing.datastreams.count }}</p>
+                    <p><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</p>
+                    <p><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</p>
+                    <p><strong>Site Type:</strong> {{ thing.site_type }}</p>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+     <style>
+        a:hover div {
+            background-color: #f2f2f2;
+        }
+    </style>
 
 {% endblock content %}

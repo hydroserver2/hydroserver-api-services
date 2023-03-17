@@ -3,20 +3,64 @@
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/modal.css' %}">
+
+    <style>
+        label {
+            display: inline-block;
+            width: 150px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"], select {
+            width: 300px;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
     <h3>Datastream Setup Page</h3>
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label for="id_existing_datastreams">Start from an existing datastream:</label>
+        <select name="existing_datastreams" id="id_existing_datastreams">
+            <option value="">-- Select an existing datastream --</option>
+            {% for ds in datastreams %}
+                <option value="{{ ds.id }}">{{ ds.sensor }} - {{ ds.observed_property }} - {{ ds.sampled_medium }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" name="populate_datastream_form" value="true">Load Datastream</button>
+    </div>
+    <input type="hidden" name="datastream_id" id="datastream_id" value="">
+</form>
+
+<script>
+    let existingDatastreams = document.getElementById("id_existing_datastreams");
+    let datastreamId = document.getElementById("datastream_id");
+    existingDatastreams.onchange = function() {
+        datastreamId.value = existingDatastreams.value;
+        console.log(datastreamId.value)
+    };
+</script>
+
     <form method="post">
         {% csrf_token %}
-{#        {% for field in datastream_form %}#}
-{#            <div>#}
-{#                <label>{{ field.label }}</label>#}
-{#                {{ field }}#}
-{#                <button class="modal-button" data-modal="add_{{ field.id_for_label }}_modal" type="button">Add New</button>#}
-{#                {% include 'sites/modal.html' with form=method_form modal_id='add_'|add:field.id_for_label|add:'_modal' modal_title='Add a New'|add:field.label form_name='method_form' %}#}
-{#            </div>#}
-{#        {% endfor %}#}
+{#        <div>#}
+{#            <label for="id_existing_datastreams">Start from an existing datastream:</label>#}
+{#            <select name="existing_datastreams" id="id_existing_datastreams">#}
+{#                <option value="">-- Select an existing datastream --</option>#}
+{#                {% for ds in datastreams %}#}
+{#                    <option value="{{ ds.id }}">{{ ds.sensor }} - {{ ds.observed_property }} - {{ ds.sampled_medium }}</option>#}
+{#                {% endfor %}#}
+{#            </select>#}
+{#            <button type="button" name="populate_datastream_form" value="true">Load Datastream</button>#}
+{#        </div>#}
+
         <div>
             <label>Data Collection Method</label> {{ datastream_form.method }}
             <button class="modal-button" data-modal="add_method_modal" type="button">Add New</button>
@@ -28,7 +72,7 @@
         <div>
             <label>Unit</label>{{ datastream_form.unit }}
             <button class="modal-button" data-modal="add_unit_modal" type="button">Add New</button>
-            </div>
+        </div>
         <div>
             <label for="id_processing_level">Processing Level</label>{{ datastream_form.processing_level }}
             <button class="modal-button" data-modal="add_processing_level_modal" type="button">Add New</button>
@@ -38,40 +82,29 @@
 
         <div>
             <label>Sampled Medium</label>{{ datastream_form.sampled_medium }}
-{#            <button class="modal-button" data-modal="add_sampled_medium_modal" type="button">Add New</button>#}
-{#            {% include 'sites/modal.html' with form=sampled_medium_form modal_id='add_sampled_medium_modal' modal_title='Add a New Sampled Medium' form_name='sampled_medium_form' %}#}
         </div>
-
         <div>
-            <label for="id_status">Status</label>{{ datastream_form.status }} {{ datastream_form.status_master_list }} {{ datastream_form.status_new }}
-{#            <button class="modal-button" data-modal="add_status_modal" type="button">Add New</button>#}
-{#            {% include 'sites/modal.html' with form=status_form modal_id='add_status_modal' modal_title='Add a new status' form_name='status_form' %}#}
+            <label for="id_status">Status</label>
+            {{ datastream_form.status }} {{ datastream_form.status_master_list }} {{ datastream_form.status_new }}
         </div>
         <div>
             <label for="id_no_data_value">No Data Value</label>{{ datastream_form.no_data_value }}
-{#            <button class="modal-button" data-modal="add_no_data_value_modal" type="button">Add New</button>#}
-{#            {% include 'sites/modal.html' with form=no_data_value_form modal_id='add_no_data_value_modal' modal_title='Add a new no data value' form_name='no_data_value_form' %}#}
         </div>
         <div>
-            <label for="id_aggregation_statistic">Aggregation Statistic</label>{{ datastream_form.aggregation_statistic }}
-{#            <button class="modal-button" data-modal="add_aggregation_statistic_modal" type="button">Add New</button>#}
-{#            {% include 'sites/modal.html' with form=aggregation_statistic_form modal_id='add_aggregation_statistic_modal' modal_title='Add a New Aggregation Statistic' form_name='aggregation_statistic_form' %}#}
+            <label for="id_aggregation_statistic">Aggregation Statistic</label>
+            {{ datastream_form.aggregation_statistic }} {{ datastream_form.agg_master_list }} {{ datastream_form.aggregation_statistic_new }}
         </div>
 
          <br><hr><br>
 
         <div>
             <label for="id_intended_time_spacing">Intended Time Spacing</label>{{ datastream_form.intended_time_spacing }}
-{#            <button class="modal-button" data-modal="add_time_spacing_modal" type="button">Add New</button>#}
-{#            {% include 'sites/modal.html' with form=time_spacing_form modal_id='add_time_spacing_modal' modal_title='Add New Intended Time Spacing' form_name='time_spacing_form' %}#}
         </div>
         <div>
             <label for="id_intended_time_spacing_units">Units</label>{{ datastream_form.intended_time_spacing_units }}
         </div>
         <div>
             <label for="id_time_aggregation_interval">Time Aggregation Interval</label>{{ datastream_form.time_aggregation_interval }}
-{#            <button class="modal-button" data-modal="add_time_aggregation_modal" type="button">Add New</button>#}
-{#            {% include 'sites/modal.html' with form=time_aggregation_interval_form modal_id='add_time_aggregation_modal' modal_title='Add a New Time Aggregation Interval' form_name='time_aggregation_interval_form' %}#}
         </div>
         <div>
             <label for="id_time_aggregation_interval_units">Units</label>{{ datastream_form.time_aggregation_interval_units }}
@@ -105,13 +138,6 @@
     </script>
 {% endblock content %}
 
-{#    <button><a href="{% url 'add_sensor_model' thing.pk%}">Add Sensor Model</a></button>#}
-{#    <form method="post" action="{% url 'register_datastream' thing.pk %}">#}
-{#        {% csrf_token %}#}
-{#        {{ form.as_p }}#}
-{#        <input type="submit" value="Add New Datastream">#}
-{#    </form>#}
-{##}
     {# Get this out of here and connect to manage-sensors as well#}
 {#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
 {#    <script>#}
