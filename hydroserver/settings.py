@@ -14,14 +14,14 @@ import os
 import dj_database_url
 from pathlib import Path
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
+from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
 try:
     GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 except UndefinedValueError:
-    GOOGLE_MAPS_API_KEY = None
-    # GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
 
 LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
 
@@ -39,30 +39,31 @@ class EnvironmentSettings(BaseSettings):
     """
 
     # TODO Find/create types for other databases. In the meantime, allow str.
-    DATABASE_URL: PostgresDsn | str = f'sqlite:///{BASE_DIR}/db.sqlite3'
+    ALLOWED_HOSTS: str = '127.0.0.1,localhost'
+    DATABASE_URL: Union[PostgresDsn, str] = f'sqlite:///{BASE_DIR}/db.sqlite3'
     CONN_MAX_AGE: int = 600
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
     DEBUG: bool = True
 
     class Config:
-        env_file = f'{BASE_DIR}.env'
+        env_file = f'{BASE_DIR}/.env'
         case_sensitive = True
 
 
-config = EnvironmentSettings()
+env_config = EnvironmentSettings()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config.SECRET_KEY
+SECRET_KEY = env_config.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.DEBUG
+DEBUG = env_config.DEBUG
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
 
 
 # Application definition
@@ -76,7 +77,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
-    'datastores',
     'sensorthings',
 ]
 
@@ -88,7 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'sensorthings.middleware.SensorThingsRouter'
+    'hydrothings.middleware.SensorThingsMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
@@ -115,12 +115,12 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config.DATABASE_URL
+os.environ["DATABASE_URL"] = env_config.DATABASE_URL
 
 DATABASES = {
     'default': dj_database_url.config(
-        conn_max_age=config.CONN_MAX_AGE,
-        ssl_require=config.SSL_REQUIRED
+        conn_max_age=env_config.CONN_MAX_AGE,
+        ssl_require=env_config.SSL_REQUIRED
     )
 }
 
@@ -168,7 +168,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -178,63 +178,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # SensorThings API Settings
 
-ST_VERSION = '1.1'
-ST_PREFIX = 'sta'
-ST_BASE_URL = f'/{ST_PREFIX}/v{ST_VERSION}'
+STAPI_TITLE = 'HydroServer SensorThings API'
+STAPI_DESCRIPTION = '''
+    The HydroServer API can be used to create and update monitoring site metadata, and post
+    results data to HydroServer data stores.
+'''
+STAPI_VERSION = '1.1'
 
-ST_API = {
-    'title': 'HydroServer SensorThings API',
-    'version': ST_VERSION,
-    'description': '''
-        The HydroServer API can be used to create and update monitoring site metadata, and post  
-        results data to HydroServer data stores.
-    ''',
-    'csrf': False,
-    'docs_url': f'/v{ST_VERSION}/docs',
-    'openapi_url': f'/v{ST_VERSION}/openapi.json',
-    # 'docs_decorator': staff_member_required
-}
-
-ST_CONFORMANCE = [
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/resource-path/resource-path-to-entities',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/request-data',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/create-entity',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/link-to-existing-entities',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/deep-insert',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/deep-insert-status-code',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/update-entity',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/delete-entity',
-    'http://www.opengis.net/spec/iot_sensing/1.1/req/create-update-delete/historical-location-auto-creation'
-]
-
-ST_CAPABILITIES = [
-    {
-        'NAME': 'Things',
-        'VIEW': 'list_thing'
-    },
-    {
-        'NAME': 'Locations',
-        'VIEW': 'list_location'
-    },
-    {
-        'NAME': 'Datastreams',
-        'VIEW': 'list_datastream'
-    },
-    {
-        'NAME': 'Sensors',
-        'VIEW': 'list_sensor'
-    },
-    {
-        'NAME': 'Observations',
-        'VIEW': 'list_observation'
-    },
-    {
-        'NAME': 'ObservedProperties',
-        'VIEW': 'list_observed_property'
-    },
-    {
-        'NAME': 'FeaturesOfInterest',
-        'VIEW': 'list_feature_of_interest'
-    },
-]
+FROST_BASE_URL = 'http://localhost:8080/FROST-Server'

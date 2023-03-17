@@ -3,5 +3,11 @@
 .env
 __pycache__/
 db.sqlite3
+staticfiles/
 *.db
 *test.ipynb
+*test.yaml
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

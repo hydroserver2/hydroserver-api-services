@@ -83,19 +83,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Observation',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phenomenon_time', models.DateTimeField()),
-                ('result', models.CharField(max_length=255)),
-                ('result_time', models.DateTimeField(null=True)),
-                ('result_quality', models.CharField(max_length=255, null=True)),
-                ('valid_time', models.DateTimeField(null=True)),
-                ('parameters', models.TextField(null=True)),
-                ('datastream', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sites.datastream')),
-            ],
-        ),
-        migrations.CreateModel(
             name='Location',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

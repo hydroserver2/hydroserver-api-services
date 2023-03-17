@@ -10,22 +10,23 @@ class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(null=True, blank=True)
-    sampling_feature_type = models.CharField(max_length=200, null=True, blank=True)
+    sampling_feature_type = models.CharField(max_length=200, null=True, blank=True)  # CV Table?
     sampling_feature_code = models.CharField(max_length=200, null=True, blank=True)
-    site_type = models.CharField(max_length=200, null=True, blank=True)
+    site_type = models.CharField(max_length=200, null=True, blank=True)  # CV Table?
 
     def __str__(self):
         return self.name
 
 
 class Location(models.Model):
-    thing = models.OneToOneField(Thing, related_name='location', on_delete=models.CASCADE)
+    thing = models.OneToOneField(Thing, primary_key=True, related_name='location', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    elevation = models.FloatField()
+    latitude = models.DecimalField(max_digits=22, decimal_places=16)
+    longitude = models.DecimalField(max_digits=22, decimal_places=16)
+    elevation_m = models.DecimalField(max_digits=22, decimal_places=16)
+    elevation_datum = models.CharField(max_length=255)  # CV Table?
     city = models.CharField(max_length=150, null=True, blank=True)
     state = models.CharField(max_length=150, null=True, blank=True)
     country = models.CharField(max_length=150, null=True, blank=True)
@@ -39,7 +40,7 @@ class Sensor(models.Model):
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    encoding_type = models.CharField(max_length=255, blank=True, null=True)
+    encoding_type = models.CharField(max_length=255, blank=True, null=True)  # CV Table or constant?
     manufacturer = models.CharField(max_length=255, null=True, blank=True)
     model = models.CharField(max_length=255, null=True, blank=True)
     model_url = models.CharField(max_length=500, null=True, blank=True)
@@ -55,11 +56,12 @@ class Sensor(models.Model):
 
 
 class ObservedProperty(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     definition = models.TextField()
     description = models.TextField()
-    variable_type = models.CharField(max_length=50, blank=True, null=True)
+    variable_type = models.CharField(max_length=50, blank=True, null=True)  # CV Table?
     variable_code = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
@@ -95,6 +97,8 @@ class Unit(models.Model):
 
 
 class Datastream(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name='datastreams')
@@ -103,16 +107,16 @@ class Datastream(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    observation_type = models.CharField(max_length=255, null=True, blank=True)
-    result_type = models.CharField(max_length=255, null=True, blank=True)
-    status = models.CharField(max_length=255, null=True, blank=True)
-    sampled_medium = models.CharField(max_length=255, null=True, blank=True)
+    observation_type = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
+    result_type = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
+    status = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
+    sampled_medium = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
     value_count = models.IntegerField(null=True, blank=True)
     no_data_value = models.FloatField(max_length=255, null=True, blank=True)
     intended_time_spacing = models.FloatField(max_length=255, null=True, blank=True)
     intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
                                                     related_name='intended_time_spacing')
-    aggregation_statistic = models.CharField(max_length=255, null=True, blank=True)
+    aggregation_statistic = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
     time_aggregation_interval = models.FloatField(max_length=255, null=True, blank=True)
     time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
                                                         related_name='time_aggregation_interval')
@@ -127,16 +131,18 @@ class Datastream(models.Model):
 
 
 class Observation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
-    phenomenon_time = models.DateTimeField()
-    result = models.CharField(max_length=255)
-    result_time = models.DateTimeField(null=True)
-    result_quality = models.CharField(max_length=255, null=True)
-    valid_time = models.DateTimeField(null=True)
-    parameters = models.TextField(null=True)
-    valid_begin_time = models.DateTimeField(null=True)
-    valid_end_time = models.DateTimeField(null=True)
+    result = models.FloatField()
+    result_time = models.DateTimeField()
+    result_quality = models.CharField(max_length=255, null=True)  # CV Table?
+    phenomenon_time = models.DateTimeField(null=True, blank=True)
+    valid_begin_time = models.DateTimeField(null=True, blank=True)
+    valid_end_time = models.DateTimeField(null=True, blank=True)
     # feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.CASCADE)
+
+    class Meta:
+        managed = False
 
     def __str__(self):
         return f"{self.datastream.thing.name}: " \
