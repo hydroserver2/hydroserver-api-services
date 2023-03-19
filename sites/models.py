@@ -49,7 +49,7 @@ class Sensor(models.Model):
     method_code = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        if self.method_type.strip().lower().replace(" ", "") == 'instrumentdeployment':
+        if self.method_type and self.method_type.strip().lower().replace(" ", "") == 'instrumentdeployment':
             return f"{self.manufacturer}:{self.model}"
         else:
             return f"{self.method_type}:{self.method_code}"
