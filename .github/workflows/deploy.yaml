@@ -40,5 +40,5 @@ jobs:
       - name: Deploy ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk update-environment \
-          --environment-name ciroh-his-prod \
+          --environment-name ciroh-his-prod-test \
           --version-label "${{ github.ref_name }}"
