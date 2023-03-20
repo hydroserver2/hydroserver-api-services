@@ -13,6 +13,9 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
+      - name: Switch to Current Branch
+        run: git checkout ${{ env.BRANCH }}
+
       - name: Create ZIP deployment package
         run: zip -r deploy_package.zip ./
 
@@ -31,11 +34,11 @@ jobs:
           aws elasticbeanstalk create-application-version \
           --application-name ciroh-his-django \
           --source-bundle S3Bucket="ciroh-his",S3Key="deploy/prod/deploy_package_${{ github.ref_name }}.zip" \
-          --version-label "ver-${{ github.ref_name }}" \
+          --version-label "${{ github.ref_name }}" \
           --description "commit-sha-${{ github.sha }}"
           
       - name: Deploy ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk update-environment \
-          --environment-name ciroh-his-prod 
-          --version-label "ver-${{ github.ref_name }}"
+          --environment-name ciroh-his-prod \
+          --version-label "${{ github.ref_name }}"
