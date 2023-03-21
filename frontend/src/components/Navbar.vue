@@ -4,6 +4,7 @@
       <router-link to="/" class="header__logo"><img src="" alt="Hydro Server Logo" /></router-link>
       <ul class="header__menu">
         <li class="header__menuItem"><router-link to="/sites">My Sites</router-link></li>
+        <li class="header__menuItem"><router-link to="/signup">Signup</router-link></li>
         <li class="header__menuItem"><a href="">Browse</a></li>
         <li class="header__menuItem"><a href="">Time Series Visualization</a></li>
 
@@ -27,13 +28,11 @@ export default {
 </script>
 
 <style scoped>
-/* Add any styles specific to the navbar component */
-
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #27ae60; /* Change the background color to green */
+  background-color: #27ae60;
   padding: 1rem;
 }
 
@@ -56,7 +55,7 @@ ul {
 }
 
 .header__menuItem a:hover {
-  color: #2ecc71; /* Change the hover color to a lighter green */
+  color: #2ecc71;
 }
 
 .btn {
