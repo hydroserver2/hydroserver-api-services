@@ -65,8 +65,17 @@ DEBUG = env_config.DEBUG
 
 ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
 
+CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 
-# Application definition
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -78,11 +87,16 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
     'sensorthings',
+    'rest_framework',
+    'ninja',
+    # 'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
