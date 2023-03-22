@@ -10,19 +10,30 @@
 
         <li class="header__menuItem" v-if="isAuthenticated"><a href="">Account</a></li>
         <li class="header__menuItem" v-if="isAuthenticated"><a href="" class="btn btn--sub" @click.prevent="logout">Logout</a></li>
-        <li class="header__menuItem" v-else><a href="" class="btn btn--sub">Login/Sign Up</a></li>
+        <li class="header__menuItem" v-else><router-link to="/Login" class="btn btn--sub">Login/Sign Up</router-link></li>
       </ul>
     </nav>
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'Navbar',
-  data() {
-    return {
-      isAuthenticated: true,
-    };
+  computed: {
+    ...mapGetters(['isAuthenticated'])
+  },
+  watch: {
+    isAuthenticated(newValue) {
+      console.log('isAuthenticated:', newValue);
+    }
+  },
+  methods: {
+    logout() {
+      this.$store.commit('clearTokens');
+      this.$router.push({ name: 'Home' });
+    }
   },
 };
 </script>
