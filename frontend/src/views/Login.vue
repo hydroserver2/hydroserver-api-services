@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Login</h1>
-    <form @submit.prevent="Login">
+    <form @submit.prevent="loginSubmit">
       <div class="form-group">
         <label for="email">Email address</label>
         <input type="email" class="form-control" id="email" v-model="email" required>
@@ -20,8 +20,7 @@
 </template>
 
 <script>
-import axios from 'axios';
-import store from "../store.js";
+import {mapActions} from "vuex";
 
 export default {
   data() {
@@ -31,20 +30,14 @@ export default {
     }
   },
   methods: {
-    async Login() {
-      try {
-        const response = await axios.post('http://127.0.0.1:8000/api/token', {
-            username: this.email,
-            password: this.password
-          });
-        console.log(response.data)
-        const { access_token, refresh_token } = response.data;
-        store.commit("setAccessToken", access_token)
-        store.commit("setRefreshToken", refresh_token)
-        await this.$router.push({ name: "Sites" });
-      } catch (error) {
-        console.error(error)
-      }
+    ...mapActions([
+      'login'
+    ]),
+    loginSubmit() {
+      this.login({
+        email: this.email,
+        password: this.password
+      });
     }
   }
 }

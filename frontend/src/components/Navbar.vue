@@ -8,8 +8,8 @@
         <li class="header__menuItem"><a href="">Browse</a></li>
         <li class="header__menuItem"><a href="">Time Series Visualization</a></li>
 
-        <li class="header__menuItem" v-if="isAuthenticated"><a href="">Account</a></li>
-        <li class="header__menuItem" v-if="isAuthenticated"><a href="" class="btn btn--sub" @click.prevent="logout">Logout</a></li>
+        <li class="header__menuItem" v-if="accessToken"><a href="">Account</a></li>
+        <li class="header__menuItem" v-if="accessToken"><a href="" class="btn btn--sub" @click.prevent="logout">Logout</a></li>
         <li class="header__menuItem" v-else><router-link to="/Login" class="btn btn--sub">Login/Sign Up</router-link></li>
       </ul>
     </nav>
@@ -17,23 +17,24 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'Navbar',
   computed: {
-    ...mapGetters(['isAuthenticated'])
+    ...mapState([
+      'loggingIn',
+      'loginError',
+      'accessToken',
+    ])
   },
-  watch: {
-    isAuthenticated(newValue) {
-      console.log('isAuthenticated:', newValue);
-    }
+  created() {
+    this.fetchAccessToken();
   },
   methods: {
-    logout() {
-      this.$store.commit('clearTokens');
-      this.$router.push({ name: 'Home' });
-    }
+    ...mapActions([
+      'login', 'logout', "fetchAccessToken"
+    ]),
   },
 };
 </script>

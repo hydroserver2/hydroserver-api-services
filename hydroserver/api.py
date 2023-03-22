@@ -15,9 +15,9 @@ api = NinjaAPI()
 @api.post('/token')
 def get_token(request):
     data = json.loads(request.body)
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
-    user = authenticate(username=username, password=password)
+    user = authenticate(username=email, password=password)
     if user:
         token = RefreshToken.for_user(user)
         return {
