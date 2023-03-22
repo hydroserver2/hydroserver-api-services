@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from ninja import Schema, NinjaAPI
@@ -10,19 +12,22 @@ from accounts.models import CustomUser
 api = NinjaAPI()
 
 
-# @api.post('/token')
-# def get_token(request):
-#     username = request.data['username']
-#     password = request.data['password']
-#     user = authenticate(username=username, password=password)
-#     if user:
-#         token = RefreshToken.for_user(user)
-#         return {
-#             'access_token': str(token.access_token),
-#             'refresh_token': str(token),
-#         }
-#     else:
-#         return HttpError(401, 'Invalid credentials')
+@api.post('/token')
+def get_token(request):
+    data = json.loads(request.body)
+    email = data.get('email')
+    password = data.get('password')
+    user = authenticate(username=email, password=password)
+    if user:
+        token = RefreshToken.for_user(user)
+        return {
+            'access_token': str(token.access_token),
+            'refresh_token': str(token),
+        }
+    else:
+        return HttpError(401, 'Invalid credentials')
+
+
 @api.get("/hello")
 def hello(request):
     return "Hello world"
