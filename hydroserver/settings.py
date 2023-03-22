@@ -71,11 +71,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=15),
+    # 'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=15),
 }
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
 }
 
 INSTALLED_APPS = [
