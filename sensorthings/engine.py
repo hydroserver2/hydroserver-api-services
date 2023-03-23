@@ -124,7 +124,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         'FeatureOfInterest': {}
     }
 
-    def __init__(self, host: str, scheme: str, path: str, version: str, component: str, component_path: str):
+    def __init__(self, host: str, scheme: str, path: str, version: str, component: str):
         self.host = host
         self.scheme = scheme
         self.path = path
