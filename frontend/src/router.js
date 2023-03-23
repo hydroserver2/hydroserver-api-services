@@ -3,12 +3,16 @@ import Home from './views/Home.vue';
 import Sites from './views/Sites.vue';
 import Signup from "./views/Signup.vue";
 import Login from "./views/Login.vue";
+import Site from "./views/Site.vue";
+import RegisterSite from "./views/RegisterSite.vue";
 
 const routes = [
-  { path: '/',  name: 'Home', component: Home },
+  { path: '/', name: 'Home', component: Home },
   { path: '/sites', name: 'Sites', component: Sites },
-  { path: '/signup', component: Signup },
-  { path: '/login', component: Login },
+  { path: '/signup', name: 'Signup', component: Signup },
+  { path: '/login', name: 'Login', component: Login },
+  { path: '/site/:id', name: 'Site', component: Site },
+  { path: '/register-site', name: 'RegisterSite', component: RegisterSite },
 ];
 
 const router = createRouter({

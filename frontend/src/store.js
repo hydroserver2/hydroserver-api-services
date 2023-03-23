@@ -8,6 +8,7 @@ const store = createStore({
     refreshToken: null,
     loggingIn: false,
     loginError: null,
+    userData: null
   },
   mutations: {
     loginStart: state => state.loggingIn = true,
@@ -22,25 +23,39 @@ const store = createStore({
       state.accessToken = null;
       state.refreshToken = null;
     },
+    setUserData: (state, userData) => {
+      state.userData = userData;
+    }
   },
   actions: {
     login({ commit }, loginData) {
       commit('loginStart');
-      axios.post('http://127.0.0.1:8000/api/token', {
+      axios.post('/token', {
         ...loginData
       })
       .then(response => {
-       const { access_token, refresh_token } = response.data;
+        const { access_token, refresh_token } = response.data;
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('refresh_token', refresh_token);
         commit('loginStop', null);
         commit('updateAccessToken', access_token);
-        router.push({ name: 'Sites' }).catch((error) => {console.error('Error while navigating to Sites:', error);});
+        router.push({ name: 'Sites' }).catch((error) => {console.error('Error while navigating to Sites:', error);})
+        store.dispatch('fetchUserData').catch((error) => {console.error('Error fetching user data from db', error);})
       })
       .catch(error => {
-        commit('loginStop', error.response.data.error);
+        commit('loginStop', error.response);
         commit('updateAccessToken', null);
       })
+    },
+    fetchUserData({commit}) {
+      axios.get('/user/data')
+        .then(response => {
+          console.log(response.data)
+          commit('setUserData', response.data);
+        })
+        .catch(error => {
+          console.log(error);
+        })
     },
     logout({commit}) {
       commit('clearTokens');
@@ -54,7 +69,7 @@ const store = createStore({
       if (access_token) {
         commit('updateAccessToken', access_token);
       }
-    }
+    },
   },
 });
 

@@ -1,4 +1,5 @@
 <template>
+  <h2>Sign up Page</h2>
   <form @submit.prevent="submitForm">
     <label>
       First Name:
@@ -60,7 +61,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/users/', {
+        const response = await axios.post('/users/', {
           first_name: this.firstName,
           last_name: this.lastName,
           email: this.email,

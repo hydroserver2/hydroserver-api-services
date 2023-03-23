@@ -4,7 +4,6 @@
       <router-link to="/" class="header__logo"><img src="" alt="Hydro Server Logo" /></router-link>
       <ul class="header__menu">
         <li class="header__menuItem"><router-link to="/sites">My Sites</router-link></li>
-        <li class="header__menuItem"><router-link to="/signup">Signup</router-link></li>
         <li class="header__menuItem"><a href="">Browse</a></li>
         <li class="header__menuItem"><a href="">Time Series Visualization</a></li>
 
