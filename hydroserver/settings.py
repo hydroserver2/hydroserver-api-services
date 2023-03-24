@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+import datetime
 import os
 import dj_database_url
 from pathlib import Path
@@ -65,8 +65,20 @@ DEBUG = env_config.DEBUG
 
 ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
 
+CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 
-# Application definition
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # 'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=15),
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -78,11 +90,16 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
     'sensorthings',
+    'rest_framework',
+    'ninja',
+    # 'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

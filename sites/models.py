@@ -61,7 +61,7 @@ class ObservedProperty(models.Model):
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     definition = models.TextField()
     description = models.TextField()
-    variable_type = models.CharField(max_length=50, blank=True, null=True)  # CV Table?
+    variable_type = models.CharField(max_length=50, blank=True, null=True)
     variable_code = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
