@@ -61,7 +61,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('/users/', {
+        const response = await axios.post('/user', {
           first_name: this.firstName,
           last_name: this.lastName,
           email: this.email,

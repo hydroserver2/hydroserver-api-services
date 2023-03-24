@@ -5,6 +5,7 @@ from functools import wraps
 
 from _decimal import Decimal
 from django.contrib.auth import authenticate, logout
+from django.db import transaction
 from django.http import JsonResponse
 from ninja import Schema, NinjaAPI
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -54,7 +55,7 @@ class CreateUserInput(Schema):
     address: str = None
 
 
-@api.post('/users/')
+@api.post('/user')
 def create_user(request, data: CreateUserInput):
     try:
         user = CustomUser.objects.create_user(
@@ -157,28 +158,37 @@ def get_user_data(request):
     }, cls=CustomEncoder)
 
 
-class UpdateAccountInput(Schema):
-    first_name: str
-    last_name: str
-    email: str
-    password: str
+class UpdateUserInput(Schema):
+    first_name: str = None
+    last_name: str = None
+    email: str = None
+    password: str = None
     middle_name: str = None
     phone: str = None
     address: str = None
 
 
 @api.put('/user', auth=jwt_auth)
-def update_account(request, data: UpdateAccountInput):
+def update_user(request, data: UpdateUserInput):
     try:
         user = CustomUser.objects.get(pk=request.user_id)
-        user.first_name = data.first_name
-        user.last_name = data.last_name
-        user.email = data.email
-        user.username = data.email
-        user.middle_name = data.middle_name
-        user.phone = data.phone
-        user.address = data.address
-        user.set_password(data.password)
+
+        if data.first_name:
+            user.first_name = data.first_name
+        if data.last_name:
+            user.last_name = data.last_name
+        if data.email:
+            user.email = data.email
+            user.username = data.email
+        if data.middle_name:
+            user.middle_name = data.middle_name
+        if data.phone:
+            user.phone = data.phone
+        if data.address:
+            user.address = data.address
+        if data.password:
+            user.set_password(data.password)
+
         user.save()
         return {'detail': 'Your account has been updated!'}
     except CustomUser.DoesNotExist:
@@ -186,7 +196,7 @@ def update_account(request, data: UpdateAccountInput):
 
 
 @api.delete('/user', auth=jwt_auth)
-def remove_account(request):
+def delete_user(request):
     try:
         user = CustomUser.objects.get(pk=request.user_id)
         user.delete()
@@ -199,159 +209,245 @@ def remove_account(request):
 def thing_ownership_required(func):
     """
     Decorator for thing views that checks the user is logged in and is an owner of the related thing.
-    Redirects if not
     """
-
-    @jwt_auth
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        request = args[0]
-        try:
-            pk = kwargs.get('pk')
-            if not pk:
-                datastream = Datastream.objects.get(id=kwargs.get('datastream_pk'))
-                pk = datastream.thing.id
-        except KeyError:
-            datastream = Datastream.objects.get(id=kwargs.get('datastream_pk'))
-            pk = datastream.thing.id
+    def wrapper(request, *args, **kwargs):
+        jwt_auth_result = jwt_auth(request)
+        if not jwt_auth_result:
+            raise HttpError(401, 'Unauthorized')
 
-        thing = Thing.objects.get(id=pk)
-        if not request.user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+        thing_id = kwargs.get('thing_id')
+        user = CustomUser.objects.get(pk=request.user_id)
+        thing = Thing.objects.get(id=thing_id)
+
+        if not user.thing_associations.filter(thing=thing, owns_thing=True).exists():
             raise HttpError(403, 'You do not have permission to access this thing.')
 
-        return func(*args, **kwargs)
+        return func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def datastream_ownership_required(func):
+    """
+    Decorator for datastream views that checks the user is logged in and is an owner of the related datastream's thing.
+    """
+
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        jwt_auth_result = jwt_auth(request)
+        if not jwt_auth_result:
+            raise HttpError(401, 'Unauthorized')
+
+        datastream_id = kwargs.get('datastream_id')
+        user = CustomUser.objects.get(pk=request.user_id)
+        datastream = Datastream.objects.get(id=datastream_id)
+        thing = datastream.thing
+
+        if not user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+            raise HttpError(403, 'You do not have permission to access this datastream.')
+
+        return func(request, *args, **kwargs)
 
     return wrapper
 
 
 class ThingInput(Schema):
     name: str
-    description: str
-    sampling_feature_type: str
-    sampling_feature_code: str
-    site_type: str
+    description: str = None
+    sampling_feature_type: str = None
+    sampling_feature_code: str = None
+    site_type: str = None
     latitude: float
     longitude: float
     elevation: float
-    city: str
-    state: str
-    country: str
+    city: str = None
+    state: str = None
+    country: str = None
 
 
 @api.post('/things', auth=jwt_auth)
-def register_thing(request, data: ThingInput):
-    new_thing = Thing.objects.create(name=data.name,
-                                     description=data.description,
-                                     sampling_feature_type=data.sampling_feature_type,
-                                     sampling_feature_code=data.sampling_feature_code,
-                                     site_type=data.site_type)
+def create_thing(request, data: ThingInput):
+    with transaction.atomic():
+        new_thing = Thing.objects.create(name=data.name,
+                                         description=data.description,
+                                         sampling_feature_type=data.sampling_feature_type,
+                                         sampling_feature_code=data.sampling_feature_code,
+                                         site_type=data.site_type)
 
-    new_thing.location = Location.objects.create(name='Location for ' + new_thing.name,
-                                                 description=new_thing.description,
-                                                 encoding_type="application/geo+json",
-                                                 latitude=data.latitude,
-                                                 longitude=data.longitude,
-                                                 elevation=data.elevation,
-                                                 city=data.city,
-                                                 state=data.state,
-                                                 country=data.country,
-                                                 thing=new_thing)
-    new_thing.save()
-    ThingAssociation.objects.create(thing=new_thing, person=request.user, owns_thing=True)
+        Location.objects.create(name='Location for ' + new_thing.name,
+                                description='location',
+                                encoding_type="application/geo+json",
+                                latitude=data.latitude, longitude=data.longitude, elevation=data.elevation,
+                                city=data.city, state=data.state, country=data.country,
+                                thing=new_thing)
+
+        user = CustomUser.objects.get(pk=request.user_id)
+        ThingAssociation.objects.create(thing=new_thing, person=user, owns_thing=True)
+
     return {'id': new_thing.id}
 
 
-@api.get('/things', auth=jwt_auth)
+@api.get('/things')
 def get_things(request):
     things = Thing.objects.all()
-    return [{'id': thing.id, 'name': thing.name, 'description': thing.description} for thing in things]
+
+    return [
+        {
+            "id": thing.pk,
+            "name": thing.name,
+            "description": thing.description,
+            "sampling_feature_type": thing.sampling_feature_type,
+            "sampling_feature_code": thing.sampling_feature_code,
+            "site_type": thing.site_type,
+            # "encoding_type": association.thing.location.encoding_type,
+            "latitude": thing.location.latitude,
+            "longitude": thing.location.longitude,
+            "elevation": thing.location.elevation,
+            # "elevation_datum": association.thing.location.elevation_datum,
+            "city": thing.location.city,
+            "state": thing.location.state,
+            "country": thing.location.country
+        } for thing in things]
 
 
 @api.get('/things/{thing_id}', auth=jwt_auth)
-def get_thing(request, thing_id: int):
+def get_thing(request, thing_id: str):
     thing = Thing.objects.get(id=thing_id)
-    return {'id': thing.id, 'name': thing.name, 'description': thing.description}
+    return {
+        "id": thing.pk,
+        "name": thing.name,
+        "description": thing.description,
+        "sampling_feature_type": thing.sampling_feature_type,
+        "sampling_feature_code": thing.sampling_feature_code,
+        "site_type": thing.site_type,
+        # "encoding_type": association.thing.location.encoding_type,
+        "latitude": thing.location.latitude,
+        "longitude": thing.location.longitude,
+        "elevation": thing.location.elevation,
+        # "elevation_datum": association.thing.location.elevation_datum,
+        "city": thing.location.city,
+        "state": thing.location.state,
+        "country": thing.location.country}
 
 
-@api.put('/things/{thing_id}', auth=thing_ownership_required)
-def update_thing(request, thing_id: int, data: ThingInput):
+class UpdateThingInput(Schema):
+    name: str = None
+    description: str = None
+    sampling_feature_type: str = None
+    sampling_feature_code: str = None
+    site_type: str = None
+    latitude: float = None
+    longitude: float = None
+    elevation: float = None
+    city: str = None
+    state: str = None
+    country: str = None
+
+
+@api.put('/things/{thing_id}')
+@thing_ownership_required
+def update_thing(request, thing_id: str, data: UpdateThingInput):
     thing = Thing.objects.get(id=thing_id)
-    thing.name = data.name
-    thing.description = data.description
-    thing.sampling_feature_type = data.sampling_feature_type
-    thing.sampling_feature_code = data.sampling_feature_code
-    thing.site_type = data.site_type
+
+    if data.name:
+        thing.name = data.name
+    if data.description:
+        thing.description = data.description
+    if data.sampling_feature_type:
+        thing.sampling_feature_type = data.sampling_feature_type
+    if data.sampling_feature_code:
+        thing.sampling_feature_code = data.sampling_feature_code
+    if data.site_type:
+        thing.site_type = data.site_type
+
     thing.save()
     return {'detail': 'Thing updated successfully.'}
 
 
-@api.delete('/things/{thing_id}', auth=thing_ownership_required)
-def delete_thing(request, thing_id: int):
-    thing = Thing.objects.get(id=thing_id)
+@api.delete('/things/{thing_id}')
+@thing_ownership_required
+def delete_thing(request, thing_id: str):
+    try:
+        thing = Thing.objects.get(id=thing_id)
+    except Thing.DoesNotExist:
+        return {'detail': 'Thing does not exist'}
     thing.delete()
+
     return {'detail': 'Thing deleted successfully.'}
 
 
-class CreateSensorInput(Schema):
-    name: str
-    description: str
-    manufacturer: str
-    model: str
-    method_type: str
-    method_code: str
-    method_link: str
+class SensorInput(Schema):
+    name: str = None
+    description: str = None
+    encoding_type: str = None
+    manufacturer: str = None
+    model: str = None
+    model_url: str = None
+    method_type: str = None
+    method_link: str = None
+    method_code: str = None
 
 
 @api.post('/sensors', auth=jwt_auth)
-def create_sensor(request, data: CreateSensorInput):
-    sensor = Sensor.objects.create(
-        person=request.user,
+def create_sensor(request, data: SensorInput):
+    user = CustomUser.objects.get(pk=request.user_id)
+    sensor = Sensor(
+        person=user,
         name=data.name,
         description=data.description,
         manufacturer=data.manufacturer,
         model=data.model,
         method_type=data.method_type,
         method_code=data.method_code,
-        method_link=data.method_link
+        method_link=data.method_link,
+        encoding_type=data.encoding_type,
+        model_url=data.model_url,
     )
-
-    return {'id': sensor.id, 'detail': 'Sensor created successfully.'}
-
-
-class UpdateSensorInput(Schema):
-    name: str
-    description: str
-    manufacturer: str
-    model: str
-    method_type: str
-    method_code: str
-    method_link: str
+    sensor.save()
+    return {'detail': 'Sensor created successfully.', 'id': str(sensor.id)}
 
 
 @api.put('/sensors/{sensor_id}', auth=jwt_auth)
-def update_sensor(request, sensor_id: int, data: UpdateSensorInput):
+def update_sensor(request, sensor_id: str, data: SensorInput):
     sensor = Sensor.objects.get(id=sensor_id)
-
-    if request.user != sensor.person:
+    user = CustomUser.objects.get(pk=request.user_id)
+    if user != sensor.person:
         return JsonResponse({'detail': 'You are not authorized to update this sensor.'}, status=403)
 
-    sensor.name = data.name
-    sensor.description = data.description
-    sensor.manufacturer = data.manufacturer
-    sensor.model = data.model
-    sensor.method_type = data.method_type
-    sensor.method_code = data.method_code
-    sensor.method_link = data.method_link
+    if data.name:
+        sensor.name = data.name
+    if data.description:
+        sensor.description = data.description
+    if data.manufacturer:
+        sensor.manufacturer = data.manufacturer
+    if data.model:
+        sensor.model = data.model
+    if data.method_type:
+        sensor.method_type = data.method_type
+    if data.method_code:
+        sensor.method_code = data.method_code
+    if data.method_link:
+        sensor.method_link = data.method_link
+    if data.encoding_type:
+        sensor.encoding_type = data.encoding_type
+    if data.model_url:
+        sensor.model_url = data.model_url
+
     sensor.save()
 
     return {'id': sensor.id, 'detail': 'Sensor updated successfully.'}
 
 
 @api.delete('/sensors/{sensor_id}', auth=jwt_auth)
-def delete_sensor(request, sensor_id: int):
-    sensor = Sensor.objects.get(id=sensor_id)
+def delete_sensor(request, sensor_id: str):
+    try:
+        sensor = Sensor.objects.get(id=sensor_id)
+    except Sensor.DoesNotExist:
+        return JsonResponse({'detail': 'Sensor not found.'}, status=404)
 
-    if request.user != sensor.person:
+    user = CustomUser.objects.get(pk=request.user_id)
+    if user != sensor.person:
         return JsonResponse({'detail': 'You are not authorized to delete this sensor.'}, status=403)
 
     sensor.delete()
@@ -462,8 +558,9 @@ class UpdateDatastreamInput(Schema):
     aggregation_statistic: str
 
 
-@api.put('/datastreams/{datastream_id}', auth=jwt_auth)
-def update_datastream(request, datastream_id: int, data: UpdateDatastreamInput):
+@api.put('/datastreams/{datastream_id}')
+@datastream_ownership_required
+def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
     datastream = Datastream.objects.get(id=datastream_id)
 
     sensor = Sensor.objects.get(id=data.method)
@@ -484,8 +581,9 @@ def update_datastream(request, datastream_id: int, data: UpdateDatastreamInput):
     return {'id': datastream.id, 'detail': 'Datastream updated successfully.'}
 
 
-@api.delete('/datastreams/{datastream_id}', auth=jwt_auth)
-def delete_datastream(request, datastream_id: int):
+@api.delete('/datastreams/{datastream_id}')
+@datastream_ownership_required
+def delete_datastream(request, datastream_id: str):
     datastream = Datastream.objects.get(id=datastream_id)
 
     datastream.delete()
