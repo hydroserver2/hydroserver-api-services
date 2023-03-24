@@ -36,7 +36,7 @@ class LocationProperties(Schema):
     city: Union[str, None] = None
     state: Union[str, None] = None
     county: Union[str, None] = None
-    elevation_m: Union[float, None] = None
+    elevation: Union[float, None] = None
     elevation_datum: Union[str, None] = Field(None, alias='elevationDatum')
 
     class Config:

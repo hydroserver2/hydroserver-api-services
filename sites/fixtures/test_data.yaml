@@ -1,0 +1,496 @@
+- model: accounts.customuser
+  pk: 1
+  fields:
+    email: john@example.com
+    username: john@example.com
+    password: pbkdf2_sha256$390000$ipDwketibbDt6d1nSFmViC$Jfk0Z7Hw24ZjEmO4OC/HHCNw4Biej5b6y5+FYmUn+HE=
+    first_name: John
+    last_name: Johnson
+    is_staff: False
+    is_superuser: False
+    is_active: True
+    date_joined: 2022-01-01 10:00:00.000 -0700
+- model: accounts.customuser
+  pk: 2
+  fields:
+    email: paul@example.com
+    username: paul@example.com
+    password: pbkdf2_sha256$390000$ipDwketibbDt6d1nSFmViC$Jfk0Z7Hw24ZjEmO4OC/HHCNw4Biej5b6y5+FYmUn+HE=
+    first_name: Paul
+    last_name: Paulson
+    is_staff: False
+    is_superuser: False
+    is_active: True
+    date_joined: 2022-01-01 10:00:00.000 -0700
+- model: accounts.customuser
+  pk: 3
+  fields:
+    email: jane@example.com
+    username: jane@example.com
+    password: pbkdf2_sha256$390000$ipDwketibbDt6d1nSFmViC$Jfk0Z7Hw24ZjEmO4OC/HHCNw4Biej5b6y5+FYmUn+HE=
+    first_name: Jane
+    last_name: Doe
+    is_staff: False
+    is_superuser: False
+    is_active: True
+    date_joined: 2022-01-01 10:00:00.000 -0700
+
+
+- model: sites.thing
+  pk: 0c04fcdc-3876-429e-8260-14b7baca0231
+  fields:
+    name: test_thing_1
+    description: A test thing.
+    sampling_feature_type: Feature
+    sampling_feature_code: FEATURE1
+    site_type: SITE1
+- model: sites.thing
+  pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+  fields:
+    name: test_thing_3
+    description: A test thing.
+    sampling_feature_type: Feature
+    sampling_feature_code: FEATURE3
+    site_type: SITE3
+- model: sites.thing
+  pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+  fields:
+    name: test_thing_2
+    description: A test thing.
+    sampling_feature_type: Feature
+    sampling_feature_code: FEATURE2
+    site_type: SITE2
+
+
+- model: sites.location
+  pk: 0c04fcdc-3876-429e-8260-14b7baca0231
+  fields:
+    name: test_location_1
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 0E-16
+    longitude: 0E-16
+    elevation: 0E-16
+    elevation_datum: DATUM
+    city: Logan
+    state: UT
+    country: USA
+- model: sites.location
+  pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+  fields:
+    name: test_location_3
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 0E-16
+    longitude: 0E-16
+    elevation: 0E-16
+    elevation_datum: DATUM
+    city: Logan
+    state: UT
+    country: USA
+- model: sites.location
+  pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+  fields:
+    name: test_location_2
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 0E-16
+    longitude: 0E-16
+    elevation: 0E-16
+    elevation_datum: DATUM
+    city: Logan
+    state: UT
+    country: USA
+
+
+- model: sites.sensor
+  pk: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
+  fields:
+    person: 3
+    name: test_sensor_2
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_url: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD 2
+- model: sites.sensor
+  pk: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
+  fields:
+    person: 2
+    name: test_sensor_3
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_url: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD 3
+- model: sites.sensor
+  pk: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
+  fields:
+    person: 3
+    name: test_sensor_1
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_url: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD 1
+
+
+- model: sites.observedproperty
+  pk: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
+  fields:
+    name: test_property_1
+    person: 3
+    definition: http://www.example.com/property1
+    description: A test property.
+    variable_type: Variable
+    variable_code: VARIABLE1
+- model: sites.observedproperty
+  pk: 4c310501-31f3-4954-80b0-2279eb049e39
+  fields:
+    name: test_property_2
+    person: 3
+    definition: http://www.example.com/property2
+    description: A test property.
+    variable_type: Variable
+    variable_code: VARIABLE2
+- model: sites.observedproperty
+  pk: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
+  fields:
+    name: test_property_3
+    person: 2
+    definition: http://www.example.com/property3
+    description: A test property.
+    variable_type: Variable
+    variable_code: VARIABLE3
+
+
+- model: sites.processinglevel
+  pk: 1
+  fields:
+    person: 1
+    processing_level_code: test_processing_level_1
+    definition: Processing level 1
+    explanation: A processing level
+- model: sites.processinglevel
+  pk: 2
+  fields:
+    person: 2
+    processing_level_code: test_processing_level_2
+    definition: Processing level 2
+    explanation: A processing level
+- model: sites.processinglevel
+  pk: 3
+  fields:
+    person: 3
+    processing_level_code: test_processing_level_3
+    definition: Processing level 3
+    explanation: A processing level
+
+
+- model: sites.unit
+  pk: 1
+  fields:
+    name: test_unit_1
+    person: 1
+    symbol: T
+    definition: http://www.example.com/unit1
+    unit_type: Unit
+- model: sites.unit
+  pk: 2
+  fields:
+    name: test_unit_2
+    person: 2
+    symbol: T
+    definition: http://www.example.com/unit2
+    unit_type: Unit
+- model: sites.unit
+  pk: 3
+  fields:
+    name: test_unit_3
+    person: 3
+    symbol: T
+    definition: http://www.example.com/unit3
+    unit_type: Unit
+
+
+- model: sites.datastream
+  pk: 376be82c-b3a1-4d96-821b-c7954b931f94
+  fields:
+    unit: 3
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
+    observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
+    processing_level: 3
+    name: test_datastream_4
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 0
+    no_data_value: -9999.0
+    intended_time_spacing: 0.0
+    intended_time_spacing_units: 3
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: 3
+    phenomenon_start_time: 2022-01-01 10:10:10+00:00
+    phenomenon_end_time: 2023-01-01 10:10:10+00:00
+    result_begin_time: 2022-01-01 10:10:10+00:00
+    result_end_time: 2023-01-01 10:10:10+00:00
+- model: sites.datastream
+  pk: 8af17d0e-8fce-4264-93b5-e55aa6a7ca02
+  fields:
+    unit: 3
+    thing: 0c04fcdc-3876-429e-8260-14b7baca0231
+    sensor: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
+    observed_property: 4c310501-31f3-4954-80b0-2279eb049e39
+    processing_level: 3
+    name: test_datastream_2
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 0
+    no_data_value: -9999.0
+    intended_time_spacing: 0.0
+    intended_time_spacing_units: 3
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: 3
+    phenomenon_start_time: 2022-01-01 10:10:10+00:00
+    phenomenon_end_time: 2023-01-01 10:10:10+00:00
+    result_begin_time: 2022-01-01 10:10:10+00:00
+    result_end_time: 2023-01-01 10:10:10+00:00
+- model: sites.datastream
+  pk: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+  fields:
+    unit: 3
+    thing: 0c04fcdc-3876-429e-8260-14b7baca0231
+    sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
+    observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
+    processing_level: 3
+    name: test_datastream_1
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 0
+    no_data_value: -9999.0
+    intended_time_spacing: 0.0
+    intended_time_spacing_units: 3
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: 3
+    phenomenon_start_time: 2022-01-01 10:10:10+00:00
+    phenomenon_end_time: 2023-01-01 10:10:10+00:00
+    result_begin_time: 2022-01-01 10:10:10+00:00
+    result_end_time: 2023-01-01 10:10:10+00:00
+- model: sites.datastream
+  pk: ca999458-d644-44b0-b678-09a892fd54ac
+  fields:
+    unit: 2
+    thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+    sensor: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
+    observed_property: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
+    processing_level: 2
+    name: test_datastream_3
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 0
+    no_data_value: -9999.0
+    intended_time_spacing: 0.0
+    intended_time_spacing_units: 2
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: 2
+    phenomenon_start_time: 2022-01-01 10:10:10+00:00
+    phenomenon_end_time: 2023-01-01 10:10:10+00:00
+    result_begin_time: 2022-01-01 10:10:10+00:00
+    result_end_time: 2023-01-01 10:10:10+00:00
+
+
+- model: sites.observation
+  pk: 056b132d-cf81-4627-90b0-e005076d4c68
+  fields:
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 0.0
+    result_time: 2022-02-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 11d6ff1d-fb06-4a1a-93cf-1f83d9e53069
+  fields:
+    datastream: ca999458-d644-44b0-b678-09a892fd54ac
+    result: 1.0
+    result_time: 2022-03-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 2b13ddf5-6a9f-4865-aa0d-446fe0ed79f6
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 2.0
+    result_time: 2022-03-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 391808c3-b51f-458a-a364-9cabd5430456
+  fields:
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 2.0
+    result_time: 2022-03-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 583bf8c7-c220-47e5-9cd6-bf2427dab8d2
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 1.0
+    result_time: 2022-05-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 6ad9cf17-acd8-4973-8c22-340cda2ed8ca
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 3.0
+    result_time: 2022-02-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 6e45fc87-25ab-4e8a-965f-83014c0ad8fd
+  fields:
+    datastream: ca999458-d644-44b0-b678-09a892fd54ac
+    result: 2.0
+    result_time: 2022-01-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 71335328-fd9f-4079-b51d-ddd629545c27
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 3.0
+    result_time: 2022-06-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 853527d6-d7df-47d4-bdee-c53bae7cc4ed
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 1.0
+    result_time: 2022-01-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: 94876352-6a5d-4e67-bddc-e3d91afd67af
+  fields:
+    datastream: ca999458-d644-44b0-b678-09a892fd54ac
+    result: 4.0
+    result_time: 2022-05-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: a0e6b98b-39da-4f66-9fdc-a537fbd2b3c3
+  fields:
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 3.0
+    result_time: 2022-01-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+- model: sites.observation
+  pk: ddafa714-c1a2-4a59-9324-261ccc8ce8b3
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 4.0
+    result_time: 2022-04-01 10:10:10
+    result_quality: null
+    phenomenon_time: null
+    valid_begin_time: null
+    valid_end_time: null
+
+
+- model: sites.thingassociation
+  pk: 1
+  fields:
+    thing: 0c04fcdc-3876-429e-8260-14b7baca0231
+    person: 3
+    owns_thing: true
+    follows_thing: true
+    is_primary_owner: true
+- model: sites.thingassociation
+  pk: 2
+  fields:
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    person: 3
+    owns_thing: true
+    follows_thing: true
+    is_primary_owner: true
+- model: sites.thingassociation
+  pk: 3
+  fields:
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    person: 2
+    owns_thing: true
+    follows_thing: true
+    is_primary_owner: false
+- model: sites.thingassociation
+  pk: 4
+  fields:
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    person: 1
+    owns_thing: false
+    follows_thing: true
+    is_primary_owner: false
+- model: sites.thingassociation
+  pk: 5
+  fields:
+    thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+    person: 2
+    owns_thing: true
+    follows_thing: true
+    is_primary_owner: true
+- model: sites.thingassociation
+  pk: 6
+  fields:
+    thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+    person: 1
+    owns_thing: false
+    follows_thing: true
+    is_primary_owner: false
