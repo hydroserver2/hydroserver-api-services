@@ -149,7 +149,7 @@
   fields:
     name: test_property_1
     person: 3
-    definition: Test property 1
+    definition: http://www.example.com/property1
     description: A test property.
     variable_type: Variable
     variable_code: VARIABLE1
@@ -158,7 +158,7 @@
   fields:
     name: test_property_2
     person: 3
-    definition: Test property 2
+    definition: http://www.example.com/property2
     description: A test property.
     variable_type: Variable
     variable_code: VARIABLE2
@@ -167,7 +167,7 @@
   fields:
     name: test_property_3
     person: 2
-    definition: Test property 3
+    definition: http://www.example.com/property3
     description: A test property.
     variable_type: Variable
     variable_code: VARIABLE3
@@ -202,7 +202,7 @@
     name: test_unit_1
     person: 1
     symbol: T
-    definition: Test unit
+    definition: http://www.example.com/unit1
     unit_type: Unit
 - model: sites.unit
   pk: 2
@@ -210,7 +210,7 @@
     name: test_unit_2
     person: 2
     symbol: T
-    definition: Test unit
+    definition: http://www.example.com/unit2
     unit_type: Unit
 - model: sites.unit
   pk: 3
@@ -218,7 +218,7 @@
     name: test_unit_3
     person: 3
     symbol: T
-    definition: Test unit
+    definition: http://www.example.com/unit3
     unit_type: Unit
 
 

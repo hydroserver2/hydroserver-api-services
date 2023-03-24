@@ -11,7 +11,6 @@ from sites import models as core_models
 
 
 class SensorThingsEngine(SensorThingsAbstractEngine):
-
     rewriter = AliasRewriter({
         'Datastream': 'datastream',
     })
@@ -45,7 +44,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                 'city',
                 'state',
                 'country',
-                'elevation_m',
+                'elevation',
                 'elevation_datum'
             ]
         },
@@ -152,15 +151,15 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         for i, entity in enumerate(entity_chain):
             if i == 0:
                 if getattr(core_models, entity[0]).objects.filter(
-                    pk=entity[1]
+                        pk=entity[1]
                 ).exists() is False:
                     return False
             else:
                 if getattr(core_models, entity[0]).filter(
-                    **{
-                        f'{lookup_component(entity_chain[i-1][0], "camel_singular", "snake_singular")}_id':
-                        entity_chain[i-1][1]
-                    }
+                        **{
+                            f'{lookup_component(entity_chain[i - 1][0], "camel_singular", "snake_singular")}_id':
+                                entity_chain[i - 1][1]
+                        }
                 ).filter(
                     pk=entity[1]
                 ).exists() is False:
@@ -381,7 +380,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     'city': row['city'],
                     'state': row['state'],
                     'county': row['country'],
-                    'elevation_m': row['elevation_m'],
+                    'elevation': row['elevation'],
                     'elevation_datum': row['elevation_datum']
                 }, axis=1
             )
@@ -434,8 +433,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         'symbol': row['time_aggregation_interval_units__symbol'],
                         'definition': row['time_aggregation_interval_units__definition']
                     },
-                    'phenomenon_time': row['phenomenon_start_time'],
-                    'result_time': row['result_begin_time']
+                    'phenomenon_time': row['phenomenon_start_time'].strftime('%Y-%m-%d %H:%M:%S') + '/' +
+                    row['phenomenon_end_time'].strftime('%Y-%m-%d %H:%M:%S'),
+                    'result_time': row['result_begin_time'].strftime('%Y-%m-%d %H:%M:%S') + '/' +
+                    row['result_end_time'].strftime('%Y-%m-%d %H:%M:%S'),
                 }, axis=1
             )
         elif self.component == 'Observation':
