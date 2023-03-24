@@ -1,25 +1,10 @@
 from django.urls import path
 from django.conf import settings
-from django.contrib.auth import authenticate
-from ninja.security import HttpBasicAuth
 from hydrothings import SensorThingsAPI, SensorThingsComponent, SensorThingsEndpoint
 from sensorthings import schemas
 from sensorthings.engine import SensorThingsEngine
+from sensorthings.auth import observation_authorization, BasicAuth
 
-
-class BasicAuth(HttpBasicAuth):
-    def authenticate(self, request, username, password):
-        user = authenticate(username=username, password=password)
-        if user and user.is_authenticated:
-            return user
-
-
-# st_api_1_0 = SensorThingsAPI(
-#     backend='frostserver',
-#     title=settings.STAPI_TITLE,
-#     version='1.0',
-#     description=settings.STAPI_DESCRIPTION
-# )
 
 st_api_1_1 = SensorThingsAPI(
     auth=BasicAuth(),
@@ -53,125 +38,124 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='create_datastream',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, datastream: False
         ),
         SensorThingsEndpoint(
             name='update_datastream',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, datastream_id, datastream: False
         ),
         SensorThingsEndpoint(
             name='delete_datastream',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, datastream_id: False
         ),
         SensorThingsEndpoint(
             name='create_feature_of_interest',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, feature_of_interest: False
         ),
         SensorThingsEndpoint(
             name='update_feature_of_interest',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, feature_of_interest_id, feature_of_interest: False
         ),
         SensorThingsEndpoint(
             name='delete_feature_of_interest',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, feature_of_interest_id: False
         ),
         SensorThingsEndpoint(
             name='create_historical_location',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, historical_location: False
         ),
         SensorThingsEndpoint(
             name='update_historical_location',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, historical_location_id, historical_location: False
         ),
         SensorThingsEndpoint(
             name='delete_historical_location',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, historical_location_id: False
         ),
         SensorThingsEndpoint(
             name='create_location',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, location: False
         ),
         SensorThingsEndpoint(
             name='update_location',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, location_id, location: False
         ),
         SensorThingsEndpoint(
             name='delete_location',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, location_id: False
         ),
         SensorThingsEndpoint(
             name='create_observation',
-            authentication=lambda request: False
+            authorization=observation_authorization
         ),
         SensorThingsEndpoint(
             name='update_observation',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, observation_id, observation: False
         ),
         SensorThingsEndpoint(
             name='delete_observation',
-            authentication=lambda request: False
+            authorization=observation_authorization
         ),
         SensorThingsEndpoint(
             name='create_observed_property',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, observed_property: False
         ),
         SensorThingsEndpoint(
             name='update_observed_property',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, observed_property_id, observed_property: False
         ),
         SensorThingsEndpoint(
             name='delete_observed_property',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, observed_property_id: False
         ),
         SensorThingsEndpoint(
             name='create_sensor',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, sensor: False
         ),
         SensorThingsEndpoint(
             name='update_sensor',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, sensor_id, sensor: False
         ),
         SensorThingsEndpoint(
             name='delete_sensor',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, sensor_id: False
         ),
         SensorThingsEndpoint(
             name='create_thing',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, thing: False
         ),
         SensorThingsEndpoint(
             name='update_thing',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, thing_id, thing: False
         ),
         SensorThingsEndpoint(
             name='delete_thing',
             deprecated=True,
-            authentication=lambda request: False
+            authorization=lambda request, thing_id: False
         ),
     ]
 )
 
 urlpatterns = [
     path('v1.1/', st_api_1_1.urls),
-    # path('v1.0/', st_api_1_0.urls)
 ]
