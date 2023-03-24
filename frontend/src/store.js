@@ -48,14 +48,20 @@ const store = createStore({
       })
     },
     fetchUserData({commit}) {
-      axios.get('/user/data')
-        .then(response => {
-          console.log(response.data)
-          commit('setUserData', response.data);
-        })
-        .catch(error => {
-          console.log(error);
-        })
+      const cachedUserData = localStorage.getItem('userData');
+      if (cachedUserData) {
+        commit('setUserData', JSON.parse(cachedUserData));
+      } else {
+        axios.get('/user/data')
+            .then(response => {
+              console.log(response.data)
+              commit('setUserData', response.data);
+              localStorage.setItem('userData', JSON.stringify(response.data));
+            })
+            .catch(error => {
+              console.log(error);
+            })
+      }
     },
     logout({commit}) {
       commit('clearTokens');
