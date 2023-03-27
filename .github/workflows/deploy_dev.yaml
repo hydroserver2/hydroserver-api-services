@@ -16,9 +16,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-
-      - name: Switch to Current Branch
-        run: git checkout ${{ env.BRANCH }}
+        with:
+          ref: dev
 
       - name: Create ZIP deployment package
         run: zip -r deploy_package.zip ./
