@@ -1,5 +1,5 @@
 name: HydroServer AWS Elastic Beanstalk Deployment
-run-name: ${{ github.actor }} is deploying HydroServer to AWs Elastic Beanstalk on ${{ github.ref }}
+run-name: ${{ github.actor }} is deploying HydroServer to AWS Elastic Beanstalk on ${{ github.ref }}
 
 on:
   release:
@@ -13,8 +13,8 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Switch to Current Branch
-        run: git checkout ${{ env.BRANCH }}
+      - name: Switch to Main Branch
+        run: git checkout main
 
       - name: Create ZIP deployment package
         run: zip -r deploy_package.zip ./
