@@ -5,4 +5,4 @@ class GetThingCollection(HttpUser):
 
     @task
     def get_thing_collection(self):
-        self.client.get('/sensorthings/v1.1/Things', auth=('kenneth.lippold@usu.edu', 'tHw90Js@8d'))
+        self.client.get('/sensorthings/v1.1/Things', auth=('kenneth.lippold@usu.edu', ''))
