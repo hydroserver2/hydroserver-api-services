@@ -29,24 +29,18 @@ jobs:
           aws-region: 'us-east-1'
 
       - name: Upload deployment package to S3
-        run: aws s3 cp deploy_package.zip s3://ciroh-his/deploy/dev/deploy_package_${SHA}.zip
-        env:
-          SHA: git log -1 '--format=format:%H'
+        run: aws s3 cp deploy_package.zip s3://ciroh-his/deploy/dev/deploy_package_${GITHUB_SHA}.zip
 
       - name: Create ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk create-application-version \
           --application-name ciroh-his-django-dev \
-          --source-bundle S3Bucket="ciroh-his",S3Key="deploy/dev/deploy_package_${SHA}.zip" \
-          --version-label "${SHA}" \
-          --description "commit-sha-${SHA}"
-        env:
-          SHA: git log -1 '--format=format:%H'
+          --source-bundle S3Bucket="ciroh-his",S3Key="deploy/dev/deploy_package_${GITHUB_SHA}.zip" \
+          --version-label "${GITHUB_SHA}" \
+          --description "commit-sha-${GITHUB_SHA}"
 
       - name: Deploy ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk update-environment \
           --environment-name ciroh-his-dev \
-          --version-label "${SHA}"
-        env:
-          SHA: git log -1 '--format=format:%H'
+          --version-label "${GITHUB_SHA}"
