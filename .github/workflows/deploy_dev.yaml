@@ -17,8 +17,8 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Switch to Dev Branch
-        run: git checkout dev
+      - name: Switch to Current Branch
+        run: git checkout ${{ env.BRANCH }}
 
       - name: Create ZIP deployment package
         run: zip -r deploy_package.zip ./
