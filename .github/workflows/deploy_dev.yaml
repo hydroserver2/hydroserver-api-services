@@ -45,4 +45,3 @@ jobs:
           aws elasticbeanstalk update-environment \
           --environment-name ciroh-his-dev \
           --version-label "${{ github.event.workflow_run.head_sha }}"
-
