@@ -14,10 +14,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:    
-      - name: Test Commit SHA
-        run: |
-          echo "${{ github.event.workflow_run }}"
-    
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
@@ -49,4 +45,3 @@ jobs:
           aws elasticbeanstalk update-environment \
           --environment-name ciroh-his-dev \
           --version-label "${{ github.event.workflow_run.head_sha }}"
-
