@@ -31,11 +31,15 @@ def jwt_auth(request):
         raise HttpError(401, 'Unauthorized')
 
 
+class GetTokenInput(Schema):
+    email: str
+    password: str
+
+
 @api.post('/token')
-def get_token(request):
-    data = json.loads(request.body)
-    email = data.get('email')
-    password = data.get('password')
+def get_token(request, data: GetTokenInput):
+    email = data.email
+    password = data.password
     user = authenticate(username=email, password=password)
     if user:
         token = RefreshToken.for_user(user)
@@ -89,6 +93,9 @@ class CustomEncoder(json.JSONEncoder):
 
 @api.get("/user/data", auth=jwt_auth)
 def get_user_data(request):
+    """
+    Gets all data related to the user to be cached in the browser
+    """
     thing_associations = ThingAssociation.objects.select_related('thing', 'person').prefetch_related(
         'thing__location').filter(person=request.authenticated_user)
 
