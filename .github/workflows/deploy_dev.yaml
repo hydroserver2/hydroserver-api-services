@@ -13,41 +13,36 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Commit SHA Test
+    steps:    
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          ref: dev
+
+      - name: Create ZIP deployment package
+        run: zip -r deploy_package.zip ./
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: 'us-east-1'
+
+      - name: Upload deployment package to S3
+        run: aws s3 cp deploy_package.zip s3://ciroh-his/deploy/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip
+
+      - name: Create ElasticBeanstalk Application Version
         run: |
-          echo ${GITHUB_SHA}
-          echo ${{ github.event.workflow_run.head_sha }}
-    
-#       - name: Checkout Repo
-#         uses: actions/checkout@v3
-#         with:
-#           ref: dev
+          aws elasticbeanstalk create-application-version \
+          --application-name ciroh-his-django-dev \
+          --source-bundle S3Bucket="ciroh-his",S3Key="deploy/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip" \
+          --version-label "${{ github.event.workflow_run.head_sha }}" \
+          --description "commit-sha-${{ github.event.workflow_run.head_sha }}"
 
-#       - name: Create ZIP deployment package
-#         run: zip -r deploy_package.zip ./
-
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v1
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-#           aws-region: 'us-east-1'
-
-#       - name: Upload deployment package to S3
-#         run: aws s3 cp deploy_package.zip s3://ciroh-his/deploy/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip
-
-#       - name: Create ElasticBeanstalk Application Version
-#         run: |
-#           aws elasticbeanstalk create-application-version \
-#           --application-name ciroh-his-django-dev \
-#           --source-bundle S3Bucket="ciroh-his",S3Key="deploy/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip" \
-#           --version-label "${{ github.event.workflow_run.head_sha }}" \
-#           --description "commit-sha-${{ github.event.workflow_run.head_sha }}"
-
-#       - name: Deploy ElasticBeanstalk Application Version
-#         run: |
-#           aws elasticbeanstalk update-environment \
-#           --environment-name ciroh-his-dev \
-#           --version-label "${{ github.event.workflow_run.head_sha }}"
+      - name: Deploy ElasticBeanstalk Application Version
+        run: |
+          aws elasticbeanstalk update-environment \
+          --environment-name ciroh-his-dev \
+          --version-label "${{ github.event.workflow_run.head_sha }}"
 
