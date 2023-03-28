@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:    
+      - name: Test Commit SHA
+        run: |
+          echo "${{ github.event.workflow_run }}"
+    
       - name: Checkout Repo
         uses: actions/checkout@v3
         with:
