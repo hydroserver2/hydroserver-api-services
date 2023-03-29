@@ -203,9 +203,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             response['count'] = response_count
 
         queryset = query.values(*self.get_fields(select))
-
-        # if top is not None or skip != 0:
-        #     queryset = self.apply_pagination(queryset, top, skip)
+        queryset = self.apply_pagination(queryset, top, skip)
 
         response_df = pd.DataFrame(list(queryset))
         response_df = self.transform_response(response_df)
@@ -507,3 +505,16 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         query = query.filter(query_filter)
 
         return query
+
+    def apply_pagination(self, queryset, top, skip):
+        """"""
+
+        if top is None:
+            top = 100
+
+        if skip is None:
+            skip = 0
+
+        queryset = queryset[skip: skip+top]
+
+        return queryset

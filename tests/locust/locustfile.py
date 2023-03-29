@@ -39,5 +39,41 @@ class GetThingCollection(HttpUser):
                     'result'
                 ],
                 'dataArray': data_array
-            }
+            },
+            {
+                'Datastream': {
+                    '@iot.id': '8af17d0e-8fce-4264-93b5-e55aa6a7ca02'
+                },
+                'components': [
+                    'resultTime',
+                    'result'
+                ],
+                'dataArray': data_array
+            },
+            {
+                'Datastream': {
+                    '@iot.id': 'c2f32f37-9e2f-471b-a65c-26420e0e55f4'
+                },
+                'components': [
+                    'resultTime',
+                    'result'
+                ],
+                'dataArray': data_array
+            },
+            {
+                'Datastream': {
+                    '@iot.id': 'ca999458-d644-44b0-b678-09a892fd54ac'
+                },
+                'components': [
+                    'resultTime',
+                    'result'
+                ],
+                'dataArray': data_array
+            },
         ]
+
+        self.client.post(
+            '/sensorthings/v1.1/Observations',
+            json=request_body,
+            auth=(os.getenv('LOCUST_TEST_USERNAME'), os.getenv('LOCUST_TEST_PASSWORD'))
+        )
