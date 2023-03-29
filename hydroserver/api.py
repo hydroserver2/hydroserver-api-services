@@ -31,11 +31,61 @@ def jwt_auth(request):
         raise HttpError(401, 'Unauthorized')
 
 
+def thing_ownership_required(func):
+    """
+    Decorator for thing views that checks the user is logged in and is an owner of the related thing.
+    """
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        jwt_auth(request)
+
+        thing_id = kwargs.get('thing_id')
+        try:
+            thing = Thing.objects.get(id=thing_id)
+        except Thing.DoesNotExist:
+            raise HttpError(403, 'Site cannot be found')
+        if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+            raise HttpError(403, 'You do not have permission to access this thing.')
+
+        request.thing = thing
+        return func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def datastream_ownership_required(func):
+    """
+    Decorator for datastream views that checks the user is logged in and is an owner of the related datastream's thing.
+    """
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        jwt_auth(request)
+
+        datastream_id = kwargs.get('datastream_id')
+        try:
+            datastream = Datastream.objects.get(id=datastream_id)
+        except Datastream.DoesNotExist:
+            return JsonResponse({'detail': 'Datastream not found.'}, status=404)
+        request.datastream = datastream
+        thing = datastream.thing
+
+        if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+            raise HttpError(403, 'You do not have permission to access this datastream.')
+
+        return func(request, *args, **kwargs)
+
+    return wrapper
+
+
+class GetTokenInput(Schema):
+    email: str
+    password: str
+
+
 @api.post('/token')
-def get_token(request):
-    data = json.loads(request.body)
-    email = data.get('email')
-    password = data.get('password')
+def get_token(request, data: GetTokenInput):
+    email = data.email
+    password = data.password
     user = authenticate(username=email, password=password)
     if user:
         token = RefreshToken.for_user(user)
@@ -45,6 +95,33 @@ def get_token(request):
         }
     else:
         return JsonResponse({'detail': 'Invalid credentials'}, status=401)
+
+
+class CreateRefreshInput(Schema):
+    refresh_token: str
+
+
+@api.post("/token/refresh")
+def refresh_token(request, data: CreateRefreshInput):
+    try:
+        token = data.refresh_token
+        untyped_token = UntypedToken(token)
+        user_id = untyped_token.payload['user_id']
+        user = CustomUser.objects.get(pk=user_id)
+        new_token = RefreshToken.for_user(user)
+        return JsonResponse({
+            'access_token': str(new_token.access_token),
+            'refresh_token': str(new_token),
+        })
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'error': 'User does not exist'}, status=401)
+    except (InvalidToken, TokenError, KeyError, ValueError) as e:
+        return JsonResponse({'error': str(e)}, status=401)
+
+
+# @api.post('/hello', auth=jwt_auth)
+# def say_hello(request):
+#     return "Hello"
 
 
 class CreateUserInput(Schema):
@@ -89,6 +166,9 @@ class CustomEncoder(json.JSONEncoder):
 
 @api.get("/user/data", auth=jwt_auth)
 def get_user_data(request):
+    """
+    Gets all data related to the user to be cached in the browser
+    """
     thing_associations = ThingAssociation.objects.select_related('thing', 'person').prefetch_related(
         'thing__location').filter(person=request.authenticated_user)
 
@@ -203,53 +283,6 @@ def delete_user(request):
         return {'detail': 'Your account has been removed!'}
     except CustomUser.DoesNotExist:
         raise HttpError(404, 'User not found')
-
-
-def thing_ownership_required(func):
-    """
-    Decorator for thing views that checks the user is logged in and is an owner of the related thing.
-    """
-    @wraps(func)
-    def wrapper(request, *args, **kwargs):
-        jwt_auth(request)
-
-        thing_id = kwargs.get('thing_id')
-        try:
-            thing = Thing.objects.get(id=thing_id)
-        except Thing.DoesNotExist:
-            raise HttpError(403, 'Site cannot be found')
-        if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
-            raise HttpError(403, 'You do not have permission to access this thing.')
-
-        request.thing = thing
-        return func(request, *args, **kwargs)
-
-    return wrapper
-
-
-def datastream_ownership_required(func):
-    """
-    Decorator for datastream views that checks the user is logged in and is an owner of the related datastream's thing.
-    """
-
-    @wraps(func)
-    def wrapper(request, *args, **kwargs):
-        jwt_auth(request)
-
-        datastream_id = kwargs.get('datastream_id')
-        try:
-            datastream = Datastream.objects.get(id=datastream_id)
-        except Datastream.DoesNotExist:
-            return JsonResponse({'detail': 'Datastream not found.'}, status=404)
-        request.datastream = datastream
-        thing = datastream.thing
-
-        if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
-            raise HttpError(403, 'You do not have permission to access this datastream.')
-
-        return func(request, *args, **kwargs)
-
-    return wrapper
 
 
 class ThingInput(Schema):
