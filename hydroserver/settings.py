@@ -23,7 +23,10 @@ try:
 except UndefinedValueError:
     GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
 
-LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
+try:
+    LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
+except UndefinedValueError:
+    LOCAL_CSV_STORAGE = '~/'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
