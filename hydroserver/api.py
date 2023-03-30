@@ -1,9 +1,5 @@
-import datetime
-import json
-import uuid
 from functools import wraps
 
-from _decimal import Decimal
 from django.contrib.auth import authenticate, logout
 from django.db import transaction
 from django.http import JsonResponse
@@ -119,9 +115,9 @@ def refresh_token(request, data: CreateRefreshInput):
         return JsonResponse({'error': str(e)}, status=401)
 
 
-# @api.post('/hello', auth=jwt_auth)
-# def say_hello(request):
-#     return "Hello"
+@api.post('/hello', auth=jwt_auth)
+def say_hello(request):
+    return "Hello"
 
 
 class CreateUserInput(Schema):
@@ -153,17 +149,6 @@ def create_user(request, data: CreateUserInput):
     return {'id': user.id, 'username': user.username}
 
 
-class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return float(obj)
-        elif isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        elif isinstance(obj, uuid.UUID):
-            return str(obj)
-        return super().default(obj)
-
-
 @api.get("/user/data", auth=jwt_auth)
 def get_user_data(request):
     """
@@ -172,46 +157,10 @@ def get_user_data(request):
     thing_associations = ThingAssociation.objects.select_related('thing', 'person').prefetch_related(
         'thing__location').filter(person=request.authenticated_user)
 
-    owned_things = [
-        {
-            "id": association.thing.pk,
-            "name": association.thing.name,
-            "description": association.thing.description,
-            "sampling_feature_type": association.thing.sampling_feature_type,
-            "sampling_feature_code": association.thing.sampling_feature_code,
-            "site_type": association.thing.site_type,
-            # "encoding_type": association.thing.location.encoding_type,
-            "latitude": association.thing.location.latitude,
-            "longitude": association.thing.location.longitude,
-            "elevation": association.thing.location.elevation,
-            # "elevation_datum": association.thing.location.elevation_datum,
-            "city": association.thing.location.city,
-            "state": association.thing.location.state,
-            "country": association.thing.location.country,
-            "is_primary_owner": association.is_primary_owner
-        }
-        for association in thing_associations if association.owns_thing
-    ]
-
-    followed_things = [
-        {
-            "id": association.thing.pk,
-            "name": association.thing.name,
-            "description": association.thing.description,
-            "sampling_feature_type": association.thing.sampling_feature_type,
-            "sampling_feature_code": association.thing.sampling_feature_code,
-            "site_type": association.thing.site_type,
-            # "encoding_type": association.thing.location.encoding_type,
-            "latitude": association.thing.location.latitude,
-            "longitude": association.thing.location.longitude,
-            "elevation": association.thing.location.elevation,
-            # "elevation_datum": association.thing.location.elevation_datum,
-            "city": association.thing.location.city,
-            "state": association.thing.location.state,
-            "country": association.thing.location.country,
-        }
-        for association in thing_associations if association.follows_thing
-    ]
+    owned_things = [thing_to_dict(association.thing, is_primary_owner=association.is_primary_owner)
+                    for association in thing_associations if association.owns_thing]
+    followed_things = [thing_to_dict(association.thing)
+                       for association in thing_associations if association.follows_thing]
 
     user = request.authenticated_user
     user_dict = {
@@ -230,7 +179,7 @@ def get_user_data(request):
     observed_properties = ObservedProperty.objects.filter(person=user).distinct()
     units = Unit.objects.filter(person=user).distinct()
 
-    return json.dumps({
+    return JsonResponse({
         'user': user_dict,
         'owned_things': owned_things,
         'followed_things': followed_things,
@@ -238,7 +187,7 @@ def get_user_data(request):
         'sensors': list(sensors.values()),
         'observed_properties': list(observed_properties.values()),
         'units': list(units.values())
-    }, cls=CustomEncoder)
+    })
 
 
 class UpdateUserInput(Schema):
@@ -285,6 +234,27 @@ def delete_user(request):
         raise HttpError(404, 'User not found')
 
 
+def thing_to_dict(thing, is_primary_owner=None):
+    thing_dict = {
+        "id": thing.pk,
+        "name": thing.name,
+        "description": thing.description,
+        "sampling_feature_type": thing.sampling_feature_type,
+        "sampling_feature_code": thing.sampling_feature_code,
+        "site_type": thing.site_type,
+        "latitude": round(float(thing.location.latitude), 6),
+        "longitude": round(float(thing.location.longitude), 6),
+        "elevation": round(float(thing.location.elevation), 6),
+        "city": thing.location.city,
+        "state": thing.location.state,
+        "country": thing.location.country,
+    }
+    if is_primary_owner is not None:
+        thing_dict["is_primary_owner"] = is_primary_owner
+
+    return thing_dict
+
+
 class ThingInput(Schema):
     name: str
     description: str = None
@@ -315,52 +285,21 @@ def create_thing(request, data: ThingInput):
                                 city=data.city, state=data.state, country=data.country,
                                 thing=new_thing)
 
-        ThingAssociation.objects.create(thing=new_thing, person=request.authenticated_user, owns_thing=True)
+        ThingAssociation.objects.create(thing=new_thing, person=request.authenticated_user,
+                                        owns_thing=True, is_primary_owner=True)
 
-    return {'id': new_thing.id}
+    return JsonResponse(thing_to_dict(new_thing, is_primary_owner=True))
 
 
 @api.get('/things')
 def get_things(request):
     things = Thing.objects.all()
-
-    return [
-        {
-            "id": thing.pk,
-            "name": thing.name,
-            "description": thing.description,
-            "sampling_feature_type": thing.sampling_feature_type,
-            "sampling_feature_code": thing.sampling_feature_code,
-            "site_type": thing.site_type,
-            # "encoding_type": association.thing.location.encoding_type,
-            "latitude": thing.location.latitude,
-            "longitude": thing.location.longitude,
-            "elevation": thing.location.elevation,
-            # "elevation_datum": association.thing.location.elevation_datum,
-            "city": thing.location.city,
-            "state": thing.location.state,
-            "country": thing.location.country
-        } for thing in things]
+    return JsonResponse([thing_to_dict(thing) for thing in things])
 
 
 @api.get('/things/{thing_id}', auth=jwt_auth)
 def get_thing(request, thing_id: str):
-    thing = Thing.objects.get(id=thing_id)
-    return {
-        "id": thing.pk,
-        "name": thing.name,
-        "description": thing.description,
-        "sampling_feature_type": thing.sampling_feature_type,
-        "sampling_feature_code": thing.sampling_feature_code,
-        "site_type": thing.site_type,
-        # "encoding_type": association.thing.location.encoding_type,
-        "latitude": thing.location.latitude,
-        "longitude": thing.location.longitude,
-        "elevation": thing.location.elevation,
-        # "elevation_datum": association.thing.location.elevation_datum,
-        "city": thing.location.city,
-        "state": thing.location.state,
-        "country": thing.location.country}
+    return JsonResponse(thing_to_dict(Thing.objects.get(id=thing_id)))
 
 
 class UpdateThingInput(Schema):
@@ -394,7 +333,9 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
         thing.site_type = data.site_type
 
     thing.save()
-    return {'detail': 'Thing updated successfully.'}
+
+    association = ThingAssociation.objects.get(thing=thing, person=request.authenticated_user)
+    return JsonResponse(thing_to_dict(thing, is_primary_owner=association.is_primary_owner))
 
 
 @api.delete('/things/{thing_id}')

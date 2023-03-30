@@ -8,7 +8,8 @@ const store = createStore({
     refreshToken: null,
     loggingIn: false,
     loginError: null,
-    userData: null
+    ownedThings: [],
+    followedThings: [],
   },
   mutations: {
     loginStart: state => state.loggingIn = true,
@@ -23,13 +24,19 @@ const store = createStore({
       state.accessToken = null;
       state.refreshToken = null;
     },
-    setUserData: (state, userData) => {
-      state.userData = userData;
-    }
+    cacheProperty: (state, { key, data }) => {
+      state[key] = data;
+      localStorage.setItem(key, JSON.stringify(state[key]));
+    },
+    addThing(state, thing) {
+      state.ownedThings.push(thing);
+      localStorage.setItem('ownedThings', JSON.stringify(state.ownedThings));
+    },
   },
   actions: {
     login({ commit }, loginData) {
       commit('loginStart');
+      console.log("Logging in...")
       axios.post('/token', {
         ...loginData
       })
@@ -40,35 +47,38 @@ const store = createStore({
         commit('loginStop', null);
         commit('updateAccessToken', access_token);
         router.push({ name: 'Sites' }).catch((error) => {console.error('Error while navigating to Sites:', error);})
-        store.dispatch('fetchUserData').catch((error) => {console.error('Error fetching user data from db', error);})
+        console.log("Logged in")
       })
       .catch(error => {
         commit('loginStop', error.response);
         commit('updateAccessToken', null);
       })
     },
-    fetchUserData({commit}) {
-      const cachedUserData = localStorage.getItem('userData');
-      if (cachedUserData) {
-        commit('setUserData', JSON.parse(cachedUserData));
+    fetchThings({commit}){
+      const ownedThings = localStorage.getItem('ownedThings');
+      const followedThings = localStorage.getItem('followedThings');
+      if (ownedThings && followedThings) {
+        console.log("Getting Site data from localStorage...")
+        commit('cacheProperty',{ key: 'ownedThings', data: JSON.parse(ownedThings)});
+        commit('cacheProperty',{ key: 'followedThings', data: JSON.parse(followedThings)});
       } else {
-        axios.get('/user/data')
-            .then(response => {
-              console.log(response.data)
-              commit('setUserData', response.data);
-              localStorage.setItem('userData', JSON.stringify(response.data));
-            })
-            .catch(error => {
-              console.log(error);
-            })
+        store.dispatch('fetchUserData').catch((error) => {console.error('Error fetching user data from db', error);})
       }
+    },
+    fetchUserData({commit}) {
+      axios.get('/user/data')
+          .then(response => {
+            console.log("Getting userData from DB...")
+            console.log(response.data)
+            commit('cacheProperty',{ key: 'ownedThings', data: response.data.owned_things });
+            commit('cacheProperty',{ key: 'followedThings', data: response.data.followed_things });
+          })
+          .catch(error => {console.log(error)})
     },
     logout({commit}) {
       commit('clearTokens');
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      router.push({ name: 'Home' })
-          .catch((error) => {console.error('Error while navigating to Home:', error);});
+      localStorage.clear()
+      router.push({ name: 'Home' }).catch((error) => {console.error('Error while navigating to Home:', error)});
     },
     fetchAccessToken({ commit }) {
       const access_token = localStorage.getItem('access_token');
