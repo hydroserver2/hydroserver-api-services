@@ -1,5 +1,5 @@
 <template>
-  <div v-if="ownedThings || loading">
+  <div v-if="sitesLoaded">
     <h3>My Sites</h3>
     <div style="display: flex; flex-wrap: wrap;">
       <router-link v-for="thing in ownedThings" :key="thing.id" :to="'/site/' + thing.id" style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s; display: flex; flex-direction: column; text-decoration: none;">
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
 import RegisterSite from '../components/RegisterSite.vue';
 
 export default {
@@ -43,22 +42,25 @@ export default {
   },
   data() {
     return {
-      showRegisterSiteModal: false
+      showRegisterSiteModal: false,
+      ownedThings: [],
+      followedThings: [],
     };
   },
   computed: {
-    ...mapState(['ownedThings', 'followedThings']),
-    loading() {
-      !this.ownedThings && !localStorage.getItem('ownedThings');
-    },
+    sitesLoaded() { return this.ownedThings && this.followedThings }
   },
   created() {
     console.log("Creating Sites page...")
-    this.$store.dispatch('fetchThings')
-      .catch(error => {
-        console.log(error);
-      });
-  },
+    this.$store.dispatch('fetchOrGetFromCache', {key: 'things', apiEndpoint: '/things'})
+        .then(() => {
+          this.ownedThings = this.$store.state.things.filter(thing => thing.owns_thing);
+          this.followedThings = this.$store.state.things.filter(thing => thing.followed_thing);
+          console.log("Owned Things: ", this.ownedThings)
+          console.log("Followed Things", this.followedThings)
+        })
+        .catch(error => { console.log(error) });
+  }
 };
 </script>
 

@@ -2,35 +2,33 @@ import { createStore } from 'vuex';
 import axios from 'axios'
 import router from "./router.js";
 
+const initialState = {
+  access_token: null,
+  refreshToken: null,
+  loggingIn: false,
+  loginError: null,
+  things: [],
+}
+
 const store = createStore({
-  state: {
-    accessToken: null,
-    refreshToken: null,
-    loggingIn: false,
-    loginError: null,
-    ownedThings: [],
-    followedThings: [],
-  },
+  state: {...initialState},
   mutations: {
+    resetState: (state) => Object.assign(state, initialState),
     loginStart: state => state.loggingIn = true,
     loginStop: (state, errorMessage) => {
       state.loggingIn = false;
       state.loginError = errorMessage;
     },
-    updateAccessToken: (state, accessToken) => {
-      state.accessToken = accessToken;
-    },
-    clearTokens: (state) => {
-      state.accessToken = null;
-      state.refreshToken = null;
+    updateAccessToken: (state, access_token) => {
+      state.access_token = access_token;
     },
     cacheProperty: (state, { key, data }) => {
       state[key] = data;
       localStorage.setItem(key, JSON.stringify(state[key]));
     },
     addThing(state, thing) {
-      state.ownedThings.push(thing);
-      localStorage.setItem('ownedThings', JSON.stringify(state.ownedThings));
+      state.things.push(thing);
+      localStorage.setItem('things', JSON.stringify(state.things));
     },
   },
   actions: {
@@ -41,6 +39,10 @@ const store = createStore({
         ...loginData
       })
       .then(response => {
+        // Data will be different for public vs logged-in users.
+        // Clean up in case the user called any API endpoints before logging in
+        commit('resetState')
+        localStorage.clear()
         const { access_token, refresh_token } = response.data;
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('refresh_token', refresh_token);
@@ -54,29 +56,23 @@ const store = createStore({
         commit('updateAccessToken', null);
       })
     },
-    fetchThings({commit}){
-      const ownedThings = localStorage.getItem('ownedThings');
-      const followedThings = localStorage.getItem('followedThings');
-      if (ownedThings && followedThings) {
-        console.log("Getting Site data from localStorage...")
-        commit('cacheProperty',{ key: 'ownedThings', data: JSON.parse(ownedThings)});
-        commit('cacheProperty',{ key: 'followedThings', data: JSON.parse(followedThings)});
+    async fetchOrGetFromCache({commit}, {key, apiEndpoint}) {
+      const cachedData = localStorage.getItem(key);
+      if (cachedData) {
+        console.log(`Getting ${key} data from localStorage...`);
+        commit('cacheProperty', {key, data: JSON.parse(cachedData)});
       } else {
-        store.dispatch('fetchUserData').catch((error) => {console.error('Error fetching user data from db', error);})
+        console.log(`Fetching ${key} data from API...`);
+        try {
+          const { data } = await axios.get(apiEndpoint);
+          commit('cacheProperty', {key, data});
+        } catch (error) {
+          console.error(`Error fetching ${key} data from API`, error);
+        }
       }
     },
-    fetchUserData({commit}) {
-      axios.get('/user/data')
-          .then(response => {
-            console.log("Getting userData from DB...")
-            console.log(response.data)
-            commit('cacheProperty',{ key: 'ownedThings', data: response.data.owned_things });
-            commit('cacheProperty',{ key: 'followedThings', data: response.data.followed_things });
-          })
-          .catch(error => {console.log(error)})
-    },
     logout({commit}) {
-      commit('clearTokens');
+      commit('resetState')
       localStorage.clear()
       router.push({ name: 'Home' }).catch((error) => {console.error('Error while navigating to Home:', error)});
     },

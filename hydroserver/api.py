@@ -27,6 +27,21 @@ def jwt_auth(request):
         raise HttpError(401, 'Unauthorized')
 
 
+def jwt_check_user(request):
+    """
+    Checks if user is logged in. Used for public views where the functionality is different for authenticated users
+    """
+    try:
+        token = request.META['HTTP_AUTHORIZATION'].split()[1]
+        untyped_token = UntypedToken(token)
+        user_id = untyped_token.payload['user_id']
+        user = CustomUser.objects.get(pk=user_id)
+        request.user_if_there_is_one = user
+    except (KeyError, IndexError, InvalidToken, TokenError):
+        request.user_if_there_is_one = None
+    return True
+
+
 def thing_ownership_required(func):
     """
     Decorator for thing views that checks the user is logged in and is an owner of the related thing.
@@ -234,7 +249,7 @@ def delete_user(request):
         raise HttpError(404, 'User not found')
 
 
-def thing_to_dict(thing, is_primary_owner=None):
+def thing_to_dict(thing, user):
     thing_dict = {
         "id": thing.pk,
         "name": thing.name,
@@ -245,13 +260,32 @@ def thing_to_dict(thing, is_primary_owner=None):
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
-        "city": thing.location.city,
-        "state": thing.location.state,
-        "country": thing.location.country,
+        "is_primary_owner": False,
+        "owns_thing": False,
+        "follows_thing": False,
+        "owners": [],
+        "followers": 0,
     }
-    if is_primary_owner is not None:
-        thing_dict["is_primary_owner"] = is_primary_owner
-
+    thing_associations = ThingAssociation.objects.filter(thing=thing)
+    for thing_association in thing_associations:
+        person = thing_association.person
+        if thing_association.owns_thing:
+            thing_dict['owners'].append({
+                "firstname": person.first_name,
+                "lastname": person.last_name,
+                "organization": person.organization,
+                "is_primary_owner": thing_association.is_primary_owner
+            })
+        elif thing_association.follows_thing:
+            thing_dict['followers'] += 1
+    if user is not None:
+        thing_association = thing_associations.filter(person=user).first()
+        if thing_association:
+            thing_dict.update({
+                "is_primary_owner": thing_association.is_primary_owner,
+                "owns_thing": thing_association.owns_thing,
+                "follows_thing": thing_association.follows_thing,
+            })
     return thing_dict
 
 
@@ -288,18 +322,18 @@ def create_thing(request, data: ThingInput):
         ThingAssociation.objects.create(thing=new_thing, person=request.authenticated_user,
                                         owns_thing=True, is_primary_owner=True)
 
-    return JsonResponse(thing_to_dict(new_thing, is_primary_owner=True))
+    return JsonResponse(thing_to_dict(new_thing, request.authenticated_user))
 
 
-@api.get('/things')
+@api.get('/things', auth=jwt_check_user)
 def get_things(request):
     things = Thing.objects.all()
-    return JsonResponse([thing_to_dict(thing) for thing in things])
+    return JsonResponse([thing_to_dict(thing, request.user_if_there_is_one) for thing in things], safe=False)
 
 
-@api.get('/things/{thing_id}', auth=jwt_auth)
+@api.get('/things/{thing_id}', auth=jwt_check_user)
 def get_thing(request, thing_id: str):
-    return JsonResponse(thing_to_dict(Thing.objects.get(id=thing_id)))
+    return JsonResponse(thing_to_dict(Thing.objects.get(id=thing_id), request.user_if_there_is_one))
 
 
 class UpdateThingInput(Schema):

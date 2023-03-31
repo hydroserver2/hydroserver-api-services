@@ -3,12 +3,12 @@
     <nav class="header__nav">
       <router-link to="/" class="header__logo"><img src="" alt="Hydro Server Logo" /></router-link>
       <ul class="header__menu">
-        <li class="header__menuItem"><router-link to="/sites">My Sites</router-link></li>
-        <li class="header__menuItem"><a href="">Browse</a></li>
-        <li class="header__menuItem"><a href="">Time Series Visualization</a></li>
+        <li class="header__menuItem" v-if="access_token"><router-link to="/sites">My Sites</router-link></li>
+        <li class="header__menuItem"><a href="">Browse Monitoring Sites</a></li>
+        <li class="header__menuItem"><a href="">Visualize Data</a></li>
 
-        <li class="header__menuItem" v-if="accessToken"><a href="">Account</a></li>
-        <li class="header__menuItem" v-if="accessToken"><a href="" class="btn btn--sub" @click.prevent="logout">Logout</a></li>
+        <li class="header__menuItem" v-if="access_token"><a href="">Profile</a></li>
+        <li class="header__menuItem" v-if="access_token"><a href="" class="btn btn--sub" @click.prevent="logout">Logout</a></li>
         <li class="header__menuItem" v-else><router-link to="/Login" class="btn btn--sub">Login/Sign Up</router-link></li>
       </ul>
     </nav>
@@ -24,7 +24,7 @@ export default {
     ...mapState([
       'loggingIn',
       'loginError',
-      'accessToken',
+      'access_token',
     ])
   },
   created() {
