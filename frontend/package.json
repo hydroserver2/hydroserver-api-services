@@ -13,10 +13,12 @@
     "js-cookie": "^3.0.1",
     "vue": "^3.2.47",
     "vue-router": "^4.0.13",
+    "vuetify": "^3.1.12",
     "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.1.0",
-    "vite": "^4.2.0"
+    "vite": "^4.2.0",
+    "vue-cli-plugin-vuetify": "~2.5.8"
   }
 }

@@ -1,16 +1,22 @@
 <template>
   <div v-if="sitesLoaded">
-    <h3>My Sites</h3>
-    <div style="display: flex; flex-wrap: wrap;">
-      <router-link v-for="thing in ownedThings" :key="thing.id" :to="'/site/' + thing.id" style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s; display: flex; flex-direction: column; text-decoration: none;">
-        <h2>{{ thing.name }}</h2>
-        <p><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</p>
-        <p><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</p>
-        <p><strong>Site Type:</strong> {{ thing.site_type }}</p>
-      </router-link>
-    </div>
+    <h1>My Sites</h1>
+    <hr><hr>
+    <h2>My Registered Sites</h2>
+    <v-btn @click="showRegisterSiteModal = true" color="green">Register a new site</v-btn>
+    <v-row class="ma-2">
+      <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in ownedThings" :key="thing.id">
+        <v-card to="'/site/' + thing.id" class="elevation-5 flex d-flex flex-column" variant="outlined">
+          <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
+          <v-card-text class="flex">
+            <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
+            <div><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</div>
+            <div><strong>Site Type:</strong> {{ thing.site_type }}</div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
-    <button @click="showRegisterSiteModal = true">Register a new site</button>
     <transition name="modal-fade">
       <div v-if="showRegisterSiteModal" class="modal-overlay" @click.self="showRegisterSiteModal = false">
         <register-site @close="showRegisterSiteModal = false"></register-site>
@@ -18,18 +24,23 @@
     </transition>
 
     <h3>Followed Sites</h3>
-    <div style="display: flex; flex-wrap: wrap;">
-      <router-link v-for="thing in followedThings" :key="thing.id" :to="'/site/' + thing.id" style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s; display: flex; flex-direction: column; text-decoration: none;">
-        <h4>{{ thing.name }}</h4>
-        <p><strong>Latitude:</strong> {{ thing.latitude }}</p>
-        <p><strong>Longitude:</strong> {{ thing.longitude }}</p>
-        <p><strong>Elevation:</strong> {{ thing.elevation }}</p>
-      </router-link>
-    </div>
+    <v-row class="ma-2">
+      <v-col md="4" class="pa-3 d-flex flex-column" v-for="thing in followedThings" :key="thing.id">
+        <v-card class="elevation-5 flex d-flex flex-column">
+          <v-card-text>
+            <p><strong>Latitude:</strong> {{ thing.latitude }}</p>
+            <p><strong>Longitude:</strong> {{ thing.longitude }}</p>
+            <p><strong>Elevation:</strong> {{ thing.elevation }}</p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </div>
-  <div v-else>
-    Loading...
-  </div>
+
+<div v-else style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <v-progress-circular indeterminate color="green"></v-progress-circular>
+  <P>Loading Sites...</P>
+</div>
 </template>
 
 <script>

@@ -9,12 +9,14 @@ export default {
 </script>
 
 <template>
+  <v-app>
   <header>
     <Navbar/>
   </header>
-  <main>
-    <router-view></router-view>
-  </main>
+  <v-main>
+    <router-view/>
+  </v-main>
+  </v-app>
 </template>
 
 <style scoped>
