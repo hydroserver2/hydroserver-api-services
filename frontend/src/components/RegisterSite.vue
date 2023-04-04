@@ -1,30 +1,60 @@
 <template>
-  <div>
-    <h1>Register a Site</h1>
-    <form @submit.prevent="createThing" class="form" enctype="multipart/form-data">
-      <p v-for="field in formFields" :key="field.name">
-        <label :for="field.id">{{ field.label }}</label>
-        <input :type="field.type" v-model="formData[field.name]" :id="field.id" :name="field.name">
-      </p>
-
-      <input type="submit" value="Add Site" />
-    </form>
-
-<!--    <site-map></site-map>-->
-  </div>
+  <v-dialog v-model="dialog" width="95%" @click:outside="closeDialog">
+    <v-card>
+      <v-card-title class="text-h5">
+        Register a Site
+        <v-spacer></v-spacer>
+      </v-card-title>
+      <v-card-text>
+        <v-container fluid>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-form ref="form" @submit.prevent="createThing" enctype="multipart/form-data">
+                <v-text-field label="Site Code" v-model="formData.sampling_feature_code" />
+                <v-text-field label="Site Name" v-model="formData.name" />
+                <v-textarea label="Site Description" v-model="formData.description" />
+                <v-text-field label="Site Type" v-model="formData.site_type" />
+              </v-form>
+            </v-col>
+            <v-col cols="12" md="6">
+              <GoogleMap :markers="[]" :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" />
+              Click on the map to update site coordinates and elevation data.
+              <br><br><br><h2>Site Location</h2><br>
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <v-text-field label="Latitude" v-model="formData.latitude" type="number" />
+                  <v-text-field label="Elevation" v-model="formData.elevation" type="number" />
+                  <v-text-field label="State" v-model="formData.state" />
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-text-field label="Longitude" v-model="formData.longitude" type="number" />
+                  <v-text-field label="Elevation Datum" v-model="formData.elevation_datum" />
+                  <v-text-field label="Country" v-model="formData.country" />
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="error" @click="closeDialog">Cancel</v-btn>
+        <v-btn color="primary" @click="createThing">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
 import axios from 'axios';
 import { mapMutations } from 'vuex';
-// import SiteMap from '@/components/sites/SiteMap.vue';
+import GoogleMap from "./GoogleMap.vue";
 
 export default {
-  // components: {
-  //   SiteMap
-  // },
+  components: {GoogleMap},
   data() {
     return {
+      dialog: true,
       formData: {
       name: "",
       description: "",
@@ -55,6 +85,10 @@ export default {
   },
   methods: {
     ...mapMutations(['addThing', 'updateThing']),
+    closeDialog() {
+      this.dialog = false;
+      this.$emit("close");
+    },
     createThing() {
       axios.post('/things', this.formData)
           .then(response => {

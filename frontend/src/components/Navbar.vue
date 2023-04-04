@@ -2,13 +2,13 @@
   <v-app-bar app>
     <v-toolbar-title>
       <router-link to="/" class="header__logo">
-        <v-img src="" alt="Hydro Server Logo" />
+        <v-img src="" alt="Hydro Server Logo" />CIROH HIS
       </router-link>
     </v-toolbar-title>
     <v-spacer></v-spacer>
     <v-toolbar-items>
       <v-btn to="/sites" v-if="access_token">My Sites</v-btn>
-      <v-btn href="">Browse Monitoring Sites</v-btn>
+      <v-btn to="/browse">Browse Monitoring Sites</v-btn>
       <v-btn href="">Visualize Data</v-btn>
       <v-btn href="" v-if="access_token">Profile</v-btn>
       <v-btn v-if="access_token" class="btn--sub" @click.prevent="logout">Logout</v-btn>
