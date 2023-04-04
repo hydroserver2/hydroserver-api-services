@@ -1,12 +1,13 @@
 <template>
   <div v-if="sitesLoaded">
-    <h1>My Sites</h1>
-    <hr><hr>
+    <hr>
+    <GoogleMap :markers="markers"></GoogleMap>
+    <hr>
     <h2>My Registered Sites</h2>
     <v-btn @click="showRegisterSiteModal = true" color="green">Register a new site</v-btn>
     <v-row class="ma-2">
       <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in ownedThings" :key="thing.id">
-        <v-card to="'/site/' + thing.id" class="elevation-5 flex d-flex flex-column" variant="outlined">
+        <v-card :to="`/sites/${thing.id}`" class="elevation-5 flex d-flex flex-column" variant="outlined">
           <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
           <v-card-text class="flex">
             <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
@@ -19,7 +20,7 @@
 
     <transition name="modal-fade">
       <div v-if="showRegisterSiteModal" class="modal-overlay" @click.self="showRegisterSiteModal = false">
-        <register-site @close="showRegisterSiteModal = false"></register-site>
+        <register-site @close="showRegisterSiteModal = false" @siteCreated="updateMarkers"></register-site>
       </div>
     </transition>
 
@@ -39,16 +40,18 @@
 
 <div v-else style="display: flex; justify-content: center; align-items: center; height: 100vh;">
   <v-progress-circular indeterminate color="green"></v-progress-circular>
-  <P>Loading Sites...</P>
+  <p>Loading Sites...</p>
 </div>
 </template>
 
 <script>
-import RegisterSite from '../components/RegisterSite.vue';
+import RegisterSite from '../components/RegisterSite.vue'
+import GoogleMap from "../components/GoogleMap.vue"
 
 export default {
   name: 'Sites',
   components: {
+    GoogleMap,
     RegisterSite
   },
   data() {
@@ -56,21 +59,25 @@ export default {
       showRegisterSiteModal: false,
       ownedThings: [],
       followedThings: [],
+      markers: []
     };
   },
   computed: {
     sitesLoaded() { return this.ownedThings && this.followedThings }
   },
-  created() {
+  methods: {
+    async updateMarkers() {
+        await this.$store.dispatch("fetchOrGetFromCache", {key: "things", apiEndpoint: "/things"});
+        this.ownedThings = this.$store.state.things.filter((thing) => thing.owns_thing);
+        this.followedThings = this.$store.state.things.filter((thing) => thing.followed_thing);
+        this.markers = [...this.ownedThings, ...this.followedThings];
+      },
+  },
+  mounted() {
     console.log("Creating Sites page...")
-    this.$store.dispatch('fetchOrGetFromCache', {key: 'things', apiEndpoint: '/things'})
-        .then(() => {
-          this.ownedThings = this.$store.state.things.filter(thing => thing.owns_thing);
-          this.followedThings = this.$store.state.things.filter(thing => thing.followed_thing);
-          console.log("Owned Things: ", this.ownedThings)
-          console.log("Followed Things", this.followedThings)
-        })
-        .catch(error => { console.log(error) });
+    this.updateMarkers()
+    console.log("Owned Things: ", this.ownedThings)
+    console.log("Followed Things", this.followedThings)
   }
 };
 </script>

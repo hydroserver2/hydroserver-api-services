@@ -8,9 +8,9 @@ import Site from "./views/Site.vue";
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/sites', name: 'Sites', component: Sites },
+  { path: '/sites/:id', name: 'Site', component: Site },
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },
-  { path: '/site/:id', name: 'Site', component: Site },
 ];
 
 const router = createRouter({

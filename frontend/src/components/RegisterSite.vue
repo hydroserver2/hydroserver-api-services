@@ -61,6 +61,7 @@ export default {
             const newThing = response.data;
             this.addThing(newThing);
             this.$emit('close');
+            this.$emit('siteCreated');
           })
           .catch(error => {
             console.log("Error Registering Site: ", error)
