@@ -7,12 +7,22 @@ from datetime import datetime, timedelta
 
 class GetThingCollection(HttpUser):
 
-    timestamp = datetime(2023, 4, 1, 0, 0, 0)
+    # timestamp = datetime(2023, 4, 1, 0, 0, 0)
+    timestamp = datetime(
+        2029, 1, 11, 0, 0, random.randint(0, 59), random.randint(0, 999999)
+    )
 
     # @task
     def get_thing_collection(self):
         self.client.get(
             '/sensorthings/v1.1/Things',
+            auth=(os.getenv('LOCUST_TEST_USERNAME'), os.getenv('LOCUST_TEST_PASSWORD'))
+        )
+
+    # @task
+    def get_observations(self):
+        self.client.get(
+            f'/sensorthings/v1.1/Observations?$resultFormat=dataArray',
             auth=(os.getenv('LOCUST_TEST_USERNAME'), os.getenv('LOCUST_TEST_PASSWORD'))
         )
 
@@ -23,11 +33,15 @@ class GetThingCollection(HttpUser):
 
         for _ in range(96):
             data_array.append([
-                self.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                self.timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
                 random.randint(0, 100)
             ])
 
             self.timestamp = self.timestamp + timedelta(minutes=15)
+            self.timestamp = self.timestamp.replace(
+                second=random.randint(0, 59),
+                microsecond=random.randint(0, 999999)
+            )
 
         request_body = [
             {

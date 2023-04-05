@@ -5,8 +5,10 @@ from odata_query.django.django_q import AstToDjangoQVisitor
 from odata_query.rewrite import AliasRewriter
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls.exceptions import Http404
+from django.db.models.expressions import F
 from hydrothings import SensorThingsAbstractEngine
 from hydrothings.utils import lookup_component
+from sensorthings.mapper import sensorthings_mapper
 from sites import models as core_models
 
 
@@ -14,114 +16,6 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     rewriter = AliasRewriter({
         'Datastream': 'datastream',
     })
-
-    mapping = {
-        'Thing': {
-            'id': 'thing__id',
-            'name': 'thing__name',
-            'description': 'thing__description',
-            'properties': [
-                'thing__sampling_feature_code',
-                'thing__sampling_feature_type',
-                'thing__site_type',
-                'person__first_name',
-                'person__last_name',
-                'person__email',
-                'person__organization',
-                'person__phone'
-            ]
-        },
-        'Location': {
-            'id': 'thing_id',
-            'name': 'name',
-            'description': 'description',
-            'encoding_type': 'encoding_type',
-            'location': [
-                'latitude',
-                'longitude'
-            ],
-            'properties': [
-                'city',
-                'state',
-                'country',
-                'elevation',
-                'elevation_datum'
-            ]
-        },
-        'HistoricalLocation': {},
-        'Sensor': {
-            'id': 'id',
-            'name': 'name',
-            'description': 'description',
-            'encoding_type': 'encoding_type',
-            'sensor_metadata': [
-                'method_code',
-                'method_type',
-                'method_link',
-                'manufacturer',
-                'model',
-                'model_url'
-            ]
-        },
-        'ObservedProperty': {
-            'id': 'id',
-            'name': 'name',
-            'definition': 'definition',
-            'description': 'description',
-            'properties': [
-                'variable_code',
-                'variable_type'
-            ]
-        },
-        'Datastream': {
-            'id': 'id',
-            'name': 'name',
-            'description': 'description',
-            'unit_of_measurement': [
-                'unit__name',
-                'unit__definition',
-                'unit__symbol'
-            ],
-            'observation_type': 'observation_type',
-            'properties': [
-                'result_type',
-                'status',
-                'sampled_medium',
-                'value_count',
-                'no_data_value',
-                'processing_level__processing_level_code',
-                'intended_time_spacing',
-                'intended_time_spacing_units__name',
-                'intended_time_spacing_units__definition',
-                'intended_time_spacing_units__symbol',
-                'aggregation_statistic',
-                'time_aggregation_interval',
-                'time_aggregation_interval_units__name',
-                'time_aggregation_interval_units__definition',
-                'time_aggregation_interval_units__symbol',
-            ],
-            'phenomenon_time': [
-                'phenomenon_start_time',
-                'phenomenon_end_time'
-            ],
-            'result_time': [
-                'result_begin_time',
-                'result_end_time'
-            ]
-        },
-        'Observation': {
-            'id': 'id',
-            'result': 'result',
-            'result_time': 'result_time',
-            'result_quality': 'result_quality',
-            'phenomenon_time': 'phenomenon_time',
-            'valid_time': [
-                'valid_begin_time',
-                'valid_end_time'
-            ]
-        },
-        'FeatureOfInterest': {}
-    }
 
     def __init__(self, host: str, scheme: str, path: str, version: str, component: str):
         self.host = host
@@ -137,12 +31,13 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         else:
             extra_fields = []
 
+        if select is not None:
+            select = [
+                [field] for field in select.split(',')
+            ]
+
         return [
-            field for fields in [
-                db_field if isinstance(db_field, list) else [db_field]
-                for st_field, db_field in self.mapping[self.component].items()
-                if not select or st_field in select
-            ] for field in fields
+            '__'.join(field) for field in sensorthings_mapper[self.component].get_output_paths(select)
         ] + extra_fields
 
     def resolve_entity_id_chain(self, entity_chain: List[Tuple[str, Union[uuid.UUID, int, str]]]) -> bool:
@@ -202,6 +97,15 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         if count is True:
             response['count'] = response_count
 
+        if top is None:
+            if self.component == 'Observation':
+                top = 1000
+            else:
+                top = 100
+
+        if skip is None:
+            skip = 0
+
         queryset = query.values(*self.get_fields(select))
         queryset = self.apply_pagination(queryset, top, skip)
 
@@ -220,6 +124,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         ]
 
         response['value'] = response_value
+        response['next_link'] = self.build_next_link(top, skip)
 
         return response
 
@@ -502,18 +407,25 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         filters = self.rewriter.visit(filters)
         visitor = AstToDjangoQVisitor(getattr(core_models, self.component))
         query_filter = visitor.visit(filters)
+
+        field_map = sensorthings_mapper[self.component].get_output_field_map(
+            input_delimiter='__',
+            output_delimiter='__'
+        )
+
+        for prop in list(query_filter.flatten()):
+            if isinstance(prop, F) and prop.name in field_map.keys():
+                prop.__dict__ = {
+                    '_constructor_args': ((field_map[prop.name],), {}),
+                    'name': field_map[prop.name]
+                }
+
         query = query.filter(query_filter)
 
         return query
 
     def apply_pagination(self, queryset, top, skip):
         """"""
-
-        if top is None:
-            top = 100
-
-        if skip is None:
-            skip = 0
 
         queryset = queryset[skip: skip+top]
 
