@@ -23,7 +23,10 @@ try:
 except UndefinedValueError:
     GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
 
-LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
+try:
+    LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
+except UndefinedValueError:
+    LOCAL_CSV_STORAGE = '~/'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +45,7 @@ class EnvironmentSettings(BaseSettings):
     ALLOWED_HOSTS: str = '127.0.0.1,localhost'
     DATABASE_URL: Union[PostgresDsn, str] = f'sqlite:///{BASE_DIR}/db.sqlite3'
     CONN_MAX_AGE: int = 600
+    CONN_HEALTH_CHECKS: bool = True
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
     DEBUG: bool = True
@@ -137,6 +141,7 @@ os.environ["DATABASE_URL"] = env_config.DATABASE_URL
 DATABASES = {
     'default': dj_database_url.config(
         conn_max_age=env_config.CONN_MAX_AGE,
+        conn_health_checks=env_config.CONN_HEALTH_CHECKS,
         ssl_require=env_config.SSL_REQUIRED
     )
 }

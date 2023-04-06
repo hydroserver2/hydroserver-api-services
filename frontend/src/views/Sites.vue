@@ -1,74 +1,108 @@
 <template>
-  <div v-if="userData || loading">
-    <h3>My Sites</h3>
-    <div style="display: flex; flex-wrap: wrap;">
-      <div v-for="thing in ownedThings" :key="thing.id" style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s;">
-        <router-link :to="'/site/' + thing.id">
-          <h4>{{ thing.name }}</h4>
-<!--          <p><strong>Number of Datastreams:</strong> {{ thing.datastreams.length }}</p>-->
-          <p><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</p>
-          <p><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</p>
-          <p><strong>Site Type:</strong> {{ thing.site_type }}</p>
-        </router-link>
+  <div v-if="sitesLoaded">
+    <hr>
+    <GoogleMap :markers="markers"></GoogleMap>
+    <hr>
+    <h2>My Registered Sites</h2>
+    <v-btn @click="showRegisterSiteModal = true" color="green">Register a new site</v-btn>
+    <v-row class="ma-2">
+      <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in ownedThings" :key="thing.id">
+        <v-card :to="{name: 'SingleSite', params: { id: thing.id}}" class="elevation-5 flex d-flex flex-column" variant="outlined">
+          <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
+          <v-card-text class="flex">
+            <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
+            <div><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</div>
+            <div><strong>Site Type:</strong> {{ thing.site_type }}</div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <transition name="modal-fade">
+      <div v-if="showRegisterSiteModal" class="modal-overlay" @click.self="showRegisterSiteModal = false">
+        <register-site @close="showRegisterSiteModal = false" @siteCreated="updateMarkers"></register-site>
       </div>
-    </div>
+    </transition>
+
     <h3>Followed Sites</h3>
-    <div style="display: flex; flex-wrap: wrap;">
-      <div v-for="thing in followedThings" :key="thing.id" style="border: 1px solid gray; padding: 10px; margin: 10px; flex-basis: 20%; transition: background-color 0.3s;">
-        <router-link :to="'/site/' + thing.id">
-          <h4>{{ thing.name }}</h4>
-<!--          <p><strong>Number of Datastreams:</strong> {{ thing.datastreams.length }}</p>-->
-          <p><strong>Latitude:</strong> {{ thing.latitude }}</p>
-          <p><strong>Longitude:</strong> {{ thing.longitude }}</p>
-          <p><strong>Elevation:</strong> {{ thing.elevation }}</p>
-        </router-link>
-      </div>
-    </div>
+    <v-row class="ma-2">
+      <v-col md="4" class="pa-3 d-flex flex-column" v-for="thing in followedThings" :key="thing.id">
+        <v-card class="elevation-5 flex d-flex flex-column">
+          <v-card-text>
+            <p><strong>Latitude:</strong> {{ thing.latitude }}</p>
+            <p><strong>Longitude:</strong> {{ thing.longitude }}</p>
+            <p><strong>Elevation:</strong> {{ thing.elevation }}</p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </div>
-  <div v-else>
-    Loading...
-  </div>
+
+<div v-else style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <v-progress-circular indeterminate color="green"></v-progress-circular>
+  <p>Loading Sites...</p>
+</div>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import RegisterSite from '../components/RegisterSite.vue'
+import GoogleMap from "../components/GoogleMap.vue"
 
 export default {
   name: 'Sites',
+  components: {
+    GoogleMap,
+    RegisterSite
+  },
+  data() {
+    return {
+      showRegisterSiteModal: false,
+      ownedThings: [],
+      followedThings: [],
+      markers: []
+    };
+  },
   computed: {
-    ...mapState(['userData']),
-    ownedThings() {
-      if (!this.userData) {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        if (userData) {
-          return userData.owned_things;
-        }
-        return [];
-      }
-      return JSON.parse(this.userData).owned_things;
-    },
-    followedThings() {
-      if (!this.userData) {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        if (userData) {
-          return userData.followed_things;
-        }
-        return [];
-      }
-      return JSON.parse(this.userData).followed_things;
-    },
-    loading() {
-      return !this.userData && !localStorage.getItem('userData');
-    },
+    sitesLoaded() { return this.ownedThings && this.followedThings }
   },
-  created() {
-    this.$store.dispatch('fetchUserData')
-      .catch(error => {
-        console.log(error);
-      });
+  methods: {
+    async updateMarkers() {
+        await this.$store.dispatch("fetchOrGetFromCache", {key: "things", apiEndpoint: "/things"});
+        this.ownedThings = this.$store.state.things.filter((thing) => thing.owns_thing);
+        this.followedThings = this.$store.state.things.filter((thing) => thing.followed_thing);
+        this.markers = [...this.ownedThings, ...this.followedThings];
+      },
   },
+  mounted() {
+    console.log("Creating Sites page...")
+    this.updateMarkers()
+    console.log("Owned Things: ", this.ownedThings)
+    console.log("Followed Things", this.followedThings)
+  }
 };
 </script>
 
+
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-fade-enter,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s;
+}
 </style>

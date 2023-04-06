@@ -4,6 +4,38 @@ import router from './router';
 import store from './store'
 import axios from 'axios'
 
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+
+const customLightTheme = {
+  dark: false,
+  colors: {
+    // background: '#F5F5F5',
+    // surface: '#FFFFFF',
+    // primary: '#6200EE',
+    // 'primary-darken-1': '#3700B3',
+    // secondary: '#8cdb23',
+    // 'secondary-darken-1': '#018786',
+    // error: '#B00020',
+    // info: '#2196F3',
+    // success: '#4CAF50',
+    // warning: '#FB8C00',
+  }
+}
+
+const vuetify = createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'customLightTheme',
+    themes: {
+      customLightTheme,
+    }
+  }
+})
+
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 // Axios interceptor for handling JWT tokens
@@ -52,5 +84,6 @@ axios.interceptors.response.use(
 const app = createApp(App)
 app.use(router)
 app.use(store)
+app.use(vuetify)
 app.mount('#app')
 

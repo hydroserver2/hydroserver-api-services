@@ -5,6 +5,13 @@ from django.conf import settings
 
 class Command(BaseCommand):
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--no-timescale',
+            action='store_true',
+            help='Create the observations table without installing TimescaleDB or creating a hypertable.'
+        )
+
     def handle(self, *args, **options):
 
         db_settings = settings.DATABASES['default']
@@ -14,7 +21,8 @@ class Command(BaseCommand):
             user=db_settings['USER'],
             password=db_settings['PASSWORD'],
             dbname=db_settings['NAME'],
-            port=db_settings['PORT']
+            port=db_settings['PORT'],
+            connect_timeout=3
         ) as connection:
             with connection.cursor() as cursor:
                 observation_table = """
@@ -34,5 +42,7 @@ class Command(BaseCommand):
                 """
 
                 cursor.execute(observation_table)
-                cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
-                cursor.execute("SELECT create_hypertable('sites_observation', 'result_time', if_not_exists => TRUE);")
+
+                if options['no_timescale'] is False:
+                    cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
+                    cursor.execute("SELECT create_hypertable('sites_observation', 'result_time', if_not_exists => TRUE);")

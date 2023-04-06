@@ -329,7 +329,7 @@
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
     result: 0.0
-    result_time: 2022-02-01 10:10:10
+    result_time: 2022-02-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -339,7 +339,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.0
-    result_time: 2022-03-01 10:10:10
+    result_time: 2022-03-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -349,7 +349,7 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 2.0
-    result_time: 2022-03-01 10:10:10
+    result_time: 2022-03-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -359,7 +359,7 @@
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
     result: 2.0
-    result_time: 2022-03-01 10:10:10
+    result_time: 2022-03-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -369,7 +369,7 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 1.0
-    result_time: 2022-05-01 10:10:10
+    result_time: 2022-05-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -379,7 +379,7 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 3.0
-    result_time: 2022-02-01 10:10:10
+    result_time: 2022-02-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -389,7 +389,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.0
-    result_time: 2022-01-01 10:10:10
+    result_time: 2022-01-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -399,7 +399,7 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 3.0
-    result_time: 2022-06-01 10:10:10
+    result_time: 2022-06-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -409,7 +409,7 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 1.0
-    result_time: 2022-01-01 10:10:10
+    result_time: 2022-01-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -419,7 +419,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.0
-    result_time: 2022-05-01 10:10:10
+    result_time: 2022-05-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -429,7 +429,7 @@
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
     result: 3.0
-    result_time: 2022-01-01 10:10:10
+    result_time: 2022-01-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
@@ -439,7 +439,7 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 4.0
-    result_time: 2022-04-01 10:10:10
+    result_time: 2022-04-01 10:10:10+00:00
     result_quality: null
     phenomenon_time: null
     valid_begin_time: null
