@@ -1,6 +1,6 @@
 import uuid
 import pandas as pd
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 from odata_query.django.django_q import AstToDjangoQVisitor
 from odata_query.rewrite import AliasRewriter
 from django.core.exceptions import ObjectDoesNotExist
@@ -36,9 +36,12 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                 [field] for field in select.split(',')
             ]
 
-        return [
-            '__'.join(field) for field in sensorthings_mapper[self.component].get_output_paths(select)
-        ] + extra_fields
+        if not sensorthings_mapper.get(self.component):
+            return []
+        else:
+            return [
+                '__'.join(field) for field in sensorthings_mapper[self.component].get_output_paths(select)
+            ] + extra_fields
 
     def resolve_entity_id_chain(self, entity_chain: List[Tuple[str, Union[uuid.UUID, int, str]]]) -> bool:
         """"""
@@ -131,12 +134,14 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     def get(
             self,
             entity_id
-    ) -> dict:
+    ) -> Optional[dict]:
         """"""
 
         if self.component == 'Thing':
             query = core_models.ThingAssociation.objects
             query = query.filter(thing__id=entity_id)
+        elif self.component in ['FeatureOfInterest', 'HistoricalLocation']:
+            return None
         else:
             query = getattr(core_models, self.component).objects
             query = query.filter(pk=entity_id)
@@ -149,7 +154,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         try:
             response = response_df.to_dict('records')[0]
         except IndexError:
-            response = {}
+            return None
 
         response = self.build_related_links(response)
         response = self.build_self_links(response)

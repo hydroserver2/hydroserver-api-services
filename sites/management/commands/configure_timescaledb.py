@@ -21,7 +21,8 @@ class Command(BaseCommand):
             user=db_settings['USER'],
             password=db_settings['PASSWORD'],
             dbname=db_settings['NAME'],
-            port=db_settings['PORT']
+            port=db_settings['PORT'],
+            connect_timeout=3
         ) as connection:
             with connection.cursor() as cursor:
                 observation_table = """
