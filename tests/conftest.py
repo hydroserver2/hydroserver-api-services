@@ -21,5 +21,6 @@ def django_db_setup():
 @pytest.fixture(scope='session')
 def django_test_db(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
+        call_command('migrate')
         call_command('configure_timescaledb', no_timescale=True)
         call_command('loaddata', 'test_data.yaml')
