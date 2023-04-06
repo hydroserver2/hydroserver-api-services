@@ -37,5 +37,6 @@ jobs:
         run: |
             python -m pytest --import-mode=append tests/
         env:
+          DJANGO_SETTINGS_MODULE: hydroserver.settings
           LOCAL_CSV_STORAGE: ~/
           DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
