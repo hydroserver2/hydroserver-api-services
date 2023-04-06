@@ -75,6 +75,14 @@
     <v-btn color="grey-lighten-2" class="site-information-button">Download Data from HydroShare</v-btn>
   </div>
 
+  <v-row class="ma-2">
+    <v-col md="3" class="pa-3 d-flex flex-column" v-for="datastream in displayThing?.datastreams" :key="datastream.id">
+      <v-card class="elevation-5 flex d-flex flex-column" outlined>
+        <v-card-title>{{ datastream.name }}</v-card-title>
+      </v-card>
+    </v-col>
+  </v-row>
+
 </template>
 
 <script>
@@ -144,7 +152,6 @@ export default {
   },
   async mounted() {
     console.log("Mounting SingleSite. ID: ", this.id)
-
     try {
       let cacheName = `thing_${this.id}`
       await this.$store.dispatch("fetchOrGetFromCache", {key: cacheName, apiEndpoint: `/things/${this.id}`});
@@ -152,6 +159,7 @@ export default {
     } catch (error) {
       console.error("Error fetching thing data from API", error);
     }
+    console.log("Thing: ", this.thing)
   },
 };
 </script>

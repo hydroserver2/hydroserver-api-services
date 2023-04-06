@@ -333,7 +333,11 @@ def get_things(request):
 
 @api.get('/things/{thing_id}', auth=jwt_check_user)
 def get_thing(request, thing_id: str):
-    return JsonResponse(thing_to_dict(Thing.objects.get(id=thing_id), request.user_if_there_is_one))
+    thing = Thing.objects.get(id=thing_id)
+    thing_dict = thing_to_dict(thing, request.user_if_there_is_one)
+    thing_dict["datastreams"] = datastreams_to_json(thing)
+
+    return JsonResponse(thing_dict)
 
 
 class UpdateThingInput(Schema):
@@ -538,6 +542,25 @@ class CreateDatastreamInput(Schema):
     phenomenon_end_time: str = None
     result_begin_time: str = None
     result_end_time: str = None
+
+
+def datastreams_to_json(thing):
+    datastreams = thing.datastreams.all()
+    datastreams_list = []
+
+    for datastream in datastreams:
+        datastreams_list.append({
+            "id": datastream.pk,
+            "name": datastream.name,
+            "description": datastream.description,
+            "observation_type": datastream.observation_type,
+            "result_type": datastream.result_type,
+            "status": datastream.status,
+            "sampled_medium": datastream.sampled_medium,
+            # Add other fields as needed
+        })
+
+    return datastreams_list
 
 
 @api.post('/datastreams', auth=jwt_auth)
