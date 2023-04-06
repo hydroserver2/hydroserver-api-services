@@ -23,6 +23,7 @@ export default {
       await loader.load();
       googleRef.value = google;
       map = new google.maps.Map(mapDiv.value, props.mapOptions);
+      await addMarkers()
     }
 
     function createMarker(google, data) {
@@ -43,7 +44,6 @@ export default {
     async function addMarkers() {
       if (!googleRef.value) await loadMap()
       clearMarkers();
-
       props.markers.forEach((markerData) => {
         const marker = createMarker(googleRef.value, markerData);
         const content = `

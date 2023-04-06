@@ -7,7 +7,7 @@
     <v-btn @click="showRegisterSiteModal = true" color="green">Register a new site</v-btn>
     <v-row class="ma-2">
       <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in ownedThings" :key="thing.id">
-        <v-card :to="`/sites/${thing.id}`" class="elevation-5 flex d-flex flex-column" variant="outlined">
+        <v-card :to="{name: 'SingleSite', params: { id: thing.id}}" class="elevation-5 flex d-flex flex-column" variant="outlined">
           <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
           <v-card-text class="flex">
             <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
