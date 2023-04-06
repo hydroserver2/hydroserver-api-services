@@ -17,6 +17,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     strategy:
       matrix:
@@ -40,4 +42,4 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
           LOCAL_CSV_STORAGE: ~/
-          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
