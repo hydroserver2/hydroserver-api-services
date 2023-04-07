@@ -19,6 +19,18 @@ jobs:
         with:
           ref: dev
 
+      - name: Setup Node 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm --prefix ./frontend install ./frontend
+
+      - name: Build frontend
+        run: npm --prefix ./frontend run build
+
       - name: Create ZIP deployment package
         run: zip -r deploy_package.zip ./
 
