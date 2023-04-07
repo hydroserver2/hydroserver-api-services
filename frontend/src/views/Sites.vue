@@ -26,12 +26,13 @@
 
     <h3>Followed Sites</h3>
     <v-row class="ma-2">
-      <v-col md="4" class="pa-3 d-flex flex-column" v-for="thing in followedThings" :key="thing.id">
-        <v-card class="elevation-5 flex d-flex flex-column">
-          <v-card-text>
-            <p><strong>Latitude:</strong> {{ thing.latitude }}</p>
-            <p><strong>Longitude:</strong> {{ thing.longitude }}</p>
-            <p><strong>Elevation:</strong> {{ thing.elevation }}</p>
+      <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in followedThings" :key="thing.id">
+        <v-card :to="{name: 'SingleSite', params: { id: thing.id}}" class="elevation-5 flex d-flex flex-column" variant="outlined">
+          <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
+          <v-card-text class="flex">
+            <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
+            <div><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</div>
+            <div><strong>Site Type:</strong> {{ thing.site_type }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -68,14 +69,14 @@ export default {
     async function updateMarkers() {
       await dataStore.fetchOrGetFromCache('things', '/things')
       ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
-      followedThings.value = dataStore.things.filter((thing) => thing.followed_thing)
+      followedThings.value = dataStore.things.filter((thing) => thing.follows_thing)
       markers.value = [...ownedThings.value, ...followedThings.value];
     }
 
     console.log('Creating Sites page...');
     updateMarkers();
-    console.log('Owned Things: ', ownedThings.value);
-    console.log('Followed Things', followedThings.value);
+    // console.log('Owned Things: ', ownedThings);
+    // console.log('Followed Things', followedThings);
 
     return { showRegisterSiteModal, ownedThings, followedThings, markers, sitesLoaded, updateMarkers }
   }

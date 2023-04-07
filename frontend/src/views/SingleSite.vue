@@ -4,7 +4,14 @@
 
     <div class="site-information-container">
       <h2 class="site-information-title">Site Information</h2>
-      <v-btn color="green">Edit Site Information</v-btn>
+      <div v-if="isAuthenticated && thing?.owns_thing" >
+        <v-btn color="green">Edit Site Information</v-btn>
+        <v-btn color="red-darken-3" style="margin-left: 1rem">Delete Site</v-btn>
+      </div>
+      <div v-else-if="isAuthenticated && !thing.owns_thing">
+        <input class="follow-checkbox" type="checkbox" :checked="followsThing" @change="updateFollow"/>
+        <label>Follow Thing</label>
+      </div>
     </div>
 
     <div class="content-wrapper">
@@ -70,7 +77,7 @@
 
   <div class="site-information-container">
     <h2 class="site-information-title">Datastreams Available at this Site</h2>
-    <v-btn color="grey-lighten-2">Manage Datastreams</v-btn>
+    <v-btn v-if="thing?.owns_thing" color="grey-lighten-2">Manage Datastreams</v-btn>
     <img src="@/assets/hydro.png" alt="hydro" class="site-information-image">
     <v-btn color="grey-lighten-2" class="site-information-button">Download Data from HydroShare</v-btn>
   </div>
@@ -91,8 +98,10 @@ import ImageCarousel from "../components/ImageCarousel.vue";
 import MoonIm1 from "@/assets/moon_bridge1.jpg"
 import MoonIm2 from "@/assets/moon_bridge2.jpg"
 import MoonIm3 from "@/assets/moon_bridge3.jpg"
-import { useDataStore } from "@/store/data.js";
 import {computed, ref} from "vue";
+import { useDataStore } from "@/store/data.js";
+import {useAuthStore} from "@/store/authentication.js";
+import axios from "axios";
 
 export default {
   name: "SingleSite",
@@ -107,6 +116,8 @@ export default {
     ImageCarousel,
   },
   setup(props) {
+    const authStore = useAuthStore();
+    authStore.fetchAccessToken();
     const dataStore = useDataStore();
     const thing = ref(null);
     const currentSlide = ref(0);
@@ -125,6 +136,7 @@ export default {
       },
     ]);
 
+    const isAuthenticated = computed(() => authStore.access_token);
     const isLoaded = computed(() => thing.value);
     const mapOptions = computed(() => thing.value ?
         {
@@ -135,15 +147,32 @@ export default {
     );
 
     console.log("Mounting SingleSite. ID: ", props.id);
-    let cacheName = `thing_${props.id}`;
 
-    dataStore.fetchOrGetFromCache(cacheName, `/things/${props.id}`)
-      .then(() => {thing.value = dataStore[cacheName]})
+    let cachedThingName = `thing_${props.id}`;
+    const followsThing = ref(false)
+    dataStore.fetchOrGetFromCache(cachedThingName, `/things/${props.id}`)
+      .then(() => {
+        thing.value = dataStore[cachedThingName]
+        followsThing.value = thing.value.follows_thing
+      })
       .catch((error) => {console.error("Error fetching thing data from API", error)})
 
     console.log("Thing: ", thing.value);
 
-    return {isLoaded, mapOptions, currentSlide, carouselItems, thing }
+
+    function updateFollow() {
+      axios.get(`/things/${props.id}/ownership`)
+          .then(response => {
+            dataStore.cacheProperty(cachedThingName, response.data)
+            localStorage.removeItem("things")
+            dataStore.things = []
+            thing.value = dataStore[cachedThingName]
+            followsThing.value = thing.value.follows_thing
+          })
+          .catch(error => {console.error('Error updating follow status:', error)})
+    }
+
+    return {isLoaded, mapOptions, currentSlide, carouselItems, thing, isAuthenticated, followsThing, updateFollow }
   },
 };
 </script>
@@ -153,13 +182,6 @@ export default {
    margin-left: auto;
    margin-right: 1rem;
    max-height: 30px;
-}
-
-.title-button-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
 }
 
 .hydroshare-logo-container {
@@ -261,5 +283,7 @@ table td:first-child i {
   position: relative;
 }
 
-
+.follow-checkbox .v-input--selection-controls__input .v-icon {
+  color: rgba(0, 0, 0, 0.54) !important;
+}
 </style>

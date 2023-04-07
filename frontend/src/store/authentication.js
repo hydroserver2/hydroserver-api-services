@@ -22,6 +22,7 @@ export const useAuthStore = defineStore({
     },
     updateAccessToken(access_token) {
       this.access_token = access_token;
+      console.log("access_token updated in state")
     },
     async login(loginData) {
       this.loginStart();
@@ -54,8 +55,10 @@ export const useAuthStore = defineStore({
       });
     },
     fetchAccessToken() {
+      console.log("Fetching access_token...")
       const access_token = localStorage.getItem('access_token');
       if (access_token) {
+        console.log("access_token found in local_storage. Updating state...")
         this.updateAccessToken(access_token);
       }
     },
