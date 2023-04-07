@@ -22,14 +22,11 @@ jobs:
           node-version: 18.x
           cache: npm
 
-      - name: Install Node dependencies
-        run: npm --prefix ./frontend install ./frontend
-
-      - name: Build frontend
-        run: npm --prefix ./frontend run build
-
-      - name: Create ZIP deployment package
-        run: zip -r deploy_package.zip ./
+      - name: Create deployment package
+        run: |
+          npm --prefix ./frontend install ./frontend && \
+          npm --prefix ./frontend run build && \
+          zip -r deploy_package.zip ./
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
