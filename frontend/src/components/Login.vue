@@ -30,27 +30,25 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import { useAuthStore } from '@/store/authentication';
+import {ref} from "vue";
 
 export default {
-  data() {
-    return {
-      email: '',
-      password: ''
-    }
-  },
-  methods: {
-    ...mapActions([
-      'login'
-    ]),
-    loginSubmit() {
-      this.login({
-        email: this.email,
-        password: this.password
+  setup() {
+    const authStore = useAuthStore();
+    const email = ref('');
+    const password = ref('');
+
+    function loginSubmit() {
+      authStore.login({
+        email: email.value,
+        password: password.value,
       });
     }
-  }
-}
+
+    return { email, password, loginSubmit };
+  },
+};
 </script>
 
 <style scoped>

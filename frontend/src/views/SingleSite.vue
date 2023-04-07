@@ -12,55 +12,55 @@
         <table>
           <tr>
             <td><i class="fas fa-info-circle"></i> Name</td>
-            <td>{{ displayThing?.name }}</td>
+            <td>{{ thing?.name }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-id-badge"></i> ID</td>
-            <td>{{ displayThing?.id }}</td>
+            <td>{{ thing?.id }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-file-alt"></i> Description</td>
-            <td>{{ displayThing?.description }}</td>
+            <td>{{ thing?.description }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map-marker-alt"></i> Sampling Feature Type</td>
-            <td>{{ displayThing?.sampling_feature_type }}</td>
+            <td>{{ thing?.sampling_feature_type }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-barcode"></i> Sampling Feature Code</td>
-            <td>{{ displayThing?.sampling_feature_code }}</td>
+            <td>{{ thing?.sampling_feature_code }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map-pin"></i> Site Type</td>
-            <td>{{ displayThing?.site_type }}</td>
+            <td>{{ thing?.site_type }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map"></i> Latitude</td>
-            <td>{{ displayThing?.latitude }}</td>
+            <td>{{ thing?.latitude }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map"></i> Longitude</td>
-            <td>{{ displayThing?.longitude }}</td>
+            <td>{{ thing?.longitude }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-mountain"></i> Elevation</td>
-            <td>{{ displayThing?.elevation }}</td>
+            <td>{{ thing?.elevation }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-users"></i> Followers</td>
-            <td>{{ displayThing?.followers }}</td>
+            <td>{{ thing?.followers }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-user-check"></i> Is Primary Owner</td>
-            <td>{{ displayThing?.is_primary_owner ? 'Yes' : 'No' }}</td>
+            <td>{{ thing?.is_primary_owner ? 'Yes' : 'No' }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-user"></i> Owns Thing</td>
-            <td>{{ displayThing?.owns_thing ? 'Yes' : 'No' }}</td>
+            <td>{{ thing?.owns_thing ? 'Yes' : 'No' }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-user-friends"></i> Follows Thing</td>
-            <td>{{ displayThing?.follows_thing ? 'Yes' : 'No' }}</td>
+            <td>{{ thing?.follows_thing ? 'Yes' : 'No' }}</td>
           </tr>
         </table>
       </div>
@@ -76,7 +76,7 @@
   </div>
 
   <v-row class="ma-2">
-    <v-col md="3" class="pa-3 d-flex flex-column" v-for="datastream in displayThing?.datastreams" :key="datastream.id">
+    <v-col md="3" class="pa-3 d-flex flex-column" v-for="datastream in thing?.datastreams" :key="datastream.id">
       <v-card class="elevation-5 flex d-flex flex-column" outlined>
         <v-card-title>{{ datastream.name }}</v-card-title>
       </v-card>
@@ -91,75 +91,59 @@ import ImageCarousel from "../components/ImageCarousel.vue";
 import MoonIm1 from "@/assets/moon_bridge1.jpg"
 import MoonIm2 from "@/assets/moon_bridge2.jpg"
 import MoonIm3 from "@/assets/moon_bridge3.jpg"
+import { useDataStore } from "@/store/data.js";
+import {computed, ref} from "vue";
 
 export default {
   name: "SingleSite",
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   components: {
     GoogleMap,
     ImageCarousel,
   },
-  computed: {
-    displayThing() {
-      return this.thing;
-    },
-     isLoaded() {
-      return this.thing;
-    },
-    mapOptions() {
-    return this.thing ? {
-          center: { lat: this.thing.latitude, lng: this.thing.longitude },
-          zoom: 16,
-          mapTypeId: "satellite"
-        } : null;
-  },
-  },
-   props: {
-     id: {
-      type: String,
-      required: true
-    }
-  },
-  data() {
-    return {
-      thing: null,
-      currentSlide: 0,
-      carouselItems: [
+  setup(props) {
+    const dataStore = useDataStore();
+    const thing = ref(null);
+    const currentSlide = ref(0);
+    const carouselItems = ref([
+      {
+        src: MoonIm1,
+        alt: "Moon1",
+      },
+      {
+        src: MoonIm2,
+        alt: "Moon2",
+      },
+      {
+        src: MoonIm3,
+        alt: "Moon3",
+      },
+    ]);
+
+    const isLoaded = computed(() => thing.value);
+    const mapOptions = computed(() => thing.value ?
         {
-          src: MoonIm1,
-          alt: "Moon1"
-        },
-        {
-          src: MoonIm2,
-          alt: "Moon2"
-        },
-        {
-          src: MoonIm3,
-          alt: "Moon3"
-        },
-      ],
-    }
-  },
-  methods: {
-    prevSlide() {
-      this.currentSlide = this.currentSlide === 0 ? this.carouselItems.length - 1 : this.currentSlide - 1;
-    },
-    nextSlide() {
-      this.currentSlide = (this.currentSlide + 1) % this.carouselItems.length;
-    },
-    setSlide(index) {
-      this.currentSlide = index;
-    },
-  },
-  async mounted() {
-    console.log("Mounting SingleSite. ID: ", this.id)
-    try {
-      let cacheName = `thing_${this.id}`
-      await this.$store.dispatch("fetchOrGetFromCache", {key: cacheName, apiEndpoint: `/things/${this.id}`});
-      this.thing = this.$store.state[cacheName];
-    } catch (error) {
-      console.error("Error fetching thing data from API", error);
-    }
-    console.log("Thing: ", this.thing)
+           center: { lat: thing.value.latitude, lng: thing.value.longitude },
+           zoom: 16,
+           mapTypeId: "satellite",
+        } : null
+    );
+
+    console.log("Mounting SingleSite. ID: ", props.id);
+    let cacheName = `thing_${props.id}`;
+
+    dataStore.fetchOrGetFromCache(cacheName, `/things/${props.id}`)
+      .then(() => {thing.value = dataStore[cacheName]})
+      .catch((error) => {console.error("Error fetching thing data from API", error)})
+
+    console.log("Thing: ", thing.value);
+
+    return {isLoaded, mapOptions, currentSlide, carouselItems, thing }
   },
 };
 </script>
