@@ -46,16 +46,16 @@
 </template>
 
 <script>
+import { ref } from 'vue';
 import axios from 'axios';
-import { mapMutations } from 'vuex';
+import { useDataStore } from "@/store/data.js";
 import GoogleMap from "./GoogleMap.vue";
 
 export default {
-  components: {GoogleMap},
-  data() {
-    return {
-      dialog: true,
-      formData: {
+  components: { GoogleMap },
+  setup(props, ctx) {
+    const dialog = ref(true);
+    const formData = ref({
       name: "",
       description: "",
       sampling_feature_type: "",
@@ -66,9 +66,9 @@ export default {
       elevation: null,
       city: "",
       state: "",
-      country: "",
-      },
-    formFields: [
+      country: ""
+    })
+    const formFields = [
       { name: "name", label: "Name", type: "text" },
       { name: "description", label: "Description", type: "text" },
       { name: "sampling_feature_type", label: "Sampling Feature Type", type: "text" },
@@ -80,27 +80,26 @@ export default {
       { name: "city", label: "City", type: "text" },
       { name: "state", label: "State", type: "text" },
       { name: "country", label: "Country", type: "text" },
-    ],
-    };
-  },
-  methods: {
-    ...mapMutations(['addThing', 'updateThing']),
-    closeDialog() {
-      this.dialog = false;
-      this.$emit("close");
-    },
-    createThing() {
-      axios.post('/things', this.formData)
-          .then(response => {
-            const newThing = response.data;
-            this.addThing(newThing);
-            this.$emit('close');
-            this.$emit('siteCreated');
-          })
-          .catch(error => {
-            console.log("Error Registering Site: ", error)
-          })
-    },
-  },
+    ];
+
+    function closeDialog() {
+      dialog.value = false;
+      ctx.emit("close");
+    }
+
+    function createThing() {
+      axios.post('/things', formData.value)
+        .then(response => {
+          const newThing = response.data;
+          const dataStore = useDataStore();
+          dataStore.addThing(newThing);
+          ctx.emit('close');
+          ctx.emit('siteCreated');
+        })
+        .catch(error => {console.log("Error Registering Site: ", error)})
+    }
+
+    return { dialog, formData, formFields, closeDialog, createThing }
+  }
 };
 </script>

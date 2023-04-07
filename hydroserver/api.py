@@ -354,6 +354,24 @@ class UpdateThingInput(Schema):
     country: str = None
 
 
+@api.get('/things/{thing_id}/ownership', auth=jwt_auth)
+def update_thing_ownership(request, thing_id: str):
+    thing = Thing.objects.get(id=thing_id)
+
+    if request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+        return JsonResponse({"error": "Owners cannot update follow status"}, status=400)
+
+    thing_association, created = ThingAssociation.objects.get_or_create(thing=thing, person=request.authenticated_user)
+
+    if thing_association.follows_thing:
+        thing_association.delete()
+    else:
+        thing_association.follows_thing = True
+        thing_association.save()
+
+    return JsonResponse(thing_to_dict(thing, request.authenticated_user))
+
+
 @api.put('/things/{thing_id}')
 @thing_ownership_required
 def update_thing(request, thing_id: str, data: UpdateThingInput):
@@ -372,8 +390,7 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
 
     thing.save()
 
-    association = ThingAssociation.objects.get(thing=thing, person=request.authenticated_user)
-    return JsonResponse(thing_to_dict(thing, is_primary_owner=association.is_primary_owner))
+    return JsonResponse(thing_to_dict(thing, request.authenticated_user))
 
 
 @api.delete('/things/{thing_id}')

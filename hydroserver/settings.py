@@ -43,6 +43,7 @@ class EnvironmentSettings(BaseSettings):
 
     # TODO Find/create types for other databases. In the meantime, allow str.
     ALLOWED_HOSTS: str = '127.0.0.1,localhost'
+    CORS_ALLOWED_ORIGINS: str = 'http://127.0.0.1:5173,http://localhost:5173'
     DATABASE_URL: Union[PostgresDsn, str] = f'sqlite:///{BASE_DIR}/db.sqlite3'
     CONN_MAX_AGE: int = 600
     CONN_HEALTH_CHECKS: bool = True
@@ -68,8 +69,7 @@ SECRET_KEY = env_config.SECRET_KEY
 DEBUG = env_config.DEBUG
 
 ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
-
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
+CORS_ALLOWED_ORIGINS = env_config.CORS_ALLOWED_ORIGINS.split(',')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
+    'django_vite',
     'sensorthings',
     'rest_framework',
     'ninja',
@@ -197,6 +198,14 @@ STATIC_ROOT = 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# Vite Settings
+
+DJANGO_VITE_ASSETS_PATH = BASE_DIR / 'frontend' / 'dist'
+DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH / 'vite' / 'manifest.json'
+DJANGO_VITE_STATIC_URL_PREFIX = 'vite'
+
+STATICFILES_DIRS += [DJANGO_VITE_ASSETS_PATH]
 
 # SensorThings API Settings
 

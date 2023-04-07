@@ -18,16 +18,20 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { useAuthStore } from '@/store/authentication.js';
+import {computed} from "vue";
 
 export default {
   name: 'Navbar',
-  computed: {
-    ...mapState(['loggingIn', 'loginError', 'access_token'])
-  },
-  created() { this.fetchAccessToken() },
-  methods: {
-    ...mapActions(['login', 'logout', "fetchAccessToken"]),
+  setup() {
+    const authStore = useAuthStore();
+
+    authStore.fetchAccessToken();
+
+    const access_token = computed(() => authStore.access_token);
+    const logout = authStore.logout;
+
+    return { access_token, logout }
   },
 };
 </script>

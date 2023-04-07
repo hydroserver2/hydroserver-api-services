@@ -27,43 +27,24 @@
 
 <script>
 import GoogleMap from '@/components/GoogleMap.vue';
+import {useDataStore} from "@/store/data.js";
+import {ref, watch} from "vue";
 
 export default {
-  components: {
-    GoogleMap,
-  },
-  data() {
-    return {
-      siteTypes: ['Atmosphere', 'Ditch', 'Lake', 'Ocean', 'River', 'Spring', 'Stream', 'Wetland', 'Well', 'Other'],
-      selectedSiteTypes: [],
-      markers: [],
-    };
-  },
-  methods: {
-    clearFilters() {
-      this.selectedSiteTypes = [];
-    },
-    async updateMarkers() {
-      await this.$store.dispatch("fetchOrGetFromCache", {key: "things", apiEndpoint: "/things"});
-      this.markers = this.$store.state.things;
-    },
-  },
-  mounted() {
-    this.updateMarkers()
-  },
-  watch: {
-    selectedSiteTypes: {
-      handler(newValue) {
-        console.log('selectedSiteTypes:', newValue);
-      },
-      deep: true,
-    },
-  },
-};
-</script>
+  components: { GoogleMap },
+  setup() {
+    const dataStore = useDataStore()
+    const siteTypes = ref(['Atmosphere', 'Ditch', 'Lake', 'Ocean', 'River', 'Spring', 'Stream', 'Wetland', 'Well', 'Other'])
+    const selectedSiteTypes = ref([])
+    const markers = ref([])
 
-<style>
-.custom-expansion-panel .v-expansion-panel--active {
-  background-color: rgb(250, 250, 250);
+    function clearFilters() { selectedSiteTypes.value = [] }
+
+    dataStore.fetchOrGetFromCache('things', '/things').then(() => {
+      markers.value = dataStore.things
+    })
+
+    return { siteTypes, selectedSiteTypes, markers, clearFilters };
+  }
 }
-</style>
+</script>

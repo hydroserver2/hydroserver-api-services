@@ -19,8 +19,17 @@ jobs:
         with:
           ref: dev
 
-      - name: Create ZIP deployment package
-        run: zip -r deploy_package.zip ./
+      - name: Setup Node 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+
+      - name: Create deployment package
+        run: |
+          npm --prefix ./frontend install ./frontend && \
+          npm --prefix ./frontend run build && \
+          zip -r deploy_package.zip ./
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
