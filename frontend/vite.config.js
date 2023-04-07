@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default defineConfig({
-  base: '/static/vite/',
   plugins: [vue()],
   resolve: {
     extensions: ['.js', '.json', '.vue', '.less', '.scss'],
