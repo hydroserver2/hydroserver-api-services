@@ -1,3 +1,4 @@
+import time
 from functools import wraps
 
 from django.contrib.auth import authenticate, logout
@@ -23,7 +24,9 @@ def jwt_auth(request):
         user = CustomUser.objects.get(pk=user_id)
         request.authenticated_user = user
         return True
-    except (KeyError, IndexError, InvalidToken, TokenError):
+    except (KeyError, IndexError, InvalidToken, TokenError) as e:
+        if isinstance(e, TokenError) and str(e) == 'Token is invalid or expired':
+            raise HttpError(401, 'Token is invalid or expired')
         raise HttpError(401, 'Unauthorized')
 
 
@@ -37,8 +40,11 @@ def jwt_check_user(request):
         user_id = untyped_token.payload['user_id']
         user = CustomUser.objects.get(pk=user_id)
         request.user_if_there_is_one = user
-    except (KeyError, IndexError, InvalidToken, TokenError):
-        request.user_if_there_is_one = None
+    except (KeyError, IndexError, InvalidToken, TokenError) as e:
+        if isinstance(e, TokenError) and str(e) == 'Token is invalid or expired':
+            raise HttpError(401, 'Token is invalid or expired')
+        else:
+            request.user_if_there_is_one = None
     return True
 
 

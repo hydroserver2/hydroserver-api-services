@@ -1,65 +1,62 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from "@/axiosConfig"
 import router from '@/router';
 
 const initialState = () => ({
   access_token: null,
-  refreshToken: null,
+  refresh_token: null,
   loggingIn: false,
   loginError: null,
   things: [],
-});
+})
 
 export const useAuthStore = defineStore({
   id: 'authentication',
   state: initialState,
   actions: {
     resetState() { Object.assign(this, initialState()) },
-    loginStart() { this.loggingIn = true },
-    loginStop(errorMessage) {
-      this.loggingIn = false;
-      this.loginError = errorMessage;
-    },
-    updateAccessToken(access_token) {
-      this.access_token = access_token;
-      console.log("access_token updated in state")
-    },
     async login(loginData) {
-      this.loginStart();
-      console.log('Logging in...');
       try {
-        const response = await axios.post('/token', {
-          ...loginData,
-        });
+        this.loggingIn = true
         this.resetState();
         localStorage.clear();
+
+        const response = await axios.post('/token', {...loginData})
         const { access_token, refresh_token } = response.data;
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('refresh_token', refresh_token);
-        this.loginStop(null);
-        this.updateAccessToken(access_token);
-        router.push({ name: 'Sites' }).catch((error) => {
-          console.error('Error while navigating to Sites:', error);
-        });
-        console.log('Logged in');
+        this.access_token = access_token
+        this.refresh_token = refresh_token
+
+        await router.push({ name: 'Sites' })
       } catch (error) {
-        this.loginStop(error.response);
-        this.updateAccessToken(null);
-      }
+        this.logout()
+      } finally { this.loggingIn = false }
     },
     logout() {
       this.resetState();
       localStorage.clear();
-      router.push({ name: 'Home' }).catch((error) => {
-        console.error('Error while navigating to Home:', error);
-      });
+      router.push({ name: 'Home' }).catch((error) => {console.error('Error while navigating to Home:', error)})
     },
     fetchAccessToken() {
-      console.log("Fetching access_token...")
-      const access_token = localStorage.getItem('access_token');
-      if (access_token) {
-        console.log("access_token found in local_storage. Updating state...")
-        this.updateAccessToken(access_token);
+      const access_token = localStorage.getItem('access_token')
+      if (access_token) this.access_token = access_token
+      const refresh_token = localStorage.getItem('refresh_token')
+      if (refresh_token) this.refresh_token = refresh_token
+    },
+    async refreshAccessToken() {
+      console.log("Access token expired. refreshing token...")
+      try {
+        const response = await axios.post('/token/refresh', {refresh_token: this.refresh_token})
+        const { access_token, refresh_token } = response.data;
+        localStorage.setItem('access_token', access_token);
+        this.access_token = access_token
+        localStorage.setItem('refresh_token', refresh_token);
+        this.refresh_token = refresh_token
+        console.log("Access token refreshed")
+      } catch (error) {
+        console.error('Error refreshing access token:', error);
+        this.logout();
       }
     },
   },

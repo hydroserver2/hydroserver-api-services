@@ -88,6 +88,7 @@
       </v-row>
     </v-container>
   </div>
+  <v-btn @click="sayHello">Click to say Hello</v-btn>
 </template>
 
 <script>
@@ -97,6 +98,7 @@ import resistanceIcon from '@/assets/resistance.svg';
 import gearIcon from '@/assets/gear.svg';
 import dbIcon from '@/assets/db.svg';
 import ogcIcon from '@/assets/ogc.png';
+import axios from "@/axiosConfig"
 
 export default {
   data() {
@@ -109,6 +111,16 @@ export default {
   },
   components: { Login, Signup },
   name: 'Home',
+   methods: {
+    async sayHello() {
+      try {
+        const response = await axios.post('/hello');
+        console.log("Back from Server. It says", response.data);
+      } catch (error) {
+        console.error('Error calling /hello endpoint:', error);
+      }
+    },
+  },
 };
 </script>
 

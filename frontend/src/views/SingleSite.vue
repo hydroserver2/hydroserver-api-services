@@ -4,11 +4,11 @@
 
     <div class="site-information-container">
       <h2 class="site-information-title">Site Information</h2>
-      <div v-if="isAuthenticated && thing?.owns_thing" >
+      <div v-if="isAuthenticated && thing && thing.owns_thing" >
         <v-btn color="green">Edit Site Information</v-btn>
         <v-btn color="red-darken-3" style="margin-left: 1rem">Delete Site</v-btn>
       </div>
-      <div v-else-if="isAuthenticated && !thing.owns_thing">
+      <div v-else-if="isAuthenticated && thing && !thing.owns_thing">
         <input class="follow-checkbox" type="checkbox" :checked="followsThing" @change="updateFollow"/>
         <label>Follow Thing</label>
       </div>
@@ -101,7 +101,7 @@ import MoonIm3 from "@/assets/moon_bridge3.jpg"
 import {computed, ref} from "vue";
 import { useDataStore } from "@/store/data.js";
 import {useAuthStore} from "@/store/authentication.js";
-import axios from "axios";
+import axios from "@/axiosConfig"
 
 export default {
   name: "SingleSite",
@@ -136,7 +136,7 @@ export default {
       },
     ]);
 
-    const isAuthenticated = computed(() => authStore.access_token);
+    const isAuthenticated = computed(() => !!authStore.access_token)
     const isLoaded = computed(() => thing.value);
     const mapOptions = computed(() => thing.value ?
         {
@@ -146,8 +146,6 @@ export default {
         } : null
     );
 
-    console.log("Mounting SingleSite. ID: ", props.id);
-
     let cachedThingName = `thing_${props.id}`;
     const followsThing = ref(false)
     dataStore.fetchOrGetFromCache(cachedThingName, `/things/${props.id}`)
@@ -156,9 +154,6 @@ export default {
         followsThing.value = thing.value.follows_thing
       })
       .catch((error) => {console.error("Error fetching thing data from API", error)})
-
-    console.log("Thing: ", thing.value);
-
 
     function updateFollow() {
       axios.get(`/things/${props.id}/ownership`)

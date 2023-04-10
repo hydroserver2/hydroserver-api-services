@@ -47,7 +47,7 @@
 
 <script>
 import { ref } from 'vue';
-import axios from 'axios';
+import axios from "@/axiosConfig"
 import { useDataStore } from "@/store/data.js";
 import GoogleMap from "./GoogleMap.vue";
 

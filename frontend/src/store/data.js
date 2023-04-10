@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from "@/axiosConfig"
 
 export const useDataStore = defineStore({
   id: 'data',
@@ -10,10 +10,10 @@ export const useDataStore = defineStore({
     async fetchOrGetFromCache(key, apiEndpoint) {
       const cachedData = localStorage.getItem(key);
       if (cachedData) {
-        console.log(`Getting ${key} data from localStorage...`);
+        // console.log(`Getting ${key} data from localStorage...`);
         this.cacheProperty(key, JSON.parse(cachedData))
       } else {
-        console.log(`Fetching ${key} data from API...`);
+        // console.log(`Fetching ${key} data from API...`);
         try {
           const { data } = await axios.get(apiEndpoint);
           this.cacheProperty(key, data)

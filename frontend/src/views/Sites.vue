@@ -73,10 +73,7 @@ export default {
       markers.value = [...ownedThings.value, ...followedThings.value];
     }
 
-    console.log('Creating Sites page...');
-    updateMarkers();
-    // console.log('Owned Things: ', ownedThings);
-    // console.log('Followed Things', followedThings);
+    updateMarkers()
 
     return { showRegisterSiteModal, ownedThings, followedThings, markers, sitesLoaded, updateMarkers }
   }

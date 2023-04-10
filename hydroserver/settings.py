@@ -13,6 +13,8 @@ import datetime
 import os
 import dj_database_url
 from pathlib import Path
+
+from corsheaders.defaults import default_headers
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
@@ -69,7 +71,12 @@ SECRET_KEY = env_config.SECRET_KEY
 DEBUG = env_config.DEBUG
 
 ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
-CORS_ALLOWED_ORIGINS = env_config.CORS_ALLOWED_ORIGINS.split(',')
+
+CORS_ALLOWED_ORIGINS = env_config.CORS_ALLOWED_ORIGINS.split(',') if hasattr(env_config, 'CORS_ALLOWED_ORIGINS') else ['http://localhost:5173']
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Refresh_Authorization',
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
