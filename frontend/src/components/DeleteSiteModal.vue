@@ -51,7 +51,7 @@ export default {
     }
 
     async function deleteSite() {
-      if (deleteInput.value === props.siteName) {
+      if (deleteInput.value !== props.siteName) {
         console.error("Site name does not match.")
         return
       }
