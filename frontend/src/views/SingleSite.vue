@@ -6,7 +6,8 @@
       <h2 class="site-information-title">Site Information</h2>
       <div v-if="isAuthenticated && thing && thing.owns_thing" >
         <v-btn color="green">Edit Site Information</v-btn>
-        <v-btn color="red-darken-3" style="margin-left: 1rem">Delete Site</v-btn>
+        <DeleteSiteModal :site-id="thing.id" :site-name="thing.name" v-model="showDeleteModal" @close="showDeleteModal = false"/>
+        <v-btn color="red-darken-3" style="margin-left: 1rem" @click="showDeleteModal = true">Delete Site</v-btn>
       </div>
       <div v-else-if="isAuthenticated && thing && !thing.owns_thing">
         <input class="follow-checkbox" type="checkbox" :checked="followsThing" @change="updateFollow"/>
@@ -95,6 +96,7 @@
 <script>
 import GoogleMap from "../components/GoogleMap.vue";
 import ImageCarousel from "../components/ImageCarousel.vue";
+import DeleteSiteModal from "@/components/DeleteSiteModal.vue";
 import MoonIm1 from "@/assets/moon_bridge1.jpg"
 import MoonIm2 from "@/assets/moon_bridge2.jpg"
 import MoonIm3 from "@/assets/moon_bridge3.jpg"
@@ -114,12 +116,14 @@ export default {
   components: {
     GoogleMap,
     ImageCarousel,
+    DeleteSiteModal
   },
   setup(props) {
     const authStore = useAuthStore();
     authStore.fetchAccessToken();
     const dataStore = useDataStore();
     const thing = ref(null);
+    const showDeleteModal = ref(false);
     const currentSlide = ref(0);
     const carouselItems = ref([
       {
@@ -167,7 +171,8 @@ export default {
           .catch(error => {console.error('Error updating follow status:', error)})
     }
 
-    return {isLoaded, mapOptions, currentSlide, carouselItems, thing, isAuthenticated, followsThing, updateFollow }
+    return {isLoaded, mapOptions, currentSlide, carouselItems,
+      thing, isAuthenticated, followsThing, updateFollow, showDeleteModal }
   },
 };
 </script>
