@@ -17,7 +17,8 @@
               </v-form>
             </v-col>
             <v-col cols="12" md="6">
-              <GoogleMap :markers="[]" :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" />
+              <GoogleMap clickable @location-clicked="onMapLocationClicked"
+                         :markers="[]" :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" />
               Click on the map to update site coordinates and elevation data.
               <br><br><br><h2>Site Location</h2><br>
               <v-row>
@@ -64,7 +65,6 @@ export default {
       latitude: null,
       longitude: null,
       elevation: null,
-      city: "",
       state: "",
       country: ""
     })
@@ -77,7 +77,6 @@ export default {
       { name: "latitude", label: "Latitude", type: "number" },
       { name: "longitude", label: "Longitude", type: "number" },
       { name: "elevation", label: "Elevation", type: "number" },
-      { name: "city", label: "City", type: "text" },
       { name: "state", label: "State", type: "text" },
       { name: "country", label: "Country", type: "text" },
     ];
@@ -99,7 +98,16 @@ export default {
         .catch(error => {console.log("Error Registering Site: ", error)})
     }
 
-    return { dialog, formData, formFields, closeDialog, createThing }
+    function onMapLocationClicked(locationData) {
+      formData.value.latitude = locationData.latitude;
+      formData.value.longitude = locationData.longitude;
+      formData.value.elevation = locationData.elevation;
+      formData.value.nearest_town = locationData.nearest_town;
+      formData.value.state = locationData.state;
+      formData.value.country = locationData.country;
+    }
+
+    return { dialog, formData, formFields, closeDialog, createThing, onMapLocationClicked }
   }
 };
 </script>
