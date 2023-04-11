@@ -17,22 +17,27 @@
                 <v-text-field v-model="lastName" label="Last Name" required></v-text-field>
               </v-col>
             </v-row>
+             <v-row>
+              <v-col cols="12">
+                <v-text-field v-model="email" label="Email (This will be your login username)" required></v-text-field>
+              </v-col>
+            </v-row>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field v-model="email" label="Email" required></v-text-field>
+                <v-text-field type="password" v-model="password" label="Password" required></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field v-model="password" label="Password" required></v-text-field>
+                <v-text-field type="password" v-model="confirmPassword" label="Confirm Password" required></v-text-field>
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-text-field v-model="address" label="Address"></v-text-field>
+                <v-text-field v-model="address" label="Address (Optional)"></v-text-field>
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-text-field v-model="phone" label="Phone"></v-text-field>
+                <v-text-field v-model="phone" label="Phone (Optional)"></v-text-field>
               </v-col>
             </v-row>
             <v-row class="mt-6">
@@ -53,6 +58,7 @@
 
 <script>
 import axios from "@/axiosConfig"
+import router from "@/router.js";
 
 export default {
   data() {
@@ -85,6 +91,7 @@ export default {
           address: this.address,
         })
         console.log('Created user:', response.data)
+        await router.push('/login');
       } catch (error) {
         console.error(error)
       }
