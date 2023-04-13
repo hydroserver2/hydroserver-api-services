@@ -18,7 +18,7 @@
             </v-col>
             <v-col cols="12" md="6">
               <GoogleMap clickable @location-clicked="onMapLocationClicked"
-                         :markers="[]" :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" />
+                         :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" />
               Click on the map to update site coordinates and elevation data.
               <br><br><br><h2>Site Location</h2><br>
               <v-row>
@@ -48,9 +48,9 @@
 
 <script>
 import { ref } from 'vue';
-import axios from "@/axiosConfig"
+import axios from "@/axiosConfig.js"
 import { useDataStore } from "@/store/data.js";
-import GoogleMap from "./GoogleMap.vue";
+import GoogleMap from "../GoogleMap.vue";
 
 export default {
   components: { GoogleMap },

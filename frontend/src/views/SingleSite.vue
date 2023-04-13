@@ -78,7 +78,9 @@
 
   <div class="site-information-container">
     <h2 class="site-information-title">Datastreams Available at this Site</h2>
-    <v-btn v-if="thing?.owns_thing" color="grey-lighten-2">Manage Datastreams</v-btn>
+    <v-btn v-if="thing?.owns_thing"
+           color="grey-lighten-2"
+           :to="{ name: 'SiteDatastreams', params: { id: thing.id } }">Manage Datastreams</v-btn>
     <img src="@/assets/hydro.png" alt="hydro" class="site-information-image">
     <v-btn color="grey-lighten-2" class="site-information-button">Download Data from HydroShare</v-btn>
   </div>
@@ -96,7 +98,7 @@
 <script>
 import GoogleMap from "../components/GoogleMap.vue";
 import ImageCarousel from "../components/ImageCarousel.vue";
-import DeleteSiteModal from "@/components/DeleteSiteModal.vue";
+import DeleteSiteModal from "@/components/Site/DeleteSiteModal.vue";
 import MoonIm1 from "@/assets/moon_bridge1.jpg"
 import MoonIm2 from "@/assets/moon_bridge2.jpg"
 import MoonIm3 from "@/assets/moon_bridge3.jpg"
@@ -104,24 +106,22 @@ import {computed, ref} from "vue";
 import { useDataStore } from "@/store/data.js";
 import {useAuthStore} from "@/store/authentication.js";
 import axios from "@/axiosConfig"
+import {useRoute} from "vue-router";
 
 export default {
   name: "SingleSite",
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-  },
   components: {
     GoogleMap,
     ImageCarousel,
     DeleteSiteModal
   },
-  setup(props) {
+  setup() {
     const authStore = useAuthStore();
-    authStore.fetchAccessToken();
     const dataStore = useDataStore();
+    const route = useRoute()
+
+    authStore.fetchAccessToken();
+    const thing_id = route.params.id
     const thing = ref(null);
     const showDeleteModal = ref(false);
     const currentSlide = ref(0);
@@ -150,9 +150,9 @@ export default {
         } : null
     );
 
-    let cachedThingName = `thing_${props.id}`;
+    let cachedThingName = `thing_${thing_id}`
     const followsThing = ref(false)
-    dataStore.fetchOrGetFromCache(cachedThingName, `/things/${props.id}`)
+    dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
       .then(() => {
         thing.value = dataStore[cachedThingName]
         followsThing.value = thing.value.follows_thing
@@ -160,7 +160,7 @@ export default {
       .catch((error) => {console.error("Error fetching thing data from API", error)})
 
     function updateFollow() {
-      axios.get(`/things/${props.id}/ownership`)
+      axios.get(`/things/${thing_id}/ownership`)
           .then(response => {
             dataStore.cacheProperty(cachedThingName, response.data)
             localStorage.removeItem("things")

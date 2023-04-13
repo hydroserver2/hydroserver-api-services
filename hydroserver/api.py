@@ -580,7 +580,10 @@ def datastreams_to_json(thing):
             "result_type": datastream.result_type,
             "status": datastream.status,
             "sampled_medium": datastream.sampled_medium,
-            # Add other fields as needed
+            "units": datastream.unit.name if datastream.unit else None,
+            "observed_property": datastream.observed_property.name if datastream.observed_property else None,
+            "method": datastream.sensor.name if datastream.sensor else None,
+            "processing_level": datastream.processing_level.processing_level_code if datastream.processing_level else None
         })
 
     return datastreams_list

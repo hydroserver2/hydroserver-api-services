@@ -47,7 +47,7 @@
 
 <script>
 import { ref, computed } from 'vue';
-import RegisterSite from '../components/RegisterSite.vue';
+import RegisterSite from '../components/Site/RegisterSite.vue';
 import GoogleMap from '../components/GoogleMap.vue';
 import { useDataStore } from '@/store/data.js';
 
