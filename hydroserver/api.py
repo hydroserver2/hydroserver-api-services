@@ -3,6 +3,7 @@ from functools import wraps
 
 from django.contrib.auth import authenticate, logout
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from ninja import Schema, NinjaAPI
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -418,6 +419,21 @@ class SensorInput(Schema):
     method_code: str = None
 
 
+def sensor_to_dict(sensor):
+    return {
+        "id": sensor.pk,
+        "name": sensor.name,
+        "description": sensor.description,
+        "manufacturer": sensor.manufacturer,
+        "model": sensor.model,
+        "method_type": sensor.method_type,
+        "method_code": sensor.method_code,
+        "method_link": sensor.method_link,
+        "encoding_type": sensor.encoding_type,
+        "model_url": sensor.model_url,
+    }
+
+
 @api.post('/sensors', auth=jwt_auth)
 def create_sensor(request, data: SensorInput):
     sensor = Sensor.objects.create(
@@ -432,7 +448,14 @@ def create_sensor(request, data: SensorInput):
         encoding_type=data.encoding_type,
         model_url=data.model_url,
     )
-    return {'detail': 'Sensor created successfully.', 'id': str(sensor.id)}
+
+    return JsonResponse(sensor_to_dict(sensor))
+
+
+@api.get('/sensors', auth=jwt_auth)
+def get_sensors(request):
+    sensors = Sensor.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
+    return JsonResponse([sensor_to_dict(sensor) for sensor in sensors], safe=False)
 
 
 @api.put('/sensors/{sensor_id}', auth=jwt_auth)

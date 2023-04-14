@@ -5,6 +5,7 @@ export const useDataStore = defineStore({
   id: 'data',
   state: () => ({
     things: [],
+    sensors: []
   }),
   actions: {
     async fetchOrGetFromCache(key, apiEndpoint) {
@@ -30,5 +31,9 @@ export const useDataStore = defineStore({
       this.things.push(thing);
       localStorage.setItem('things', JSON.stringify(this.things));
     },
+    addSensor(sensor){
+      this.sensors.push(sensor)
+      localStorage.setItem('sensors', JSON.stringify(this.sensors));
+    }
   },
 });
