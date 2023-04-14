@@ -86,7 +86,7 @@ export default {
          const newSensor = response.data
          dataStore.addSensor(newSensor)
          dialog.value = false
-         ctx.emit('sensorCreated', newSensor.name)
+         ctx.emit('sensorCreated', newSensor)
        })
         .catch(error => {console.log("Error Registering Sensor: ", error)})
     }

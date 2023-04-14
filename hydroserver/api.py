@@ -342,7 +342,8 @@ def get_things(request):
 def get_thing(request, thing_id: str):
     thing = Thing.objects.get(id=thing_id)
     thing_dict = thing_to_dict(thing, request.user_if_there_is_one)
-    thing_dict["datastreams"] = datastreams_to_json(thing)
+    datastreams = thing.datastreams.all()
+    thing_dict["datastreams"] = [datastream_to_dict(datastream) for datastream in datastreams]
 
     return JsonResponse(thing_dict)
 
@@ -503,6 +504,23 @@ def delete_sensor(request, sensor_id: str):
     return {'detail': 'Sensor deleted successfully.'}
 
 
+def observed_property_to_dict(observed_property):
+    return {
+        "id": observed_property.pk,
+        "name": observed_property.name,
+        "definition": observed_property.definition,
+        "description": observed_property.description,
+        "variable_type": observed_property.variable_type,
+        "variable_code": observed_property.variable_code,
+    }
+
+
+@api.get('/observed-properties', auth=jwt_auth)
+def get_observed_properties(request):
+    observed_properties = ObservedProperty.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
+    return JsonResponse([observed_property_to_dict(op) for op in observed_properties], safe=False)
+
+
 class ObservedPropertyInput(Schema):
     name: str
     definition: str
@@ -521,7 +539,7 @@ def create_observed_property(request, data: ObservedPropertyInput):
         variable_type=data.variable_type,
         variable_code=data.variable_code
     )
-    return {'id': observed_property.id, 'detail': 'Observed Property created successfully.'}
+    return JsonResponse(observed_property_to_dict(observed_property))
 
 
 @api.put('/observed-properties/{observed_property_id}', auth=jwt_auth)
@@ -543,7 +561,7 @@ def update_observed_property(request, observed_property_id: str, data: ObservedP
 
     observed_property.save()
 
-    return {'id': observed_property.id, 'detail': 'Observed Property updated successfully.'}
+    return JsonResponse(observed_property_to_dict(observed_property))
 
 
 @api.delete('/observed-properties/{observed_property_id}', auth=jwt_auth)
@@ -590,26 +608,20 @@ class CreateDatastreamInput(Schema):
     result_end_time: str = None
 
 
-def datastreams_to_json(thing):
-    datastreams = thing.datastreams.all()
-    datastreams_list = []
-
-    for datastream in datastreams:
-        datastreams_list.append({
-            "id": datastream.pk,
-            "name": datastream.name,
-            "description": datastream.description,
-            "observation_type": datastream.observation_type,
-            "result_type": datastream.result_type,
-            "status": datastream.status,
-            "sampled_medium": datastream.sampled_medium,
-            "units": datastream.unit.name if datastream.unit else None,
-            "observed_property": datastream.observed_property.name if datastream.observed_property else None,
-            "method": datastream.sensor.name if datastream.sensor else None,
-            "processing_level": datastream.processing_level.processing_level_code if datastream.processing_level else None
-        })
-
-    return datastreams_list
+def datastream_to_dict(datastream):
+    return {
+        "id": datastream.pk,
+        "name": datastream.name,
+        "description": datastream.description,
+        "observation_type": datastream.observation_type,
+        "result_type": datastream.result_type,
+        "status": datastream.status,
+        "sampled_medium": datastream.sampled_medium,
+        "units": datastream.unit.name if datastream.unit else None,
+        "observed_property": datastream.observed_property.name if datastream.observed_property else None,
+        "method": datastream.sensor.name if datastream.sensor else None,
+        "processing_level": datastream.processing_level.processing_level_code if datastream.processing_level else None
+    }
 
 
 @api.post('/datastreams', auth=jwt_auth)
@@ -656,7 +668,7 @@ def create_datastream(request, data: CreateDatastreamInput):
         sensor=sensor,
     )
 
-    return {'id': datastream.id, 'detail': 'Datastream created successfully.'}
+    return JsonResponse(datastream_to_dict(datastream))
 
 
 class UpdateDatastreamInput(Schema):
@@ -779,6 +791,22 @@ def delete_datastream(request, datastream_id: str):
     return {'detail': 'Datastream deleted successfully.'}
 
 
+def unit_to_dict(unit):
+    return {
+        "id": unit.pk,
+        "name": unit.name,
+        "symbol": unit.symbol,
+        "definition": unit.definition,
+        "unit_type": unit.unit_type,
+    }
+
+
+@api.get('/units', auth=jwt_auth)
+def get_units(request):
+    units = Unit.objects.filter(person=request.authenticated_user)
+    return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
+
+
 class CreateUnitInput(Schema):
     name: str
     symbol: str
@@ -795,7 +823,7 @@ def create_unit(request, data: CreateUnitInput):
         definition=data.definition,
         unit_type=data.unit_type
     )
-    return {'id': unit.id, 'detail': 'Unit created successfully.'}
+    return JsonResponse(unit_to_dict(unit))
 
 
 class UpdateUnitInput(Schema):
@@ -836,3 +864,37 @@ def delete_unit(request, unit_id: str):
 
     unit.delete()
     return {'detail': 'Unit deleted successfully.'}
+
+
+class ProcessingLevelInput(Schema):
+    processing_level_code: str
+    definition: str
+    explanation: str
+
+
+def processing_level_to_dict(processing_level):
+    return {
+        "id": processing_level.pk,
+        "processing_level_code": processing_level.processing_level_code,
+        "definition": processing_level.definition,
+        "explanation": processing_level.explanation,
+    }
+
+
+@api.get('/processing-levels', auth=jwt_auth)
+def get_processing_levels(request):
+    processing_levels = ProcessingLevel.objects.filter(person=request.authenticated_user)
+    return JsonResponse([processing_level_to_dict(pl) for pl in processing_levels], safe=False)
+
+
+@api.post('/processing-levels', auth=jwt_auth)
+def create_processing_level(request, data: ProcessingLevelInput):
+    processing_level = ProcessingLevel.objects.create(
+        person=request.authenticated_user,
+        processing_level_code=data.processing_level_code,
+        definition=data.definition,
+        explanation=data.explanation,
+    )
+
+    return JsonResponse(processing_level_to_dict(processing_level))
+

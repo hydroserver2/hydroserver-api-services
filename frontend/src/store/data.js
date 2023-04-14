@@ -5,7 +5,10 @@ export const useDataStore = defineStore({
   id: 'data',
   state: () => ({
     things: [],
-    sensors: []
+    sensors: [],
+    observedProperties: [],
+    units: [],
+    processingLevels: []
   }),
   actions: {
     async fetchOrGetFromCache(key, apiEndpoint) {
@@ -24,16 +27,28 @@ export const useDataStore = defineStore({
       }
     },
     cacheProperty(key, data) {
-      this[key] = data;
-      localStorage.setItem(key, JSON.stringify(this[key]));
+      this[key] = data
+      localStorage.setItem(key, JSON.stringify(this[key]))
     },
     addThing(thing) {
-      this.things.push(thing);
-      localStorage.setItem('things', JSON.stringify(this.things));
+      this.things.push(thing)
+      localStorage.setItem('things', JSON.stringify(this.things))
     },
     addSensor(sensor){
       this.sensors.push(sensor)
-      localStorage.setItem('sensors', JSON.stringify(this.sensors));
-    }
+      localStorage.setItem('sensors', JSON.stringify(this.sensors))
+    },
+    addObservedProperty(observedProperty){
+      this.observedProperties.push(observedProperty)
+      localStorage.setItem('observedProperties', JSON.stringify(this.observedProperties))
+    },
+    addUnit(unit){
+      this.units.push(unit)
+      localStorage.setItem('units', JSON.stringify(this.units))
+    },
+    addProcessingLevel(processingLevel){
+      this.processingLevels.push(processingLevel)
+      localStorage.setItem('processingLevels', JSON.stringify(this.processingLevels))
+    },
   },
 });
