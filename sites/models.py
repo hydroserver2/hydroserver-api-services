@@ -146,8 +146,10 @@ class Observation(models.Model):
         managed = False
 
     def __str__(self):
-        return f"{self.datastream.thing.name}: " \
-               f"{self.datastream.observed_property.name} - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name}"
+        if hasattr(self.phenomenon_time, 'strftime'):
+            name += f" - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        return name
 
 
 class ThingAssociation(models.Model):
