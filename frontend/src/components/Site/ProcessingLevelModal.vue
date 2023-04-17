@@ -50,7 +50,7 @@ export default {
       axios.post('/processing-levels', formData.value)
        .then(response => {
          const newProcessingLevel = response.data
-         dataStore.addProcessingLevel()
+         dataStore.addProcessingLevel(newProcessingLevel)
          dialog.value = false
          ctx.emit('processingLevelCreated', newProcessingLevel)
        })

@@ -81,6 +81,9 @@ export default {
     const isSensorMethod = computed(() => formData.value.method_type === 'Instrument Deployment');
 
     function createSensor() {
+      if (formData.value.method_type === "Instrument Deployment" && formData.value.manufacturer && formData.value.model) {
+        formData.value.name = formData.value.manufacturer + ": " + formData.value.model;
+      }
       axios.post('/sensors', formData.value)
        .then(response => {
          const newSensor = response.data

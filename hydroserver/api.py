@@ -580,11 +580,11 @@ def delete_observed_property(request, observed_property_id: str):
 
 
 class CreateDatastreamInput(Schema):
-    unit: str = None
     thing_id: str
     sensor: str
     observed_property: str
     processing_level: str = None
+    unit: str = None
 
     name: str
     description: str = None
@@ -778,15 +778,10 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
 @api.delete('/datastreams/{datastream_id}')
 @datastream_ownership_required
 def delete_datastream(request, datastream_id: str):
-    datastream = request.datastream
-    observations = Observation.objects.filter(datastream=datastream)
-    if observations.exists():
-        observations.delete()
-
-    datastream.delete()
-
-    observations = Observation.objects.filter(datastream=datastream)
-    observations.delete()
+    try:
+        request.datastream.delete()
+    except Exception as e:
+        return JsonResponse(status_code=500, detail=str(e))
 
     return {'detail': 'Datastream deleted successfully.'}
 

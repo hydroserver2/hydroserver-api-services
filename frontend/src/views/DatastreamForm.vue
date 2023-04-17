@@ -154,25 +154,25 @@ export default {
 
     async function updateSensors(newSensor) {
       await dataStore.fetchOrGetFromCache('sensors', '/sensors')
-      sensors.value = dataStore.sensors;
+      sensors.value = dataStore.sensors
       selectedSensor.value = newSensor
     }
 
     async function updateObservedProperties(newObservedProperty) {
       await dataStore.fetchOrGetFromCache('observedProperties', '/observed-properties')
-      observedProperties.value = dataStore.observedProperties;
+      observedProperties.value = dataStore.observedProperties
       selectedObservedProperty.value = newObservedProperty
     }
 
     async function updateUnits(newUnit) {
       await dataStore.fetchOrGetFromCache('units', '/units')
-      units.value = dataStore.units;
+      units.value = dataStore.units
       selectedUnit.value = newUnit
     }
 
     async function updateProcessingLevels(newProcessingLevel) {
       await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
-      processingLevels.value = dataStore.processingLevels;
+      processingLevels.value = dataStore.processingLevels
       selectedProcessingLevel.value = newProcessingLevel
     }
 
@@ -181,29 +181,56 @@ export default {
     updateUnits()
     updateProcessingLevels()
 
-    function loadDatastream() {
-      axios.post('/datastreams', {
-        thing_id,
-        name: ds_name.value,
-        description: ds_description.value,
+    function waitForValue(valueRef) {
+      return new Promise((resolve) => {
+        const interval = setInterval(() => {
+          if (valueRef.value) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 50);
+      });
+    }
 
-        sensor: selectedSensor.value.toString(),
-        observed_property: selectedObservedProperty.value.toString(),
-        unit: selectedUnit.value.toString(),
-        processing_level: selectedProcessingLevel.value.toString(),
+    async function loadDatastream() {
+      await Promise.all([
+        waitForValue(selectedSensor),
+        waitForValue(selectedObservedProperty),
+        waitForValue(selectedUnit),
+        waitForValue(selectedProcessingLevel),
+      ]);
 
-        sampled_medium: ds_sampled_medium.value,
-        status: ds_status.value,
-        no_data_value: ds_no_data_value.value,
-        aggregation_statistic: ds_aggregation_statistic.value,
-        result_type: ds_result_type.value,
-        observation_type: ds_observation_type.value,
-      })
-      .then(response => {
-        localStorage.removeItem(`thing_${thing_id}`)
-        router.push({ name: 'SiteDatastreams', params: { id: thing_id } });
-      })
-      .catch(error => {console.log("Error Registering Datastream: ", error)})
+      // Check if all required data is available
+      if (
+        selectedSensor.value &&
+        selectedObservedProperty.value &&
+        selectedUnit.value &&
+        selectedProcessingLevel.value
+      ) {
+        try {
+          const response = await axios.post('/datastreams', {
+            thing_id,
+            name: ds_name.value,
+            description: ds_description.value,
+            sensor: selectedSensor.value,
+            observed_property: selectedObservedProperty.value,
+            unit: selectedUnit.value,
+            processing_level: selectedProcessingLevel.value,
+            sampled_medium: ds_sampled_medium.value,
+            status: ds_status.value,
+            no_data_value: ds_no_data_value.value,
+            aggregation_statistic: ds_aggregation_statistic.value,
+            result_type: ds_result_type.value,
+            observation_type: ds_observation_type.value,
+          });
+          localStorage.removeItem(`thing_${thing_id}`);
+          await router.push({ name: 'SiteDatastreams', params: { id: thing_id } })
+        } catch (error) {
+          console.log("Error Registering Datastream: ", error)
+        }
+      } else {
+        console.error("One or more required fields are missing or invalid");
+      }
     }
 
     return {
