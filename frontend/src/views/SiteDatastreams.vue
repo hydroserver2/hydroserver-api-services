@@ -23,12 +23,24 @@
           <td>{{ datastream.units }}</td>
           <td>{{ datastream.processing_level }}</td>
           <td>
-            <a >Edit</a> |
-            <a >Delete</a>
+            <a >Edit</a>
+            <span class="action-link-separator"> | </span>
+            <a class="action-link" @click="showModal(datastream)">Delete</a>
           </td>
         </tr>
       </tbody>
     </table>
+    <delete-datastream-modal
+      v-if="selectedDatastream"
+      :thing-id="thing_id"
+      :datastream-id="selectedDatastream.id"
+      :datastream-observed-property="selectedDatastream.observed_property"
+      :datastream-method="selectedDatastream.method"
+      :datastream-processing-level="selectedDatastream.processing_level"
+      v-model="showDeleteModal"
+      @close="showDeleteModal = false"
+      @deleted="onDatastreamDeleted"
+    ></delete-datastream-modal>
 
     <v-btn color="secondary" :to="{ name: 'SingleSite', params: { id: thing_id } }">Back to Site Details</v-btn>
   </div>
@@ -38,15 +50,35 @@
 import { ref } from 'vue';
 import {useRoute} from "vue-router";
 import {useDataStore} from "@/store/data.js";
+import DeleteDatastreamModal from "@/components/Site/DeleteDatastreamModal.vue";
 
 export default {
+  components: {
+    DeleteDatastreamModal,
+  },
   setup() {
     const route = useRoute()
     const dataStore = useDataStore()
 
-    const thing_id = route.params.id
+    const thing_id = route.params.id.toString()
     const thingName = ref('')
     const datastreams = ref([])
+
+    const showDeleteModal = ref(false)
+    const selectedDatastream = ref(null)
+
+    function showModal(datastream) {
+      console.log("ShowModal")
+      selectedDatastream.value = datastream;
+      showDeleteModal.value = true;
+    }
+
+    async function onDatastreamDeleted() {
+      await dataStore.fetchOrGetFromCache(`thing_${thing_id}`, `/things/${thing_id}`)
+      const thing = dataStore[`thing_${thing_id}`]
+      thingName.value = thing.name
+      datastreams.value = thing.datastreams
+    }
 
     let cachedThingName = `thing_${thing_id}`
     dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
@@ -59,7 +91,7 @@ export default {
       })
       .catch((error) => {console.error("Error fetching thing data from API", error)})
 
-    return {thingName, datastreams, thing_id }
+    return {onDatastreamDeleted, thingName, datastreams, thing_id, showModal, selectedDatastream, showDeleteModal }
   },
 };
 </script>
@@ -100,5 +132,21 @@ table th {
 
 table tr:nth-of-type(odd) {
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+.action-link {
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.action-link-separator {
+  margin-left: 5px;
+  margin-right: 5px;
 }
 </style>
