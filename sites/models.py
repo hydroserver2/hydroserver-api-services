@@ -167,13 +167,3 @@ class ThingAssociation(models.Model):
 #     time = models.DateTimeField()
 #     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='historical_locations')
 #     locations = models.ManyToManyField(Location, related_name='historical_locations')
-
-# class Site(models.Model):
-#     # This model should only contain the data related to how a Thing will be managed
-#     name = models.CharField(max_length=200)
-#     latitude = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-#     longitude = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-#     elevation = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-#     # registration_date = models.DateTimeField(auto_now_add=True)
-#     # id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-

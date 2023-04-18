@@ -24,7 +24,6 @@
 import axios from "@/axiosConfig";
 import {ref, watch} from "vue";
 import {useDataStore} from "@/store/data.js";
-import router from "@/router.js";
 
 export default {
   props: {

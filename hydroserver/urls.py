@@ -6,17 +6,10 @@ from django.urls import path, include
 from hydroserver.api import api
 from hydroserver.views import index
 
-import accounts.views
-import sites.views
-
 urlpatterns = [
     path('', index),
     path('admin/', admin.site.urls),
     path('sensorthings/', include('sensorthings.urls')),
-    # path('', accounts.views.home_view, name='home'),
-    path('sites/', include('sites.urls')),
-    path('sites/<str:pk>/', sites.views.site, name="site"),
-    path('accounts/', include('accounts.urls')),
     path('api/', api.urls)
 ]
 
