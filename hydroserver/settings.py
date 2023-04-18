@@ -33,6 +33,7 @@ class EnvironmentSettings(BaseSettings):
     """
 
     # TODO Find/create types for other databases. In the meantime, allow str.
+    PROXY_BASE_URL: str = 'http://127.0.0.1:8000'
     ALLOWED_HOSTS: str = '127.0.0.1,localhost'
     CORS_ALLOWED_ORIGINS: str = 'http://127.0.0.1:5173,http://localhost:5173'
     DATABASE_URL: Union[PostgresDsn, str] = f'sqlite:///{BASE_DIR}/db.sqlite3'
@@ -58,6 +59,8 @@ SECRET_KEY = env_config.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_config.DEBUG
+
+PROXY_BASE_URL = env_config.PROXY_BASE_URL
 
 ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
 

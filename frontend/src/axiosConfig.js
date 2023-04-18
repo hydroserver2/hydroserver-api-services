@@ -2,7 +2,7 @@ import axios from 'axios'
 import router from "@/router.js"
 import {useAuthStore} from '@/store/authentication'
 
-axios.defaults.baseURL = `${import.meta.env.VITE_BASE_URL}/api/`
+axios.defaults.baseURL = `${import.meta.env.VITE_BASE_URL || PROXY_BASE_URL}/api/`
 
 // Axios interceptor for handling JWT tokens
 axios.interceptors.request.use(
