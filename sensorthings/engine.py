@@ -1,4 +1,5 @@
 import uuid
+import numpy as np
 import pandas as pd
 from typing import List, Union, Tuple, Optional
 from odata_query.django.django_q import AstToDjangoQVisitor
@@ -254,6 +255,8 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     def transform_response(self, response_df):
         """"""
 
+        response_df = response_df.replace({np.nan: None})
+
         if response_df.empty:
             pass
         elif self.component == 'Thing':
@@ -339,7 +342,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     'result_type': row['result_type'],
                     'status': row['status'],
                     'sampled_medium': row['sampled_medium'],
-                    'value_count': row['value_count'],
+                    'value_count': row['value_count'] if not pd.isnull(row['value_count']) else 0,
                     'no_data_value': row['no_data_value'],
                     'processing_level_code': row['processing_level__processing_level_code'],
                     'intended_time_spacing': row['intended_time_spacing'],
