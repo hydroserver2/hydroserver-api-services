@@ -52,7 +52,7 @@ export default {
          const newProcessingLevel = response.data
          dataStore.addProcessingLevel(newProcessingLevel)
          dialog.value = false
-         ctx.emit('processingLevelCreated', newProcessingLevel)
+         ctx.emit('processingLevelCreated', String(newProcessingLevel.id))
        })
         .catch(error => {console.log("Error Registering Processing Level: ", error)})
     }

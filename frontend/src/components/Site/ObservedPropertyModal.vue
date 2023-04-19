@@ -60,7 +60,7 @@ export default {
          const newObservedProperty = response.data
          dataStore.addObservedProperty(newObservedProperty)
          dialog.value = false
-         ctx.emit('observedPropertyCreated', newObservedProperty)
+         ctx.emit('observedPropertyCreated', String(newObservedProperty.id))
        })
         .catch(error => {console.log("Error Registering Observed Property: ", error)})
     }

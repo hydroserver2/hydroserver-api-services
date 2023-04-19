@@ -617,10 +617,18 @@ def datastream_to_dict(datastream):
         "result_type": datastream.result_type,
         "status": datastream.status,
         "sampled_medium": datastream.sampled_medium,
-        "units": datastream.unit.name if datastream.unit else None,
-        "observed_property": datastream.observed_property.name if datastream.observed_property else None,
-        "method": datastream.sensor.name if datastream.sensor else None,
-        "processing_level": datastream.processing_level.processing_level_code if datastream.processing_level else None
+        "no_data_value": datastream.no_data_value,
+        "aggregation_statistic": datastream.aggregation_statistic,
+
+        "unit_id": datastream.unit.pk if datastream.unit else None,
+        "observed_property_id": datastream.observed_property.pk if datastream.observed_property else None,
+        "method_id": datastream.sensor.pk if datastream.sensor else None,
+        "processing_level_id": datastream.processing_level.pk if datastream.processing_level else None,
+
+        "unit_name": datastream.unit.name if datastream.unit else None,
+        "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
+        "method_name": datastream.sensor.name if datastream.sensor else None,
+        "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None
     }
 
 

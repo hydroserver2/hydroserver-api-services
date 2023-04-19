@@ -18,12 +18,15 @@
       </thead>
       <tbody>
         <tr v-for="datastream in datastreams" :key="datastream.id">
-          <td>{{ datastream.observed_property }}</td>
-          <td>{{ datastream.method }}</td>
-          <td>{{ datastream.units }}</td>
-          <td>{{ datastream.processing_level }}</td>
+          <td>{{ datastream.observed_property_name }}</td>
+          <td>{{ datastream.method_name }}</td>
+          <td>{{ datastream.unit_name }}</td>
+          <td>{{ datastream.processing_level_name }}</td>
           <td>
-            <a >Edit</a>
+            <router-link class="action-link"
+            :to="{name: 'DatastreamForm', params: {id: thing_id, datastreamId: datastream.id}}"
+            >Edit
+            </router-link>
             <span class="action-link-separator"> | </span>
             <a class="action-link" @click="showModal(datastream)">Delete</a>
           </td>
