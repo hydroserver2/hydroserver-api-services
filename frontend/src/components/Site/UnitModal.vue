@@ -56,7 +56,7 @@ export default {
           const newUnit = response.data;
           dataStore.addUnit(newUnit);
           dialog.value = false;
-          ctx.emit('unitCreated', String(newUnit.id));
+          ctx.emit('unitCreated', newUnit.id);
         })
         .catch(error => {console.log("Error Registering Unit: ", error)});
     }
