@@ -237,6 +237,20 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         else:
             return query.count()
 
+    @staticmethod
+    def format_isointerval(start_time, end_time):
+        """"""
+
+        if pd.isnull(start_time) and pd.isnull(end_time):
+            return None
+        elif pd.isnull(start_time):
+            return end_time.strftime('%Y-%m-%d %H:%M:%S') + '/' + end_time.strftime('%Y-%m-%d %H:%M:%S')
+        elif pd.isnull(end_time):
+            return start_time.strftime('%Y-%m-%d %H:%M:%S') + '/' + start_time.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return start_time.strftime('%Y-%m-%d %H:%M:%S') + '/' + end_time.strftime('%Y-%m-%d %H:%M:%S')
+
+
     def transform_response(self, response_df):
         """"""
 
@@ -341,10 +355,12 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         'symbol': row['time_aggregation_interval_units__symbol'],
                         'definition': row['time_aggregation_interval_units__definition']
                     },
-                    'phenomenon_time': row['phenomenon_start_time'].strftime('%Y-%m-%d %H:%M:%S') + '/' +
-                    row['phenomenon_end_time'].strftime('%Y-%m-%d %H:%M:%S'),
-                    'result_time': row['result_begin_time'].strftime('%Y-%m-%d %H:%M:%S') + '/' +
-                    row['result_end_time'].strftime('%Y-%m-%d %H:%M:%S'),
+                    'phenomenon_time': self.format_isointerval(
+                        row['phenomenon_start_time'], row['phenomenon_end_time']
+                    ),
+                    'result_time': self.format_isointerval(
+                        row['result_begin_time'], row['result_end_time']
+                    )
                 }, axis=1
             )
         elif self.component == 'Observation':
