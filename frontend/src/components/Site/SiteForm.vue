@@ -18,7 +18,8 @@
             </v-col>
             <v-col cols="12" md="6">
               <GoogleMap clickable @location-clicked="onMapLocationClicked"
-                         :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" />
+                         :mapOptions="mapOptions"
+                         :markers="[marker]" v-if="markerLoaded"/>
               Click on the map to update site coordinates and elevation data.
               <br><br><br><h2>Site Location</h2><br>
               <v-row>
@@ -47,13 +48,14 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import {computed, ref, watch, watchEffect} from 'vue';
 import axios from "@/axiosConfig.js"
 import { useDataStore } from "@/store/data.js";
 import GoogleMap from "../GoogleMap.vue";
 
 export default {
   components: { GoogleMap },
+  props: { thingId: String },
   setup(props, ctx) {
     const dialog = ref(true);
     const formData = ref({
@@ -81,21 +83,57 @@ export default {
       { name: "country", label: "Country", type: "text" },
     ];
 
+    const mapOptions = ref({center: {lat: 39, lng: -100}, zoom: 4})
+    let marker = ref(null)
+    let markerLoaded = ref(false)
+
+    async function populateThing() {
+      const dataStore = useDataStore()
+      try{
+        await dataStore.fetchOrGetFromCache(`thing_${props.thingId}`, `/things/${props.thingId}`)
+        marker.value = dataStore[`thing_${props.thingId}`]
+        markerLoaded.value = true
+        for (const key in formData.value) {
+          if (marker.value.hasOwnProperty(key)) {
+            formData.value[key] = marker.value[key];
+          }
+        }
+        mapOptions.value = {
+          center: { lat: marker.value.latitude, lng: marker.value.longitude },
+          zoom: 8,
+          mapTypeId: "satellite",
+        }
+      } catch (error) {
+        console.log("Error Fetching Thing: ", error);
+      }
+    }
+
+    if (props.thingId) populateThing()
+    else markerLoaded.value = true
+
     function closeDialog() {
       dialog.value = false;
       ctx.emit("close");
     }
 
     function createThing() {
-      axios.post('/things', formData.value)
+      const axiosMethod = props.thingId ? axios.patch : axios.post;
+      const endpoint = props.thingId ? `/things/${props.thingId}` : '/things';
+
+      axiosMethod(endpoint, formData.value)
         .then(response => {
-          const newThing = response.data;
+          const updatedThing  = response.data;
           const dataStore = useDataStore();
-          dataStore.addThing(newThing);
+          if (!props.thingId) dataStore.addThing(updatedThing)
+          else {
+            // dataStore[`thing_${props.thingId}`] = null
+            localStorage.removeItem(`thing_${props.thingId}`)
+            // dataStore.fetchOrGetFromCache(`thing_${props.thingId}`, endpoint)
+          }
           ctx.emit('close');
           ctx.emit('siteCreated');
         })
-        .catch(error => {console.log("Error Registering Site: ", error)})
+        .catch(error => { console.log("Error Registering Site: ", error) })
     }
 
     function onMapLocationClicked(locationData) {
@@ -107,7 +145,7 @@ export default {
       formData.value.country = locationData.country;
     }
 
-    return { dialog, formData, formFields, closeDialog, createThing, onMapLocationClicked }
+    return {marker, markerLoaded, mapOptions, dialog, formData, formFields, closeDialog, createThing, onMapLocationClicked }
   }
 };
 </script>

@@ -19,7 +19,7 @@
         </v-expansion-panels>
       </v-col>
       <v-col cols="12" md="8">
-        <GoogleMap :markers="markers" :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" style="width: 100%; height: 80vh" />
+        <GoogleMap :markers="markers" v-if="markers" :mapOptions="{center: {lat: 39, lng: -100}, zoom: 4}" style="width: 100%; height: 80vh" />
       </v-col>
     </v-row>
   </v-container>
@@ -36,7 +36,7 @@ export default {
     const dataStore = useDataStore()
     const siteTypes = ref(['Atmosphere', 'Ditch', 'Lake', 'Ocean', 'River', 'Spring', 'Stream', 'Wetland', 'Well', 'Other'])
     const selectedSiteTypes = ref([])
-    const markers = ref([])
+    const markers = ref(null)
 
     function clearFilters() { selectedSiteTypes.value = [] }
 

@@ -1,7 +1,7 @@
 <template>
   <div v-if="sitesLoaded">
     <hr>
-    <GoogleMap :markers="markers"></GoogleMap>
+    <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
     <hr>
     <h2>My Registered Sites</h2>
     <v-btn @click="showRegisterSiteModal = true" color="green">Register a new site</v-btn>
@@ -20,7 +20,7 @@
 
     <transition name="modal-fade">
       <div v-if="showRegisterSiteModal" class="modal-overlay" @click.self="showRegisterSiteModal = false">
-        <register-site @close="showRegisterSiteModal = false" @siteCreated="updateMarkers"></register-site>
+        <site-form @close="showRegisterSiteModal = false" @siteCreated="updateMarkers"></site-form>
       </div>
     </transition>
 
@@ -47,22 +47,22 @@
 
 <script>
 import { ref, computed } from 'vue';
-import RegisterSite from '../components/Site/RegisterSite.vue';
-import GoogleMap from '../components/GoogleMap.vue';
+import GoogleMap from '@/components/GoogleMap.vue';
 import { useDataStore } from '@/store/data.js';
+import SiteForm from "@/components/Site/SiteForm.vue";
 
 export default {
   name: 'Sites',
   components: {
+    SiteForm,
     GoogleMap,
-    RegisterSite,
   },
   setup() {
     const dataStore = useDataStore()
     const showRegisterSiteModal = ref(false)
     const ownedThings = ref([])
     const followedThings = ref([])
-    const markers = ref([])
+    const markers = ref(null)
 
     const sitesLoaded = computed(() => ownedThings.value && followedThings.value)
 
@@ -70,7 +70,7 @@ export default {
       await dataStore.fetchOrGetFromCache('things', '/things')
       ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
       followedThings.value = dataStore.things.filter((thing) => thing.follows_thing)
-      markers.value = [...ownedThings.value, ...followedThings.value];
+      markers.value = [...ownedThings.value, ...followedThings.value]
     }
 
     updateMarkers()

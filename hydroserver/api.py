@@ -380,23 +380,39 @@ def update_thing_ownership(request, thing_id: str):
     return JsonResponse(thing_to_dict(thing, request.authenticated_user))
 
 
-@api.put('/things/{thing_id}')
+@api.patch('/things/{thing_id}')
 @thing_ownership_required
 def update_thing(request, thing_id: str, data: UpdateThingInput):
     thing = request.thing
+    location = Location.objects.get(thing=thing)
 
-    if data.name:
+    if data.name is not None:
         thing.name = data.name
-    if data.description:
+        location.name = 'Location for ' + data.name
+    if data.description is not None:
         thing.description = data.description
-    if data.sampling_feature_type:
+    if data.sampling_feature_type is not None:
         thing.sampling_feature_type = data.sampling_feature_type
-    if data.sampling_feature_code:
+    if data.sampling_feature_code is not None:
         thing.sampling_feature_code = data.sampling_feature_code
-    if data.site_type:
+    if data.site_type is not None:
         thing.site_type = data.site_type
 
+    if data.latitude is not None:
+        location.latitude = data.latitude
+    if data.longitude is not None:
+        location.longitude = data.longitude
+    if data.elevation is not None:
+        location.elevation = data.elevation
+    if data.city is not None:
+        location.city = data.city
+    if data.state is not None:
+        location.state = data.state
+    if data.country is not None:
+        location.country = data.country
+
     thing.save()
+    location.save()
 
     return JsonResponse(thing_to_dict(thing, request.authenticated_user))
 

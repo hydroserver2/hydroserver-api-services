@@ -5,7 +5,7 @@
     <div class="site-information-container">
       <h2 class="site-information-title">Site Information</h2>
       <div v-if="isAuthenticated && thing && thing.owns_thing" >
-        <v-btn color="green">Edit Site Information</v-btn>
+        <v-btn @click="showRegisterSiteModal = true" color="green">Edit Site Information</v-btn>
         <DeleteSiteModal :site-id="thing.id" :site-name="thing.name" v-model="showDeleteModal" @close="showDeleteModal = false"/>
         <v-btn color="red-darken-3" style="margin-left: 1rem" @click="showDeleteModal = true">Delete Site</v-btn>
       </div>
@@ -14,6 +14,13 @@
         <label>Follow Thing</label>
       </div>
     </div>
+
+    <site-form
+      v-if="showRegisterSiteModal && thing_id"
+      @close="showRegisterSiteModal = false"
+      @siteCreated="loadThing"
+      :thing-id="thing_id"
+    ></site-form>
 
     <div class="content-wrapper">
       <div class="table-container">
@@ -107,10 +114,12 @@ import { useDataStore } from "@/store/data.js";
 import {useAuthStore} from "@/store/authentication.js";
 import axios from "@/axiosConfig"
 import {useRoute} from "vue-router";
+import SiteForm from "@/components/Site/SiteForm.vue";
 
 export default {
   name: "SingleSite",
   components: {
+    SiteForm,
     GoogleMap,
     ImageCarousel,
     DeleteSiteModal
@@ -120,8 +129,9 @@ export default {
     const dataStore = useDataStore();
     const route = useRoute()
 
-    authStore.fetchAccessToken();
-    const thing_id = route.params.id
+    authStore.fetchAccessToken()
+    const showRegisterSiteModal = ref(false)
+    const thing_id = route.params.id.toString()
     const thing = ref(null);
     const showDeleteModal = ref(false);
     const currentSlide = ref(0);
@@ -152,12 +162,16 @@ export default {
 
     let cachedThingName = `thing_${thing_id}`
     const followsThing = ref(false)
-    dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-      .then(() => {
-        thing.value = dataStore[cachedThingName]
-        followsThing.value = thing.value.follows_thing
-      })
-      .catch((error) => {console.error("Error fetching thing data from API", error)})
+    function loadThing(){
+      dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
+        .then(() => {
+          thing.value = dataStore[cachedThingName]
+          followsThing.value = thing.value.follows_thing
+        })
+        .catch((error) => {console.error("Error fetching thing data from API", error)})
+    }
+
+    loadThing()
 
     function updateFollow() {
       axios.get(`/things/${thing_id}/ownership`)
@@ -171,8 +185,8 @@ export default {
           .catch(error => {console.error('Error updating follow status:', error)})
     }
 
-    return {isLoaded, mapOptions, currentSlide, carouselItems,
-      thing, isAuthenticated, followsThing, updateFollow, showDeleteModal }
+    return {loadThing, showRegisterSiteModal, isLoaded, mapOptions, currentSlide, carouselItems,
+      thing, isAuthenticated, followsThing, updateFollow, showDeleteModal, thing_id }
   },
 };
 </script>

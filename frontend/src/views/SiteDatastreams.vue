@@ -89,8 +89,6 @@ export default {
         const thing = dataStore[cachedThingName]
         thingName.value = thing.name
         datastreams.value = thing.datastreams
-        console.log("thingName: ", thingName.value)
-        console.log("datastreams: ", datastreams.value)
       })
       .catch((error) => {console.error("Error fetching thing data from API", error)})
 
