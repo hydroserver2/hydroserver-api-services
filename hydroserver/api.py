@@ -267,6 +267,8 @@ def thing_to_dict(thing, user):
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
+        "state": thing.location.state,
+        "country": thing.location.country,
         "is_primary_owner": False,
         "owns_thing": False,
         "follows_thing": False,

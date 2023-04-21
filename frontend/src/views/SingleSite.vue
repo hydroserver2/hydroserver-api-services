@@ -1,5 +1,6 @@
-<template>
-  <div v-if="isLoaded">
+<template >
+  <div v-if="isLoaded" style="margin: 1rem;">
+    <h2>{{thing?.name}}</h2>
     <GoogleMap :markers="[thing]" :mapOptions="mapOptions"/>
 
     <div class="site-information-container">
@@ -26,28 +27,8 @@
       <div class="table-container">
         <table>
           <tr>
-            <td><i class="fas fa-info-circle"></i> Name</td>
-            <td>{{ thing?.name }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-id-badge"></i> ID</td>
-            <td>{{ thing?.id }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-file-alt"></i> Description</td>
-            <td>{{ thing?.description }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-map-marker-alt"></i> Sampling Feature Type</td>
-            <td>{{ thing?.sampling_feature_type }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-barcode"></i> Sampling Feature Code</td>
+            <td><i class="fas fa-barcode"></i> Site Code</td>
             <td>{{ thing?.sampling_feature_code }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-map-pin"></i> Site Type</td>
-            <td>{{ thing?.site_type }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map"></i> Latitude</td>
@@ -62,20 +43,28 @@
             <td>{{ thing?.elevation }}</td>
           </tr>
           <tr>
+            <td><i class="fas fa-id-badge"></i> ID</td>
+            <td>{{ thing?.id }}</td>
+          </tr>
+          <tr>
+            <td><i class="fas fa-file-alt"></i> Description</td>
+            <td>{{ thing?.description }}</td>
+          </tr>
+          <tr>
+            <td><i class="fas fa-map-marker-alt"></i> Sampling Feature Type</td>
+            <td>{{ thing?.sampling_feature_type }}</td>
+          </tr>
+          <tr>
+            <td><i class="fas fa-map-pin"></i> Site Type</td>
+            <td>{{ thing?.site_type }}</td>
+          </tr>
+          <tr>
             <td><i class="fas fa-users"></i> Followers</td>
             <td>{{ thing?.followers }}</td>
           </tr>
           <tr>
-            <td><i class="fas fa-user-check"></i> Is Primary Owner</td>
-            <td>{{ thing?.is_primary_owner ? 'Yes' : 'No' }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-user"></i> Owns Thing</td>
-            <td>{{ thing?.owns_thing ? 'Yes' : 'No' }}</td>
-          </tr>
-          <tr>
-            <td><i class="fas fa-user-friends"></i> Follows Thing</td>
-            <td>{{ thing?.follows_thing ? 'Yes' : 'No' }}</td>
+            <td><i class="fas fa-flag-usa"></i>State</td>
+            <td>{{ thing?.state}}</td>
           </tr>
         </table>
       </div>
@@ -213,7 +202,7 @@ table {
   width: 100%;
   max-width: 100%;
   margin-bottom: 1rem;
-   border-right: 1px solid lightgray;
+  border-right: 1px solid lightgray;
   border-bottom: 1px solid lightgray;
   border-collapse: collapse;
   border-spacing: 0;
@@ -269,7 +258,8 @@ table td:first-child i {
 }
 
 .site-information-container {
-  padding: 1rem;
+  padding-bottom: 1rem;
+  padding-top: 1rem;
   display: flex;
   align-items: center;
 }

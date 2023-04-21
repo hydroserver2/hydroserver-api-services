@@ -126,9 +126,8 @@ export default {
           const dataStore = useDataStore();
           if (!props.thingId) dataStore.addThing(updatedThing)
           else {
-            // dataStore[`thing_${props.thingId}`] = null
             localStorage.removeItem(`thing_${props.thingId}`)
-            // dataStore.fetchOrGetFromCache(`thing_${props.thingId}`, endpoint)
+            localStorage.removeItem('things')
           }
           ctx.emit('close');
           ctx.emit('siteCreated');
