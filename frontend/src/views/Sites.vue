@@ -1,22 +1,30 @@
 <template>
   <div v-if="sitesLoaded">
-    <hr>
     <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
     <hr>
-    <h2>My Registered Sites</h2>
-    <v-btn @click="showRegisterSiteModal = true" color="green">Register a new site</v-btn>
-    <v-row class="ma-2">
-      <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in ownedThings" :key="thing.id">
-        <v-card :to="{name: 'SingleSite', params: { id: thing.id}}" class="elevation-5 flex d-flex flex-column" variant="outlined">
-          <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
-          <v-card-text class="flex">
-            <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
-            <div><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</div>
-            <div><strong>Site Type:</strong> {{ thing.site_type }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 1rem">My Registered Sites</h2>
+      <v-btn @click="showRegisterSiteModal = true" color="green" style="margin: 1rem">Register a new site</v-btn>
+    </div>
+    <v-table :hover="true" class="table-bordered">
+        <thead style="background-color: lightgrey">
+          <tr class="header-bordered">
+            <th><strong>Site Code</strong></th>
+            <th>Site Name</th>
+            <th>Site Type</th>
+          </tr>
+        </thead>
+        <tbody style="border: 1px black">
+          <tr v-for="thing in ownedThings"
+              :key="thing.id"
+              @click="$router.push({ name: 'SingleSite', params: { id: thing.id } })"
+              class="row-bordered">
+            <td>{{ thing.sampling_feature_code }}</td>
+            <td>{{ thing.name }}</td>
+            <td>{{ thing.site_type }}</td>
+          </tr>
+        </tbody>
+    </v-table>
 
     <transition name="modal-fade">
       <div v-if="showRegisterSiteModal" class="modal-overlay" @click.self="showRegisterSiteModal = false">
@@ -24,25 +32,32 @@
       </div>
     </transition>
 
-    <h3>Followed Sites</h3>
-    <v-row class="ma-2">
-      <v-col md="3" class="pa-3 d-flex flex-column" v-for="thing in followedThings" :key="thing.id">
-        <v-card :to="{name: 'SingleSite', params: { id: thing.id}}" class="elevation-5 flex d-flex flex-column" variant="outlined">
-          <v-card-title class="text-h5">{{ thing.name }}</v-card-title>
-          <v-card-text class="flex">
-            <div><strong>Sampling Feature Type:</strong> {{ thing.sampling_feature_type }}</div>
-            <div><strong>Sampling Feature Code:</strong> {{ thing.sampling_feature_code }}</div>
-            <div><strong>Site Type:</strong> {{ thing.site_type }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+    <h2 style="margin: 1rem">Followed Sites</h2>
+    <v-table :hover="true" class="table-bordered">
+        <thead style="background-color: lightgrey">
+          <tr class="header-bordered">
+            <th><strong>Site Code</strong></th>
+            <th>Site Name</th>
+            <th>Site Type</th>
+          </tr>
+        </thead>
+        <tbody style="border: 1px black">
+          <tr v-for="thing in followedThings"
+              :key="thing.id"
+              @click="$router.push({ name: 'SingleSite', params: { id: thing.id } })"
+              class="row-bordered">
+            <td>{{ thing.sampling_feature_code }}</td>
+            <td>{{ thing.name }}</td>
+            <td>{{ thing.site_type }}</td>
+          </tr>
+        </tbody>
+    </v-table>
   </div>
 
-<div v-else style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-  <v-progress-circular indeterminate color="green"></v-progress-circular>
-  <p>Loading Sites...</p>
-</div>
+  <div v-else style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <v-progress-circular indeterminate color="green"></v-progress-circular>
+    <p>Loading Sites...</p>
+  </div>
 </template>
 
 <script>
@@ -96,5 +111,28 @@ export default {
 
 .modal-fade-enter {
   opacity: 0;
+}
+
+.table-bordered {
+  margin: 1rem;
+  border-collapse: collapse;
+  border: 1px solid lightgrey;
+}
+
+.row-bordered th,
+.row-bordered td {
+  border: 1px solid #e8e8e8;
+  padding: 8px;
+  width: 33.33%;
+}
+
+.header-bordered th,
+.header-bordered td {
+  border: 1px solid #c5c5c5;
+  padding: 8px;
+}
+
+.row-bordered:hover {
+  cursor: pointer;
 }
 </style>
