@@ -8,7 +8,8 @@ export const useDataStore = defineStore({
     sensors: [],
     observedProperties: [],
     units: [],
-    processingLevels: []
+    processingLevels: [],
+    datastreams: [],
   }),
   actions: {
     async fetchOrGetFromCache(key, apiEndpoint) {
@@ -49,6 +50,10 @@ export const useDataStore = defineStore({
     addProcessingLevel(processingLevel){
       this.processingLevels.push(processingLevel)
       localStorage.setItem('processingLevels', JSON.stringify(this.processingLevels))
+    },
+    addDatastream(datastream){
+      this.datastreams.push(datastream)
+      localStorage.setItem('datastreams', JSON.stringify(this.datastreams))
     },
   },
 });

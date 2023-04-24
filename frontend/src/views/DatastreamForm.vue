@@ -1,16 +1,14 @@
 <template>
   <div style="margin: 1rem">
-    <h3>Datastream Setup Page</h3>
-    <v-form>
+    <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
       <v-select
+        v-if="!datastreamId"
         v-model="selectedDatastream"
-        :items="datastreams"
-        item-text="text"
-        item-value="value"
         label="Start from an existing datastream"
+        :items="datastreams"
+        item-title="name"
+        item-value="id"
       ></v-select>
-      <v-btn type="submit">Load Datastream</v-btn>
-    </v-form>
 
     <div>
       <v-form @submit.prevent="uploadDatastream">
@@ -79,7 +77,7 @@
 </template>
 
 <script>
-import {ref} from "vue"
+import {ref, watch} from "vue"
 import {useDataStore} from "@/store/data.js"
 import {useRoute} from "vue-router"
 import SensorModal from "@/components/Site/SensorModal.vue";
@@ -143,18 +141,29 @@ export default {
       selectedProcessingLevel.value = newProcessingLevelId
     }
 
-    async function populateDatastream(){
+    async function populateDatastreamSelector(newDatastreamId) {
+      await dataStore.fetchOrGetFromCache('datastreams', '/datastreams')
+      datastreams.value = dataStore.datastreams
+      selectedDatastream.value = newDatastreamId
+    }
+
+    async function populateDatastream(selectedDatastreamId = null){
+      if (selectedDatastreamId === null) selectedDatastreamId = datastreamId
       await dataStore.fetchOrGetFromCache(`thing_${thingId}`, `/things/${thingId}`)
       const thing = dataStore[`thing_${thingId}`]
-      const datastream = thing.datastreams.find(ds => ds.id === datastreamId)
+      const datastream = thing.datastreams.find(ds => ds.id === selectedDatastreamId)
       if (datastream) populateForm(datastream)
     }
+
+    watch(selectedDatastream, () => {populateDatastream(selectedDatastream.value)})
 
     updateSensors()
     updateObservedProperties()
     updateUnits()
     updateProcessingLevels()
+
     if(datastreamId) populateDatastream()
+    else populateDatastreamSelector()
 
     function populateForm(datastream) {
       selectedSensor.value = datastream.method_id
@@ -192,7 +201,9 @@ export default {
         if (datastreamId) {
           await axios.put(`/datastreams/${datastreamId}`, payload);
         } else {
-          await axios.post('/datastreams', payload);
+          const response = await axios.post('/datastreams', payload);
+          const newDatastream = response.data
+          dataStore.addDatastream(newDatastream)
         }
         localStorage.removeItem(`thing_${thingId}`);
         await router.push({ name: 'SiteDatastreams', params: { id: thingId } })

@@ -697,6 +697,22 @@ def create_datastream(request, data: CreateDatastreamInput):
     return JsonResponse(datastream_to_dict(datastream))
 
 
+@api.get('/datastreams', auth=jwt_auth)
+def get_datastreams(request):
+    user_associations = ThingAssociation.objects.filter(
+        person=request.authenticated_user,
+        owns_thing=True
+    ).prefetch_related('thing__datastreams')
+
+    user_datastreams = [
+        datastream_to_dict(datastream)
+        for association in user_associations
+        for datastream in association.thing.datastreams.all()
+    ]
+
+    return JsonResponse(user_datastreams, safe=False)
+
+
 class UpdateDatastreamInput(Schema):
     unit: str = None
     sensor: str = None
