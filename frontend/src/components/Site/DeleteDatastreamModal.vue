@@ -5,25 +5,30 @@
         <span class="text-h5">Confirm Deletion</span>
       </v-card-title>
       <v-card-text>
-        Are you sure you want to delete the following datastream? This is unrecoverable and will delete all associated observations
-        <br>
-        <br><strong>ID:</strong> {{ datastreamId }}
-        <br><strong>Observed Property:</strong> {{ datastreamObservedProperty }}
-        <br><strong>Method/Sensor:</strong> {{ datastreamMethod }}
-        <br><strong>ProcessingLevel:</strong> {{ datastreamProcessingLevel }}
+        Are you sure you want to delete the following datastream? This is
+        unrecoverable and will delete all associated observations
+        <br />
+        <br /><strong>ID:</strong> {{ datastreamId }} <br /><strong
+          >Observed Property:</strong
+        >
+        {{ datastreamObservedProperty }} <br /><strong>Method/Sensor:</strong>
+        {{ datastreamMethod }} <br /><strong>ProcessingLevel:</strong>
+        {{ datastreamProcessingLevel }}
       </v-card-text>
       <v-card-actions>
         <v-btn color="red darken-1" text @click="$emit('close')">Cancel</v-btn>
-        <v-btn color="green darken-1" text @click="deleteDatastream">Confirm</v-btn>
+        <v-btn color="green darken-1" text @click="deleteDatastream"
+          >Confirm</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
-<script>
-import axios from "@/axiosConfig";
-import {ref, watch} from "vue";
-import {useDataStore} from "@/store/data.js";
+<script lang="ts">
+import axios from '@/axios.config'
+import { ref, watch } from 'vue'
+import { useDataStore } from '@/store/data'
 
 export default {
   props: {
@@ -41,9 +46,9 @@ export default {
     watch(
       () => props.showDialog,
       (newValue) => {
-        dialog.value = newValue;
+        dialog.value = newValue
       }
-    );
+    )
 
     async function removeThingFromLocalStorage() {
       const cachedThingName = `thing_${props.thingId}`
@@ -53,16 +58,16 @@ export default {
 
     async function deleteDatastream() {
       try {
-        await axios.delete(`/datastreams/${props.datastreamId}`);
+        await axios.delete(`/datastreams/${props.datastreamId}`)
         await removeThingFromLocalStorage()
-        emit("close")
-        emit("deleted")
+        emit('close')
+        emit('deleted')
       } catch (error) {
-        console.error("Error deleting datastream:", error);
+        console.error('Error deleting datastream:', error)
       }
     }
 
-    return { dialog, deleteDatastream };
+    return { dialog, deleteDatastream }
   },
-};
+}
 </script>

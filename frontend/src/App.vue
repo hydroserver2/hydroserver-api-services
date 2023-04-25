@@ -1,23 +1,22 @@
-<script>
-import Navbar from "./components/Navbar.vue";
-export default {
-  name: 'App',
-  components: {
-    Navbar
-  }
-}
-</script>
-
 <template>
   <v-app>
-  <header>
-    <Navbar/>
-  </header>
-  <v-main>
-    <router-view/>
-  </v-main>
+    <header>
+      <Navbar />
+    </header>
+    <v-main>
+      <router-view />
+    </v-main>
   </v-app>
 </template>
 
-<style scoped>
-</style>
+<script lang="ts">
+import Navbar from '@/components/base/Navbar.vue'
+export default {
+  name: 'App',
+  components: {
+    Navbar,
+  },
+}
+</script>
+
+<style scoped lang="scss"></style>

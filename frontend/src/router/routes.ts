@@ -1,0 +1,28 @@
+import { RouteRecordRaw } from 'vue-router'
+import Home from '@/components/Home.vue'
+import Sites from '@/components/Sites.vue'
+import Signup from '@/components/account/Signup.vue'
+import Login from '@/components/account/Login.vue'
+import SingleSite from '@/components/SingleSite.vue'
+import Browse from '@/components/Browse.vue'
+import SiteDatastreams from '@/components/SiteDatastreams.vue'
+import DatastreamForm from '@/components/DatastreamForm.vue'
+
+export const routes: RouteRecordRaw[] = [
+  { path: '/', name: 'Home', component: Home },
+  { path: '/browse', name: 'Browse', component: Browse },
+  { path: '/sites', name: 'Sites', component: Sites },
+  { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
+  {
+    path: '/sites/:id/datastreams',
+    name: 'SiteDatastreams',
+    component: SiteDatastreams,
+  },
+  {
+    path: '/sites/:id/datastreams/form',
+    name: 'DatastreamForm',
+    component: DatastreamForm,
+  },
+  { path: '/signup', name: 'Signup', component: Signup },
+  { path: '/login', name: 'Login', component: Login },
+]

@@ -29,29 +29,29 @@
   </v-row>
 </template>
 
-<script>
-import { useAuthStore } from '@/store/authentication';
-import {ref} from "vue";
+<script lang="ts">
+import { useAuthStore } from '@/store/authentication'
+import { ref } from 'vue'
 
 export default {
   setup() {
-    const authStore = useAuthStore();
-    const email = ref('');
-    const password = ref('');
+    const authStore = useAuthStore()
+    const email = ref('')
+    const password = ref('')
 
     function loginSubmit() {
       authStore.login({
         email: email.value,
         password: password.value,
-      });
+      })
     }
 
-    return { email, password, loginSubmit };
+    return { email, password, loginSubmit }
   },
-};
+}
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .semi-opaque {
   background-color: rgba(0, 0, 0, 0.7);
   min-width: 30vw;

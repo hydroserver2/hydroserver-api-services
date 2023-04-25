@@ -11,32 +11,34 @@
       <v-btn to="/browse">Browse Monitoring Sites</v-btn>
       <v-btn href="">Visualize Data</v-btn>
       <v-btn href="" v-if="access_token">Profile</v-btn>
-      <v-btn v-if="access_token" class="btn--sub" @click.prevent="logout">Logout</v-btn>
+      <v-btn v-if="access_token" class="btn--sub" @click.prevent="logout"
+        >Logout</v-btn
+      >
       <v-btn to="/Login" v-else class="btn--sub">Login/Sign Up</v-btn>
     </v-toolbar-items>
   </v-app-bar>
 </template>
 
-<script>
-import { useAuthStore } from '@/store/authentication.js';
-import {computed} from "vue";
+<script lang="ts">
+import { useAuthStore } from '@/store/authentication'
+import { computed } from 'vue'
 
 export default {
   name: 'Navbar',
   setup() {
-    const authStore = useAuthStore();
+    const authStore = useAuthStore()
 
-    authStore.fetchAccessToken();
+    authStore.fetchAccessToken()
 
-    const access_token = computed(() => authStore.access_token);
-    const logout = authStore.logout;
+    const access_token = computed(() => authStore.access_token)
+    const logout = authStore.logout
 
     return { access_token, logout }
   },
-};
+}
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .btn--sub {
   background-color: #2980b9;
 }

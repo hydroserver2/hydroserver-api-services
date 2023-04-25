@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import axios from "@/axiosConfig"
+import { defineStore } from 'pinia'
+import axios from '@/axios.config'
 
 export const useDataStore = defineStore({
   id: 'data',
@@ -13,17 +13,17 @@ export const useDataStore = defineStore({
   }),
   actions: {
     async fetchOrGetFromCache(key, apiEndpoint) {
-      const cachedData = localStorage.getItem(key);
+      const cachedData = localStorage.getItem(key)
       if (cachedData) {
         // console.log(`Getting ${key} data from localStorage...`);
         this.cacheProperty(key, JSON.parse(cachedData))
       } else {
         // console.log(`Fetching ${key} data from API...`);
         try {
-          const { data } = await axios.get(apiEndpoint);
+          const { data } = await axios.get(apiEndpoint)
           this.cacheProperty(key, data)
         } catch (error) {
-          console.error(`Error fetching ${key} data from API`, error);
+          console.error(`Error fetching ${key} data from API`, error)
         }
       }
     },
@@ -35,25 +35,31 @@ export const useDataStore = defineStore({
       this.things.push(thing)
       localStorage.setItem('things', JSON.stringify(this.things))
     },
-    addSensor(sensor){
+    addSensor(sensor) {
       this.sensors.push(sensor)
       localStorage.setItem('sensors', JSON.stringify(this.sensors))
     },
-    addObservedProperty(observedProperty){
+    addObservedProperty(observedProperty) {
       this.observedProperties.push(observedProperty)
-      localStorage.setItem('observedProperties', JSON.stringify(this.observedProperties))
+      localStorage.setItem(
+        'observedProperties',
+        JSON.stringify(this.observedProperties)
+      )
     },
-    addUnit(unit){
+    addUnit(unit) {
       this.units.push(unit)
       localStorage.setItem('units', JSON.stringify(this.units))
     },
-    addProcessingLevel(processingLevel){
+    addProcessingLevel(processingLevel) {
       this.processingLevels.push(processingLevel)
-      localStorage.setItem('processingLevels', JSON.stringify(this.processingLevels))
+      localStorage.setItem(
+        'processingLevels',
+        JSON.stringify(this.processingLevels)
+      )
     },
-    addDatastream(datastream){
+    addDatastream(datastream) {
       this.datastreams.push(datastream)
       localStorage.setItem('datastreams', JSON.stringify(this.datastreams))
     },
   },
-});
+})
