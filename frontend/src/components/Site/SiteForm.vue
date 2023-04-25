@@ -80,7 +80,7 @@
 
 <script lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 import GoogleMap from '../GoogleMap.vue'
 

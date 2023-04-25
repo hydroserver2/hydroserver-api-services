@@ -95,7 +95,7 @@
 </template>
 
 <script lang="ts">
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import router from '@/router/router'
 
 export default {

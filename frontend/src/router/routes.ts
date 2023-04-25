@@ -1,4 +1,5 @@
 import { RouteRecordRaw } from 'vue-router'
+
 import Home from '@/components/Home.vue'
 import Sites from '@/components/Sites.vue'
 import Signup from '@/components/account/Signup.vue'
@@ -25,4 +26,15 @@ export const routes: RouteRecordRaw[] = [
   },
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },
+  {
+    path: '/:catchAll(.*)',
+    redirect: '/',
+    // TODO: implement NotFound component
+    // name: "NotFound",
+    //   component: PageNotFound,
+    //   meta: {
+    //     requiresAuth: false
+    //   }
+    // }
+  },
 ]

@@ -127,7 +127,7 @@ import SensorModal from '@/components/Site/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Site/ObservedPropertyModal.vue'
 import UnitModal from '@/components/Site/UnitModal.vue'
 import ProcessingLevelModal from '@/components/Site/ProcessingLevelModal.vue'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import router from '@/router/router'
 
 export default {

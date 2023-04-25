@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 
 export const useDataStore = defineStore({
   id: 'data',

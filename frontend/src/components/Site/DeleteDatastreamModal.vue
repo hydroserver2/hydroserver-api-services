@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import { ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 

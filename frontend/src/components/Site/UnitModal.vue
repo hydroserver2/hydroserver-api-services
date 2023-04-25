@@ -57,7 +57,7 @@
 
 <script lang="ts">
 import { ref } from 'vue'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 
 export default {

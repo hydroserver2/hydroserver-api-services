@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import { ref, watch } from 'vue'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 import router from '@/router/router'
 

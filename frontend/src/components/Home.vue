@@ -120,7 +120,7 @@ import resistanceIcon from '@/assets/resistance.svg'
 import gearIcon from '@/assets/gear.svg'
 import dbIcon from '@/assets/db.svg'
 import ogcIcon from '@/assets/ogc.png'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 
 export default {
   data() {

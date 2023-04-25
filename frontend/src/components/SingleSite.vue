@@ -127,7 +127,7 @@ import MoonIm3 from '@/assets/moon_bridge3.jpg'
 import { computed, ref } from 'vue'
 import { useDataStore } from '@/store/data'
 import { useAuthStore } from '@/store/authentication'
-import axios from '@/axios.config'
+import axios from '@/plugins/axios.config'
 import { useRoute } from 'vue-router'
 import SiteForm from '@/components/Site/SiteForm.vue'
 
