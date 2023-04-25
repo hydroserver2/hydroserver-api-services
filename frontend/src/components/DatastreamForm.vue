@@ -1,14 +1,14 @@
 <template>
   <div style="margin: 1rem">
     <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
-      <v-select
-        v-if="!datastreamId"
-        v-model="selectedDatastream"
-        label="Start from an existing datastream"
-        :items="datastreams"
-        item-title="name"
-        item-value="id"
-      ></v-select>
+    <v-select
+      v-if="!datastreamId"
+      v-model="selectedDatastream"
+      label="Start from an existing datastream"
+      :items="datastreams"
+      item-title="name"
+      item-value="id"
+    ></v-select>
 
     <div>
       <v-form @submit.prevent="uploadDatastream">
@@ -34,7 +34,10 @@
                 item-value="id"
                 no-data-text="No available properties"
               ></v-select>
-              <observed-property-modal @observedPropertyCreated="updateObservedProperties">Add New</observed-property-modal>
+              <observed-property-modal
+                @observedPropertyCreated="updateObservedProperties"
+                >Add New</observed-property-modal
+              >
             </v-col>
             <v-col cols="12" md="3">
               <v-select
@@ -56,39 +59,84 @@
                 item-value="id"
                 no-data-text="No available processing level"
               ></v-select>
-              <processing-level-modal @processingLevelCreated="updateProcessingLevels">Add New</processing-level-modal>
+              <processing-level-modal
+                @processingLevelCreated="updateProcessingLevels"
+                >Add New</processing-level-modal
+              >
             </v-col>
           </v-row>
 
-          <v-text-field v-model="ds_name" label="Datastream name" :rules="[(v) => !!v || 'Name is required']" required></v-text-field>
-          <v-textarea v-model="ds_description" label="Datastream description" auto-grow></v-textarea>
-          <v-text-field v-model="ds_sampled_medium" label="Sampled medium" :rules="[(v) => !!v || 'Sampled medium is required']" required></v-text-field>
-          <v-text-field v-model="ds_status" label="Status" :rules="[(v) => !!v || 'Status is required']" required></v-text-field>
-          <v-text-field v-model="ds_no_data_value" label="No data value" :rules="[(v) => !!v || 'No data value is required']" required></v-text-field>
-          <v-text-field v-model="ds_aggregation_statistic" label="Aggregation statistic" :rules="[(v) => !!v || 'Aggregation statistic is required']" required></v-text-field>
-          <v-text-field v-model="ds_result_type" label="Result type"></v-text-field>
-          <v-text-field v-model="ds_observation_type" label="Observation type"></v-text-field>
+          <v-text-field
+            v-model="ds_name"
+            label="Datastream name"
+            :rules="[(v) => !!v || 'Name is required']"
+            required
+          ></v-text-field>
+          <v-textarea
+            v-model="ds_description"
+            label="Datastream description"
+            auto-grow
+          ></v-textarea>
+          <v-text-field
+            v-model="ds_sampled_medium"
+            label="Sampled medium"
+            :rules="[(v) => !!v || 'Sampled medium is required']"
+            required
+          ></v-text-field>
+          <v-text-field
+            v-model="ds_status"
+            label="Status"
+            :rules="[(v) => !!v || 'Status is required']"
+            required
+          ></v-text-field>
+          <v-text-field
+            v-model="ds_no_data_value"
+            label="No data value"
+            :rules="[(v) => !!v || 'No data value is required']"
+            required
+          ></v-text-field>
+          <v-text-field
+            v-model="ds_aggregation_statistic"
+            label="Aggregation statistic"
+            :rules="[(v) => !!v || 'Aggregation statistic is required']"
+            required
+          ></v-text-field>
+          <v-text-field
+            v-model="ds_result_type"
+            label="Result type"
+          ></v-text-field>
+          <v-text-field
+            v-model="ds_observation_type"
+            label="Observation type"
+          ></v-text-field>
 
-          <v-btn type="submit" color="green">{{ datastreamId ? 'Update' : 'Save' }}</v-btn>
+          <v-btn type="submit" color="green">{{
+            datastreamId ? 'Update' : 'Save'
+          }}</v-btn>
         </v-container>
       </v-form>
     </div>
   </div>
 </template>
 
-<script>
-import {ref, watch} from "vue"
-import {useDataStore} from "@/store/data.js"
-import {useRoute} from "vue-router"
-import SensorModal from "@/components/Site/SensorModal.vue";
-import ObservedPropertyModal from "@/components/Site/ObservedPropertyModal.vue";
-import UnitModal from "@/components/Site/UnitModal.vue";
-import ProcessingLevelModal from "@/components/Site/ProcessingLevelModal.vue";
-import axios from "@/axiosConfig";
-import router from "@/router.js";
+<script lang="ts">
+import { ref, watch } from 'vue'
+import { useDataStore } from '@/store/data'
+import { useRoute } from 'vue-router'
+import SensorModal from '@/components/Site/SensorModal.vue'
+import ObservedPropertyModal from '@/components/Site/ObservedPropertyModal.vue'
+import UnitModal from '@/components/Site/UnitModal.vue'
+import ProcessingLevelModal from '@/components/Site/ProcessingLevelModal.vue'
+import axios from '@/plugins/axios.config'
+import router from '@/router/router'
 
 export default {
-  components: {ProcessingLevelModal, UnitModal, ObservedPropertyModal, SensorModal},
+  components: {
+    ProcessingLevelModal,
+    UnitModal,
+    ObservedPropertyModal,
+    SensorModal,
+  },
   setup() {
     const dataStore = useDataStore()
     const route = useRoute()
@@ -98,7 +146,7 @@ export default {
     let selectedDatastream = ref(null)
     const datastreams = ref([])
 
-    let selectedUnit= ref(null)
+    let selectedUnit = ref(null)
     let selectedObservedProperty = ref(null)
     let selectedSensor = ref(null)
     let selectedProcessingLevel = ref(null)
@@ -108,14 +156,14 @@ export default {
     let sensors = ref([])
     let processingLevels = ref([])
 
-    const ds_name = ref("");
-    const ds_description = ref("");
-    const ds_sampled_medium = ref("");
-    const ds_status = ref("");
-    const ds_no_data_value = ref("");
-    const ds_aggregation_statistic = ref("");
-    const ds_result_type = ref("");
-    const ds_observation_type = ref("");
+    const ds_name = ref('')
+    const ds_description = ref('')
+    const ds_sampled_medium = ref('')
+    const ds_status = ref('')
+    const ds_no_data_value = ref('')
+    const ds_aggregation_statistic = ref('')
+    const ds_result_type = ref('')
+    const ds_observation_type = ref('')
 
     async function updateSensors(newSensorID) {
       await dataStore.fetchOrGetFromCache('sensors', '/sensors')
@@ -124,7 +172,10 @@ export default {
     }
 
     async function updateObservedProperties(newObservedPropertyId) {
-      await dataStore.fetchOrGetFromCache('observedProperties', '/observed-properties')
+      await dataStore.fetchOrGetFromCache(
+        'observedProperties',
+        '/observed-properties'
+      )
       observedProperties.value = dataStore.observedProperties
       selectedObservedProperty.value = newObservedPropertyId
     }
@@ -136,7 +187,10 @@ export default {
     }
 
     async function updateProcessingLevels(newProcessingLevelId) {
-      await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
+      await dataStore.fetchOrGetFromCache(
+        'processingLevels',
+        '/processing-levels'
+      )
       processingLevels.value = dataStore.processingLevels
       selectedProcessingLevel.value = newProcessingLevelId
     }
@@ -147,22 +201,29 @@ export default {
       selectedDatastream.value = newDatastreamId
     }
 
-    async function populateDatastream(selectedDatastreamId = null){
+    async function populateDatastream(selectedDatastreamId = null) {
       if (selectedDatastreamId === null) selectedDatastreamId = datastreamId
-      await dataStore.fetchOrGetFromCache(`thing_${thingId}`, `/things/${thingId}`)
+      await dataStore.fetchOrGetFromCache(
+        `thing_${thingId}`,
+        `/things/${thingId}`
+      )
       const thing = dataStore[`thing_${thingId}`]
-      const datastream = thing.datastreams.find(ds => ds.id === selectedDatastreamId)
+      const datastream = thing.datastreams.find(
+        (ds) => ds.id === selectedDatastreamId
+      )
       if (datastream) populateForm(datastream)
     }
 
-    watch(selectedDatastream, () => {populateDatastream(selectedDatastream.value)})
+    watch(selectedDatastream, () => {
+      populateDatastream(selectedDatastream.value)
+    })
 
     updateSensors()
     updateObservedProperties()
     updateUnits()
     updateProcessingLevels()
 
-    if(datastreamId) populateDatastream()
+    if (datastreamId) populateDatastream()
     else populateDatastreamSelector()
 
     function populateForm(datastream) {
@@ -199,25 +260,35 @@ export default {
           observation_type: ds_observation_type.value,
         }
         if (datastreamId) {
-          await axios.put(`/datastreams/${datastreamId}`, payload);
+          await axios.put(`/datastreams/${datastreamId}`, payload)
         } else {
-          const response = await axios.post('/datastreams', payload);
+          const response = await axios.post('/datastreams', payload)
           const newDatastream = response.data
           dataStore.addDatastream(newDatastream)
         }
-        localStorage.removeItem(`thing_${thingId}`);
+        localStorage.removeItem(`thing_${thingId}`)
         await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
       } catch (error) {
-        console.log("Error Registering Datastream: ", error)
+        console.log('Error Registering Datastream: ', error)
       }
     }
 
     return {
-      observedProperties, selectedObservedProperty, updateObservedProperties,
-      sensors, selectedSensor, updateSensors,
-      units, selectedUnit, updateUnits,
-      processingLevels, selectedProcessingLevel, updateProcessingLevels,
-      selectedDatastream, datastreams, uploadDatastream,
+      observedProperties,
+      selectedObservedProperty,
+      updateObservedProperties,
+      sensors,
+      selectedSensor,
+      updateSensors,
+      units,
+      selectedUnit,
+      updateUnits,
+      processingLevels,
+      selectedProcessingLevel,
+      updateProcessingLevels,
+      selectedDatastream,
+      datastreams,
+      uploadDatastream,
       ds_name,
       ds_description,
       ds_sampled_medium,
@@ -225,7 +296,9 @@ export default {
       ds_no_data_value,
       ds_aggregation_statistic,
       ds_result_type,
-      ds_observation_type, datastreamId}
+      ds_observation_type,
+      datastreamId,
+    }
   },
 }
 </script>

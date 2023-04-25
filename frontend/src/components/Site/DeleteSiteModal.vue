@@ -5,9 +5,15 @@
         <span class="text-h5">Confirm Deletion</span>
       </v-card-title>
       <v-card-text>
-        Please type the site name (<strong>{{ siteName }}</strong>) to confirm deletion:
+        Please type the site name (<strong>{{ siteName }}</strong
+        >) to confirm deletion:
         <v-form>
-          <v-text-field v-model="deleteInput" label="Site name" solo @keydown.enter.prevent="deleteSite"></v-text-field>
+          <v-text-field
+            v-model="deleteInput"
+            label="Site name"
+            solo
+            @keydown.enter.prevent="deleteSite"
+          ></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
@@ -18,11 +24,11 @@
   </v-dialog>
 </template>
 
-<script>
-import { ref, watch } from "vue";
-import axios from "@/axiosConfig";
-import {useDataStore} from "@/store/data.js";
-import router from "@/router.js";
+<script lang="ts">
+import { ref, watch } from 'vue'
+import axios from '@/plugins/axios.config'
+import { useDataStore } from '@/store/data'
+import router from '@/router/router'
 
 export default {
   props: {
@@ -32,19 +38,19 @@ export default {
   },
   setup(props, { emit }) {
     const dataStore = useDataStore()
-    const dialog = ref(props.showDialog);
-    const deleteInput = ref("");
+    const dialog = ref(props.showDialog)
+    const deleteInput = ref('')
 
     watch(
       () => props.showDialog,
       (newValue) => {
-        dialog.value = newValue;
+        dialog.value = newValue
       }
-    );
+    )
 
     async function removeThingsFromLocalStorage() {
-      localStorage.removeItem("things");
-      dataStore.things = [];
+      localStorage.removeItem('things')
+      dataStore.things = []
       const cachedThingName = `thing_${props.siteId}`
       delete dataStore[cachedThingName]
       localStorage.removeItem(cachedThingName)
@@ -52,7 +58,7 @@ export default {
 
     async function deleteSite() {
       if (deleteInput.value !== props.siteName) {
-        console.error("Site name does not match.")
+        console.error('Site name does not match.')
         return
       }
 
@@ -60,21 +66,21 @@ export default {
         await axios.delete(`/things/${props.siteId}`)
         await removeThingsFromLocalStorage()
         close()
-        emit("deleted")
+        emit('deleted')
 
-        await dataStore.fetchOrGetFromCache('things', '/things');
-        await router.push('/sites');
+        await dataStore.fetchOrGetFromCache('things', '/things')
+        await router.push('/sites')
       } catch (error) {
-        console.error("Error deleting site:", error);
+        console.error('Error deleting site:', error)
       }
     }
 
     function close() {
-      deleteInput.value = "";
-      emit("close");
+      deleteInput.value = ''
+      emit('close')
     }
 
-    return { dialog, deleteInput, deleteSite, close };
+    return { dialog, deleteInput, deleteSite, close }
   },
-};
+}
 </script>

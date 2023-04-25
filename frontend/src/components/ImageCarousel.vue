@@ -1,6 +1,10 @@
 <template>
   <div class="carousel-container">
-    <img :src="carouselItems[currentIndex].src" :alt="carouselItems[currentIndex].alt" class="carousel-image" />
+    <img
+      :src="carouselItems[currentIndex].src"
+      :alt="carouselItems[currentIndex].alt"
+      class="carousel-image"
+    />
     <div class="carousel-controls">
       <button @click="previous" class="carousel-control">&lt;</button>
       <div class="pagination-bar">
@@ -16,35 +20,37 @@
   </div>
 </template>
 
-
-<script>
+<script lang="ts">
 export default {
-  name: "ImageCarousel",
+  name: 'ImageCarousel',
   props: {
     carouselItems: {
-      type: Array,
+      type: Array<any>,
       required: true,
     },
   },
   data() {
     return {
       currentIndex: 0,
-    };
+    }
   },
   methods: {
     previous() {
-      this.currentIndex = this.currentIndex === 0 ? this.carouselItems.length - 1 : this.currentIndex - 1;
+      this.currentIndex =
+        this.currentIndex === 0
+          ? this.carouselItems.length - 1
+          : this.currentIndex - 1
     },
     next() {
-      this.currentIndex = (this.currentIndex + 1) % this.carouselItems.length;
+      this.currentIndex = (this.currentIndex + 1) % this.carouselItems.length
     },
-    goTo(index) {
-      this.currentIndex = index;
+    goTo(index: number) {
+      this.currentIndex = index
     },
   },
-};
+}
 </script>
-<style scoped>
+<style scoped lang="scss">
 .carousel-container {
   position: relative;
   width: 100%;
@@ -103,7 +109,3 @@ export default {
   background-color: darkgrey;
 }
 </style>
-
-
-
-

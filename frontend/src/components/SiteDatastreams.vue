@@ -2,9 +2,12 @@
   <div class="manage-datastreams" style="margin: 1rem">
     <h1>Manage Site Datastreams</h1>
     <h2>{{ thingName }}</h2>
-    <v-btn style="margin-top: .5rem; margin-bottom: 1rem"
-           color="primary"
-           :to="{name: 'DatastreamForm', params: { id: thing_id } }">Add New Datastream</v-btn>
+    <v-btn
+      style="margin-top: 0.5rem; margin-bottom: 1rem"
+      color="primary"
+      :to="{ name: 'DatastreamForm', params: { id: thing_id } }"
+      >Add New Datastream</v-btn
+    >
 
     <table>
       <thead>
@@ -23,9 +26,13 @@
           <td>{{ datastream.unit_name }}</td>
           <td>{{ datastream.processing_level_name }}</td>
           <td>
-            <router-link class="action-link"
-            :to="{name: 'DatastreamForm', params: {id: thing_id, datastreamId: datastream.id}}"
-            >Edit
+            <router-link
+              class="action-link"
+              :to="{
+                name: 'DatastreamForm',
+                params: { id: thing_id, datastreamId: datastream.id },
+              }"
+              >Edit
             </router-link>
             <span class="action-link-separator"> | </span>
             <a class="action-link" @click="showModal(datastream)">Delete</a>
@@ -45,15 +52,19 @@
       @deleted="onDatastreamDeleted"
     ></delete-datastream-modal>
 
-    <v-btn color="secondary" :to="{ name: 'SingleSite', params: { id: thing_id } }">Back to Site Details</v-btn>
+    <v-btn
+      color="secondary"
+      :to="{ name: 'SingleSite', params: { id: thing_id } }"
+      >Back to Site Details</v-btn
+    >
   </div>
 </template>
 
-<script>
-import { ref } from 'vue';
-import {useRoute} from "vue-router";
-import {useDataStore} from "@/store/data.js";
-import DeleteDatastreamModal from "@/components/Site/DeleteDatastreamModal.vue";
+<script lang="ts">
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useDataStore } from '@/store/data'
+import DeleteDatastreamModal from '@/components/Site/DeleteDatastreamModal.vue'
 
 export default {
   components: {
@@ -71,33 +82,47 @@ export default {
     const selectedDatastream = ref(null)
 
     function showModal(datastream) {
-      console.log("ShowModal")
-      selectedDatastream.value = datastream;
-      showDeleteModal.value = true;
+      console.log('ShowModal')
+      selectedDatastream.value = datastream
+      showDeleteModal.value = true
     }
 
     async function onDatastreamDeleted() {
-      await dataStore.fetchOrGetFromCache(`thing_${thing_id}`, `/things/${thing_id}`)
+      await dataStore.fetchOrGetFromCache(
+        `thing_${thing_id}`,
+        `/things/${thing_id}`
+      )
       const thing = dataStore[`thing_${thing_id}`]
       thingName.value = thing.name
       datastreams.value = thing.datastreams
     }
 
     let cachedThingName = `thing_${thing_id}`
-    dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
+    dataStore
+      .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
       .then(() => {
         const thing = dataStore[cachedThingName]
         thingName.value = thing.name
         datastreams.value = thing.datastreams
       })
-      .catch((error) => {console.error("Error fetching thing data from API", error)})
+      .catch((error) => {
+        console.error('Error fetching thing data from API', error)
+      })
 
-    return {onDatastreamDeleted, thingName, datastreams, thing_id, showModal, selectedDatastream, showDeleteModal }
+    return {
+      onDatastreamDeleted,
+      thingName,
+      datastreams,
+      thing_id,
+      showModal,
+      selectedDatastream,
+      showDeleteModal,
+    }
   },
-};
+}
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 table {
   width: 100%;
   max-width: 100%;

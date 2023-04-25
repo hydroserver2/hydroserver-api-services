@@ -1,7 +1,9 @@
 <template>
   <v-dialog v-model="dialog" max-width="600px">
     <template v-slot:activator="{ on, attrs }">
-      <v-btn color="primary" dark v-bind="attrs" @click="dialog = true">Add Processing Level</v-btn>
+      <v-btn color="primary" dark v-bind="attrs" @click="dialog = true"
+        >Add Processing Level</v-btn
+      >
     </template>
     <v-card>
       <v-card-title>
@@ -11,13 +13,27 @@
         <v-container>
           <v-row>
             <v-col cols="12">
-              <v-text-field v-model="formData.processing_level_code" label="Processing Level Code" outlined required></v-text-field>
+              <v-text-field
+                v-model="formData.processing_level_code"
+                label="Processing Level Code"
+                outlined
+                required
+              ></v-text-field>
             </v-col>
             <v-col cols="12">
-              <v-textarea v-model="formData.definition" label="Definition" outlined required></v-textarea>
+              <v-textarea
+                v-model="formData.definition"
+                label="Definition"
+                outlined
+                required
+              ></v-textarea>
             </v-col>
             <v-col cols="12">
-              <v-textarea v-model="formData.explanation" label="Explanation" outlined></v-textarea>
+              <v-textarea
+                v-model="formData.explanation"
+                label="Explanation"
+                outlined
+              ></v-textarea>
             </v-col>
           </v-row>
         </v-container>
@@ -25,39 +41,44 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="blue darken-1" text @click="dialog = false">Cancel</v-btn>
-        <v-btn color="blue darken-1" text @click="createProcessingLevel">Submit</v-btn>
+        <v-btn color="blue darken-1" text @click="createProcessingLevel"
+          >Submit</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
-<script>
-import axios from "@/axiosConfig"
-import {ref} from "vue";
-import {useDataStore} from "@/store/data.js";
+<script lang="ts">
+import axios from '@/plugins/axios.config'
+import { ref } from 'vue'
+import { useDataStore } from '@/store/data'
 
 export default {
   setup(props, ctx) {
-    const dataStore = useDataStore();
-    const dialog = ref(false);
+    const dataStore = useDataStore()
+    const dialog = ref(false)
     const formData = ref({
-      processing_level_code: "",
-      definition: "",
-      explanation: ""
+      processing_level_code: '',
+      definition: '',
+      explanation: '',
     })
 
     function createProcessingLevel() {
-      axios.post('/processing-levels', formData.value)
-       .then(response => {
-         const newProcessingLevel = response.data
-         dataStore.addProcessingLevel(newProcessingLevel)
-         dialog.value = false
-         ctx.emit('processingLevelCreated', newProcessingLevel.id)
-       })
-        .catch(error => {console.log("Error Registering Processing Level: ", error)})
+      axios
+        .post('/processing-levels', formData.value)
+        .then((response) => {
+          const newProcessingLevel = response.data
+          dataStore.addProcessingLevel(newProcessingLevel)
+          dialog.value = false
+          ctx.emit('processingLevelCreated', newProcessingLevel.id)
+        })
+        .catch((error) => {
+          console.log('Error Registering Processing Level: ', error)
+        })
     }
 
-    return {formData, dialog, createProcessingLevel}
+    return { formData, dialog, createProcessingLevel }
   },
-};
+}
 </script>

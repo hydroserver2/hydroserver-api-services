@@ -14,16 +14,22 @@
         </div>
         <div class="footer-column">
           <h3>Developed By</h3>
-          <img src="@/assets/UWRL.png" alt="UWRL Logo" class="uwrl-logo">
+          <img src="@/assets/UWRL.png" alt="UWRL Logo" class="uwrl-logo" />
         </div>
         <div class="footer-column">
           <h3>Open Source</h3>
           <p>
             HydroServer is open Source. Find us on
-            <a style="color: blue" href="https://github.com/hydroserver2/hydroserver">GitHub.</a>
+            <a
+              style="color: blue"
+              href="https://github.com/hydroserver2/hydroserver"
+              >GitHub.</a
+            >
           </p>
           <p>
-            <a href="https://github.com/issues" target="_blank">Report a bug here.</a>
+            <a href="https://github.com/issues" target="_blank"
+              >Report a bug here.</a
+            >
           </p>
           <p>This is Version 0.4.0 of the Hydroserver web application.</p>
         </div>
@@ -32,10 +38,10 @@
   </v-footer>
 </template>
 
-<script>
+<script lang="ts">
 export default {
-  name: "Footer",
-};
+  name: 'Footer',
+}
 </script>
 
 <style scoped>
