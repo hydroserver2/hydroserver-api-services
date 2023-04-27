@@ -120,7 +120,12 @@
       :key="datastream.id"
     >
       <v-card class="elevation-5 flex d-flex flex-column" outlined>
-        <v-card-title>{{ datastream.observed_property_name }}</v-card-title>
+        <v-card-title
+          >{{ datastream.observed_property_name }}
+          <v-icon small class="mr-2">
+            mdi-cloud-download-outline
+          </v-icon></v-card-title
+        >
         <v-card-item v-if="datastream.observations">
           <div v-for="observation in datastream.observations">
             {{ observation.result }}----{{ observation.result_time }}
