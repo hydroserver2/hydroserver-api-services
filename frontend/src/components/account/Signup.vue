@@ -128,8 +128,10 @@ export default {
           phone: this.phone,
           address: this.address,
         })
-        console.log('Created user:', response.data)
-        await router.push('/login')
+        const { access_token, refresh_token } = response.data
+        localStorage.setItem('access_token', access_token)
+        localStorage.setItem('refresh_token', refresh_token)
+        await router.push('/profile')
       } catch (error) {
         console.error(error)
       }

@@ -164,11 +164,20 @@ def create_user(request, data: CreateUserInput):
         )
     except Exception as e:
         raise HttpError(400, str(e))
+
+    user = authenticate(username=data.email, password=data.password)
+
     user.middle_name = data.middle_name
     user.phone = data.phone
     user.address = data.address
     user.save()
-    return {'id': user.id, 'username': user.username}
+
+    token = RefreshToken.for_user(user)
+
+    return {
+        'access_token': str(token.access_token),
+        'refresh_token': str(token),
+    }
 
 
 def user_to_dict(user):
