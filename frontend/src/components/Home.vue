@@ -1,29 +1,29 @@
 <template>
   <div>
     <div class="image-container">
-      <v-container fluid>
-        <v-row class="fill-height" no-gutters>
-          <v-col
-            cols="12"
-            sm="6"
-            class="text-container full-height d-flex align-center"
-          >
-            <div>
-              <h1>Collect and Manage Your Operational Hydrologic Data</h1>
-              <v-btn color="primary">See how it works</v-btn>
-            </div>
-          </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-            class="cards-container full-height d-flex align-center"
-          >
-            <Login />
-          </v-col>
-        </v-row>
-      </v-container>
+      <div
+        class="text-container full-height d-flex flex-column justify-center align-start"
+      >
+        <h1 style="margin-bottom: 1.5rem">
+          Collect and Manage Your Operational Hydrologic Data
+        </h1>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed imperdiet
+          justo augue, vel dapibus massa mattis ac. Nulla congue rhoncus velit,
+          nec lobortis mauris pulvinar non. Donec nec vestibulum mauris.
+        </p>
+        <v-btn
+          color="green-darken-2"
+          variant="outlined"
+          style="margin-top: 1.5rem"
+        >
+          <i class="fas fa-play"></i>
+          How it works</v-btn
+        >
+      </div>
     </div>
 
+    <hr />
     <v-container fluid>
       <v-row>
         <v-col class="text-center">
@@ -110,7 +110,29 @@
       </v-row>
     </v-container>
   </div>
-  <v-btn @click="sayHello">Click to say Hello</v-btn>
+  <hr />
+  <h2 style="margin-bottom: 1.5rem; margin-top: 5rem">
+    Operational Data for Modeling
+  </h2>
+  <h4 style="margin-bottom: 1.5rem">
+    Your data can improve NOAA's water prediction services
+  </h4>
+  <p style="margin-bottom: 5rem">
+    NOAA's National Water Model can assimilate streamflow data from operational
+    monitoring sites like yours. Contribute your streamflow data to make it
+    available to support continental-scale hydrologic modeling and forecasting
+    via the National Water Model.
+  </p>
+
+  <hr />
+  <h2 style="margin-bottom: 1.5rem; margin-top: 3rem">
+    Open Standards Data Sharing
+  </h2>
+  <p style="margin-bottom: 5rem">
+    Share your data publicly using the latest Open Geospatial Consortium web
+    services standard SensorThings.
+  </p>
+  <!--  <v-btn @click="sayHello">Click to say Hello</v-btn>-->
 </template>
 
 <script lang="ts">
@@ -148,15 +170,30 @@ export default {
 
 <style scoped lang="scss">
 .image-container {
-  background-image: url('@/assets/dam-background.jpg');
-  background-size: cover;
-  background-position: center;
-  height: 40vh;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  height: 60vh;
 }
 
 .text-container {
-  padding: 0 5%;
-  color: white;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+@media only screen and (max-width: 767px) {
+  .text-container {
+    width: 100%;
+    position: static;
+    transform: none;
+    margin-top: 20px;
+  }
 }
 
 .icon-wrapper {
@@ -168,5 +205,9 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+i.fas.fa-play {
+  padding-right: 1rem;
 }
 </style>
