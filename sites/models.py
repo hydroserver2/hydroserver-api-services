@@ -37,7 +37,7 @@ class Location(models.Model):
 
 class Sensor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     encoding_type = models.CharField(max_length=255, blank=True, null=True)  # CV Table or constant?
@@ -58,7 +58,7 @@ class Sensor(models.Model):
 class ObservedProperty(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     definition = models.TextField()
     description = models.TextField()
     variable_type = models.CharField(max_length=50, blank=True, null=True)
@@ -77,7 +77,7 @@ class FeatureOfInterest(models.Model):
 
 
 class ProcessingLevel(models.Model):
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels')
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
     processing_level_code = models.CharField(max_length=255)
     definition = models.TextField()
     explanation = models.TextField()
@@ -88,7 +88,7 @@ class ProcessingLevel(models.Model):
 
 class Unit(models.Model):
     name = models.CharField(max_length=100)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     symbol = models.CharField(max_length=50)
     definition = models.TextField()
     unit_type = models.CharField(max_length=100)

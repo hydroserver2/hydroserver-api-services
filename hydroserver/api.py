@@ -822,7 +822,7 @@ def unit_to_dict(unit):
 
 @api.get('/units', auth=jwt_auth)
 def get_units(request):
-    units = Unit.objects.filter(person=request.authenticated_user)
+    units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
 
 
@@ -902,7 +902,7 @@ def processing_level_to_dict(processing_level):
 
 @api.get('/processing-levels', auth=jwt_auth)
 def get_processing_levels(request):
-    processing_levels = ProcessingLevel.objects.filter(person=request.authenticated_user)
+    processing_levels = ProcessingLevel.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([processing_level_to_dict(pl) for pl in processing_levels], safe=False)
 
 
