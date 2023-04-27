@@ -120,7 +120,14 @@
       :key="datastream.id"
     >
       <v-card class="elevation-5 flex d-flex flex-column" outlined>
-        <v-card-title>{{ datastream.name }}</v-card-title>
+        <v-card-title>{{ datastream.observed_property_name }}</v-card-title>
+        <v-card-item v-if="datastream.observations">
+          <div v-for="observation in datastream.observations">
+            {{ observation.result }}----{{ observation.result_time }}
+          </div>
+          {{ datastream.unit_name }}
+        </v-card-item>
+        <v-card-item v-else>No data for this datastream</v-card-item>
       </v-card>
     </v-col>
   </v-row>

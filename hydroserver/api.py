@@ -75,6 +75,7 @@ def datastream_ownership_required(func):
     """
     Decorator for datastream views that checks the user is logged in and is an owner of the related datastream's thing.
     """
+
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         jwt_auth(request)
@@ -617,7 +618,17 @@ class CreateDatastreamInput(Schema):
     result_end_time: str = None
 
 
-def datastream_to_dict(datastream):
+def datastream_to_dict(datastream, add_recent_observations=True):
+    observation_list = []
+    if add_recent_observations:
+        observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')[:30]
+        for observation in observations:
+            observation_list.append({
+                "id": observation.id,
+                "result": observation.result,
+                "result_time": observation.result_time,
+            })
+
     return {
         "id": datastream.pk,
         "name": datastream.name,
@@ -628,6 +639,7 @@ def datastream_to_dict(datastream):
         "sampled_medium": datastream.sampled_medium,
         "no_data_value": datastream.no_data_value,
         "aggregation_statistic": datastream.aggregation_statistic,
+        "observations": observation_list if observation_list else None,
 
         "unit_id": datastream.unit.pk if datastream.unit else None,
         "observed_property_id": datastream.observed_property.pk if datastream.observed_property else None,
@@ -856,7 +868,7 @@ def create_unit(request, data: CreateUnitInput):
 
 class UpdateUnitInput(Schema):
     name: str
-    symbol:  str
+    symbol: str
     definition: str
     unit_type: str
 
@@ -925,4 +937,3 @@ def create_processing_level(request, data: ProcessingLevelInput):
     )
 
     return JsonResponse(processing_level_to_dict(processing_level))
-

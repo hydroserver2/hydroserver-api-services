@@ -21,7 +21,7 @@ export const routes: RouteRecordRaw[] = [
     component: SiteDatastreams,
   },
   {
-    path: '/sites/:id/datastreams/form',
+    path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',
     component: DatastreamForm,
   },
