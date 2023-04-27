@@ -44,6 +44,10 @@
       <div class="table-container">
         <table>
           <tr>
+            <td><i class="fas fa-id-badge"></i> ID</td>
+            <td>{{ thing?.id }}</td>
+          </tr>
+          <tr>
             <td><i class="fas fa-barcode"></i> Site Code</td>
             <td>{{ thing?.sampling_feature_code }}</td>
           </tr>
@@ -60,10 +64,6 @@
             <td>{{ thing?.elevation }}</td>
           </tr>
           <tr>
-            <td><i class="fas fa-id-badge"></i> ID</td>
-            <td>{{ thing?.id }}</td>
-          </tr>
-          <tr>
             <td><i class="fas fa-file-alt"></i> Description</td>
             <td>{{ thing?.description }}</td>
           </tr>
@@ -75,13 +75,22 @@
             <td><i class="fas fa-map-pin"></i> Site Type</td>
             <td>{{ thing?.site_type }}</td>
           </tr>
-          <tr>
-            <td><i class="fas fa-users"></i> Followers</td>
-            <td>{{ thing?.followers }}</td>
-          </tr>
+          <!--          <tr>-->
+          <!--            <td><i class="fas fa-users"></i> Followers</td>-->
+          <!--            <td>{{ thing?.followers }}</td>-->
+          <!--          </tr>-->
           <tr>
             <td><i class="fas fa-flag-usa"></i>State</td>
             <td>{{ thing?.state }}</td>
+          </tr>
+          <tr>
+            <td><i class="fas fa-flag-usa"></i>Site Owners</td>
+            <td v-for="owner in thing?.owners">
+              <li style="list-style: none">
+                {{ owner.firstname }} {{ owner.lastname }}:
+                {{ owner.organization }}
+              </li>
+            </td>
           </tr>
         </table>
       </div>
@@ -185,6 +194,7 @@ export default {
         .then(() => {
           thing.value = dataStore[cachedThingName]
           followsThing.value = thing.value.follows_thing
+          console.log('Thing: ', thing.value)
         })
         .catch((error) => {
           console.error('Error fetching thing data from API', error)

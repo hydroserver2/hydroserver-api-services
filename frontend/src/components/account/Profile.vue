@@ -80,7 +80,6 @@ export default {
 
     function loadAccount() {
       dataStore.fetchOrGetFromCache('user', '/user').then(() => {
-        console.log('Updated User:', dataStore.user)
         Object.assign(user, dataStore.user)
       })
     }

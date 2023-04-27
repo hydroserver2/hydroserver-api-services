@@ -8,7 +8,7 @@ import SingleSite from '@/components/SingleSite.vue'
 import Browse from '@/components/Browse.vue'
 import SiteDatastreams from '@/components/SiteDatastreams.vue'
 import DatastreamForm from '@/components/DatastreamForm.vue'
-import Profile from '@/components/account/profile.vue'
+import Profile from '@/components/account/Profile.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Home', component: Home },
