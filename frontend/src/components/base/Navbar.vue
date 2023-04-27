@@ -13,7 +13,7 @@
     </v-toolbar-items>
     <v-spacer></v-spacer>
     <v-toolbar-items class="toolbar-items">
-      <v-btn href="" v-if="access_token">Profile</v-btn>
+      <v-btn href="/profile" v-if="access_token">Profile</v-btn>
       <v-btn v-if="access_token" class="btn--sub" @click.prevent="logout"
         >Logout</v-btn
       >

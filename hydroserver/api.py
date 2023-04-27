@@ -171,21 +171,8 @@ def create_user(request, data: CreateUserInput):
     return {'id': user.id, 'username': user.username}
 
 
-@api.get("/user/data", auth=jwt_auth)
-def get_user_data(request):
-    """
-    Gets all data related to the user to be cached in the browser
-    """
-    thing_associations = ThingAssociation.objects.select_related('thing', 'person').prefetch_related(
-        'thing__location').filter(person=request.authenticated_user)
-
-    owned_things = [thing_to_dict(association.thing, is_primary_owner=association.is_primary_owner)
-                    for association in thing_associations if association.owns_thing]
-    followed_things = [thing_to_dict(association.thing)
-                       for association in thing_associations if association.follows_thing]
-
-    user = request.authenticated_user
-    user_dict = {
+def user_to_dict(user):
+    return {
         "id": user.id,
         "email": user.email,
         "first_name": user.first_name,
@@ -196,33 +183,24 @@ def get_user_data(request):
         "organization": user.organization,
     }
 
-    datastreams = Datastream.objects.filter(thing__associates__person=user).distinct().prefetch_related('unit')
-    sensors = Sensor.objects.filter(datastreams__in=datastreams).distinct()
-    observed_properties = ObservedProperty.objects.filter(person=user).distinct()
-    units = Unit.objects.filter(person=user).distinct()
 
-    return JsonResponse({
-        'user': user_dict,
-        'owned_things': owned_things,
-        'followed_things': followed_things,
-        'datastreams': list(datastreams.values()),
-        'sensors': list(sensors.values()),
-        'observed_properties': list(observed_properties.values()),
-        'units': list(units.values())
-    })
+@api.get("/user", auth=jwt_auth)
+def get_user(request):
+    return JsonResponse(user_to_dict(request.authenticated_user))
 
 
 class UpdateUserInput(Schema):
     first_name: str = None
     last_name: str = None
-    email: str = None
-    password: str = None
+    # email: str = None
+    # password: str = None
     middle_name: str = None
     phone: str = None
     address: str = None
+    organization: str = None
 
 
-@api.put('/user', auth=jwt_auth)
+@api.patch('/user', auth=jwt_auth)
 def update_user(request, data: UpdateUserInput):
     user = request.authenticated_user
 
@@ -230,20 +208,24 @@ def update_user(request, data: UpdateUserInput):
         user.first_name = data.first_name
     if data.last_name:
         user.last_name = data.last_name
-    if data.email:
-        user.email = data.email
-        user.username = data.email
-    if data.middle_name:
-        user.middle_name = data.middle_name
+    # I don't think we want this editable
+    # if data.email:
+    #     user.email = data.email
+    #     user.username = data.email
+    # if data.middle_name:
+    user.middle_name = data.middle_name
     if data.phone:
         user.phone = data.phone
     if data.address:
         user.address = data.address
-    if data.password:
-        user.set_password(data.password)
+    if data.organization:
+        user.organization = data.organization
+    # Probably want a seperate
+    # if data.password:
+    #     user.set_password(data.password)
 
     user.save()
-    return {'detail': 'Your account has been updated!'}
+    return JsonResponse(user_to_dict(user))
 
 
 @api.delete('/user', auth=jwt_auth)
