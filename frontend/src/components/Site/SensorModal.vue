@@ -92,69 +92,57 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { computed, ref } from 'vue'
+<script setup lang="ts">
+import { computed, ref, defineEmits } from 'vue'
 import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 
-export default {
-  setup(props, ctx) {
-    const dataStore = useDataStore()
-    const dialog = ref(false)
-    const formData = ref({
-      manufacturer: '',
-      model: '',
-      name: '',
-      description: '',
-      encoding_type: '',
-      model_url: '',
-      method_link: '',
-      method_code: '',
-      method_type: 'Instrument Deployment',
-    })
-    const allowedMethodTypes = ref([
-      'Derivation',
-      'Estimation',
-      'Instrument Deployment',
-      'Observation',
-      'Simulation',
-      'Specimen Analysis',
-      'Unknown',
-    ])
+const dataStore = useDataStore()
+const dialog = ref(false)
+const formData = ref({
+  manufacturer: '',
+  model: '',
+  name: '',
+  description: '',
+  encoding_type: '',
+  model_url: '',
+  method_link: '',
+  method_code: '',
+  method_type: 'Instrument Deployment',
+})
+const allowedMethodTypes = ref([
+  'Derivation',
+  'Estimation',
+  'Instrument Deployment',
+  'Observation',
+  'Simulation',
+  'Specimen Analysis',
+  'Unknown',
+])
 
-    const isSensorMethod = computed(
-      () => formData.value.method_type === 'Instrument Deployment'
-    )
+const isSensorMethod = computed(
+  () => formData.value.method_type === 'Instrument Deployment'
+)
 
-    function createSensor() {
-      if (
-        formData.value.method_type === 'Instrument Deployment' &&
-        formData.value.manufacturer &&
-        formData.value.model
-      ) {
-        formData.value.name =
-          formData.value.manufacturer + ': ' + formData.value.model
-      }
-      axios
-        .post('/sensors', formData.value)
-        .then((response) => {
-          const newSensor = response.data
-          dataStore.addSensor(newSensor)
-          dialog.value = false
-          ctx.emit('sensorCreated', String(newSensor.id))
-        })
-        .catch((error) => {
-          console.log('Error Registering Sensor: ', error)
-        })
-    }
+const emit = defineEmits(['sensorCreated'])
 
-    return {
-      formData,
-      dialog,
-      allowedMethodTypes,
-      isSensorMethod,
-      createSensor,
-    }
-  },
+async function createSensor() {
+  if (
+    formData.value.method_type === 'Instrument Deployment' &&
+    formData.value.manufacturer &&
+    formData.value.model
+  ) {
+    formData.value.name =
+      formData.value.manufacturer + ': ' + formData.value.model
+  }
+  try {
+    const response = await axios.post('/sensors', formData.value)
+    const newSensor = response.data
+    dataStore.addSensor(newSensor)
+    dialog.value = false
+    emit('sensorCreated', String(newSensor.id))
+  } catch (error) {
+    console.log('Error Registering Sensor: ', error)
+  }
 }
 </script>

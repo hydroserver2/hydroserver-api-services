@@ -94,48 +94,42 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import axios from '@/plugins/axios.config'
 import router from '@/router/router'
+import { ref } from 'vue'
 
-export default {
-  data() {
-    return {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      middleName: '',
-      phone: '',
-      address: '',
-    }
-  },
-  methods: {
-    async submitForm() {
-      if (this.password !== this.confirmPassword) {
-        alert('Passwords do not match!')
-        return
-      }
+const firstName = ref('')
+const lastName = ref('')
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+const middleName = ref('')
+const phone = ref('')
+const address = ref('')
 
-      try {
-        const response = await axios.post('/user', {
-          first_name: this.firstName,
-          last_name: this.lastName,
-          email: this.email,
-          password: this.password,
-          middle_name: this.middleName,
-          phone: this.phone,
-          address: this.address,
-        })
-        const { access_token, refresh_token } = response.data
-        localStorage.setItem('access_token', access_token)
-        localStorage.setItem('refresh_token', refresh_token)
-        await router.push('/profile')
-      } catch (error) {
-        console.error(error)
-      }
-    },
-  },
+async function submitForm() {
+  if (password.value !== confirmPassword.value) {
+    alert('Passwords do not match!')
+    return
+  }
+
+  try {
+    const response = await axios.post('/user', {
+      first_name: firstName.value,
+      last_name: lastName.value,
+      email: email.value,
+      password: password.value,
+      middle_name: middleName.value,
+      phone: phone.value,
+      address: address.value,
+    })
+    const { access_token, refresh_token } = response.data
+    localStorage.setItem('access_token', access_token)
+    localStorage.setItem('refresh_token', refresh_token)
+    await router.push('/profile')
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>

@@ -31,39 +31,32 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import GoogleMap from '@/components/GoogleMap.vue'
 import { useDataStore } from '@/store/data'
 import { ref } from 'vue'
 
-export default {
-  components: { GoogleMap },
-  setup() {
-    const dataStore = useDataStore()
-    const siteTypes = ref([
-      'Atmosphere',
-      'Ditch',
-      'Lake',
-      'Ocean',
-      'River',
-      'Spring',
-      'Stream',
-      'Wetland',
-      'Well',
-      'Other',
-    ])
-    const selectedSiteTypes = ref([])
-    const markers = ref(null)
+const dataStore = useDataStore()
+const siteTypes = ref([
+  'Atmosphere',
+  'Ditch',
+  'Lake',
+  'Ocean',
+  'River',
+  'Spring',
+  'Stream',
+  'Wetland',
+  'Well',
+  'Other',
+])
+const selectedSiteTypes = ref([])
+const markers = ref(null)
 
-    function clearFilters() {
-      selectedSiteTypes.value = []
-    }
-
-    dataStore.fetchOrGetFromCache('things', '/things').then(() => {
-      markers.value = dataStore.things
-    })
-
-    return { siteTypes, selectedSiteTypes, markers, clearFilters }
-  },
+function clearFilters() {
+  selectedSiteTypes.value = []
 }
+
+dataStore.fetchOrGetFromCache('things', '/things').then(() => {
+  markers.value = dataStore.things
+})
 </script>

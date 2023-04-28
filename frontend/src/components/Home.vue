@@ -132,40 +132,13 @@
     Share your data publicly using the latest Open Geospatial Consortium web
     services standard SensorThings.
   </p>
-  <!--  <v-btn @click="sayHello">Click to say Hello</v-btn>-->
 </template>
 
-<script lang="ts">
-import Login from '@/components/account/Login.vue'
-import Signup from '@/components/account/Signup.vue'
+<script setup lang="ts">
 import resistanceIcon from '@/assets/resistance.svg'
 import gearIcon from '@/assets/gear.svg'
 import dbIcon from '@/assets/db.svg'
 import ogcIcon from '@/assets/ogc.png'
-import axios from '@/plugins/axios.config'
-
-export default {
-  data() {
-    return {
-      resistanceIcon,
-      gearIcon,
-      dbIcon,
-      ogcIcon,
-    }
-  },
-  components: { Login, Signup },
-  name: 'Home',
-  methods: {
-    async sayHello() {
-      try {
-        const response = await axios.post('/hello')
-        console.log('Back from Server. It says', response.data)
-      } catch (error) {
-        console.error('Error calling /hello endpoint:', error)
-      }
-    },
-  },
-}
 </script>
 
 <style scoped lang="scss">

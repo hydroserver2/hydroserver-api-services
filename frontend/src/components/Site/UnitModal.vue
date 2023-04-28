@@ -55,37 +55,31 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 
-export default {
-  setup(props, ctx) {
-    const dataStore = useDataStore()
-    const dialog = ref(false)
-    const formData = ref({
-      name: '',
-      symbol: '',
-      definition: '',
-      unit_type: '',
-    })
+const emit = defineEmits(['unitCreated'])
 
-    function createUnit() {
-      axios
-        .post('/units', formData.value)
-        .then((response) => {
-          const newUnit = response.data
-          dataStore.addUnit(newUnit)
-          dialog.value = false
-          ctx.emit('unitCreated', newUnit.id)
-        })
-        .catch((error) => {
-          console.log('Error Registering Unit: ', error)
-        })
-    }
+const dataStore = useDataStore()
+const dialog = ref(false)
+const formData = ref({
+  name: '',
+  symbol: '',
+  definition: '',
+  unit_type: '',
+})
 
-    return { formData, dialog, createUnit }
-  },
+async function createUnit() {
+  try {
+    const response = await axios.post('/units', formData.value)
+    const newUnit = response.data
+    dataStore.addUnit(newUnit)
+    dialog.value = false
+    emit('unitCreated', newUnit.id)
+  } catch (error) {
+    console.log('Error Registering Unit: ', error)
+  }
 }
 </script>

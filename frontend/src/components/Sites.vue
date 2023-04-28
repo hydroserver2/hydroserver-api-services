@@ -90,50 +90,28 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import GoogleMap from '@/components/GoogleMap.vue'
 import { useDataStore } from '@/store/data'
 import SiteForm from '@/components/Site/SiteForm.vue'
 
-export default {
-  name: 'Sites',
-  components: {
-    SiteForm,
-    GoogleMap,
-  },
-  setup() {
-    const dataStore = useDataStore()
-    const showRegisterSiteModal = ref(false)
-    const ownedThings = ref([])
-    const followedThings = ref([])
-    const markers = ref(null)
+const dataStore = useDataStore()
+const showRegisterSiteModal = ref(false)
+const ownedThings = ref([])
+const followedThings = ref([])
+const markers = ref(null)
 
-    const sitesLoaded = computed(
-      () => ownedThings.value && followedThings.value
-    )
+const sitesLoaded = computed(() => ownedThings.value && followedThings.value)
 
-    async function updateMarkers() {
-      await dataStore.fetchOrGetFromCache('things', '/things')
-      ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
-      followedThings.value = dataStore.things.filter(
-        (thing) => thing.follows_thing
-      )
-      markers.value = [...ownedThings.value, ...followedThings.value]
-    }
-
-    updateMarkers()
-
-    return {
-      showRegisterSiteModal,
-      ownedThings,
-      followedThings,
-      markers,
-      sitesLoaded,
-      updateMarkers,
-    }
-  },
+async function updateMarkers() {
+  await dataStore.fetchOrGetFromCache('things', '/things')
+  ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
+  followedThings.value = dataStore.things.filter((thing) => thing.follows_thing)
+  markers.value = [...ownedThings.value, ...followedThings.value]
 }
+
+updateMarkers()
 </script>
 
 <style scoped lang="scss">

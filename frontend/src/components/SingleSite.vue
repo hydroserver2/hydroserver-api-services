@@ -140,7 +140,7 @@
   </v-row>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import GoogleMap from '../components/GoogleMap.vue'
 import ImageCarousel from '../components/ImageCarousel.vue'
 import DeleteSiteModal from '@/components/Site/DeleteSiteModal.vue'
@@ -154,99 +154,72 @@ import axios from '@/plugins/axios.config'
 import { useRoute } from 'vue-router'
 import SiteForm from '@/components/Site/SiteForm.vue'
 
-export default {
-  name: 'SingleSite',
-  components: {
-    SiteForm,
-    GoogleMap,
-    ImageCarousel,
-    DeleteSiteModal,
+const authStore = useAuthStore()
+const dataStore = useDataStore()
+const route = useRoute()
+
+authStore.fetchAccessToken()
+const showRegisterSiteModal = ref(false)
+const thing_id = route.params.id.toString()
+const thing = ref(null)
+const showDeleteModal = ref(false)
+const carouselItems = ref([
+  {
+    src: MoonIm1,
+    alt: 'Moon1',
   },
-  setup() {
-    const authStore = useAuthStore()
-    const dataStore = useDataStore()
-    const route = useRoute()
-
-    authStore.fetchAccessToken()
-    const showRegisterSiteModal = ref(false)
-    const thing_id = route.params.id.toString()
-    const thing = ref(null)
-    const showDeleteModal = ref(false)
-    const currentSlide = ref(0)
-    const carouselItems = ref([
-      {
-        src: MoonIm1,
-        alt: 'Moon1',
-      },
-      {
-        src: MoonIm2,
-        alt: 'Moon2',
-      },
-      {
-        src: MoonIm3,
-        alt: 'Moon3',
-      },
-    ])
-
-    const isAuthenticated = computed(() => !!authStore.access_token)
-    const isLoaded = computed(() => thing.value)
-    const mapOptions = computed(() =>
-      thing.value
-        ? {
-            center: { lat: thing.value.latitude, lng: thing.value.longitude },
-            zoom: 16,
-            mapTypeId: 'satellite',
-          }
-        : null
-    )
-
-    let cachedThingName = `thing_${thing_id}`
-    const followsThing = ref(false)
-    function loadThing() {
-      dataStore
-        .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-        .then(() => {
-          thing.value = dataStore[cachedThingName]
-          followsThing.value = thing.value.follows_thing
-          console.log('Thing: ', thing.value)
-        })
-        .catch((error) => {
-          console.error('Error fetching thing data from API', error)
-        })
-    }
-
-    loadThing()
-
-    function updateFollow() {
-      axios
-        .get(`/things/${thing_id}/ownership`)
-        .then((response) => {
-          dataStore.cacheProperty(cachedThingName, response.data)
-          localStorage.removeItem('things')
-          dataStore.things = []
-          thing.value = dataStore[cachedThingName]
-          followsThing.value = thing.value.follows_thing
-        })
-        .catch((error) => {
-          console.error('Error updating follow status:', error)
-        })
-    }
-
-    return {
-      loadThing,
-      showRegisterSiteModal,
-      isLoaded,
-      mapOptions,
-      currentSlide,
-      carouselItems,
-      thing,
-      isAuthenticated,
-      followsThing,
-      updateFollow,
-      showDeleteModal,
-      thing_id,
-    }
+  {
+    src: MoonIm2,
+    alt: 'Moon2',
   },
+  {
+    src: MoonIm3,
+    alt: 'Moon3',
+  },
+])
+
+const isAuthenticated = computed(() => !!authStore.access_token)
+const isLoaded = computed(() => thing.value)
+const mapOptions = computed(() =>
+  thing.value
+    ? {
+        center: { lat: thing.value.latitude, lng: thing.value.longitude },
+        zoom: 16,
+        mapTypeId: 'satellite',
+      }
+    : null
+)
+
+let cachedThingName = `thing_${thing_id}`
+const followsThing = ref(false)
+function loadThing() {
+  dataStore
+    .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
+    .then(() => {
+      thing.value = dataStore[cachedThingName]
+      followsThing.value = thing.value.follows_thing
+      console.log('Thing: ', thing.value)
+    })
+    .catch((error) => {
+      console.error('Error fetching thing data from API', error)
+    })
+}
+
+loadThing()
+
+function updateFollow() {
+  axios
+    .get(`/things/${thing_id}/ownership`)
+    .then((response) => {
+      dataStore.cacheProperty(cachedThingName, response.data)
+      localStorage.removeItem('things')
+      dataStore.things = []
+      thing.value = dataStore[cachedThingName]
+      followsThing.value = thing.value.follows_thing
+    })
+    .catch((error) => {
+      console.error('Error updating follow status:', error)
+    })
 }
 </script>
 

@@ -63,38 +63,32 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, defineEmits } from 'vue'
 import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 
-export default {
-  setup(props, ctx) {
-    const dataStore = useDataStore()
-    const dialog = ref(false)
-    const formData = ref({
-      name: '',
-      definition: '',
-      description: '',
-      variable_type: '',
-      variable_code: '',
-    })
+const dataStore = useDataStore()
+const dialog = ref(false)
+const formData = ref({
+  name: '',
+  definition: '',
+  description: '',
+  variable_type: '',
+  variable_code: '',
+})
 
-    function createObservedProperty() {
-      axios
-        .post('/observed-properties', formData.value)
-        .then((response) => {
-          const newObservedProperty = response.data
-          dataStore.addObservedProperty(newObservedProperty)
-          dialog.value = false
-          ctx.emit('observedPropertyCreated', String(newObservedProperty.id))
-        })
-        .catch((error) => {
-          console.log('Error Registering Observed Property: ', error)
-        })
-    }
+const emit = defineEmits(['observedPropertyCreated'])
 
-    return { formData, dialog, createObservedProperty }
-  },
+async function createObservedProperty() {
+  try {
+    const response = await axios.post('/observed-properties', formData.value)
+    const newObservedProperty = response.data
+    dataStore.addObservedProperty(newObservedProperty)
+    dialog.value = false
+    emit('observedPropertyCreated', String(newObservedProperty.id))
+  } catch (error) {
+    console.log('Error Registering Observed Property: ', error)
+  }
 }
 </script>

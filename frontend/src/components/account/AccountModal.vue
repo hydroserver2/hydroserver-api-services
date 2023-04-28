@@ -1,9 +1,7 @@
 <template>
   <v-dialog v-model="dialog" activator="parent" max-width="600px">
     <v-card>
-      <v-card-title>
-        <span class="headline">Edit Profile</span>
-      </v-card-title>
+      <v-card-title>Edit Profile </v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -67,34 +65,29 @@
   </v-dialog>
 </template>
 
-<script>
+<script setup>
 import { useDataStore } from '@/store/data.ts'
-import { reactive, ref } from 'vue'
+import { reactive, ref, defineEmits } from 'vue'
 import axios from 'axios'
 
-export default {
-  name: 'AccountModal',
-  setup(props, ctx) {
-    const dataStore = useDataStore()
-    const user = reactive({})
-    const dialog = ref(false)
+const emit = defineEmits(['accountUpdated'])
+const dataStore = useDataStore()
+const user = reactive({})
+const dialog = ref(false)
 
-    dataStore.fetchOrGetFromCache('user', '/user').then(() => {
-      Object.assign(user, dataStore.user)
-    })
+dataStore.fetchOrGetFromCache('user', '/user').then(() => {
+  Object.assign(user, dataStore.user)
+})
 
-    function updateUser() {
-      axios.patch('/user', user).then((response) => {
-        const datastore = useDataStore()
-        datastore.cacheProperty('user', response.data)
-        dialog.value = false
-        ctx.emit('accountUpdated')
-      })
-    }
-
-    return { user, updateUser, dialog }
-  },
+async function updateUser() {
+  try {
+    const response = await axios.patch('/user', user)
+    const datastore = useDataStore()
+    datastore.cacheProperty('user', response.data)
+    dialog.value = false
+    emit('accountUpdated')
+  } catch (error) {
+    console.error('Failed to update user:', error)
+  }
 }
 </script>
-
-<style scoped></style>

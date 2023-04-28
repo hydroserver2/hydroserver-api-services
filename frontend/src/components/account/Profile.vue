@@ -66,28 +66,20 @@
   </v-container>
 </template>
 
-<script>
+<script setup>
 import { useDataStore } from '@/store/data.ts'
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import AccountModal from '@/components/account/AccountModal.vue'
 
-export default {
-  name: 'Profile',
-  components: { AccountModal },
-  setup() {
-    const dataStore = useDataStore()
-    let user = reactive({})
+const dataStore = useDataStore()
+let user = reactive({})
 
-    function loadAccount() {
-      dataStore.fetchOrGetFromCache('user', '/user').then(() => {
-        Object.assign(user, dataStore.user)
-      })
-    }
-    loadAccount()
-
-    return { user, loadAccount }
-  },
+function loadAccount() {
+  dataStore.fetchOrGetFromCache('user', '/user').then(() => {
+    Object.assign(user, dataStore.user)
+  })
 }
+loadAccount()
 </script>
 
 <style scoped>

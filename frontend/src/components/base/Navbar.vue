@@ -1,10 +1,5 @@
 <template>
   <v-app-bar app class="base-navbar">
-    <!--    <v-toolbar-title>-->
-    <!--      <router-link to="/" class="header__logo">-->
-    <!--        <v-img src="" alt="Hydro Server Logo" />CIROH HIS-->
-    <!--      </router-link>-->
-    <!--    </v-toolbar-title>-->
     <v-toolbar-items>
       <v-btn to="/">Home</v-btn>
       <v-btn to="/sites" v-if="access_token">My Sites</v-btn>
@@ -22,23 +17,15 @@
   </v-app-bar>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
 import { computed } from 'vue'
 
-export default {
-  name: 'Navbar',
-  setup() {
-    const authStore = useAuthStore()
+const authStore = useAuthStore()
+authStore.fetchAccessToken()
 
-    authStore.fetchAccessToken()
-
-    const access_token = computed(() => authStore.access_token)
-    const logout = authStore.logout
-
-    return { access_token, logout }
-  },
-}
+const access_token = computed(() => authStore.access_token)
+const logout = authStore.logout
 </script>
 
 <style scoped lang="scss">

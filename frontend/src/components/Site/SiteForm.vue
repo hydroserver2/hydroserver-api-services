@@ -78,127 +78,91 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { computed, ref, watch, watchEffect } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 import GoogleMap from '../GoogleMap.vue'
 
-export default {
-  components: { GoogleMap },
-  props: { thingId: String },
-  setup(props, ctx) {
-    const dialog = ref(true)
-    const formData = ref({
-      name: '',
-      description: '',
-      sampling_feature_type: '',
-      sampling_feature_code: '',
-      site_type: '',
-      latitude: null,
-      longitude: null,
-      elevation: null,
-      state: '',
-      country: '',
-    })
-    const formFields = [
-      { name: 'name', label: 'Name', type: 'text' },
-      { name: 'description', label: 'Description', type: 'text' },
-      {
-        name: 'sampling_feature_type',
-        label: 'Sampling Feature Type',
-        type: 'text',
-      },
-      {
-        name: 'sampling_feature_code',
-        label: 'Sampling Feature Code',
-        type: 'text',
-      },
-      { name: 'site_type', label: 'Site Type', type: 'text' },
-      { name: 'latitude', label: 'Latitude', type: 'number' },
-      { name: 'longitude', label: 'Longitude', type: 'number' },
-      { name: 'elevation', label: 'Elevation', type: 'number' },
-      { name: 'state', label: 'State', type: 'text' },
-      { name: 'country', label: 'Country', type: 'text' },
-    ]
+const props = defineProps({ thingId: String })
+const emit = defineEmits(['close', 'siteCreated'])
 
-    const mapOptions = ref({ center: { lat: 39, lng: -100 }, zoom: 4 })
-    let marker = ref(null)
-    let markerLoaded = ref(false)
+const dialog = ref(true)
+const formData = ref({
+  name: '',
+  description: '',
+  sampling_feature_type: '',
+  sampling_feature_code: '',
+  site_type: '',
+  latitude: null,
+  longitude: null,
+  elevation: null,
+  state: '',
+  country: '',
+})
 
-    async function populateThing() {
-      const dataStore = useDataStore()
-      try {
-        await dataStore.fetchOrGetFromCache(
-          `thing_${props.thingId}`,
-          `/things/${props.thingId}`
-        )
-        marker.value = dataStore[`thing_${props.thingId}`]
-        markerLoaded.value = true
-        for (const key in formData.value) {
-          if (marker.value.hasOwnProperty(key)) {
-            formData.value[key] = marker.value[key]
-          }
-        }
-        mapOptions.value = {
-          center: { lat: marker.value.latitude, lng: marker.value.longitude },
-          zoom: 8,
-          mapTypeId: 'satellite',
-        }
-      } catch (error) {
-        console.log('Error Fetching Thing: ', error)
+const mapOptions = ref({ center: { lat: 39, lng: -100 }, zoom: 4 })
+let marker = ref(null)
+let markerLoaded = ref(false)
+
+async function populateThing() {
+  const dataStore = useDataStore()
+  try {
+    await dataStore.fetchOrGetFromCache(
+      `thing_${props.thingId}`,
+      `/things/${props.thingId}`
+    )
+    marker.value = dataStore[`thing_${props.thingId}`]
+    markerLoaded.value = true
+    for (const key in formData.value) {
+      if (marker.value.hasOwnProperty(key)) {
+        formData.value[key] = marker.value[key]
       }
     }
-
-    if (props.thingId) populateThing()
-    else markerLoaded.value = true
-
-    function closeDialog() {
-      dialog.value = false
-      ctx.emit('close')
+    mapOptions.value = {
+      center: { lat: marker.value.latitude, lng: marker.value.longitude },
+      zoom: 8,
+      mapTypeId: 'satellite',
     }
+  } catch (error) {
+    console.log('Error Fetching Thing: ', error)
+  }
+}
 
-    function createThing() {
-      const axiosMethod = props.thingId ? axios.patch : axios.post
-      const endpoint = props.thingId ? `/things/${props.thingId}` : '/things'
+if (props.thingId) populateThing()
+else markerLoaded.value = true
 
-      axiosMethod(endpoint, formData.value)
-        .then((response) => {
-          const updatedThing = response.data
-          const dataStore = useDataStore()
-          if (!props.thingId) dataStore.addThing(updatedThing)
-          else {
-            localStorage.removeItem(`thing_${props.thingId}`)
-            localStorage.removeItem('things')
-          }
-          ctx.emit('close')
-          ctx.emit('siteCreated')
-        })
-        .catch((error) => {
-          console.log('Error Registering Site: ', error)
-        })
-    }
+function closeDialog() {
+  dialog.value = false
+  emit('close')
+}
 
-    function onMapLocationClicked(locationData) {
-      formData.value.latitude = locationData.latitude
-      formData.value.longitude = locationData.longitude
-      formData.value.elevation = locationData.elevation
-      formData.value.nearest_town = locationData.nearest_town
-      formData.value.state = locationData.state
-      formData.value.country = locationData.country
-    }
+function createThing() {
+  const axiosMethod = props.thingId ? axios.patch : axios.post
+  const endpoint = props.thingId ? `/things/${props.thingId}` : '/things'
 
-    return {
-      marker,
-      markerLoaded,
-      mapOptions,
-      dialog,
-      formData,
-      formFields,
-      closeDialog,
-      createThing,
-      onMapLocationClicked,
-    }
-  },
+  axiosMethod(endpoint, formData.value)
+    .then((response) => {
+      const updatedThing = response.data
+      const dataStore = useDataStore()
+      if (!props.thingId) dataStore.addThing(updatedThing)
+      else {
+        localStorage.removeItem(`thing_${props.thingId}`)
+        localStorage.removeItem('things')
+      }
+      emit('close')
+      emit('siteCreated')
+    })
+    .catch((error) => {
+      console.log('Error Registering Site: ', error)
+    })
+}
+
+function onMapLocationClicked(locationData) {
+  formData.value.latitude = locationData.latitude
+  formData.value.longitude = locationData.longitude
+  formData.value.elevation = locationData.elevation
+  formData.value.state = locationData.state
+  formData.value.country = locationData.country
 }
 </script>

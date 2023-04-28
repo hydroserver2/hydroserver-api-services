@@ -60,66 +60,48 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDataStore } from '@/store/data'
 import DeleteDatastreamModal from '@/components/Site/DeleteDatastreamModal.vue'
 
-export default {
-  components: {
-    DeleteDatastreamModal,
-  },
-  setup() {
-    const route = useRoute()
-    const dataStore = useDataStore()
+const route = useRoute()
+const dataStore = useDataStore()
 
-    const thing_id = route.params.id.toString()
-    const thingName = ref('')
-    const datastreams = ref([])
+const thing_id = route.params.id.toString()
+const thingName = ref('')
+const datastreams = ref([])
+const showDeleteModal = ref(false)
+const selectedDatastream = ref(null)
 
-    const showDeleteModal = ref(false)
-    const selectedDatastream = ref(null)
-
-    function showModal(datastream) {
-      console.log('ShowModal')
-      selectedDatastream.value = datastream
-      showDeleteModal.value = true
-    }
-
-    async function onDatastreamDeleted() {
-      await dataStore.fetchOrGetFromCache(
-        `thing_${thing_id}`,
-        `/things/${thing_id}`
-      )
-      const thing = dataStore[`thing_${thing_id}`]
-      thingName.value = thing.name
-      datastreams.value = thing.datastreams
-    }
-
-    let cachedThingName = `thing_${thing_id}`
-    dataStore
-      .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-      .then(() => {
-        const thing = dataStore[cachedThingName]
-        thingName.value = thing.name
-        datastreams.value = thing.datastreams
-      })
-      .catch((error) => {
-        console.error('Error fetching thing data from API', error)
-      })
-
-    return {
-      onDatastreamDeleted,
-      thingName,
-      datastreams,
-      thing_id,
-      showModal,
-      selectedDatastream,
-      showDeleteModal,
-    }
-  },
+function showModal(datastream) {
+  selectedDatastream.value = datastream
+  showDeleteModal.value = true
 }
+
+async function onDatastreamDeleted() {
+  await dataStore.fetchOrGetFromCache(
+    `thing_${thing_id}`,
+    `/things/${thing_id}`
+  )
+  const thing = dataStore[`thing_${thing_id}`]
+  thingName.value = thing.name
+  datastreams.value = thing.datastreams
+}
+
+let cachedThingName = `thing_${thing_id}`
+
+dataStore
+  .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
+  .then(() => {
+    const thing = dataStore[cachedThingName]
+    thingName.value = thing.name
+    datastreams.value = thing.datastreams
+  })
+  .catch((error) => {
+    console.error('Error fetching thing data from API', error)
+  })
 </script>
 
 <style scoped lang="scss">

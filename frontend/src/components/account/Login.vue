@@ -29,25 +29,19 @@
   </v-row>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
 import { ref } from 'vue'
 
-export default {
-  setup() {
-    const authStore = useAuthStore()
-    const email = ref('')
-    const password = ref('')
+const authStore = useAuthStore()
+const email = ref('')
+const password = ref('')
 
-    function loginSubmit() {
-      authStore.login({
-        email: email.value,
-        password: password.value,
-      })
-    }
-
-    return { email, password, loginSubmit }
-  },
+function loginSubmit() {
+  authStore.login({
+    email: email.value,
+    password: password.value,
+  })
 }
 </script>
 
@@ -58,6 +52,6 @@ export default {
 }
 
 .light-text {
-  color: #f5f5f5; /* Set the text color to a light shade */
+  color: #f5f5f5;
 }
 </style>
