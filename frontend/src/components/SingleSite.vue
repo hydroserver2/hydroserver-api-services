@@ -131,6 +131,8 @@
             {{ observation.result }}----{{ observation.result_time }}
           </div>
           {{ datastream.unit_name }}
+          <br />
+          {{ datastream.most_recent_observation.result_time }}
         </v-card-item>
         <v-card-item v-else>No data for this datastream</v-card-item>
       </v-card>

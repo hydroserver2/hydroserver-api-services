@@ -620,6 +620,7 @@ class CreateDatastreamInput(Schema):
 
 def datastream_to_dict(datastream, add_recent_observations=True):
     observation_list = []
+    most_recent_observation = None
     if add_recent_observations:
         observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')[:30]
         for observation in observations:
@@ -628,6 +629,8 @@ def datastream_to_dict(datastream, add_recent_observations=True):
                 "result": observation.result,
                 "result_time": observation.result_time,
             })
+        if observation_list:
+            most_recent_observation = observation_list[0]
 
     return {
         "id": datastream.pk,
@@ -640,6 +643,7 @@ def datastream_to_dict(datastream, add_recent_observations=True):
         "no_data_value": datastream.no_data_value,
         "aggregation_statistic": datastream.aggregation_statistic,
         "observations": observation_list if observation_list else None,
+        "most_recent_observation": most_recent_observation,
 
         "unit_id": datastream.unit.pk if datastream.unit else None,
         "observed_property_id": datastream.observed_property.pk if datastream.observed_property else None,
