@@ -75,6 +75,7 @@ def datastream_ownership_required(func):
     """
     Decorator for datastream views that checks the user is logged in and is an owner of the related datastream's thing.
     """
+
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         jwt_auth(request)
@@ -164,28 +165,24 @@ def create_user(request, data: CreateUserInput):
         )
     except Exception as e:
         raise HttpError(400, str(e))
+
+    user = authenticate(username=data.email, password=data.password)
+
     user.middle_name = data.middle_name
     user.phone = data.phone
     user.address = data.address
     user.save()
-    return {'id': user.id, 'username': user.username}
+
+    token = RefreshToken.for_user(user)
+
+    return {
+        'access_token': str(token.access_token),
+        'refresh_token': str(token),
+    }
 
 
-@api.get("/user/data", auth=jwt_auth)
-def get_user_data(request):
-    """
-    Gets all data related to the user to be cached in the browser
-    """
-    thing_associations = ThingAssociation.objects.select_related('thing', 'person').prefetch_related(
-        'thing__location').filter(person=request.authenticated_user)
-
-    owned_things = [thing_to_dict(association.thing, is_primary_owner=association.is_primary_owner)
-                    for association in thing_associations if association.owns_thing]
-    followed_things = [thing_to_dict(association.thing)
-                       for association in thing_associations if association.follows_thing]
-
-    user = request.authenticated_user
-    user_dict = {
+def user_to_dict(user):
+    return {
         "id": user.id,
         "email": user.email,
         "first_name": user.first_name,
@@ -196,33 +193,24 @@ def get_user_data(request):
         "organization": user.organization,
     }
 
-    datastreams = Datastream.objects.filter(thing__associates__person=user).distinct().prefetch_related('unit')
-    sensors = Sensor.objects.filter(datastreams__in=datastreams).distinct()
-    observed_properties = ObservedProperty.objects.filter(person=user).distinct()
-    units = Unit.objects.filter(person=user).distinct()
 
-    return JsonResponse({
-        'user': user_dict,
-        'owned_things': owned_things,
-        'followed_things': followed_things,
-        'datastreams': list(datastreams.values()),
-        'sensors': list(sensors.values()),
-        'observed_properties': list(observed_properties.values()),
-        'units': list(units.values())
-    })
+@api.get("/user", auth=jwt_auth)
+def get_user(request):
+    return JsonResponse(user_to_dict(request.authenticated_user))
 
 
 class UpdateUserInput(Schema):
     first_name: str = None
     last_name: str = None
-    email: str = None
-    password: str = None
+    # email: str = None
+    # password: str = None
     middle_name: str = None
     phone: str = None
     address: str = None
+    organization: str = None
 
 
-@api.put('/user', auth=jwt_auth)
+@api.patch('/user', auth=jwt_auth)
 def update_user(request, data: UpdateUserInput):
     user = request.authenticated_user
 
@@ -230,20 +218,24 @@ def update_user(request, data: UpdateUserInput):
         user.first_name = data.first_name
     if data.last_name:
         user.last_name = data.last_name
-    if data.email:
-        user.email = data.email
-        user.username = data.email
-    if data.middle_name:
-        user.middle_name = data.middle_name
+    # I don't think we want this editable
+    # if data.email:
+    #     user.email = data.email
+    #     user.username = data.email
+    # if data.middle_name:
+    user.middle_name = data.middle_name
     if data.phone:
         user.phone = data.phone
     if data.address:
         user.address = data.address
-    if data.password:
-        user.set_password(data.password)
+    if data.organization:
+        user.organization = data.organization
+    # Probably want a seperate
+    # if data.password:
+    #     user.set_password(data.password)
 
     user.save()
-    return {'detail': 'Your account has been updated!'}
+    return JsonResponse(user_to_dict(user))
 
 
 @api.delete('/user', auth=jwt_auth)
@@ -626,7 +618,20 @@ class CreateDatastreamInput(Schema):
     result_end_time: str = None
 
 
-def datastream_to_dict(datastream):
+def datastream_to_dict(datastream, add_recent_observations=True):
+    observation_list = []
+    most_recent_observation = None
+    if add_recent_observations:
+        observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')[:30]
+        for observation in observations:
+            observation_list.append({
+                "id": observation.id,
+                "result": observation.result,
+                "result_time": observation.result_time,
+            })
+        if observation_list:
+            most_recent_observation = observation_list[0]
+
     return {
         "id": datastream.pk,
         "name": datastream.name,
@@ -637,6 +642,8 @@ def datastream_to_dict(datastream):
         "sampled_medium": datastream.sampled_medium,
         "no_data_value": datastream.no_data_value,
         "aggregation_statistic": datastream.aggregation_statistic,
+        "observations": observation_list if observation_list else None,
+        "most_recent_observation": most_recent_observation,
 
         "unit_id": datastream.unit.pk if datastream.unit else None,
         "observed_property_id": datastream.observed_property.pk if datastream.observed_property else None,
@@ -840,7 +847,7 @@ def unit_to_dict(unit):
 
 @api.get('/units', auth=jwt_auth)
 def get_units(request):
-    units = Unit.objects.filter(person=request.authenticated_user)
+    units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
 
 
@@ -865,7 +872,7 @@ def create_unit(request, data: CreateUnitInput):
 
 class UpdateUnitInput(Schema):
     name: str
-    symbol:  str
+    symbol: str
     definition: str
     unit_type: str
 
@@ -920,7 +927,7 @@ def processing_level_to_dict(processing_level):
 
 @api.get('/processing-levels', auth=jwt_auth)
 def get_processing_levels(request):
-    processing_levels = ProcessingLevel.objects.filter(person=request.authenticated_user)
+    processing_levels = ProcessingLevel.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([processing_level_to_dict(pl) for pl in processing_levels], safe=False)
 
 
@@ -934,4 +941,3 @@ def create_processing_level(request, data: ProcessingLevelInput):
     )
 
     return JsonResponse(processing_level_to_dict(processing_level))
-

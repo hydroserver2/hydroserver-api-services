@@ -24,63 +24,59 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 import router from '@/router/router'
 
-export default {
-  props: {
-    siteId: String,
-    siteName: String,
-    showDialog: Boolean,
-  },
-  setup(props, { emit }) {
-    const dataStore = useDataStore()
-    const dialog = ref(props.showDialog)
-    const deleteInput = ref('')
+const props = defineProps({
+  siteId: String,
+  siteName: String,
+  showDialog: Boolean,
+})
+const emit = defineEmits(['deleted', 'close'])
 
-    watch(
-      () => props.showDialog,
-      (newValue) => {
-        dialog.value = newValue
-      }
-    )
+const dataStore = useDataStore()
+const dialog = ref(props.showDialog)
+const deleteInput = ref('')
 
-    async function removeThingsFromLocalStorage() {
-      localStorage.removeItem('things')
-      dataStore.things = []
-      const cachedThingName = `thing_${props.siteId}`
-      delete dataStore[cachedThingName]
-      localStorage.removeItem(cachedThingName)
-    }
+watch(
+  () => props.showDialog,
+  (newValue) => {
+    dialog.value = newValue
+  }
+)
 
-    async function deleteSite() {
-      if (deleteInput.value !== props.siteName) {
-        console.error('Site name does not match.')
-        return
-      }
+async function removeThingsFromLocalStorage() {
+  localStorage.removeItem('things')
+  dataStore.things = []
+  const cachedThingName = `thing_${props.siteId}`
+  delete dataStore[cachedThingName]
+  localStorage.removeItem(cachedThingName)
+}
 
-      try {
-        await axios.delete(`/things/${props.siteId}`)
-        await removeThingsFromLocalStorage()
-        close()
-        emit('deleted')
+async function deleteSite() {
+  if (deleteInput.value !== props.siteName) {
+    console.error('Site name does not match.')
+    return
+  }
 
-        await dataStore.fetchOrGetFromCache('things', '/things')
-        await router.push('/sites')
-      } catch (error) {
-        console.error('Error deleting site:', error)
-      }
-    }
+  try {
+    await axios.delete(`/things/${props.siteId}`)
+    await removeThingsFromLocalStorage()
+    close()
+    emit('deleted')
 
-    function close() {
-      deleteInput.value = ''
-      emit('close')
-    }
+    await dataStore.fetchOrGetFromCache('things', '/things')
+    await router.push('/sites')
+  } catch (error) {
+    console.error('Error deleting site:', error)
+  }
+}
 
-    return { dialog, deleteInput, deleteSite, close }
-  },
+function close() {
+  deleteInput.value = ''
+  emit('close')
 }
 </script>

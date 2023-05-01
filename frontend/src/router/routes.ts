@@ -8,6 +8,7 @@ import SingleSite from '@/components/SingleSite.vue'
 import Browse from '@/components/Browse.vue'
 import SiteDatastreams from '@/components/SiteDatastreams.vue'
 import DatastreamForm from '@/components/DatastreamForm.vue'
+import Profile from '@/components/account/Profile.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Home', component: Home },
@@ -20,12 +21,13 @@ export const routes: RouteRecordRaw[] = [
     component: SiteDatastreams,
   },
   {
-    path: '/sites/:id/datastreams/form',
+    path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',
     component: DatastreamForm,
   },
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },
+  { path: '/profile', name: 'Profile', component: Profile },
   {
     path: '/:catchAll(.*)',
     redirect: '/',

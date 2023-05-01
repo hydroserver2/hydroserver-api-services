@@ -10,6 +10,7 @@ export const useDataStore = defineStore({
     units: [],
     processingLevels: [],
     datastreams: [],
+    user: {},
   }),
   actions: {
     async fetchOrGetFromCache(key, apiEndpoint) {

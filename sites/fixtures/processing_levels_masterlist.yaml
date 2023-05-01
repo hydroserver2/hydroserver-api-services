@@ -1,0 +1,10 @@
+- model: sites.processinglevel
+  fields:
+    processing_level_code: Level 0
+    definition: Raw data that has undergone no quality control or processing.
+    explanation: This data has not been modified in any way since it was collected.
+- model: sites.processinglevel
+  fields:
+    processing_level_code: Level 1
+    definition: Data that has undergone basic quality control and processing.
+    explanation: This data has been checked for completeness, correctness, and consistency.

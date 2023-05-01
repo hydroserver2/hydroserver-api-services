@@ -20,36 +20,31 @@
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'ImageCarousel',
-  props: {
-    carouselItems: {
-      type: Array<any>,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      currentIndex: 0,
-    }
-  },
-  methods: {
-    previous() {
-      this.currentIndex =
-        this.currentIndex === 0
-          ? this.carouselItems.length - 1
-          : this.currentIndex - 1
-    },
-    next() {
-      this.currentIndex = (this.currentIndex + 1) % this.carouselItems.length
-    },
-    goTo(index: number) {
-      this.currentIndex = index
-    },
-  },
+<script setup lang="ts">
+import { ref, defineProps } from 'vue'
+
+const props = defineProps<{
+  carouselItems: Array<any>
+}>()
+
+const currentIndex = ref(0)
+
+function previous() {
+  currentIndex.value =
+    currentIndex.value === 0
+      ? props.carouselItems.length - 1
+      : currentIndex.value - 1
+}
+
+function next() {
+  currentIndex.value = (currentIndex.value + 1) % props.carouselItems.length
+}
+
+function goTo(index: number) {
+  currentIndex.value = index
 }
 </script>
+
 <style scoped lang="scss">
 .carousel-container {
   position: relative;

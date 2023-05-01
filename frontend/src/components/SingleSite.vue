@@ -44,6 +44,10 @@
       <div class="table-container">
         <table>
           <tr>
+            <td><i class="fas fa-id-badge"></i> ID</td>
+            <td>{{ thing?.id }}</td>
+          </tr>
+          <tr>
             <td><i class="fas fa-barcode"></i> Site Code</td>
             <td>{{ thing?.sampling_feature_code }}</td>
           </tr>
@@ -60,10 +64,6 @@
             <td>{{ thing?.elevation }}</td>
           </tr>
           <tr>
-            <td><i class="fas fa-id-badge"></i> ID</td>
-            <td>{{ thing?.id }}</td>
-          </tr>
-          <tr>
             <td><i class="fas fa-file-alt"></i> Description</td>
             <td>{{ thing?.description }}</td>
           </tr>
@@ -75,13 +75,22 @@
             <td><i class="fas fa-map-pin"></i> Site Type</td>
             <td>{{ thing?.site_type }}</td>
           </tr>
-          <tr>
-            <td><i class="fas fa-users"></i> Followers</td>
-            <td>{{ thing?.followers }}</td>
-          </tr>
+          <!--          <tr>-->
+          <!--            <td><i class="fas fa-users"></i> Followers</td>-->
+          <!--            <td>{{ thing?.followers }}</td>-->
+          <!--          </tr>-->
           <tr>
             <td><i class="fas fa-flag-usa"></i>State</td>
             <td>{{ thing?.state }}</td>
+          </tr>
+          <tr>
+            <td><i class="fas fa-flag-usa"></i>Site Owners</td>
+            <td v-for="owner in thing?.owners">
+              <li style="list-style: none">
+                {{ owner.firstname }} {{ owner.lastname }}:
+                {{ owner.organization }}
+              </li>
+            </td>
           </tr>
         </table>
       </div>
@@ -111,13 +120,27 @@
       :key="datastream.id"
     >
       <v-card class="elevation-5 flex d-flex flex-column" outlined>
-        <v-card-title>{{ datastream.name }}</v-card-title>
+        <v-card-title
+          >{{ datastream.observed_property_name }}
+          <v-icon small class="mr-2">
+            mdi-cloud-download-outline
+          </v-icon></v-card-title
+        >
+        <v-card-item v-if="datastream.observations">
+          <div v-for="observation in datastream.observations">
+            {{ observation.result }}----{{ observation.result_time }}
+          </div>
+          {{ datastream.unit_name }}
+          <br />
+          {{ datastream.most_recent_observation.result_time }}
+        </v-card-item>
+        <v-card-item v-else>No data for this datastream</v-card-item>
       </v-card>
     </v-col>
   </v-row>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import GoogleMap from '../components/GoogleMap.vue'
 import ImageCarousel from '../components/ImageCarousel.vue'
 import DeleteSiteModal from '@/components/Site/DeleteSiteModal.vue'
@@ -131,98 +154,72 @@ import axios from '@/plugins/axios.config'
 import { useRoute } from 'vue-router'
 import SiteForm from '@/components/Site/SiteForm.vue'
 
-export default {
-  name: 'SingleSite',
-  components: {
-    SiteForm,
-    GoogleMap,
-    ImageCarousel,
-    DeleteSiteModal,
+const authStore = useAuthStore()
+const dataStore = useDataStore()
+const route = useRoute()
+
+authStore.fetchAccessToken()
+const showRegisterSiteModal = ref(false)
+const thing_id = route.params.id.toString()
+const thing = ref(null)
+const showDeleteModal = ref(false)
+const carouselItems = ref([
+  {
+    src: MoonIm1,
+    alt: 'Moon1',
   },
-  setup() {
-    const authStore = useAuthStore()
-    const dataStore = useDataStore()
-    const route = useRoute()
-
-    authStore.fetchAccessToken()
-    const showRegisterSiteModal = ref(false)
-    const thing_id = route.params.id.toString()
-    const thing = ref(null)
-    const showDeleteModal = ref(false)
-    const currentSlide = ref(0)
-    const carouselItems = ref([
-      {
-        src: MoonIm1,
-        alt: 'Moon1',
-      },
-      {
-        src: MoonIm2,
-        alt: 'Moon2',
-      },
-      {
-        src: MoonIm3,
-        alt: 'Moon3',
-      },
-    ])
-
-    const isAuthenticated = computed(() => !!authStore.access_token)
-    const isLoaded = computed(() => thing.value)
-    const mapOptions = computed(() =>
-      thing.value
-        ? {
-            center: { lat: thing.value.latitude, lng: thing.value.longitude },
-            zoom: 16,
-            mapTypeId: 'satellite',
-          }
-        : null
-    )
-
-    let cachedThingName = `thing_${thing_id}`
-    const followsThing = ref(false)
-    function loadThing() {
-      dataStore
-        .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-        .then(() => {
-          thing.value = dataStore[cachedThingName]
-          followsThing.value = thing.value.follows_thing
-        })
-        .catch((error) => {
-          console.error('Error fetching thing data from API', error)
-        })
-    }
-
-    loadThing()
-
-    function updateFollow() {
-      axios
-        .get(`/things/${thing_id}/ownership`)
-        .then((response) => {
-          dataStore.cacheProperty(cachedThingName, response.data)
-          localStorage.removeItem('things')
-          dataStore.things = []
-          thing.value = dataStore[cachedThingName]
-          followsThing.value = thing.value.follows_thing
-        })
-        .catch((error) => {
-          console.error('Error updating follow status:', error)
-        })
-    }
-
-    return {
-      loadThing,
-      showRegisterSiteModal,
-      isLoaded,
-      mapOptions,
-      currentSlide,
-      carouselItems,
-      thing,
-      isAuthenticated,
-      followsThing,
-      updateFollow,
-      showDeleteModal,
-      thing_id,
-    }
+  {
+    src: MoonIm2,
+    alt: 'Moon2',
   },
+  {
+    src: MoonIm3,
+    alt: 'Moon3',
+  },
+])
+
+const isAuthenticated = computed(() => !!authStore.access_token)
+const isLoaded = computed(() => thing.value)
+const mapOptions = computed(() =>
+  thing.value
+    ? {
+        center: { lat: thing.value.latitude, lng: thing.value.longitude },
+        zoom: 16,
+        mapTypeId: 'satellite',
+      }
+    : null
+)
+
+let cachedThingName = `thing_${thing_id}`
+const followsThing = ref(false)
+function loadThing() {
+  dataStore
+    .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
+    .then(() => {
+      thing.value = dataStore[cachedThingName]
+      followsThing.value = thing.value.follows_thing
+      console.log('Thing: ', thing.value)
+    })
+    .catch((error) => {
+      console.error('Error fetching thing data from API', error)
+    })
+}
+
+loadThing()
+
+function updateFollow() {
+  axios
+    .get(`/things/${thing_id}/ownership`)
+    .then((response) => {
+      dataStore.cacheProperty(cachedThingName, response.data)
+      localStorage.removeItem('things')
+      dataStore.things = []
+      thing.value = dataStore[cachedThingName]
+      followsThing.value = thing.value.follows_thing
+    })
+    .catch((error) => {
+      console.error('Error updating follow status:', error)
+    })
 }
 </script>
 

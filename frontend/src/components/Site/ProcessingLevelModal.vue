@@ -49,36 +49,30 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import axios from '@/plugins/axios.config'
-import { ref } from 'vue'
+import { ref, defineEmits } from 'vue'
 import { useDataStore } from '@/store/data'
 
-export default {
-  setup(props, ctx) {
-    const dataStore = useDataStore()
-    const dialog = ref(false)
-    const formData = ref({
-      processing_level_code: '',
-      definition: '',
-      explanation: '',
-    })
+const dataStore = useDataStore()
+const dialog = ref(false)
+const formData = ref({
+  processing_level_code: '',
+  definition: '',
+  explanation: '',
+})
 
-    function createProcessingLevel() {
-      axios
-        .post('/processing-levels', formData.value)
-        .then((response) => {
-          const newProcessingLevel = response.data
-          dataStore.addProcessingLevel(newProcessingLevel)
-          dialog.value = false
-          ctx.emit('processingLevelCreated', newProcessingLevel.id)
-        })
-        .catch((error) => {
-          console.log('Error Registering Processing Level: ', error)
-        })
-    }
+const emit = defineEmits(['processingLevelCreated'])
 
-    return { formData, dialog, createProcessingLevel }
-  },
+async function createProcessingLevel() {
+  try {
+    const response = await axios.post('/processing-levels', formData.value)
+    const newProcessingLevel = response.data
+    dataStore.addProcessingLevel(newProcessingLevel)
+    dialog.value = false
+    emit('processingLevelCreated', newProcessingLevel.id)
+  } catch (error) {
+    console.log('Error Registering Processing Level: ', error)
+  }
 }
 </script>

@@ -1,0 +1,14 @@
+- model: sites.observedproperty
+  fields:
+    name: air temperature
+    definition: Air temperature is a measure of the warmth or coldness of the air. It is measured with a thermometer, usually in degrees Celsius (°C) or Fahrenheit (°F).
+    description: This observed property measures the air temperature in degrees Celsius.
+    variable_type: temperature
+    variable_code: air_temperature
+- model: sites.observedproperty
+  fields:
+    name: water temperature
+    definition: Water temperature is a measure of the warmth or coldness of the water. It is measured with a thermometer, usually in degrees Celsius (°C) or Fahrenheit (°F).
+    description: This observed property measures the water temperature in degrees Celsius.
+    variable_type: temperature
+    variable_code: water_temperature

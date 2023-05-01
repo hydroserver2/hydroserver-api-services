@@ -25,49 +25,45 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import axios from '@/plugins/axios.config'
 import { ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 
-export default {
-  props: {
-    thingId: String,
-    datastreamId: String,
-    datastreamObservedProperty: String,
-    datastreamMethod: String,
-    datastreamProcessingLevel: String,
-    showDialog: Boolean,
-  },
-  setup(props, { emit }) {
-    const dataStore = useDataStore()
-    const dialog = ref(props.showDialog)
+const props = defineProps({
+  thingId: String,
+  datastreamId: String,
+  datastreamObservedProperty: String,
+  datastreamMethod: String,
+  datastreamProcessingLevel: String,
+  showDialog: Boolean,
+})
 
-    watch(
-      () => props.showDialog,
-      (newValue) => {
-        dialog.value = newValue
-      }
-    )
+const emit = defineEmits(['close', 'deleted'])
+const dataStore = useDataStore()
+const dialog = ref(props.showDialog)
 
-    async function removeThingFromLocalStorage() {
-      const cachedThingName = `thing_${props.thingId}`
-      delete dataStore[cachedThingName]
-      localStorage.removeItem(cachedThingName)
-    }
+watch(
+  () => props.showDialog,
+  (newValue) => {
+    dialog.value = newValue
+  }
+)
 
-    async function deleteDatastream() {
-      try {
-        await axios.delete(`/datastreams/${props.datastreamId}`)
-        await removeThingFromLocalStorage()
-        emit('close')
-        emit('deleted')
-      } catch (error) {
-        console.error('Error deleting datastream:', error)
-      }
-    }
+async function removeThingFromLocalStorage() {
+  const cachedThingName = `thing_${props.thingId}`
+  delete dataStore[cachedThingName]
+  localStorage.removeItem(cachedThingName)
+}
 
-    return { dialog, deleteDatastream }
-  },
+async function deleteDatastream() {
+  try {
+    await axios.delete(`/datastreams/${props.datastreamId}`)
+    await removeThingFromLocalStorage()
+    emit('close')
+    emit('deleted')
+  } catch (error) {
+    console.error('Error deleting datastream:', error)
+  }
 }
 </script>

@@ -1,0 +1,12 @@
+- model: sites.unit
+  fields:
+    name: degree Celsius
+    symbol: °C
+    definition: The degree Celsius is a unit of temperature on the Celsius scale, a temperature scale originally known as the centigrade scale. The degree Celsius can refer to a specific temperature on the Celsius scale as well as a unit to indicate a temperature interval, a difference between two temperatures or an uncertainty. It is named after the Swedish astronomer Anders Celsius (1701–1744), who developed a similar temperature scale.
+    unit_type: temperature
+- model: sites.unit
+  fields:
+    name: meter
+    symbol: m
+    definition: The meter or metre is the base unit of length in the International System of Units. The SI unit symbol is m. The meter is defined as the distance traveled by light in a vacuum in 1/299,792,458 second.
+    unit_type: length
