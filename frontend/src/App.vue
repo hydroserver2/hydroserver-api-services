@@ -1,7 +1,7 @@
 <template>
-  <v-app class="main-layout">
+  <v-app>
     <Navbar />
-    <v-main class="main-content"><router-view /></v-main>
+    <v-main><router-view /></v-main>
     <Footer />
   </v-app>
 </template>
@@ -18,13 +18,4 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.main-layout {
-  display: flex;
-  flex-direction: column;
-}
-
-.main-content {
-  min-height: 100vh;
-}
-</style>
+<style scoped lang="scss"></style>

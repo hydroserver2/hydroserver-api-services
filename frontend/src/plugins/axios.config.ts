@@ -1,5 +1,7 @@
 import axios from 'axios'
 import router from '@/router/router'
+
+// TODO: circular dependency error because useAuthStore imports axios.config.ts
 import { useAuthStore } from '@/store/authentication'
 
 axios.defaults.baseURL = `${
@@ -7,6 +9,17 @@ axios.defaults.baseURL = `${
     ? 'http://127.0.0.1:8000'
     : PROXY_BASE_URL
 }/api/`
+
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error)
+    else prom.resolve(token)
+  })
+  failedQueue = []
+}
 
 // Axios interceptor for handling JWT tokens
 axios.interceptors.request.use(
@@ -21,17 +34,6 @@ axios.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 )
-
-let isRefreshing = false
-let failedQueue = []
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) prom.reject(error)
-    else prom.resolve(token)
-  })
-  failedQueue = []
-}
 
 axios.interceptors.response.use(
   (response) => response,

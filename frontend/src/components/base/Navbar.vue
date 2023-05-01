@@ -5,20 +5,20 @@
     <!--        <v-img src="" alt="Hydro Server Logo" />CIROH HIS-->
     <!--      </router-link>-->
     <!--    </v-toolbar-title>-->
-    <v-toolbar-items>
-      <v-btn to="/">Home</v-btn>
-      <v-btn to="/sites" v-if="access_token">My Sites</v-btn>
-      <v-btn to="/browse">Browse Monitoring Sites</v-btn>
-      <v-btn href="">Visualize Data</v-btn>
-    </v-toolbar-items>
+
+    <v-container>
+      <v-btn variant="text" to="/">Home</v-btn>
+      <v-btn variant="text" to="/sites" v-if="access_token">My Sites</v-btn>
+      <v-btn variant="text" to="/browse">Browse Monitoring Sites</v-btn>
+      <v-btn variant="text" href="">Visualize Data</v-btn>
+    </v-container>
+
     <v-spacer></v-spacer>
-    <v-toolbar-items class="toolbar-items">
-      <v-btn href="" v-if="access_token">Profile</v-btn>
-      <v-btn v-if="access_token" class="btn--sub" @click.prevent="logout"
-        >Logout</v-btn
-      >
-      <v-btn to="/Login" v-else class="btn--sub">Login/Sign Up</v-btn>
-    </v-toolbar-items>
+    <v-btn variant="text" href="" v-if="access_token">Profile</v-btn>
+    <v-btn variant="text" v-if="access_token" @click.prevent="logout"
+      >Logout</v-btn
+    >
+    <v-btn v-else variant="text" to="/Login">Login/Sign Up</v-btn>
   </v-app-bar>
 </template>
 
@@ -42,10 +42,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.btn--sub {
-  background-color: #2980b9;
-}
-
 .toolbar-items {
   display: flex;
   justify-content: space-between;

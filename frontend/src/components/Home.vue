@@ -1,162 +1,95 @@
 <template>
-  <div>
-    <div class="image-container">
-      <div
-        class="text-container full-height d-flex flex-column justify-center align-start"
-      >
-        <h1 style="margin-bottom: 1.5rem">
-          Collect and Manage Your Operational Hydrologic Data
-        </h1>
+  <v-parallax
+    src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
+    height="500"
+  >
+    <div
+      class="d-flex flex-column fill-height justify-center align-center text-white"
+    >
+      <h1 class="text-h4 font-weight-thin mb-8">
+        Collect and Manage Your Operational Hydrologic Data
+      </h1>
+
+      <h2 class="text-h5 mb-8">Create an account to get started</h2>
+      <v-btn>Sign Up</v-btn>
+    </div>
+  </v-parallax>
+
+  <v-container>
+    <div class="my-8 d-flex flex-column align-center">
+      <h2 class="text-center mb-4">Manage your Operation Data</h2>
+
+      <p class="text-center mb-4 text-subtitle-2">
+        The HydroServer Hydrologic Information System provides services and
+        tools for collecting, storing, managing, and sharing your hydrologic
+        observations collected from in situ monitoring sites.
+      </p>
+
+      <div>
+        <h3>Sensor Data Streaming</h3>
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed imperdiet
-          justo augue, vel dapibus massa mattis ac. Nulla congue rhoncus velit,
-          nec lobortis mauris pulvinar non. Donec nec vestibulum mauris.
+          Stream sensor data directly from your Internet connected datalogger or
+          load data using our Streaming Data Loader software.
         </p>
-        <v-btn
-          color="green-darken-2"
-          variant="outlined"
-          style="margin-top: 1.5rem"
-        >
-          <i class="fas fa-play"></i>
-          How it works</v-btn
-        >
+
+        <h3>Easy Web Configuration</h3>
+        <p>
+          Create new monitoring locations, observed variables, sensors, and data
+          streams through our web user interface.
+        </p>
+
+        <h3>Performant Data Storage</h3>
+        <p>
+          Using TimeScale DB with PostgreSQL, we provide a performant data store
+          for your operational data.
+        </p>
+
+        <h3>Open Standards Data Sharing</h3>
+        <p>
+          Share your data publicly using the latest Open Geospatial Consortium
+          web services standard SensorThings.
+        </p>
       </div>
     </div>
 
-    <hr />
-    <v-container fluid>
-      <v-row>
-        <v-col class="text-center">
-          <h2>Manage your Operation Data</h2>
-          <p>
-            The HydroServer Hydrologic Information System provides services and
-            tools for collecting, storing, managing, and sharing your hydrologic
-            observations collected from in situ monitoring sites.
-          </p>
-        </v-col>
-      </v-row>
+    <div class="my-8">
+      <h2>Operational Data for Modeling</h2>
+      <h4>Your data can improve NOAA's water prediction services</h4>
+      <p>
+        NOAA's National Water Model can assimilate streamflow data from
+        operational monitoring sites like yours. Contribute your streamflow data
+        to make it available to support continental-scale hydrologic modeling
+        and forecasting via the National Water Model.
+      </p>
 
-      <v-row justify="center">
-        <v-col cols="12" md="5" lg="4">
-          <v-row>
-            <v-col cols="2">
-              <div class="icon-wrapper">
-                <img :src="resistanceIcon" class="icon" alt="resistanceIcon" />
-              </div>
-            </v-col>
-            <v-col cols="10">
-              <h3>Sensor Data Streaming</h3>
-              <p>
-                Stream sensor data directly from your Internet connected
-                datalogger or load data using our Streaming Data Loader
-                software.
-              </p>
-            </v-col>
-          </v-row>
-        </v-col>
+      <h2>Open Standards Data Sharing</h2>
+      <p>
+        Share your data publicly using the latest Open Geospatial Consortium web
+        services standard SensorThings.
+      </p>
+    </div>
 
-        <v-col cols="12" md="5" lg="4">
-          <v-row>
-            <v-col cols="2">
-              <div class="icon-wrapper">
-                <img :src="gearIcon" class="icon" alt="gearIcon" />
-              </div>
-            </v-col>
-            <v-col cols="10">
-              <h3>Easy Web Configuration</h3>
-              <p>
-                Create new monitoring locations, observed variables, sensors,
-                and data streams through our web user interface.
-              </p>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
+    <div class="my-8">
+      <p>
+        This HydroServer instance is supported through the Cooperative Institute
+        for Research to Operations in Hydrology (CIROH)
+      </p>
+    </div>
+  </v-container>
 
-      <v-row justify="center">
-        <v-col cols="12" md="5" lg="4">
-          <v-row>
-            <v-col cols="2">
-              <div class="icon-wrapper">
-                <img :src="dbIcon" class="icon" alt="dbIcon" />
-              </div>
-            </v-col>
-            <v-col cols="10">
-              <h3>Performant Data Storage</h3>
-              <p>
-                Using TimeScale DB with PostgreSQL, we provide a performant data
-                store for your operational data.
-              </p>
-            </v-col>
-          </v-row>
-        </v-col>
-
-        <v-col cols="12" md="5" lg="4">
-          <v-row>
-            <v-col cols="2">
-              <div class="icon-wrapper">
-                <img :src="ogcIcon" class="icon" alt="ogcIcon" />
-              </div>
-            </v-col>
-            <v-col cols="10">
-              <h3>Open Standards Data Sharing</h3>
-              <p>
-                Share your data publicly using the latest Open Geospatial
-                Consortium web services standard SensorThings.
-              </p>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
-  <hr />
-  <h2 style="margin-bottom: 1.5rem; margin-top: 5rem">
-    Operational Data for Modeling
-  </h2>
-  <h4 style="margin-bottom: 1.5rem">
-    Your data can improve NOAA's water prediction services
-  </h4>
-  <p style="margin-bottom: 5rem">
-    NOAA's National Water Model can assimilate streamflow data from operational
-    monitoring sites like yours. Contribute your streamflow data to make it
-    available to support continental-scale hydrologic modeling and forecasting
-    via the National Water Model.
-  </p>
-
-  <hr />
-  <h2 style="margin-bottom: 1.5rem; margin-top: 3rem">
-    Open Standards Data Sharing
-  </h2>
-  <p style="margin-bottom: 5rem">
-    Share your data publicly using the latest Open Geospatial Consortium web
-    services standard SensorThings.
-  </p>
   <!--  <v-btn @click="sayHello">Click to say Hello</v-btn>-->
 </template>
 
 <script lang="ts">
-import Login from '@/components/account/Login.vue'
-import Signup from '@/components/account/Signup.vue'
-import resistanceIcon from '@/assets/resistance.svg'
-import gearIcon from '@/assets/gear.svg'
-import dbIcon from '@/assets/db.svg'
-import ogcIcon from '@/assets/ogc.png'
+// import Login from '@/components/account/Login.vue'
+// import Signup from '@/components/account/Signup.vue'
 import axios from '@/plugins/axios.config'
 
 export default {
-  data() {
-    return {
-      resistanceIcon,
-      gearIcon,
-      dbIcon,
-      ogcIcon,
-    }
-  },
-  components: { Login, Signup },
+  // components: { Login, Signup },
   name: 'Home',
   methods: {
-    async sayHello() {
+    sayHello: async () => {
       try {
         const response = await axios.post('/hello')
         console.log('Back from Server. It says', response.data)
@@ -169,45 +102,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.image-container {
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-  height: 60vh;
-}
-
-.text-container {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 50%;
-  padding: 0 20px;
-  box-sizing: border-box;
-}
-
-@media only screen and (max-width: 767px) {
-  .text-container {
-    width: 100%;
-    position: static;
-    transform: none;
-    margin-top: 20px;
-  }
-}
-
-.icon-wrapper {
-  width: 100%;
-  height: 100%;
-}
-
-.icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-i.fas.fa-play {
-  padding-right: 1rem;
+p {
+  max-width: 40rem;
 }
 </style>
