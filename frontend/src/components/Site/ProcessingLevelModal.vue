@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import axios from '@/plugins/axios.config'
-import { ref, defineEmits } from 'vue'
+import { ref } from 'vue'
 import { useDataStore } from '@/store/data'
 
 const dataStore = useDataStore()
