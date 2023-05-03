@@ -1,6 +1,8 @@
 import time
 from functools import wraps
+from datetime import timedelta
 
+from django.utils import timezone
 from django.contrib.auth import authenticate, logout
 from django.db import transaction
 from django.db.models import Q
@@ -622,7 +624,8 @@ def datastream_to_dict(datastream, add_recent_observations=True):
     observation_list = []
     most_recent_observation = None
     if add_recent_observations:
-        observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')[:30]
+        since_time = timezone.now() - timedelta(hours=72)
+        observations = Observation.objects.filter(datastream=datastream, result_time__gte=since_time).order_by('-result_time')
         for observation in observations:
             observation_list.append({
                 "id": observation.id,
