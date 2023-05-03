@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
-import axios from '@/plugins/axios.config'
+
+import axios from 'axios'
+
 import router from '@/router/router'
 
 const initialState = () => ({

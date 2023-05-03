@@ -29,10 +29,6 @@ const logout = authStore.logout
 </script>
 
 <style scoped lang="scss">
-.btn--sub {
-  background-color: #2980b9;
-}
-
 .toolbar-items {
   display: flex;
   justify-content: space-between;

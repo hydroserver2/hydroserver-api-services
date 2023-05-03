@@ -5,8 +5,20 @@ import { useAuthStore } from '@/store/authentication'
 axios.defaults.baseURL = `${
   import.meta.env.MODE === 'development'
     ? 'http://127.0.0.1:8000'
-    : PROXY_BASE_URL
+    : PROXY_BASE_URL // TODO: set env variable for this
 }/api/`
+
+// TODO: move these configs to a store with an init method
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error)
+    else prom.resolve(token)
+  })
+  failedQueue = []
+}
 
 // Axios interceptor for handling JWT tokens
 axios.interceptors.request.use(
@@ -21,17 +33,6 @@ axios.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 )
-
-let isRefreshing = false
-let failedQueue = []
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) prom.reject(error)
-    else prom.resolve(token)
-  })
-  failedQueue = []
-}
 
 axios.interceptors.response.use(
   (response) => response,
