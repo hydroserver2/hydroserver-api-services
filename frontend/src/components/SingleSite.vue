@@ -198,7 +198,6 @@ function loadThing() {
     .then(() => {
       thing.value = dataStore[cachedThingName]
       followsThing.value = thing.value.follows_thing
-      console.log('Thing: ', thing.value)
     })
     .catch((error) => {
       console.error('Error fetching thing data from API', error)
