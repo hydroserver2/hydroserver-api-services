@@ -1,15 +1,14 @@
 import axios from 'axios'
 import router from '@/router/router'
-
-// TODO: circular dependency error because useAuthStore imports axios.config.ts
 import { useAuthStore } from '@/store/authentication'
 
 axios.defaults.baseURL = `${
   import.meta.env.MODE === 'development'
     ? 'http://127.0.0.1:8000'
-    : PROXY_BASE_URL
+    : PROXY_BASE_URL // TODO: set env variable for this
 }/api/`
 
+// TODO: move these configs to a store with an init method
 let isRefreshing = false
 let failedQueue = []
 

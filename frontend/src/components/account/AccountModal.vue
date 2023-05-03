@@ -67,7 +67,7 @@
 
 <script setup>
 import { useDataStore } from '@/store/data.ts'
-import { reactive, ref, defineEmits } from 'vue'
+import { reactive, ref } from 'vue'
 import axios from 'axios'
 
 const emit = defineEmits(['accountUpdated'])

@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, defineEmits } from 'vue'
+import { computed, ref } from 'vue'
 import axios from '@/plugins/axios.config'
 import { useDataStore } from '@/store/data'
 

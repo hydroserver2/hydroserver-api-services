@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 
-// TODO: circular dependency error because useAuthStore imports axios.config.ts
-import axios from '@/plugins/axios.config'
+import axios from 'axios'
 
 import router from '@/router/router'
 
