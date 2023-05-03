@@ -20,7 +20,7 @@
     </div>
   </v-parallax>
 
-  <v-container v-bind="sectionAttrs">
+  <v-container class="my-8">
     <div class="d-flex flex-column align-center text-center">
       <h2 class="text-h4 mb-4">Manage your Operation Data</h2>
 
@@ -33,9 +33,11 @@
 
     <v-row>
       <v-col cols="12" sm="6" class="mb-4">
-        <div class="d-flex flex-column flex-sm-row gap-1">
+        <div
+          class="d-flex flex-column flex-sm-row gap-1 text-center text-sm-left"
+        >
           <div class="text-center">
-            <v-icon icon="mdi-resistor" size="6rem" />
+            <v-icon icon="mdi-resistor" size="4rem" />
           </div>
           <div>
             <p class="text-body-1 font-weight-bold mb-2">
@@ -50,9 +52,11 @@
       </v-col>
 
       <v-col cols="12" sm="6" class="mb-4">
-        <div class="d-flex flex-column flex-sm-row gap-1">
+        <div
+          class="d-flex flex-column flex-sm-row gap-1 text-center text-sm-left"
+        >
           <div class="text-center">
-            <v-icon icon="mdi-database-outline" size="6rem" />
+            <v-icon icon="mdi-database-outline" size="4rem" />
           </div>
           <div>
             <p class="text-body-1 font-weight-bold mb-2">
@@ -67,9 +71,11 @@
       </v-col>
 
       <v-col cols="12" sm="6" class="mb-4">
-        <div class="d-flex flex-column flex-sm-row gap-1">
+        <div
+          class="d-flex flex-column flex-sm-row gap-1 text-center text-sm-left"
+        >
           <div class="text-center">
-            <v-icon icon="mdi-cog-outline" size="6rem" />
+            <v-icon icon="mdi-cog-outline" size="4rem" />
           </div>
           <div>
             <p class="text-body-1 font-weight-bold mb-2">
@@ -84,9 +90,11 @@
       </v-col>
 
       <v-col cols="12" sm="6" class="mb-4">
-        <div class="d-flex flex-column flex-sm-row gap-1">
+        <div
+          class="d-flex flex-column flex-sm-row gap-1 text-center text-sm-left"
+        >
           <div class="text-center">
-            <v-icon icon="mdi-lock-open-outline" size="6rem" />
+            <v-icon icon="mdi-lock-open-outline" size="4rem" />
           </div>
           <div>
             <p class="text-body-1 font-weight-bold mb-2">
@@ -104,10 +112,17 @@
 
   <v-divider></v-divider>
 
-  <v-container v-bind="sectionAttrs">
+  <v-container class="my-8">
     <v-row>
-      <v-col class="text-center text-sm-right" cols="12" sm="4">
-        <div>- Image Here -</div>
+      <v-col
+        class="d-flex flex-column justify-center align-center gap-2"
+        cols="12"
+        sm="4"
+        order="last"
+        order-sm="first"
+      >
+        <v-img :src="noaaLogo" max-width="12rem" class="fill-width"></v-img>
+        <v-img :src="owpLogo" max-width="18rem" class="fill-width"></v-img>
       </v-col>
       <v-col cols="12" sm="8">
         <h4 class="text-h4 mb-4">Operational Data for Modeling</h4>
@@ -126,7 +141,7 @@
 
   <v-divider></v-divider>
 
-  <v-container v-bind="sectionAttrs">
+  <v-container class="my-8">
     <v-row>
       <v-col cols="12" sm="6">
         <h4 class="text-h4 mb-8">Open Standards Data Sharing</h4>
@@ -134,9 +149,14 @@
           Share your data publicly using the latest Open Geospatial Consortium
           web services standard SensorThings.
         </p>
+        <v-img :src="ogcLogo" max-width="28rem"></v-img>
       </v-col>
-      <v-col cols="12" sm="6" class="text-center">
-        <div>- Image Here -</div>
+      <v-col cols="12" sm="6" class="d-flex flex-column align-center gap-2">
+        <v-img
+          :src="sensorThingsLogo"
+          class="fill-width"
+          max-width="35rem"
+        ></v-img>
         <h4 class="text-h4">SensorThings</h4>
       </v-col>
     </v-row>
@@ -144,8 +164,8 @@
 
   <v-divider> </v-divider>
 
-  <v-container v-bind="sectionAttrs" class="d-flex flex-column align-center">
-    <div>- Image Here -</div>
+  <v-container class="d-flex flex-column align-center my-8 gap-2">
+    <v-img :src="cirohLogo" class="fill-width" max-width="14rem"></v-img>
     <p class="text-body-1 text-medium-emphasis text-center">
       This HydroServer instance is supported through the Cooperative Institute
       for Research to Operations in Hydrology (CIROH)
@@ -154,17 +174,18 @@
 </template>
 
 <script setup lang="ts">
-import resistanceIcon from '@/assets/resistance.svg'
-import gearIcon from '@/assets/gear.svg'
-import dbIcon from '@/assets/db.svg'
-import ogcIcon from '@/assets/ogc.png'
-
-const sectionAttrs = {
-  class: 'my-8',
-}
+import noaaLogo from '@/assets/noaa.svg'
+import owpLogo from '@/assets/owp.png'
+import ogcLogo from '@/assets/ogc.svg'
+import cirohLogo from '@/assets/ciroh.png'
+import sensorThingsLogo from '@/assets/sensorThings.png'
 </script>
 
 <style scoped lang="scss">
+.v-container {
+  max-width: 1200px;
+}
+
 p {
   max-width: 40rem;
 }

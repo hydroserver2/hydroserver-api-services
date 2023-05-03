@@ -2,12 +2,14 @@
   text-shadow: 1px 1px 2px rgba(0, 0 ,0 , 0.65);
 }
 
-:root {
-  .v-icon {
-    // --v-icon-size-multiplier: 4;
+$gaps: 4;
+
+@for $i from 1 through 4 {
+  .gap-#{$i} {
+    gap: #{$i}rem;
   }
 }
 
-.gap-1 {
-  gap: 1rem;
+.fill-width {
+  width: 100%;
 }
