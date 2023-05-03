@@ -598,10 +598,7 @@ class CreateDatastreamInput(Schema):
     processing_level: str = None
     unit: str = None
 
-    name: str
-    description: str = None
     observation_type: str = None
-
     result_type: str = None
     status: str = None
     sampled_medium: str = None
@@ -637,8 +634,6 @@ def datastream_to_dict(datastream, add_recent_observations=True):
 
     return {
         "id": datastream.pk,
-        "name": datastream.name,
-        "description": datastream.description,
         "observation_type": datastream.observation_type,
         "result_type": datastream.result_type,
         "status": datastream.status,
@@ -689,8 +684,7 @@ def create_datastream(request, data: CreateDatastreamInput):
         processing_level = None
 
     datastream = Datastream.objects.create(
-        name=data.name,
-        description=data.description,
+        description="Site Datastream",
         observed_property=observed_property,
         unit=unit,
         processing_level=processing_level,
@@ -729,10 +723,7 @@ class UpdateDatastreamInput(Schema):
     observed_property: str = None
     processing_level: str = None
 
-    name: str = None
-    description: str = None
     observation_type: str = None
-
     result_type: str = None
     status: str = None
     sampled_medium: str = None
@@ -781,10 +772,6 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
             except ProcessingLevel.DoesNotExist:
                 return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-        if data.name:
-            datastream.name = data.name
-        if data.description:
-            datastream.description = data.description
         if data.observation_type:
             datastream.observation_type = data.observation_type
         if data.result_type:

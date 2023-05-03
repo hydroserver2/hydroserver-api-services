@@ -98,6 +98,7 @@ dataStore
     const thing = dataStore[cachedThingName]
     thingName.value = thing.name
     datastreams.value = thing.datastreams
+    console.log('Datastreams', datastreams)
   })
   .catch((error) => {
     console.error('Error fetching thing data from API', error)

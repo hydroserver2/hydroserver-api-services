@@ -127,6 +127,11 @@ class Datastream(models.Model):
     result_begin_time = models.DateTimeField(null=True, blank=True)
     result_end_time = models.DateTimeField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = str(self.id)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 

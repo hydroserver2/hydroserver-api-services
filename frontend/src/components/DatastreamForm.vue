@@ -67,17 +67,6 @@
           </v-row>
 
           <v-text-field
-            v-model="ds_name"
-            label="Datastream name"
-            :rules="[(v) => !!v || 'Name is required']"
-            required
-          ></v-text-field>
-          <v-textarea
-            v-model="ds_description"
-            label="Datastream description"
-            auto-grow
-          ></v-textarea>
-          <v-text-field
             v-model="ds_sampled_medium"
             label="Sampled medium"
             :rules="[(v) => !!v || 'Sampled medium is required']"
@@ -148,8 +137,6 @@ let observedProperties = ref([])
 let sensors = ref([])
 let processingLevels = ref([])
 
-const ds_name = ref('')
-const ds_description = ref('')
 const ds_sampled_medium = ref('')
 const ds_status = ref('')
 const ds_no_data_value = ref('')
@@ -218,8 +205,6 @@ function populateForm(datastream) {
   selectedUnit.value = datastream.unit_id
   selectedProcessingLevel.value = datastream.processing_level_id
 
-  ds_name.value = datastream.name
-  ds_description.value = datastream.description
   ds_sampled_medium.value = datastream.sampled_medium
   ds_status.value = datastream.status
   ds_no_data_value.value = datastream.no_data_value
@@ -232,8 +217,6 @@ async function uploadDatastream() {
   try {
     const payload = {
       thing_id: thingId,
-      name: ds_name.value,
-      description: ds_description.value,
       sensor: String(selectedSensor.value),
       observed_property: String(selectedObservedProperty.value),
       unit: String(selectedUnit.value),
