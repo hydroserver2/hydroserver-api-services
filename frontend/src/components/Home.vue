@@ -117,14 +117,14 @@
       <v-col
         class="d-flex flex-column justify-center align-center gap-2"
         cols="12"
-        sm="4"
+        sm="5"
         order="last"
         order-sm="first"
       >
         <v-img :src="noaaLogo" max-width="12rem" class="fill-width"></v-img>
         <v-img :src="owpLogo" max-width="18rem" class="fill-width"></v-img>
       </v-col>
-      <v-col cols="12" sm="8">
+      <v-col class="d-flex justify-center flex-column" cols="12" sm="7">
         <h4 class="text-h4 mb-4">Operational Data for Modeling</h4>
         <h6 class="text-body-1 mb-2 font-weight-bold">
           Your data can improve NOAA's water prediction services
@@ -143,13 +143,15 @@
 
   <v-container class="my-8">
     <v-row>
-      <v-col cols="12" sm="6">
+      <v-col class="d-flex flex-column justify-center" cols="12" sm="6">
         <h4 class="text-h4 mb-8">Open Standards Data Sharing</h4>
         <p class="text-body-1 text-medium-emphasis">
           Share your data publicly using the latest Open Geospatial Consortium
           web services standard SensorThings.
         </p>
-        <v-img :src="ogcLogo" max-width="28rem"></v-img>
+        <div>
+          <v-img :src="ogcLogo" max-width="26rem" height="auto"></v-img>
+        </div>
       </v-col>
       <v-col cols="12" sm="6" class="d-flex flex-column align-center gap-2">
         <v-img

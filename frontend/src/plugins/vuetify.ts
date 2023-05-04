@@ -11,10 +11,8 @@ const theme: ThemeDefinition = {
   colors: {
     background: '#FFFFFF',
     surface: '#FFFFFF',
-    primary: '#6200EE',
-    'primary-darken-1': '#3700B3',
+    primary: '#0000FF',
     secondary: '#03DAC6',
-    'secondary-darken-1': '#018786',
     error: '#B00020',
     info: '#2196F3',
     success: '#4CAF50',
@@ -29,6 +27,11 @@ export default createVuetify({
     defaultTheme: 'theme',
     themes: {
       theme,
+    },
+    variations: {
+      colors: ['primary', 'secondary', 'surface'],
+      lighten: 6,
+      darken: 6,
     },
   },
 })

@@ -1,5 +1,5 @@
 <template>
-  <v-footer>
+  <v-footer color="surface-darken-1">
     <v-container class="py-8 text-body-2">
       <div class="d-flex justify-space-between flex-column flex-md-row gap-3">
         <div>
@@ -56,11 +56,6 @@ const version = import.meta.env.VITE_APP_VERSION || '0.0.1'
 </script>
 
 <style scoped>
-.v-footer {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
 p {
   max-width: 75rem;
 }
