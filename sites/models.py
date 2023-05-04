@@ -127,6 +127,8 @@ class Datastream(models.Model):
     result_begin_time = models.DateTimeField(null=True, blank=True)
     result_end_time = models.DateTimeField(null=True, blank=True)
 
+    is_visible = models.BooleanField(default=True)
+
     def save(self, *args, **kwargs):
         if not self.name:
             self.name = str(self.id)

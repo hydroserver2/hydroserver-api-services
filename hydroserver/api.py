@@ -651,7 +651,8 @@ def datastream_to_dict(datastream, add_recent_observations=True):
         "unit_name": datastream.unit.name if datastream.unit else None,
         "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
         "method_name": datastream.sensor.name if datastream.sensor else None,
-        "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None
+        "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
+        "is_visible": datastream.is_visible
     }
 
 
@@ -740,6 +741,7 @@ class UpdateDatastreamInput(Schema):
     phenomenon_end_time: str = None
     result_begin_time: str = None
     result_end_time: str = None
+    is_visible: bool = None
 
 
 @api.put('/datastreams/{datastream_id}', auth=jwt_auth)
@@ -808,10 +810,12 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
                 datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units)
             except Unit.DoesNotExist:
                 return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
+        if data.is_visible is not None:
+            datastream.is_visible = data.is_visible
 
         datastream.save()
 
-    return {'id': datastream.id, 'detail': 'Datastream updated successfully.'}
+    return JsonResponse(datastream_to_dict(datastream))
 
 
 @api.delete('/datastreams/{datastream_id}')

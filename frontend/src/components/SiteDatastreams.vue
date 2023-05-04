@@ -1,7 +1,7 @@
 <template>
   <div class="manage-datastreams" style="margin: 1rem">
     <h1>Manage Site Datastreams</h1>
-    <h2>{{ thingName }}</h2>
+    <h2>{{ thing?.name }}</h2>
     <v-btn
       style="margin-top: 0.5rem; margin-bottom: 1rem"
       color="primary"
@@ -36,6 +36,16 @@
             </router-link>
             <span class="action-link-separator"> | </span>
             <a class="action-link" @click="showModal(datastream)">Delete</a>
+            <span class="action-link-separator"> | </span>
+            <a
+              v-if="datastream.is_visible"
+              class="action-link"
+              @click="toggleVisibility(datastream)"
+              >Hide
+            </a>
+            <a v-else class="action-link" @click="toggleVisibility(datastream)"
+              >Make visible</a
+            >
           </td>
         </tr>
       </tbody>
@@ -65,12 +75,13 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDataStore } from '@/store/data'
 import DeleteDatastreamModal from '@/components/Site/DeleteDatastreamModal.vue'
+import axios from 'axios'
 
 const route = useRoute()
 const dataStore = useDataStore()
 
 const thing_id = route.params.id.toString()
-const thingName = ref('')
+const thing = ref(null)
 const datastreams = ref([])
 const showDeleteModal = ref(false)
 const selectedDatastream = ref(null)
@@ -80,14 +91,28 @@ function showModal(datastream) {
   showDeleteModal.value = true
 }
 
+async function toggleVisibility(datastream) {
+  try {
+    const makeVisible = !datastream.is_visible
+    const response = await axios.put(`/datastreams/${datastream.id}`, {
+      is_visible: makeVisible,
+    })
+    datastream.is_visible = !datastream.is_visible
+    thing.value.datastreams = datastreams
+    dataStore.cacheProperty(`thing_${thing_id}`, thing.value)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 async function onDatastreamDeleted() {
   await dataStore.fetchOrGetFromCache(
     `thing_${thing_id}`,
     `/things/${thing_id}`
   )
-  const thing = dataStore[`thing_${thing_id}`]
-  thingName.value = thing.name
-  datastreams.value = thing.datastreams
+  const fetchedThing = dataStore[`thing_${thing_id}`]
+  thing.value = fetchedThing
+  datastreams.value = fetchedThing.datastreams
 }
 
 let cachedThingName = `thing_${thing_id}`
@@ -95,9 +120,9 @@ let cachedThingName = `thing_${thing_id}`
 dataStore
   .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
   .then(() => {
-    const thing = dataStore[cachedThingName]
-    thingName.value = thing.name
-    datastreams.value = thing.datastreams
+    const newThing = dataStore[cachedThingName]
+    thing.value = newThing
+    datastreams.value = newThing.datastreams
     console.log('Datastreams', datastreams)
   })
   .catch((error) => {
