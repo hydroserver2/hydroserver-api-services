@@ -2,10 +2,11 @@ import axios from 'axios'
 import router from '@/router/router'
 import { useAuthStore } from '@/store/authentication'
 
+const baseUrl = import.meta.env.VITE_APP_VERSION.VITE_APP_PROXY_BASE_URL
+const mode = import.meta.env.MODE
+
 axios.defaults.baseURL = `${
-  import.meta.env.MODE === 'development'
-    ? 'http://127.0.0.1:8000'
-    : PROXY_BASE_URL // TODO: set env variable for this
+  mode === 'development' ? 'http://127.0.0.1:8000' : baseUrl
 }/api/`
 
 // TODO: move these configs to a store with an init method

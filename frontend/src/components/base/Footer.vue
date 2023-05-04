@@ -1,82 +1,67 @@
 <template>
-  <v-footer class="footer">
-    <v-container fluid>
-      <v-row class="footer-row">
-        <div class="footer-column">
-          <h3>Contact Us</h3>
-          <p>contact</p>
-          <p>Learn more about CIROH</p>
-        </div>
-        <div class="footer-column">
-          <h3>Policies</h3>
-          <p>Terms of Use</p>
-          <p>Privacy</p>
-        </div>
-        <div class="footer-column">
-          <h3>Developed By</h3>
-          <img src="@/assets/UWRL.png" alt="UWRL Logo" class="uwrl-logo" />
-        </div>
-        <div class="footer-column">
-          <h3>Open Source</h3>
+  <v-footer>
+    <v-container class="py-8">
+      <v-row>
+        <v-col>
+          <h5 class="text-h5 mb-4">Contact Us</h5>
+          <a class="d-block" href="#">Contact</a>
+          <div>Learn more about <a href="#">CIROH</a></div>
+        </v-col>
+        <v-col>
+          <h5 class="text-h5 mb-4">Policies</h5>
+          <a class="d-block" href="#">Terms of Use</a>
+          <a class="d-block" href="#">Privacy</a>
+        </v-col>
+        <v-col>
+          <h5 class="text-h5 mb-4">Developed By</h5>
+          <v-img
+            :src="uwrlLogo"
+            alt="UWRL Logo"
+            max-width="20rem"
+            class="fill-width"
+          ></v-img>
+        </v-col>
+        <v-col>
+          <h5 class="text-h5 mb-4">Open Source</h5>
           <p>
             HydroServer is open Source. Find us on
-            <a
-              style="color: blue"
-              href="https://github.com/hydroserver2/hydroserver"
-              >GitHub.</a
-            >
+            <a href="https://github.com/hydroserver2/hydroserver">GitHub.</a>
           </p>
           <p>
-            <a href="https://github.com/issues" target="_blank"
-              >Report a bug here.</a
-            >
+            Report a bug
+            <a href="https://github.com/issues" target="_blank">here.</a>
           </p>
-          <p>This is Version 0.4.0 of the Hydroserver web application.</p>
-        </div>
+          <p>
+            This is Version {{ version }} of the Hydroserver web application.
+          </p>
+        </v-col>
+        <v-col cols="12" class="text-center mt-4"
+          ><p class="d-inline-block text-body-2">
+            (c) Utah Water Research Laboratory (UWRL). This material is based on
+            work supported by the Cooperative Institute for Research to
+            Operations in Hydrology (CIROH). Funding was awarded to CIROH
+            through the NOAA Cooperative Agreement with the University of
+            Alabama (NA22NWS4320003)
+          </p></v-col
+        >
       </v-row>
     </v-container>
   </v-footer>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'Footer',
-}
+<script setup lang="ts">
+import uwrlLogo from '@/assets/UWRL.png'
+
+const version = import.meta.env.VITE_APP_VERSION || '0.0.1'
 </script>
 
 <style scoped>
-.footer {
+.v-footer {
   background-color: #f5f5f5;
   color: #333;
 }
 
-.footer-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-around;
-}
-
-.footer-column {
-  text-align: left;
-  padding: 0;
-}
-
-h3 {
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-a {
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-.uwrl-logo {
-  width: 100%;
-  height: auto;
-  max-height: 3rem;
+p {
+  max-width: 75rem;
 }
 </style>
