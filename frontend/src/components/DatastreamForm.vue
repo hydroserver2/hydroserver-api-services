@@ -53,8 +53,7 @@
               <v-autocomplete
                 v-model="selectedProcessingLevel"
                 label="Select processing level"
-                :items="processingLevels"
-                item-title="processing_level_code"
+                :items="formattedProcessingLevels"
                 item-value="id"
                 no-data-text="No available processing level"
               ></v-autocomplete>
@@ -150,6 +149,13 @@ const formattedDatastream = computed(() => {
   }))
 })
 
+const formattedProcessingLevels = computed(() => {
+  return processingLevels.value.map((pl) => ({
+    id: pl.id,
+    title: `${pl.processing_level_code} : ${pl.definition}`,
+  }))
+})
+
 async function updateSensors(newSensorID) {
   await dataStore.fetchOrGetFromCache('sensors', '/sensors')
   sensors.value = dataStore.sensors
@@ -167,7 +173,7 @@ async function updateObservedProperties(newObservedPropertyId) {
 
 async function updateUnits(newUnitId) {
   await dataStore.fetchOrGetFromCache('units', '/units')
-  units.value = dataStore.units
+  units.value = dataStore.units.sort((a, b) => a.name.localeCompare(b.name))
   selectedUnit.value = newUnitId
 }
 

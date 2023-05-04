@@ -47,15 +47,25 @@ import SearchBar from '@/components/SearchBar.vue'
 
 const dataStore = useDataStore()
 const siteTypes = ref([
-  'Atmosphere',
+  'Borehole',
   'Ditch',
-  'Lake',
-  'Ocean',
-  'River',
-  'Spring',
+  'Atmosphere',
+  'Estuary',
+  'House',
+  'Land',
+  'Pavement',
   'Stream',
+  'Spring',
+  'Lake, Reservoir, Impoundment',
+  'Laboratory or sample-preparation area',
+  'Observation well',
+  'Soil hole',
+  'Storm sewer',
+  'Stream gage',
+  'Tidal stream',
+  'Water quality station',
+  'Weather station',
   'Wetland',
-  'Well',
   'Other',
 ])
 const clearSearch = ref(false)
