@@ -1,64 +1,63 @@
 <template>
   <div style="margin: 1rem">
     <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
-    <v-select
+    <v-autocomplete
       v-if="!datastreamId"
       v-model="selectedDatastream"
       label="Start from an existing datastream"
-      :items="datastreams"
-      item-title="name"
+      :items="formattedDatastream"
       item-value="id"
-    ></v-select>
+    ></v-autocomplete>
 
     <div>
       <v-form @submit.prevent="uploadDatastream">
         <v-container>
           <v-row style="margin-bottom: 1rem">
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedSensor"
                 label="Select sensor"
                 :items="sensors"
                 item-title="name"
                 item-value="id"
                 no-data-text="No available sensors"
-              ></v-select>
+              ></v-autocomplete>
               <sensor-modal @sensorCreated="updateSensors"></sensor-modal>
             </v-col>
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedObservedProperty"
                 label="Select observed property"
                 :items="observedProperties"
                 item-title="name"
                 item-value="id"
                 no-data-text="No available properties"
-              ></v-select>
+              ></v-autocomplete>
               <observed-property-modal
                 @observedPropertyCreated="updateObservedProperties"
                 >Add New</observed-property-modal
               >
             </v-col>
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedUnit"
                 label="Select unit"
                 :items="units"
                 item-title="name"
                 item-value="id"
                 no-data-text="No available units"
-              ></v-select>
+              ></v-autocomplete>
               <unit-modal @unitCreated="updateUnits">Add New</unit-modal>
             </v-col>
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedProcessingLevel"
                 label="Select processing level"
                 :items="processingLevels"
                 item-title="processing_level_code"
                 item-value="id"
                 no-data-text="No available processing level"
-              ></v-select>
+              ></v-autocomplete>
               <processing-level-modal
                 @processingLevelCreated="updateProcessingLevels"
                 >Add New</processing-level-modal
@@ -109,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 import { useRoute } from 'vue-router'
 import SensorModal from '@/components/Site/SensorModal.vue'
@@ -143,6 +142,13 @@ const ds_no_data_value = ref('')
 const ds_aggregation_statistic = ref('')
 const ds_result_type = ref('')
 const ds_observation_type = ref('')
+
+const formattedDatastream = computed(() => {
+  return datastreams.value.map((datastream) => ({
+    id: datastream.id,
+    title: `${datastream.method_name} : ${datastream.observed_property_name} : ${datastream.unit_name} : ${datastream.processing_level_name}`,
+  }))
+})
 
 async function updateSensors(newSensorID) {
   await dataStore.fetchOrGetFromCache('sensors', '/sensors')
@@ -179,9 +185,7 @@ async function populateDatastreamSelector(newDatastreamId) {
 
 async function populateDatastream(selectedDatastreamId = null) {
   if (selectedDatastreamId === null) selectedDatastreamId = datastreamId
-  await dataStore.fetchOrGetFromCache(`thing_${thingId}`, `/things/${thingId}`)
-  const thing = dataStore[`thing_${thingId}`]
-  const datastream = thing.datastreams.find(
+  const datastream = datastreams.value.find(
     (ds) => ds.id === selectedDatastreamId
   )
   if (datastream) populateForm(datastream)
