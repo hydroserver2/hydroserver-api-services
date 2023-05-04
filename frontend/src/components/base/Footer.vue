@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <div class="text-center my-8">
+      <div class="text-center mt-12">
         <p class="d-inline-block text-body-2">
           (c) Utah Water Research Laboratory (UWRL). This material is based on
           work supported by the Cooperative Institute for Research to Operations

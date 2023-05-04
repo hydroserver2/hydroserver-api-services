@@ -70,4 +70,9 @@ export const useAuthStore = defineStore({
       }
     },
   },
+  getters: {
+    isLoggedIn: (state) => {
+      return !!state.access_token
+    },
+  },
 })
