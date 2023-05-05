@@ -122,13 +122,13 @@ const route = useRoute()
 const thingId = route.params.id
 const datastreamId = route.params.datastreamId
 
-let selectedDatastream = ref(null)
+let selectedDatastream = ref(datastreamId)
 const datastreams = ref([])
 
-let selectedUnit = ref(null)
-let selectedObservedProperty = ref(null)
-let selectedSensor = ref(null)
-let selectedProcessingLevel = ref(null)
+let selectedUnit = ref('')
+let selectedObservedProperty = ref('')
+let selectedSensor = ref('')
+let selectedProcessingLevel = ref('')
 
 let units = ref([])
 let observedProperties = ref([])
@@ -156,58 +156,53 @@ const formattedProcessingLevels = computed(() => {
   }))
 })
 
-async function updateSensors(newSensorID) {
+async function updateSensors(newSensorID = null) {
   await dataStore.fetchOrGetFromCache('sensors', '/sensors')
   sensors.value = dataStore.sensors
-  selectedSensor.value = newSensorID
+  if (newSensorID) selectedSensor.value = newSensorID
 }
 
-async function updateObservedProperties(newObservedPropertyId) {
+async function updateObservedProperties(newObservedPropertyId = null) {
   await dataStore.fetchOrGetFromCache(
     'observedProperties',
     '/observed-properties'
   )
   observedProperties.value = dataStore.observedProperties
-  selectedObservedProperty.value = newObservedPropertyId
+  if (newObservedPropertyId)
+    selectedObservedProperty.value = newObservedPropertyId
 }
 
-async function updateUnits(newUnitId) {
+async function updateUnits(newUnitId = null) {
   await dataStore.fetchOrGetFromCache('units', '/units')
   units.value = dataStore.units.sort((a, b) => a.name.localeCompare(b.name))
-  selectedUnit.value = newUnitId
+  if (newUnitId) selectedUnit.value = newUnitId
 }
 
-async function updateProcessingLevels(newProcessingLevelId) {
+async function updateProcessingLevels(newProcessingLevelId = null) {
   await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
   processingLevels.value = dataStore.processingLevels
-  selectedProcessingLevel.value = newProcessingLevelId
+  if (newProcessingLevelId) selectedProcessingLevel.value = newProcessingLevelId
 }
 
-async function populateDatastreamSelector(newDatastreamId) {
+async function populateDatastream() {
   await dataStore.fetchOrGetFromCache('datastreams', '/datastreams')
   datastreams.value = dataStore.datastreams
-  selectedDatastream.value = newDatastreamId
+
+  if (selectedDatastream.value) {
+    const datastream = datastreams.value.find(
+      (ds) => ds.id === selectedDatastream.value
+    )
+    if (datastream) populateForm(datastream)
+  }
 }
 
-async function populateDatastream(selectedDatastreamId = null) {
-  if (selectedDatastreamId === null) selectedDatastreamId = datastreamId
-  const datastream = datastreams.value.find(
-    (ds) => ds.id === selectedDatastreamId
-  )
-  if (datastream) populateForm(datastream)
-}
+watch(selectedDatastream, () => populateDatastream())
 
-watch(selectedDatastream, () => {
-  populateDatastream(selectedDatastream.value)
-})
-
+populateDatastream()
 updateSensors()
 updateObservedProperties()
 updateUnits()
 updateProcessingLevels()
-
-if (datastreamId) populateDatastream()
-else populateDatastreamSelector()
 
 function populateForm(datastream) {
   selectedSensor.value = datastream.method_id
@@ -246,6 +241,7 @@ async function uploadDatastream() {
       dataStore.addDatastream(newDatastream)
     }
     localStorage.removeItem(`thing_${thingId}`)
+    localStorage.removeItem(`datastreams`)
     await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
   } catch (error) {
     console.log('Error Registering Datastream: ', error)

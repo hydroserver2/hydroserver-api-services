@@ -123,7 +123,6 @@ dataStore
     const newThing = dataStore[cachedThingName]
     thing.value = newThing
     datastreams.value = newThing.datastreams
-    console.log('Datastreams', datastreams)
   })
   .catch((error) => {
     console.error('Error fetching thing data from API', error)
