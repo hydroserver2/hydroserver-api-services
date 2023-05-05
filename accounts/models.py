@@ -23,6 +23,7 @@ class CustomUser(AbstractUser):
     middle_name = models.CharField(max_length=30, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
+    type = models.CharField(max_length=255, blank=True, null=True)
 
     objects = CustomUserManager()
 

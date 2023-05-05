@@ -153,6 +153,8 @@ class CreateUserInput(Schema):
     middle_name: str = None
     phone: str = None
     address: str = None
+    type: str = None
+    organization: str = None
 
 
 @api.post('/user')
@@ -163,16 +165,17 @@ def create_user(request, data: CreateUserInput):
             email=data.email,
             password=data.password,
             first_name=data.first_name,
+            middle_name=data.middle_name,
             last_name=data.last_name,
+            organization=data.organization,
+            type=data.type,
+            phone=data.phone,
+            address=data.address
         )
     except Exception as e:
         raise HttpError(400, str(e))
 
     user = authenticate(username=data.email, password=data.password)
-
-    user.middle_name = data.middle_name
-    user.phone = data.phone
-    user.address = data.address
     user.save()
 
     token = RefreshToken.for_user(user)
@@ -193,6 +196,7 @@ def user_to_dict(user):
         "phone": user.phone,
         "address": user.address,
         "organization": user.organization,
+        "type": user.type
     }
 
 
@@ -210,6 +214,7 @@ class UpdateUserInput(Schema):
     phone: str = None
     address: str = None
     organization: str = None
+    type: str = None
 
 
 @api.patch('/user', auth=jwt_auth)
@@ -232,6 +237,8 @@ def update_user(request, data: UpdateUserInput):
         user.address = data.address
     if data.organization:
         user.organization = data.organization
+    if data.type:
+        user.type = data.type
     # Probably want a seperate
     # if data.password:
     #     user.set_password(data.password)

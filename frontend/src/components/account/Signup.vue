@@ -10,9 +10,8 @@
             backdrop-filter: blur(10px);
           "
         >
-          <!--          <v-img src="src/assets/dam-background.jpg" height="250px" width="100%" class="mb-6"></v-img>-->
           <h2 class="mb-6">Sign Up</h2>
-          <form @submit.prevent="submitForm">
+          <form>
             <v-row>
               <v-col cols="12" md="4">
                 <v-text-field
@@ -78,9 +77,28 @@
                 ></v-text-field>
               </v-col>
             </v-row>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="organization"
+                  label="Organization (Optional)"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-autocomplete
+                v-model="type"
+                label="User Type"
+                :items="userTypes"
+                outlined
+                required
+              ></v-autocomplete>
+            </v-row>
             <v-row class="mt-6">
               <v-col cols="12" md="6">
-                <v-btn type="submit" color="primary">Create User</v-btn>
+                <v-btn type="submit" color="primary" @click="submitForm"
+                  >Create User</v-btn
+                >
               </v-col>
             </v-row>
             <v-card-actions>
@@ -107,6 +125,21 @@ const confirmPassword = ref('')
 const middleName = ref('')
 const phone = ref('')
 const address = ref('')
+const organization = ref('')
+const type = ref('')
+const userTypes = ref([
+  'University Faculty',
+  'University Professional or Research Staff',
+  'Post-Doctoral Fellow',
+  'University Graduate Student',
+  'University Undergraduate Student',
+  'Commercial/Professional',
+  'Government Official',
+  'School Student Kindergarten to 12th Grade',
+  'School Teacher Kindergarten to 12th Grade',
+  'Organization',
+  'Other',
+])
 
 async function submitForm() {
   if (password.value !== confirmPassword.value) {
@@ -123,6 +156,8 @@ async function submitForm() {
       middle_name: middleName.value,
       phone: phone.value,
       address: address.value,
+      organization: organization.value,
+      type: type.value,
     })
     const { access_token, refresh_token } = response.data
     localStorage.setItem('access_token', access_token)
