@@ -1,64 +1,62 @@
 <template>
   <div style="margin: 1rem">
     <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
-    <v-select
+    <v-autocomplete
       v-if="!datastreamId"
       v-model="selectedDatastream"
       label="Start from an existing datastream"
-      :items="datastreams"
-      item-title="name"
+      :items="formattedDatastream"
       item-value="id"
-    ></v-select>
+    ></v-autocomplete>
 
     <div>
       <v-form @submit.prevent="uploadDatastream">
         <v-container>
           <v-row style="margin-bottom: 1rem">
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedSensor"
                 label="Select sensor"
                 :items="sensors"
                 item-title="name"
                 item-value="id"
                 no-data-text="No available sensors"
-              ></v-select>
+              ></v-autocomplete>
               <sensor-modal @sensorCreated="updateSensors"></sensor-modal>
             </v-col>
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedObservedProperty"
                 label="Select observed property"
                 :items="observedProperties"
                 item-title="name"
                 item-value="id"
                 no-data-text="No available properties"
-              ></v-select>
+              ></v-autocomplete>
               <observed-property-modal
                 @observedPropertyCreated="updateObservedProperties"
                 >Add New</observed-property-modal
               >
             </v-col>
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedUnit"
                 label="Select unit"
                 :items="units"
                 item-title="name"
                 item-value="id"
                 no-data-text="No available units"
-              ></v-select>
+              ></v-autocomplete>
               <unit-modal @unitCreated="updateUnits">Add New</unit-modal>
             </v-col>
             <v-col cols="12" md="3">
-              <v-select
+              <v-autocomplete
                 v-model="selectedProcessingLevel"
                 label="Select processing level"
-                :items="processingLevels"
-                item-title="processing_level_code"
+                :items="formattedProcessingLevels"
                 item-value="id"
                 no-data-text="No available processing level"
-              ></v-select>
+              ></v-autocomplete>
               <processing-level-modal
                 @processingLevelCreated="updateProcessingLevels"
                 >Add New</processing-level-modal
@@ -66,17 +64,6 @@
             </v-col>
           </v-row>
 
-          <v-text-field
-            v-model="ds_name"
-            label="Datastream name"
-            :rules="[(v) => !!v || 'Name is required']"
-            required
-          ></v-text-field>
-          <v-textarea
-            v-model="ds_description"
-            label="Datastream description"
-            auto-grow
-          ></v-textarea>
           <v-text-field
             v-model="ds_sampled_medium"
             label="Sampled medium"
@@ -120,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 import { useRoute } from 'vue-router'
 import SensorModal from '@/components/Site/SensorModal.vue'
@@ -135,21 +122,19 @@ const route = useRoute()
 const thingId = route.params.id
 const datastreamId = route.params.datastreamId
 
-let selectedDatastream = ref(null)
+let selectedDatastream = ref(datastreamId)
 const datastreams = ref([])
 
-let selectedUnit = ref(null)
-let selectedObservedProperty = ref(null)
-let selectedSensor = ref(null)
-let selectedProcessingLevel = ref(null)
+let selectedUnit = ref('')
+let selectedObservedProperty = ref('')
+let selectedSensor = ref('')
+let selectedProcessingLevel = ref('')
 
 let units = ref([])
 let observedProperties = ref([])
 let sensors = ref([])
 let processingLevels = ref([])
 
-const ds_name = ref('')
-const ds_description = ref('')
 const ds_sampled_medium = ref('')
 const ds_status = ref('')
 const ds_no_data_value = ref('')
@@ -157,60 +142,67 @@ const ds_aggregation_statistic = ref('')
 const ds_result_type = ref('')
 const ds_observation_type = ref('')
 
-async function updateSensors(newSensorID) {
+const formattedDatastream = computed(() => {
+  return datastreams.value.map((datastream) => ({
+    id: datastream.id,
+    title: `${datastream.method_name} : ${datastream.observed_property_name} : ${datastream.unit_name} : ${datastream.processing_level_name}`,
+  }))
+})
+
+const formattedProcessingLevels = computed(() => {
+  return processingLevels.value.map((pl) => ({
+    id: pl.id,
+    title: `${pl.processing_level_code} : ${pl.definition}`,
+  }))
+})
+
+async function updateSensors(newSensorID = null) {
   await dataStore.fetchOrGetFromCache('sensors', '/sensors')
   sensors.value = dataStore.sensors
-  selectedSensor.value = newSensorID
+  if (newSensorID) selectedSensor.value = newSensorID
 }
 
-async function updateObservedProperties(newObservedPropertyId) {
+async function updateObservedProperties(newObservedPropertyId = null) {
   await dataStore.fetchOrGetFromCache(
     'observedProperties',
     '/observed-properties'
   )
   observedProperties.value = dataStore.observedProperties
-  selectedObservedProperty.value = newObservedPropertyId
+  if (newObservedPropertyId)
+    selectedObservedProperty.value = newObservedPropertyId
 }
 
-async function updateUnits(newUnitId) {
+async function updateUnits(newUnitId = null) {
   await dataStore.fetchOrGetFromCache('units', '/units')
-  units.value = dataStore.units
-  selectedUnit.value = newUnitId
+  units.value = dataStore.units.sort((a, b) => a.name.localeCompare(b.name))
+  if (newUnitId) selectedUnit.value = newUnitId
 }
 
-async function updateProcessingLevels(newProcessingLevelId) {
+async function updateProcessingLevels(newProcessingLevelId = null) {
   await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
   processingLevels.value = dataStore.processingLevels
-  selectedProcessingLevel.value = newProcessingLevelId
+  if (newProcessingLevelId) selectedProcessingLevel.value = newProcessingLevelId
 }
 
-async function populateDatastreamSelector(newDatastreamId) {
+async function populateDatastream() {
   await dataStore.fetchOrGetFromCache('datastreams', '/datastreams')
   datastreams.value = dataStore.datastreams
-  selectedDatastream.value = newDatastreamId
+
+  if (selectedDatastream.value) {
+    const datastream = datastreams.value.find(
+      (ds) => ds.id === selectedDatastream.value
+    )
+    if (datastream) populateForm(datastream)
+  }
 }
 
-async function populateDatastream(selectedDatastreamId = null) {
-  if (selectedDatastreamId === null) selectedDatastreamId = datastreamId
-  await dataStore.fetchOrGetFromCache(`thing_${thingId}`, `/things/${thingId}`)
-  const thing = dataStore[`thing_${thingId}`]
-  const datastream = thing.datastreams.find(
-    (ds) => ds.id === selectedDatastreamId
-  )
-  if (datastream) populateForm(datastream)
-}
+watch(selectedDatastream, () => populateDatastream())
 
-watch(selectedDatastream, () => {
-  populateDatastream(selectedDatastream.value)
-})
-
+populateDatastream()
 updateSensors()
 updateObservedProperties()
 updateUnits()
 updateProcessingLevels()
-
-if (datastreamId) populateDatastream()
-else populateDatastreamSelector()
 
 function populateForm(datastream) {
   selectedSensor.value = datastream.method_id
@@ -218,8 +210,6 @@ function populateForm(datastream) {
   selectedUnit.value = datastream.unit_id
   selectedProcessingLevel.value = datastream.processing_level_id
 
-  ds_name.value = datastream.name
-  ds_description.value = datastream.description
   ds_sampled_medium.value = datastream.sampled_medium
   ds_status.value = datastream.status
   ds_no_data_value.value = datastream.no_data_value
@@ -232,8 +222,6 @@ async function uploadDatastream() {
   try {
     const payload = {
       thing_id: thingId,
-      name: ds_name.value,
-      description: ds_description.value,
       sensor: String(selectedSensor.value),
       observed_property: String(selectedObservedProperty.value),
       unit: String(selectedUnit.value),
@@ -253,6 +241,7 @@ async function uploadDatastream() {
       dataStore.addDatastream(newDatastream)
     }
     localStorage.removeItem(`thing_${thingId}`)
+    localStorage.removeItem(`datastreams`)
     await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
   } catch (error) {
     console.log('Error Registering Datastream: ', error)

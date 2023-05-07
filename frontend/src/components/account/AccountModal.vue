@@ -52,8 +52,17 @@
               label="Organization"
               outlined
               required
-            ></v-text-field
-          ></v-row>
+            ></v-text-field>
+          </v-row>
+          <v-row>
+            <v-autocomplete
+              v-model="user.type"
+              label="User Type"
+              :items="userTypes"
+              outlined
+              required
+            ></v-autocomplete>
+          </v-row>
         </v-container>
       </v-card-text>
       <v-card-actions>
@@ -74,6 +83,20 @@ const emit = defineEmits(['accountUpdated'])
 const dataStore = useDataStore()
 const user = reactive({})
 const dialog = ref(false)
+
+const userTypes = ref([
+  'University Faculty',
+  'University Professional or Research Staff',
+  'Post-Doctoral Fellow',
+  'University Graduate Student',
+  'University Undergraduate Student',
+  'Commercial/Professional',
+  'Government Official',
+  'School Student Kindergarten to 12th Grade',
+  'School Teacher Kindergarten to 12th Grade',
+  'Organization',
+  'Other',
+])
 
 dataStore.fetchOrGetFromCache('user', '/user').then(() => {
   Object.assign(user, dataStore.user)

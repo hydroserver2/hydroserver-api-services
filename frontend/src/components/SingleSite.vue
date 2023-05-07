@@ -113,30 +113,31 @@
   </div>
 
   <v-row class="ma-2">
-    <v-col
-      md="3"
-      class="pa-3 d-flex flex-column"
-      v-for="datastream in thing?.datastreams"
-      :key="datastream.id"
-    >
-      <v-card class="elevation-5 flex d-flex flex-column" outlined>
-        <v-card-title
-          >{{ datastream.observed_property_name }}
-          <v-icon small class="mr-2">
-            mdi-cloud-download-outline
-          </v-icon></v-card-title
-        >
-        <v-card-item v-if="datastream.observations">
-          <div v-for="observation in datastream.observations">
-            {{ observation.result }}----{{ observation.result_time }}
-          </div>
-          {{ datastream.unit_name }}
-          <br />
-          {{ datastream.most_recent_observation.result_time }}
-        </v-card-item>
-        <v-card-item v-else>No data for this datastream</v-card-item>
-      </v-card>
-    </v-col>
+    <template v-for="datastream in thing?.datastreams" :key="datastream.id">
+      <v-col
+        v-if="datastream.is_visible"
+        md="3"
+        class="pa-3 d-flex flex-column"
+      >
+        <v-card class="elevation-5 flex d-flex flex-column" outlined>
+          <v-card-title
+            >{{ datastream.observed_property_name }}
+            <v-icon small class="mr-2">
+              mdi-cloud-download-outline
+            </v-icon></v-card-title
+          >
+          <v-card-item v-if="datastream.observations">
+            <div v-for="observation in datastream.observations">
+              {{ observation.result }}----{{ observation.result_time }}
+            </div>
+            {{ datastream.unit_name }}
+            <br />
+            {{ datastream.most_recent_observation.result_time }}
+          </v-card-item>
+          <v-card-item v-else>No data for this datastream</v-card-item>
+        </v-card>
+      </v-col>
+    </template>
   </v-row>
 </template>
 
@@ -198,7 +199,6 @@ function loadThing() {
     .then(() => {
       thing.value = dataStore[cachedThingName]
       followsThing.value = thing.value.follows_thing
-      console.log('Thing: ', thing.value)
     })
     .catch((error) => {
       console.error('Error fetching thing data from API', error)

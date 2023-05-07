@@ -23,7 +23,11 @@
                   label="Site Description"
                   v-model="formData.description"
                 />
-                <v-text-field label="Site Type" v-model="formData.site_type" />
+                <v-autocomplete
+                  label="Select Site Type"
+                  :items="siteTypes"
+                  v-model="formData.site_type"
+                ></v-autocomplete>
               </v-form>
             </v-col>
             <v-col cols="12" md="6">
@@ -104,6 +108,28 @@ const formData = ref({
 const mapOptions = ref({ center: { lat: 39, lng: -100 }, zoom: 4 })
 let marker = ref(null)
 let markerLoaded = ref(false)
+const siteTypes = ref([
+  'Atmosphere',
+  'Borehole',
+  'Ditch',
+  'Estuary',
+  'House',
+  'Lake, Reservoir, Impoundment',
+  'Land',
+  'Laboratory or sample-preparation area',
+  'Observation well',
+  'Other',
+  'Pavement',
+  'Soil hole',
+  'Spring',
+  'Stream',
+  'Stream gage',
+  'Storm sewer',
+  'Tidal stream',
+  'Water quality station',
+  'Weather station',
+  'Wetland',
+])
 
 async function populateThing() {
   const dataStore = useDataStore()

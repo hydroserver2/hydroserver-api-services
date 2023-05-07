@@ -1,6 +1,8 @@
 import time
 from functools import wraps
+from datetime import timedelta
 
+from django.utils import timezone
 from django.contrib.auth import authenticate, logout
 from django.db import transaction
 from django.db.models import Q
@@ -151,6 +153,8 @@ class CreateUserInput(Schema):
     middle_name: str = None
     phone: str = None
     address: str = None
+    type: str = None
+    organization: str = None
 
 
 @api.post('/user')
@@ -161,16 +165,17 @@ def create_user(request, data: CreateUserInput):
             email=data.email,
             password=data.password,
             first_name=data.first_name,
+            middle_name=data.middle_name,
             last_name=data.last_name,
+            organization=data.organization,
+            type=data.type,
+            phone=data.phone,
+            address=data.address
         )
     except Exception as e:
         raise HttpError(400, str(e))
 
     user = authenticate(username=data.email, password=data.password)
-
-    user.middle_name = data.middle_name
-    user.phone = data.phone
-    user.address = data.address
     user.save()
 
     token = RefreshToken.for_user(user)
@@ -191,6 +196,7 @@ def user_to_dict(user):
         "phone": user.phone,
         "address": user.address,
         "organization": user.organization,
+        "type": user.type
     }
 
 
@@ -208,6 +214,7 @@ class UpdateUserInput(Schema):
     phone: str = None
     address: str = None
     organization: str = None
+    type: str = None
 
 
 @api.patch('/user', auth=jwt_auth)
@@ -230,6 +237,8 @@ def update_user(request, data: UpdateUserInput):
         user.address = data.address
     if data.organization:
         user.organization = data.organization
+    if data.type:
+        user.type = data.type
     # Probably want a seperate
     # if data.password:
     #     user.set_password(data.password)
@@ -596,10 +605,7 @@ class CreateDatastreamInput(Schema):
     processing_level: str = None
     unit: str = None
 
-    name: str
-    description: str = None
     observation_type: str = None
-
     result_type: str = None
     status: str = None
     sampled_medium: str = None
@@ -622,7 +628,8 @@ def datastream_to_dict(datastream, add_recent_observations=True):
     observation_list = []
     most_recent_observation = None
     if add_recent_observations:
-        observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')[:30]
+        since_time = timezone.now() - timedelta(hours=72)
+        observations = Observation.objects.filter(datastream=datastream, result_time__gte=since_time).order_by('-result_time')
         for observation in observations:
             observation_list.append({
                 "id": observation.id,
@@ -634,8 +641,6 @@ def datastream_to_dict(datastream, add_recent_observations=True):
 
     return {
         "id": datastream.pk,
-        "name": datastream.name,
-        "description": datastream.description,
         "observation_type": datastream.observation_type,
         "result_type": datastream.result_type,
         "status": datastream.status,
@@ -653,7 +658,8 @@ def datastream_to_dict(datastream, add_recent_observations=True):
         "unit_name": datastream.unit.name if datastream.unit else None,
         "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
         "method_name": datastream.sensor.name if datastream.sensor else None,
-        "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None
+        "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
+        "is_visible": datastream.is_visible
     }
 
 
@@ -686,8 +692,7 @@ def create_datastream(request, data: CreateDatastreamInput):
         processing_level = None
 
     datastream = Datastream.objects.create(
-        name=data.name,
-        description=data.description,
+        description="Site Datastream",
         observed_property=observed_property,
         unit=unit,
         processing_level=processing_level,
@@ -726,10 +731,7 @@ class UpdateDatastreamInput(Schema):
     observed_property: str = None
     processing_level: str = None
 
-    name: str = None
-    description: str = None
     observation_type: str = None
-
     result_type: str = None
     status: str = None
     sampled_medium: str = None
@@ -746,6 +748,7 @@ class UpdateDatastreamInput(Schema):
     phenomenon_end_time: str = None
     result_begin_time: str = None
     result_end_time: str = None
+    is_visible: bool = None
 
 
 @api.put('/datastreams/{datastream_id}', auth=jwt_auth)
@@ -778,10 +781,6 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
             except ProcessingLevel.DoesNotExist:
                 return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-        if data.name:
-            datastream.name = data.name
-        if data.description:
-            datastream.description = data.description
         if data.observation_type:
             datastream.observation_type = data.observation_type
         if data.result_type:
@@ -818,10 +817,12 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
                 datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units)
             except Unit.DoesNotExist:
                 return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
+        if data.is_visible is not None:
+            datastream.is_visible = data.is_visible
 
         datastream.save()
 
-    return {'id': datastream.id, 'detail': 'Datastream updated successfully.'}
+    return JsonResponse(datastream_to_dict(datastream))
 
 
 @api.delete('/datastreams/{datastream_id}')
