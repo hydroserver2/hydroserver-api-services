@@ -84,7 +84,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 import { useDataStore } from '@/store/data'
 import GoogleMap from '../GoogleMap.vue'
 
@@ -164,7 +164,7 @@ function closeDialog() {
 }
 
 function createThing() {
-  const axiosMethod = props.thingId ? axios.patch : axios.post
+  const axiosMethod = props.thingId ? apiClient.patch : apiClient.post
   const endpoint = props.thingId ? `/things/${props.thingId}` : '/things'
 
   axiosMethod(endpoint, formData.value)

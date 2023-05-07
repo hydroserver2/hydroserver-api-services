@@ -1,19 +1,19 @@
-import axios from 'axios'
+import axios, {
+  AxiosError,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from 'axios'
+import type { AxiosResponse } from 'axios'
+import http from '@/utils/common-https'
 import router from '@/router/router'
 import { useAuthStore } from '@/store/authentication'
+import type { App } from 'vue'
 
-const baseUrl = import.meta.env.VITE_APP_VERSION.VITE_APP_PROXY_BASE_URL
-const mode = import.meta.env.MODE
-
-axios.defaults.baseURL = `${
-  mode === 'development' ? 'http://127.0.0.1:8000' : baseUrl
-}/api/`
-
-// TODO: move these configs to a store with an init method
+// // TODO: move these configs to a store with an init method
 let isRefreshing = false
-let failedQueue = []
+let failedQueue: any[] = []
 
-const processQueue = (error, token = null) => {
+const processQueue = (error: any, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error)
     else prom.resolve(token)
@@ -21,67 +21,86 @@ const processQueue = (error, token = null) => {
   failedQueue = []
 }
 
-// Axios interceptor for handling JWT tokens
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) config.headers.Authorization = `Bearer ${token}`
+export default {
+  install: (app: App): void => {
+    app.config.globalProperties.$http = http
+    const $http = app.config.globalProperties.$http
 
-    const refresh_token = localStorage.getItem('refresh_token')
-    if (refresh_token)
-      config.headers.Refresh_Authorization = `Bearer ${refresh_token}`
-    return config
-  },
-  (error) => Promise.reject(error)
-)
+    // Axios interceptor for handling JWT tokens
+    const handleRequest = (config: AxiosRequestConfig) => {
+      const token = localStorage.getItem('access_token')
+      if (config.headers) {
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
 
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-    const authStore = useAuthStore()
+        const refresh_token = localStorage.getItem('refresh_token')
+        if (refresh_token) {
+          config.headers.Refresh_Authorization = `Bearer ${refresh_token}`
+        }
+      }
 
-    if (
-      error.response.status === 401 &&
-      originalRequest.url === '/token/refresh'
-    ) {
-      console.log('Refresh Token has failed. Redirecting to login page...')
-      authStore.logout()
-      await router.push('/login')
+      return config
+    }
+
+    const handleRequestError = (error: AxiosError) => {
       return Promise.reject(error)
     }
 
-    if (error.response.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            return axios(originalRequest)
-          })
-          .catch((err) => Promise.reject(err))
-      }
-
-      originalRequest._retry = true
-      isRefreshing = true
-
-      try {
-        await authStore.refreshAccessToken()
-        const newAccessToken = authStore.access_token
-        processQueue(null, newAccessToken)
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-        return axios(originalRequest)
-      } catch (err) {
-        processQueue(err)
-        return Promise.reject(err)
-      } finally {
-        isRefreshing = false
-      }
+    const handleResponse = (response: AxiosResponse) => {
+      return response
     }
 
-    return Promise.reject(error)
-  }
-)
+    const handleResponseError = async (error: AxiosError) => {
+      const originalRequest:
+        | (InternalAxiosRequestConfig<any> & { _retry?: boolean })
+        | undefined = error.config
+      const authStore = useAuthStore()
 
-export default axios
+      if (originalRequest) {
+        if (
+          error.response?.status === 401 &&
+          originalRequest.url === '/token/refresh'
+        ) {
+          console.log('Refresh Token has failed. Redirecting to login page...')
+          authStore.logout()
+          await router.push('/login')
+          return Promise.reject(error)
+        }
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (isRefreshing) {
+            return new Promise((resolve, reject) => {
+              failedQueue.push({ resolve, reject })
+            })
+              .then((token) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`
+                return axios(originalRequest)
+              })
+              .catch((err) => Promise.reject(err))
+          }
+
+          originalRequest._retry = true
+          isRefreshing = true
+
+          try {
+            await authStore.refreshAccessToken()
+            const newAccessToken = authStore.access_token
+            processQueue(null, newAccessToken)
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+            return axios(originalRequest)
+          } catch (err) {
+            processQueue(err)
+            return Promise.reject(err)
+          } finally {
+            isRefreshing = false
+          }
+        }
+      }
+
+      return Promise.reject(error)
+    }
+    $http.interceptors.response.use(handleResponse, handleResponseError)
+    $http.interceptors.request.use(handleRequest, handleRequestError)
+  },
+}

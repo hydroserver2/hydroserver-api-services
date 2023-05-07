@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 import { ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 
@@ -58,7 +58,7 @@ async function removeThingFromLocalStorage() {
 
 async function deleteDatastream() {
   try {
-    await axios.delete(`/datastreams/${props.datastreamId}`)
+    await apiClient.delete(`/datastreams/${props.datastreamId}`)
     await removeThingFromLocalStorage()
     emit('close')
     emit('deleted')

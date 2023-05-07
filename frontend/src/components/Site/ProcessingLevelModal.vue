@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 import { ref } from 'vue'
 import { useDataStore } from '@/store/data'
 
@@ -66,7 +66,7 @@ const emit = defineEmits(['processingLevelCreated'])
 
 async function createProcessingLevel() {
   try {
-    const response = await axios.post('/processing-levels', formData.value)
+    const response = await apiClient.post('/processing-levels', formData.value)
     const newProcessingLevel = response.data
     dataStore.addProcessingLevel(newProcessingLevel)
     dialog.value = false

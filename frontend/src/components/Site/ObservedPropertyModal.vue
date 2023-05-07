@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 import { useDataStore } from '@/store/data'
 
 const dataStore = useDataStore()
@@ -82,7 +82,10 @@ const emit = defineEmits(['observedPropertyCreated'])
 
 async function createObservedProperty() {
   try {
-    const response = await axios.post('/observed-properties', formData.value)
+    const response = await apiClient.post(
+      '/observed-properties',
+      formData.value
+    )
     const newObservedProperty = response.data
     dataStore.addObservedProperty(newObservedProperty)
     dialog.value = false

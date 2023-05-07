@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar app density="compact" scroll-behavior="elevate">
+  <v-app-bar app density="compact" elevation="2">
     <template v-if="mdAndDown" v-slot:append>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     </template>

@@ -6,6 +6,8 @@ import { createVuetify, ThemeDefinition } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
+import { md3 } from 'vuetify/blueprints'
+
 const theme: ThemeDefinition = {
   dark: false,
   colors: {
@@ -21,8 +23,10 @@ const theme: ThemeDefinition = {
 }
 
 export default createVuetify({
+  blueprint: md3,
   components,
   directives,
+  defaults: {},
   theme: {
     defaultTheme: 'theme',
     themes: {

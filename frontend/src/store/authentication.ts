@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
-
-import axios from 'axios'
-
+import apiClient from '@/utils/common-https'
 import router from '@/router/router'
+import Notification from './notifications'
 
 const initialState = () => ({
   access_token: null,
@@ -19,20 +18,21 @@ export const useAuthStore = defineStore({
     resetState() {
       Object.assign(this, initialState())
     },
-    async login(loginData) {
+    async login(loginData: any) {
       try {
         this.loggingIn = true
         this.resetState()
         localStorage.clear()
 
-        const response = await axios.post('/token', { ...loginData })
+        const response = await apiClient.post('/token', { ...loginData })
+
         const { access_token, refresh_token } = response.data
         localStorage.setItem('access_token', access_token)
         localStorage.setItem('refresh_token', refresh_token)
         this.access_token = access_token
         this.refresh_token = refresh_token
-
-        await router.push({ name: 'Sites' })
+        Notification.toast({ message: 'You have logged in!' })
+        router.push({ name: 'Sites' })
       } catch (error) {
         this.logout()
       } finally {
@@ -45,6 +45,7 @@ export const useAuthStore = defineStore({
       router.push({ name: 'Home' }).catch((error) => {
         console.error('Error while navigating to Home:', error)
       })
+      Notification.toast({ message: 'You have logged out' })
     },
     fetchAccessToken() {
       const access_token = localStorage.getItem('access_token')
@@ -55,7 +56,7 @@ export const useAuthStore = defineStore({
     async refreshAccessToken() {
       console.log('Access token expired. refreshing token...')
       try {
-        const response = await axios.post('/token/refresh', {
+        const response = await apiClient.post('/token/refresh', {
           refresh_token: this.refresh_token,
         })
         const { access_token, refresh_token } = response.data

@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 import router from '@/router/router'
 import { ref } from 'vue'
 
@@ -148,7 +148,7 @@ async function submitForm() {
   }
 
   try {
-    const response = await axios.post('/user', {
+    const response = await apiClient.post('/user', {
       first_name: firstName.value,
       last_name: lastName.value,
       email: email.value,

@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 import { useDataStore } from '@/store/data'
 
 const emit = defineEmits(['unitCreated'])

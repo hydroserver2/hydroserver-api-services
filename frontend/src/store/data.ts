@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '@/plugins/axios.config'
+import apiClient from '@/utils/common-https'
 
 export const useDataStore = defineStore({
   id: 'data',
@@ -21,7 +21,7 @@ export const useDataStore = defineStore({
       } else {
         // console.log(`Fetching ${key} data from API...`);
         try {
-          const { data } = await axios.get(apiEndpoint)
+          const { data } = await apiClient.get(apiEndpoint)
           this.cacheProperty(key, data)
         } catch (error) {
           console.error(`Error fetching ${key} data from API`, error)
