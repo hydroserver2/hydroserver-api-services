@@ -1,5 +1,4 @@
 <template>
-  notifications {{ dialog.isActive }}
   <v-dialog v-model="dialog.isActive" width="60rem">
     <v-card>
       <v-card-title>{{ dialog.title }}</v-card-title>

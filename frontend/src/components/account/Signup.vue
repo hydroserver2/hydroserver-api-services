@@ -1,6 +1,6 @@
 <template>
   <v-container class="d-flex align-center justify-center my-8">
-    <v-card width="40rem">
+    <v-card width="50rem">
       <v-card-text>
         <h2 class="mb-6">Sign Up</h2>
         <form>
@@ -88,20 +88,18 @@
               ></v-autocomplete>
             </v-col>
           </v-row>
-          <v-row class="mt-6">
-            <v-col cols="12" md="6">
-              <v-btn type="submit" color="primary" @click="submitForm"
-                >Create User</v-btn
-              >
-            </v-col>
-          </v-row>
+          <div class="mt-6">
+            <v-btn-primary type="submit" @click="submitForm"
+              >Create User</v-btn-primary
+            >
+          </div>
         </form>
       </v-card-text>
       <v-divider></v-divider>
-      <v-card-actions class="text-body-1">
+      <v-card-text class="text-body-1">
         <span class="mr-2">Already have an account?</span>
         <router-link to="/login">Sign In</router-link>
-      </v-card-actions>
+      </v-card-text>
     </v-card>
   </v-container>
 </template>
@@ -119,7 +117,7 @@ const middleName = ref('')
 const phone = ref('')
 const address = ref('')
 const organization = ref('')
-const type = ref('')
+const type = ref(null)
 const userTypes = ref([
   'University Faculty',
   'University Professional or Research Staff',

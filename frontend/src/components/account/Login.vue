@@ -12,7 +12,6 @@
             :rules="emailRules"
             type="email"
             name="email"
-            variant="outlined"
             required
           ></v-text-field>
           <v-text-field
@@ -22,11 +21,14 @@
             v-model="password"
             type="password"
             name="password"
-            variant="outlined"
             required
           ></v-text-field>
-          <v-btn :disabled="!valid" type="submit" color="primary" class="mr-4"
-            >Log In</v-btn
+          <v-btn-primary
+            :disabled="!valid"
+            type="submit"
+            color="primary"
+            class="mr-4"
+            >Log In</v-btn-primary
           >
         </v-form>
       </v-card-text>
