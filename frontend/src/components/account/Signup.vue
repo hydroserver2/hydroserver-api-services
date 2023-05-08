@@ -1,8 +1,8 @@
 <template>
   <v-container class="d-flex align-center justify-center my-8">
     <v-card width="50rem">
+      <v-card-title class="mb-4">Sign Up</v-card-title>
       <v-card-text>
-        <h2 class="mb-6">Sign Up</h2>
         <form>
           <v-row>
             <v-col cols="12" md="4">

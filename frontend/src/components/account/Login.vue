@@ -9,7 +9,7 @@
             label="Email"
             autofocus
             v-model="email"
-            :rules="emailRules"
+            :rules="rules.email"
             type="email"
             name="email"
             required
@@ -17,7 +17,7 @@
           <v-text-field
             class="mb-2"
             label="Password"
-            :rules="passwordRules"
+            :rules="rules.password"
             v-model="password"
             type="password"
             name="password"
@@ -43,8 +43,6 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
-import Notification, { IDialog, IToast } from '@/store/notifications'
-import { onMounted } from 'vue'
 import { ref } from 'vue'
 
 const authStore = useAuthStore()
@@ -54,31 +52,32 @@ const form = ref(null)
 
 const valid = ref(false)
 
-const passwordRules = [
-  (value: string) => {
-    if (value) return true
+const rules = {
+  password: [
+    (value: string) => {
+      if (value) return true
 
-    return 'Password is required.'
-  },
-  // (value: string) => {
-  //   if (value?.length <= 6) return true
+      return 'Password is required.'
+    },
+    // (value: string) => {
+    //   if (value?.length <= 6) return true
 
-  //   return 'Password must be 6 characters or longer.'
-  // },
-]
+    //   return 'Password must be 6 characters or longer.'
+    // },
+  ],
+  email: [
+    (value: string) => {
+      if (value) return true
 
-const emailRules = [
-  (value: string) => {
-    if (value) return true
+      return 'Email is required.'
+    },
+    (value: string) => {
+      if (/.+@.+\..+/.test(value)) return true
 
-    return 'Email is required.'
-  },
-  (value: string) => {
-    if (/.+@.+\..+/.test(value)) return true
-
-    return 'Email must be valid.'
-  },
-]
+      return 'Email must be valid.'
+    },
+  ],
+}
 
 const loginSubmit = async () => {
   if (valid) {

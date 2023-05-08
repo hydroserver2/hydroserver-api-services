@@ -1,85 +1,95 @@
 <template>
-  <v-dialog v-model="dialog" width="95%" @click:outside="closeDialog">
-    <v-card>
-      <v-card-title class="text-h5">
-        Register a Site
-        <v-spacer></v-spacer>
-      </v-card-title>
-      <v-card-text>
-        <v-container fluid>
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-form
-                ref="form"
-                @submit.prevent="createThing"
-                enctype="multipart/form-data"
-              >
-                <v-text-field
+  <v-card>
+    <v-card-title class="text-h5">Register a Site</v-card-title>
+    <div style="height: 25rem">
+      <GoogleMap
+        v-if="markerLoaded"
+        @location-clicked="onMapLocationClicked"
+        clickable
+        :mapOptions="mapOptions"
+        :markers="[marker]"
+      />
+    </div>
+    <v-divider></v-divider>
+    <v-card-text class="text-subtitle-1 text-medium-emphasis">
+      Click on the map to update site coordinates and elevation data.
+    </v-card-text>
+
+    <v-card-text>
+      <v-row>
+        <v-col cols="12" md="6">
+          <h6 class="text-h6 my-4">Site Information</h6>
+          <v-form
+            ref="form"
+            @submit.prevent="createThing"
+            enctype="multipart/form-data"
+          >
+            <v-row>
+              <v-col cols="12"
+                ><v-text-field
                   label="Site Code"
                   v-model="formData.sampling_feature_code"
-                />
-                <v-text-field label="Site Name" v-model="formData.name" />
-                <v-textarea
+              /></v-col>
+              <v-col cols="12"
+                ><v-text-field label="Site Name" v-model="formData.name"
+              /></v-col>
+              <v-col cols="12"
+                ><v-textarea
                   label="Site Description"
                   v-model="formData.description"
-                />
-                <v-autocomplete
+              /></v-col>
+              <v-col cols="12"
+                ><v-autocomplete
                   label="Select Site Type"
                   :items="siteTypes"
                   v-model="formData.site_type"
-                ></v-autocomplete>
-              </v-form>
-            </v-col>
-            <v-col cols="12" md="6">
-              <GoogleMap
-                clickable
-                @location-clicked="onMapLocationClicked"
-                :mapOptions="mapOptions"
-                :markers="[marker]"
-                v-if="markerLoaded"
-              />
-              Click on the map to update site coordinates and elevation data.
-              <br /><br /><br />
-              <h2>Site Location</h2>
-              <br />
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    label="Latitude"
-                    v-model="formData.latitude"
-                    type="number"
-                  />
-                  <v-text-field
-                    label="Elevation"
-                    v-model="formData.elevation"
-                    type="number"
-                  />
-                  <v-text-field label="State" v-model="formData.state" />
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    label="Longitude"
-                    v-model="formData.longitude"
-                    type="number"
-                  />
-                  <v-text-field
-                    label="Elevation Datum"
-                    v-model="formData.elevation_datum"
-                  />
-                  <v-text-field label="Country" v-model="formData.country" />
-                </v-col>
-              </v-row>
-            </v-col>
+                ></v-autocomplete
+              ></v-col>
+            </v-row>
+          </v-form>
+        </v-col>
+        <v-col cols="12" md="6">
+          <h6 class="text-h6 my-4">Site Location</h6>
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                label="Latitude"
+                v-model="formData.latitude"
+                type="number"
+            /></v-col>
+            <v-col cols="12" sm="6"
+              ><v-text-field
+                label="Longitude"
+                v-model="formData.longitude"
+                type="number"
+            /></v-col>
+            <v-col cols="12" sm="6"
+              ><v-text-field
+                label="Elevation"
+                v-model="formData.elevation"
+                type="number"
+            /></v-col>
+            <v-col cols="12" sm="6"
+              ><v-text-field
+                label="Elevation Datum"
+                v-model="formData.elevation_datum"
+            /></v-col>
+            <v-col cols="12" sm="6"
+              ><v-text-field label="State" v-model="formData.state"
+            /></v-col>
+            <v-col cols="12" sm="6"
+              ><v-text-field label="Country" v-model="formData.country"
+            /></v-col>
           </v-row>
-        </v-container>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="error" @click="closeDialog">Cancel</v-btn>
-        <v-btn color="primary" @click="createThing">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </v-col>
+      </v-row>
+    </v-card-text>
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <v-btn @click="closeDialog">Cancel</v-btn>
+      <v-btn color="primary" @click="createThing">Save</v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script setup lang="ts">
@@ -90,13 +100,13 @@ import GoogleMap from '../GoogleMap.vue'
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close', 'siteCreated'])
 
-const dialog = ref(true)
+// const dialog = ref(true)
 const formData = ref({
   name: '',
   description: '',
   sampling_feature_type: '',
   sampling_feature_code: '',
-  site_type: '',
+  site_type: null,
   latitude: null,
   longitude: null,
   elevation: null,
@@ -130,6 +140,7 @@ const siteTypes = ref([
   'Wetland',
 ])
 
+// TODO: move method implementation to api wrapper
 async function populateThing() {
   const dataStore = useDataStore()
   try {
@@ -154,33 +165,36 @@ async function populateThing() {
   }
 }
 
-if (props.thingId) populateThing()
-else markerLoaded.value = true
+if (props.thingId) {
+  populateThing()
+} else {
+  markerLoaded.value = true
+}
 
 function closeDialog() {
-  dialog.value = false
   emit('close')
 }
 
-function createThing() {
+// TODO: move method implementation to api wrapper
+async function createThing() {
   const axiosMethod = props.thingId ? this.$http.patch : this.$http.post
   const endpoint = props.thingId ? `/things/${props.thingId}` : '/things'
 
-  axiosMethod(endpoint, formData.value)
-    .then((response) => {
-      const updatedThing = response.data
-      const dataStore = useDataStore()
-      if (!props.thingId) dataStore.addThing(updatedThing)
-      else {
-        localStorage.removeItem(`thing_${props.thingId}`)
-        localStorage.removeItem('things')
-      }
-      emit('close')
-      emit('siteCreated')
-    })
-    .catch((error) => {
-      console.log('Error Registering Site: ', error)
-    })
+  try {
+    const response = await axiosMethod(endpoint, formData.value)
+
+    const updatedThing = response.data
+    const dataStore = useDataStore()
+    if (!props.thingId) dataStore.addThing(updatedThing)
+    else {
+      localStorage.removeItem(`thing_${props.thingId}`)
+      localStorage.removeItem('things')
+    }
+    emit('close')
+    emit('siteCreated')
+  } catch (error) {
+    console.log('Error Registering Site: ', error)
+  }
 }
 
 function onMapLocationClicked(locationData) {
@@ -191,3 +205,5 @@ function onMapLocationClicked(locationData) {
   formData.value.country = locationData.country
 }
 </script>
+
+<style scoped lang="scss"></style>

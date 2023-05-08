@@ -1,5 +1,5 @@
 <template>
-  <div ref="mapDiv" style="width: 100%; height: 30vh" />
+  <div ref="mapDiv" class="fill-width fill-height" />
 </template>
 
 <script setup lang="ts">
@@ -17,7 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['location-clicked'])
 
 const loader = new Loader({
-  apiKey: import.meta.env.VUE_APP_GOOGLE_MAPS_API_KEY,
+  apiKey: import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY,
 })
 let map: Ref<google.maps.Map | null> = ref(null)
 const mapDiv: Ref<HTMLDivElement | null> = ref(null)

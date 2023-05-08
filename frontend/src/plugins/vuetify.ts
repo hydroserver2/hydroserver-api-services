@@ -25,6 +25,7 @@ const theme: ThemeDefinition = {
 const textFieldAttrs = {
   density: 'comfortable',
   variant: 'outlined',
+  hideDetails: 'auto',
 }
 
 export default createVuetify({
@@ -38,24 +39,29 @@ export default createVuetify({
   defaults: {
     VTextField: textFieldAttrs,
     VAutocomplete: textFieldAttrs,
+    VTextarea: textFieldAttrs,
     VBtn: {
       color: 'primary',
       variant: 'text',
       rounded: true,
+      density: 'comfortable',
     },
     VBtnPrimary: {
       color: 'primary',
       variant: 'flat',
       rounded: true,
+      density: 'comfortable',
     },
     VBtnSecondary: {
       color: 'secondary',
       variant: 'flat',
       rounded: true,
+      density: 'comfortable',
     },
     VBtnTertiary: {
       rounded: true,
       variant: 'plain',
+      density: 'comfortable',
     },
   },
   theme: {

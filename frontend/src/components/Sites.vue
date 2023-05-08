@@ -1,90 +1,93 @@
 <template>
-  <div v-if="sitesLoaded">
-    <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
-    <hr />
-    <div
-      style="display: flex; justify-content: space-between; align-items: center"
-    >
-      <h2 style="margin: 1rem">My Registered Sites</h2>
-      <v-btn
-        @click="showRegisterSiteModal = true"
-        color="green"
-        style="margin: 1rem"
-        >Register a new site</v-btn
-      >
+  <template v-if="sitesLoaded">
+    <div class="mb-8" style="height: 25rem">
+      <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
+      <v-divider></v-divider>
     </div>
-    <v-table :hover="true" class="table-bordered">
-      <thead style="background-color: lightgrey">
-        <tr class="header-bordered">
-          <th><strong>Site Code</strong></th>
-          <th>Site Name</th>
-          <th>Site Type</th>
-        </tr>
-      </thead>
-      <tbody style="border: 1px black">
-        <tr
-          v-for="thing in ownedThings"
-          :key="thing.id"
-          @click="
-            $router.push({ name: 'SingleSite', params: { id: thing.id } })
-          "
-          class="row-bordered"
-        >
-          <td>{{ thing.sampling_feature_code }}</td>
-          <td>{{ thing.name }}</td>
-          <td>{{ thing.site_type }}</td>
-        </tr>
-      </tbody>
-    </v-table>
 
-    <transition name="modal-fade">
-      <div
-        v-if="showRegisterSiteModal"
-        class="modal-overlay"
-        @click.self="showRegisterSiteModal = false"
-      >
-        <site-form
-          @close="showRegisterSiteModal = false"
-          @siteCreated="updateMarkers"
-        ></site-form>
+    <v-container>
+      <div class="d-flex justify-space-between mb-4">
+        <h5 class="text-h5">My Registered Sites</h5>
+        <v-btn
+          color="green"
+          variant="elevated"
+          density="comfortable"
+          @click="showSiteForm = true"
+          prependIcon="mdi-plus"
+          >Register a new site</v-btn
+        >
       </div>
-    </transition>
 
-    <h2 style="margin: 1rem">Followed Sites</h2>
-    <v-table :hover="true" class="table-bordered">
-      <thead style="background-color: lightgrey">
-        <tr class="header-bordered">
-          <th><strong>Site Code</strong></th>
-          <th>Site Name</th>
-          <th>Site Type</th>
-        </tr>
-      </thead>
-      <tbody style="border: 1px black">
-        <tr
-          v-for="thing in followedThings"
-          :key="thing.id"
-          @click="
-            $router.push({ name: 'SingleSite', params: { id: thing.id } })
-          "
-          class="row-bordered"
-        >
-          <td>{{ thing.sampling_feature_code }}</td>
-          <td>{{ thing.name }}</td>
-          <td>{{ thing.site_type }}</td>
-        </tr>
-      </tbody>
-    </v-table>
-  </div>
+      <v-table v-if="ownedThings.length" class="mb-12">
+        <thead>
+          <tr>
+            <th><strong>Site Code</strong></th>
+            <th>Site Name</th>
+            <th>Site Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="thing in ownedThings"
+            :key="thing.id"
+            @click="
+              $router.push({ name: 'SingleSite', params: { id: thing.id } })
+            "
+          >
+            <td>{{ thing.sampling_feature_code }}</td>
+            <td>{{ thing.name }}</td>
+            <td>{{ thing.site_type }}</td>
+          </tr>
+        </tbody>
+      </v-table>
+      <p v-else class="text-body-1 text-medium-emphasis">
+        You have not registered any sites.
+      </p>
+    </v-container>
 
-  <div
-    v-else
-    style="
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    "
-  >
+    <v-container>
+      <h5 class="text-h5 mb-4">Followed Sites</h5>
+      <v-table
+        v-if="followedThings.length"
+        :hover="true"
+        class="table-bordered"
+      >
+        <thead>
+          <tr class="header-bordered">
+            <th><strong>Site Code</strong></th>
+            <th>Site Name</th>
+            <th>Site Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="thing in followedThings"
+            :key="thing.id"
+            @click="
+              $router.push({ name: 'SingleSite', params: { id: thing.id } })
+            "
+            class="row-bordered"
+          >
+            <td>{{ thing.sampling_feature_code }}</td>
+            <td>{{ thing.name }}</td>
+            <td>{{ thing.site_type }}</td>
+          </tr>
+        </tbody>
+      </v-table>
+      <p v-else class="text-body-1 text-medium-emphasis">
+        You are not following any sites.
+      </p>
+    </v-container>
+
+    <v-dialog v-model="showSiteForm" width="60rem">
+      <site-form
+        @close="showSiteForm = false"
+        @siteCreated="updateMarkers"
+      ></site-form>
+    </v-dialog>
+  </template>
+
+  <div v-else>
     <v-progress-circular indeterminate color="green"></v-progress-circular>
     <p>Loading Sites...</p>
   </div>
@@ -95,12 +98,13 @@ import { ref, computed } from 'vue'
 import GoogleMap from '@/components/GoogleMap.vue'
 import { useDataStore } from '@/store/data'
 import SiteForm from '@/components/Site/SiteForm.vue'
+import { onMounted } from 'vue'
 
 const dataStore = useDataStore()
-const showRegisterSiteModal = ref(false)
 const ownedThings = ref([])
 const followedThings = ref([])
 const markers = ref(null)
+const showSiteForm = ref(false)
 
 const sitesLoaded = computed(() => ownedThings.value && followedThings.value)
 
@@ -111,46 +115,9 @@ async function updateMarkers() {
   markers.value = [...ownedThings.value, ...followedThings.value]
 }
 
-updateMarkers()
+onMounted(() => {
+  updateMarkers()
+})
 </script>
 
-<style scoped lang="scss">
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-fade-enter {
-  opacity: 0;
-}
-
-.table-bordered {
-  margin: 1rem;
-  border-collapse: collapse;
-  border: 1px solid lightgrey;
-}
-
-.row-bordered th,
-.row-bordered td {
-  border: 1px solid #e8e8e8;
-  padding: 8px;
-  width: 33.33%;
-}
-
-.header-bordered th,
-.header-bordered td {
-  border: 1px solid #c5c5c5;
-  padding: 8px;
-}
-
-.row-bordered:hover {
-  cursor: pointer;
-}
-</style>
+<style scoped lang="scss"></style>
