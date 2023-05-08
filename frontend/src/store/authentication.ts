@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
-import apiClient from '@/utils/common-https'
 import router from '@/router/router'
 import Notification from './notifications'
 
 const initialState = () => ({
-  access_token: null,
-  refresh_token: null,
+  access_token: '',
+  refresh_token: '',
   loggingIn: false,
   loginError: null,
   things: [],
@@ -24,7 +23,7 @@ export const useAuthStore = defineStore({
         this.resetState()
         localStorage.clear()
 
-        const response = await apiClient.post('/token', { ...loginData })
+        const response = await this.$http.post('/token', { ...loginData })
 
         const { access_token, refresh_token } = response.data
         localStorage.setItem('access_token', access_token)
@@ -56,7 +55,7 @@ export const useAuthStore = defineStore({
     async refreshAccessToken() {
       console.log('Access token expired. refreshing token...')
       try {
-        const response = await apiClient.post('/token/refresh', {
+        const response = await $http.post('/token/refresh', {
           refresh_token: this.refresh_token,
         })
         const { access_token, refresh_token } = response.data

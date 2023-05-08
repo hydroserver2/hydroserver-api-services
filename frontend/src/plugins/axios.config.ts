@@ -1,24 +1,25 @@
-import axios, {
-  AxiosError,
-  AxiosRequestConfig,
-  InternalAxiosRequestConfig,
-} from 'axios'
+import { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import type { AxiosResponse } from 'axios'
 import http from '@/utils/common-https'
 import router from '@/router/router'
 import { useAuthStore } from '@/store/authentication'
 import type { App } from 'vue'
 
-// // TODO: move these configs to a store with an init method
 let isRefreshing = false
 let failedQueue: any[] = []
 
-const processQueue = (error: any, token = null) => {
+const processQueue = (error: any, token = '') => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error)
     else prom.resolve(token)
   })
   failedQueue = []
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $http: AxiosInstance
+  }
 }
 
 export default {
@@ -27,7 +28,7 @@ export default {
     const $http = app.config.globalProperties.$http
 
     // Axios interceptor for handling JWT tokens
-    const handleRequest = (config: AxiosRequestConfig) => {
+    const handleRequest = (config: InternalAxiosRequestConfig) => {
       const token = localStorage.getItem('access_token')
       if (config.headers) {
         if (token) {
@@ -75,7 +76,7 @@ export default {
             })
               .then((token) => {
                 originalRequest.headers.Authorization = `Bearer ${token}`
-                return axios(originalRequest)
+                return $http(originalRequest)
               })
               .catch((err) => Promise.reject(err))
           }
@@ -88,7 +89,7 @@ export default {
             const newAccessToken = authStore.access_token
             processQueue(null, newAccessToken)
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-            return axios(originalRequest)
+            return $http(originalRequest)
           } catch (err) {
             processQueue(err)
             return Promise.reject(err)

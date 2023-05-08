@@ -12,6 +12,7 @@ import Navbar from '@/components/base/Navbar.vue'
 import Footer from '@/components/base/Footer.vue'
 import Notifications from '@/components/base/Notifications.vue'
 import Notification, { IDialog, IToast } from '@/store/notifications'
+
 export default {
   name: 'App',
   components: {

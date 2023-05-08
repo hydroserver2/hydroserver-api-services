@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-card-title>Sign In</v-card-title>
+    <v-card-title>Sign In!</v-card-title>
     <v-card-text>
       <v-form @submit.prevent="loginSubmit">
         <v-text-field

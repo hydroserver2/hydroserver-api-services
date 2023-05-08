@@ -113,7 +113,6 @@
 </template>
 
 <script setup lang="ts">
-import apiClient from '@/utils/common-https'
 import router from '@/router/router'
 import { ref } from 'vue'
 
@@ -148,7 +147,7 @@ async function submitForm() {
   }
 
   try {
-    const response = await apiClient.post('/user', {
+    const response = await this.$http.post('/user', {
       first_name: firstName.value,
       last_name: lastName.value,
       email: email.value,

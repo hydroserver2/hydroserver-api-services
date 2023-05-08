@@ -65,7 +65,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import apiClient from '@/utils/common-https'
 import { useDataStore } from '@/store/data'
 
 const dataStore = useDataStore()
@@ -82,7 +81,7 @@ const emit = defineEmits(['observedPropertyCreated'])
 
 async function createObservedProperty() {
   try {
-    const response = await apiClient.post(
+    const response = await this.$http.post(
       '/observed-properties',
       formData.value
     )

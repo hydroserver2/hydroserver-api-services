@@ -94,7 +94,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import apiClient from '@/utils/common-https'
 import { useDataStore } from '@/store/data'
 
 const dataStore = useDataStore()
@@ -136,7 +135,7 @@ async function createSensor() {
       formData.value.manufacturer + ': ' + formData.value.model
   }
   try {
-    const response = await apiClient.post('/sensors', formData.value)
+    const response = await this.$http.post('/sensors', formData.value)
     const newSensor = response.data
     dataStore.addSensor(newSensor)
     dialog.value = false

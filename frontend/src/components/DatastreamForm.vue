@@ -114,7 +114,6 @@ import SensorModal from '@/components/Site/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Site/ObservedPropertyModal.vue'
 import UnitModal from '@/components/Site/UnitModal.vue'
 import ProcessingLevelModal from '@/components/Site/ProcessingLevelModal.vue'
-import apiClient from '@/utils/common-https'
 import router from '@/router/router'
 
 const dataStore = useDataStore()
@@ -234,9 +233,9 @@ async function uploadDatastream() {
       observation_type: ds_observation_type.value,
     }
     if (datastreamId) {
-      await apiClient.put(`/datastreams/${datastreamId}`, payload)
+      await this.$http.put(`/datastreams/${datastreamId}`, payload)
     } else {
-      const response = await apiClient.post('/datastreams', payload)
+      const response = await this.$http.post('/datastreams', payload)
       const newDatastream = response.data
       dataStore.addDatastream(newDatastream)
     }

@@ -75,7 +75,6 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDataStore } from '@/store/data'
 import DeleteDatastreamModal from '@/components/Site/DeleteDatastreamModal.vue'
-import apiClient from '@/utils/common-https'
 
 const route = useRoute()
 const dataStore = useDataStore()
@@ -94,7 +93,7 @@ function showModal(datastream) {
 async function toggleVisibility(datastream) {
   try {
     const makeVisible = !datastream.is_visible
-    const response = await apiClient.put(`/datastreams/${datastream.id}`, {
+    const response = await this.$http.put(`/datastreams/${datastream.id}`, {
       is_visible: makeVisible,
     })
     datastream.is_visible = !datastream.is_visible

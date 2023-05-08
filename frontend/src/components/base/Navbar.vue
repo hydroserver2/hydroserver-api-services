@@ -58,8 +58,14 @@
       </template>
 
       <template v-else>
-        <v-btn prepend-icon="mdi-login" to="/Login">Login</v-btn>
-        <v-btn prepend-icon="mdi-account-plus-outline" to="/SignUp"
+        <v-btn prepend-icon="mdi-login" to="/Login" color="white" variant="flat"
+          >Login</v-btn
+        >
+        <v-btn
+          prepend-icon="mdi-account-plus-outline"
+          to="/SignUp"
+          color="white"
+          variant="flat"
           >Sign Up</v-btn
         >
       </template>

@@ -26,7 +26,6 @@
 </template>
 
 <script setup lang="ts">
-import apiClient from '@/utils/common-https'
 import { ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 
@@ -58,7 +57,7 @@ async function removeThingFromLocalStorage() {
 
 async function deleteDatastream() {
   try {
-    await apiClient.delete(`/datastreams/${props.datastreamId}`)
+    await this.$http.delete(`/datastreams/${props.datastreamId}`)
     await removeThingFromLocalStorage()
     emit('close')
     emit('deleted')

@@ -151,7 +151,6 @@ import MoonIm3 from '@/assets/moon_bridge3.jpg'
 import { computed, ref } from 'vue'
 import { useDataStore } from '@/store/data'
 import { useAuthStore } from '@/store/authentication'
-import apiClient from '@/utils/common-https'
 import { useRoute } from 'vue-router'
 import SiteForm from '@/components/Site/SiteForm.vue'
 
@@ -208,7 +207,7 @@ function loadThing() {
 loadThing()
 
 function updateFollow() {
-  apiClient
+  this.$http
     .get(`/things/${thing_id}/ownership`)
     .then((response) => {
       dataStore.cacheProperty(cachedThingName, response.data)

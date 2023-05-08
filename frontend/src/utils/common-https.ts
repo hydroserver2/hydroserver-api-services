@@ -4,10 +4,10 @@ const mode = import.meta.env.MODE
 
 const apiClient = axios.create({
   baseURL: `${mode === 'development' ? 'http://127.0.0.1:8000' : baseUrl}/api/`,
-  // headers: {
-  //   'Content-type': 'application/json',
-  //   'Access-Control-Allow-Origin': '*',
-  // },
+  headers: {
+    'Content-type': 'application/json',
+    // 'Access-Control-Allow-Origin': '*',
+  },
   validateStatus: () => true,
 })
 

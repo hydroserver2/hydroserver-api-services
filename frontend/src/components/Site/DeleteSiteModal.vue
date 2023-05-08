@@ -26,7 +26,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import apiClient from '@/utils/common-https'
 import { useDataStore } from '@/store/data'
 import router from '@/router/router'
 
@@ -63,7 +62,7 @@ async function deleteSite() {
   }
 
   try {
-    await apiClient.delete(`/things/${props.siteId}`)
+    await this.$http.delete(`/things/${props.siteId}`)
     await removeThingsFromLocalStorage()
     close()
     emit('deleted')
