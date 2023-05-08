@@ -1,4 +1,5 @@
 <template>
+  notifications {{ dialog.isActive }}
   <v-dialog v-model="dialog.isActive" width="60rem">
     <v-card>
       <v-card-title>{{ dialog.title }}</v-card-title>
@@ -59,17 +60,31 @@ const INITIAL_SNACKBAR = {
   // isPersistent: false,
 }
 
-let snackbar: IToast & { isActive: boolean; isInfinite: boolean } =
-  INITIAL_SNACKBAR
-let dialog: IDialog & { isActive: boolean } = reactive(INITIAL_DIALOG)
+const snackbar: IToast & { isActive: boolean; isInfinite: boolean } =
+  reactive(INITIAL_SNACKBAR)
+const dialog: IDialog & { isActive: boolean } = reactive(INITIAL_DIALOG)
 
-const onToast: Subscription = Notification.toast$.subscribe((toast: IToast) => {
-  snackbar = reactive({ ...snackbar, ...toast, isActive: true })
-})
+const onToast: Subscription = Notification.toast$.subscribe(
+  (nextToast: IToast) => {
+    console.log('here')
+    snackbar.message = nextToast.message
+    snackbar.isInfinite = nextToast.isInfinite || INITIAL_SNACKBAR.isInfinite
+    snackbar.position = nextToast.position || INITIAL_SNACKBAR.position
+    snackbar.type = nextToast.type || INITIAL_SNACKBAR.type
+    snackbar.isActive = true
+  }
+)
 
 const onOpenDialog: Subscription = Notification.dialog$.subscribe(
   (nextDialog: IDialog) => {
-    dialog = reactive({ ...INITIAL_DIALOG, ...nextDialog, isActive: true })
+    dialog.cancelText = nextDialog.cancelText
+    dialog.confirmText = nextDialog.confirmText
+    dialog.content = nextDialog.content
+    dialog.onCancel = nextDialog.onCancel
+    dialog.onConfirm = nextDialog.onConfirm
+    dialog.onSecondaryAction = nextDialog.onSecondaryAction
+    dialog.title = nextDialog.title
+    dialog.isActive = true
   }
 )
 

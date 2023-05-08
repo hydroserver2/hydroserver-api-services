@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex align-center justify-center fill-height">
+  <v-container class="d-flex align-center justify-center py-8 fill-height">
     <v-card width="40rem">
       <v-card-title class="mb-4">Sign In</v-card-title>
       <v-card-text>
@@ -41,6 +41,8 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
+import Notification, { IDialog, IToast } from '@/store/notifications'
+import { onMounted } from 'vue'
 import { ref } from 'vue'
 
 const authStore = useAuthStore()

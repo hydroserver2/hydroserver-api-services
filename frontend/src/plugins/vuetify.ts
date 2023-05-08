@@ -26,7 +26,7 @@ export default createVuetify({
   blueprint: md3,
   components,
   directives,
-  defaults: {},
+  defaults: { VTextField: {} },
   theme: {
     defaultTheme: 'theme',
     themes: {

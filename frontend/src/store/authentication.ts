@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import router from '@/router/router'
-import Notification from './notifications'
+import Notification, { IToast } from './notifications'
 
 const initialState = () => ({
   access_token: '',
   refresh_token: '',
   loggingIn: false,
-  loginError: null,
+  // loginError: null,
   things: [],
 })
 
@@ -30,8 +30,10 @@ export const useAuthStore = defineStore({
         localStorage.setItem('refresh_token', refresh_token)
         this.access_token = access_token
         this.refresh_token = refresh_token
-        router.push({ name: 'Sites' })
-        Notification.toast({ message: 'You have logged in!' })
+        if (access_token) {
+          router.push({ name: 'Sites' })
+          Notification.toast({ message: 'You have logged in!' })
+        }
       } catch (error) {
         this.logout()
       } finally {

@@ -1,8 +1,8 @@
 <template>
   <v-app>
     <Navbar />
-    <v-main><router-view /></v-main>
-    <Footer />
+    <v-main class="flex-grow-1"><router-view /></v-main>
+    <Footer class="flex-grow-0" />
     <Notifications />
   </v-app>
 </template>
