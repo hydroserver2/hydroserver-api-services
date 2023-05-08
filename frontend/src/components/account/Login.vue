@@ -1,28 +1,42 @@
 <template>
-  <v-card>
-    <v-card-title>Sign In!</v-card-title>
-    <v-card-text>
-      <v-form @submit.prevent="loginSubmit">
-        <v-text-field
-          label="Email"
-          v-model="email"
-          type="email"
-          required
-        ></v-text-field>
-        <v-text-field
-          label="Password"
-          v-model="password"
-          type="password"
-          required
-        ></v-text-field>
-        <v-btn type="submit" color="primary" class="mr-4">Login</v-btn>
-        <v-card-actions>
-          <span class="mr-2">Don't have an account?</span>
-          <router-link to="/signup" class="light-text">Sign Up</router-link>
-        </v-card-actions>
-      </v-form>
-    </v-card-text>
-  </v-card>
+  <v-container class="d-flex align-center justify-center fill-height">
+    <v-card width="40rem">
+      <v-card-title class="mb-4">Sign In</v-card-title>
+      <v-card-text>
+        <v-form ref="form" @submit.prevent="loginSubmit" v-model="valid">
+          <v-text-field
+            class="mb-2"
+            label="Email"
+            autofocus
+            v-model="email"
+            :rules="emailRules"
+            type="email"
+            name="email"
+            variant="outlined"
+            required
+          ></v-text-field>
+          <v-text-field
+            class="mb-2"
+            label="Password"
+            :rules="passwordRules"
+            v-model="password"
+            type="password"
+            name="password"
+            variant="outlined"
+            required
+          ></v-text-field>
+          <v-btn :disabled="!valid" type="submit" color="primary" class="mr-4"
+            >Log In</v-btn
+          >
+        </v-form>
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions class="text-body-1">
+        <span class="mr-2">Don't have an account?</span>
+        <router-link to="/signup" class="light-text">Sign Up</router-link>
+      </v-card-actions>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -32,12 +46,43 @@ import { ref } from 'vue'
 const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
+const form = ref(null)
 
-function loginSubmit() {
-  authStore.login({
-    email: email.value,
-    password: password.value,
-  })
+const valid = ref(false)
+
+const passwordRules = [
+  (value: string) => {
+    if (value) return true
+
+    return 'Password is required.'
+  },
+  // (value: string) => {
+  //   if (value?.length <= 6) return true
+
+  //   return 'Password must be 6 characters or longer.'
+  // },
+]
+
+const emailRules = [
+  (value: string) => {
+    if (value) return true
+
+    return 'Email is required.'
+  },
+  (value: string) => {
+    if (/.+@.+\..+/.test(value)) return true
+
+    return 'Email must be valid.'
+  },
+]
+
+const loginSubmit = async () => {
+  if (valid) {
+    authStore.login({
+      email: email.value,
+      password: password.value,
+    })
+  }
 }
 </script>
 
