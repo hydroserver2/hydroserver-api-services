@@ -1,6 +1,6 @@
 <template>
   <template v-if="sitesLoaded">
-    <div class="mb-8" style="height: 25rem">
+    <div class="mb-8 flex-shrink-0" style="height: 25rem">
       <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
       <v-divider></v-divider>
     </div>

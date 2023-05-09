@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title class="text-h5">Register a Site</v-card-title>
-    <div style="height: 25rem">
+    <div class="flex-shrink-0" style="height: 20rem">
       <GoogleMap
         v-if="markerLoaded"
         @location-clicked="onMapLocationClicked"
@@ -11,8 +11,11 @@
       />
     </div>
     <v-divider></v-divider>
-    <v-card-text class="text-subtitle-1 text-medium-emphasis">
-      Click on the map to update site coordinates and elevation data.
+    <v-card-text
+      class="text-subtitle-2 text-medium-emphasis d-flex align-center"
+    >
+      <v-icon class="mr-1">mdi-information</v-icon>Click on the map to update
+      Site Location data.
     </v-card-text>
 
     <v-card-text>
@@ -101,7 +104,6 @@ const api = useApiClient()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close', 'siteCreated'])
 
-// const dialog = ref(true)
 const formData = ref({
   name: '',
   description: '',
