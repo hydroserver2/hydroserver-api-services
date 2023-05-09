@@ -5,7 +5,7 @@
       <v-card-text>
         <v-form ref="form" @submit.prevent="loginSubmit" v-model="valid">
           <v-text-field
-            class="mb-2"
+            class="mb-4"
             label="Email"
             autofocus
             v-model="email"
@@ -15,7 +15,7 @@
             required
           ></v-text-field>
           <v-text-field
-            class="mb-2"
+            class="mb-4"
             label="Password"
             :rules="rules.password"
             v-model="password"

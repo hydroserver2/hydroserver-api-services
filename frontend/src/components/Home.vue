@@ -15,7 +15,7 @@
 
       <div>
         <h5 class="text-h5 mb-8">Create an account to get started</h5>
-        <v-btn-primary>Sign Up</v-btn-primary>
+        <v-btn-primary to="/SignUp">Sign Up</v-btn-primary>
       </div>
     </div>
   </v-parallax>

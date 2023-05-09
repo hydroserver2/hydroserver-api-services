@@ -45,7 +45,7 @@
       </p>
     </v-container>
 
-    <v-container>
+    <v-container class="mb-8">
       <h5 class="text-h5 mb-4">Followed Sites</h5>
       <v-table
         v-if="followedThings.length"
