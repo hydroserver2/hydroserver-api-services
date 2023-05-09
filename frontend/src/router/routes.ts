@@ -1,14 +1,15 @@
 import { RouteRecordRaw } from 'vue-router'
 
 import Home from '@/components/Home.vue'
-import Sites from '@/components/Sites.vue'
+import Sites from '@/components/Site/Sites.vue'
 import Signup from '@/components/account/Signup.vue'
 import Login from '@/components/account/Login.vue'
-import SingleSite from '@/components/SingleSite.vue'
+import SingleSite from '@/components/Site/SingleSite.vue'
 import Browse from '@/components/Browse.vue'
-import SiteDatastreams from '@/components/SiteDatastreams.vue'
-import DatastreamForm from '@/components/DatastreamForm.vue'
+import SiteDatastreams from '@/components/Datastream/Datastreams.vue'
+import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
 import Profile from '@/components/account/Profile.vue'
+import Metadata from '@/components/Datastream/Metadata.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Home', component: Home },
@@ -33,6 +34,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },
   { path: '/profile', name: 'Profile', component: Profile },
+  { path: '/metadata', name: 'Metadata', component: Metadata },
   {
     path: '/:catchAll(.*)',
     redirect: '/',

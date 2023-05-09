@@ -843,6 +843,7 @@ def unit_to_dict(unit):
         "symbol": unit.symbol,
         "definition": unit.definition,
         "unit_type": unit.unit_type,
+        "person": unit.person.pk if unit.person else None
     }
 
 
@@ -923,6 +924,7 @@ def processing_level_to_dict(processing_level):
         "processing_level_code": processing_level.processing_level_code,
         "definition": processing_level.definition,
         "explanation": processing_level.explanation,
+        "person": processing_level.person.pk if processing_level.person else None
     }
 
 
