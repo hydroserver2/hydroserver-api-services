@@ -6,12 +6,17 @@
       style="display: flex; justify-content: space-between; align-items: center"
     >
       <h2 style="margin: 1rem">My Registered Sites</h2>
-      <v-btn
-        @click="showRegisterSiteModal = true"
-        color="green"
-        style="margin: 1rem"
-        >Register a new site</v-btn
-      >
+      <div>
+        <v-btn to="Metadata" color="grey" style="margin: 1rem"
+          >Manage Metadata</v-btn
+        >
+        <v-btn
+          @click="showRegisterSiteModal = true"
+          color="green"
+          style="margin: 1rem"
+          >Register a new site</v-btn
+        >
+      </div>
     </div>
     <v-table :hover="true" class="table-bordered">
       <thead style="background-color: lightgrey">

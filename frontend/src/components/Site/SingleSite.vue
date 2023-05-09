@@ -142,8 +142,8 @@
 </template>
 
 <script setup lang="ts">
-import GoogleMap from '../components/GoogleMap.vue'
-import ImageCarousel from '../components/ImageCarousel.vue'
+import GoogleMap from '@/components/GoogleMap.vue'
+import ImageCarousel from '@/components/ImageCarousel.vue'
 import DeleteSiteModal from '@/components/Site/DeleteSiteModal.vue'
 import MoonIm1 from '@/assets/moon_bridge1.jpg'
 import MoonIm2 from '@/assets/moon_bridge2.jpg'

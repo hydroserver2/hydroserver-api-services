@@ -74,7 +74,7 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDataStore } from '@/store/data'
-import DeleteDatastreamModal from '@/components/Site/DeleteDatastreamModal.vue'
+import DeleteDatastreamModal from '@/components/Datastream/DeleteDatastreamModal.vue'
 import axios from 'axios'
 
 const route = useRoute()
