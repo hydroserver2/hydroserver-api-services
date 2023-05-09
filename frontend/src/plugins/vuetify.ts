@@ -5,6 +5,7 @@ import 'vuetify/styles'
 import { createVuetify, ThemeDefinition } from 'vuetify'
 import { VBtn } from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { VDataTable } from 'vuetify/labs/VDataTable'
 
 import { md3 } from 'vuetify/blueprints'
 
@@ -36,11 +37,17 @@ export default createVuetify({
     VBtnSecondary: VBtn,
     VBtnTertiary: VBtn,
   },
+  components: {
+    VDataTable,
+  },
   defaults: {
     VTextField: textFieldAttrs,
     VAutocomplete: textFieldAttrs,
     VTextarea: textFieldAttrs,
     VCheckbox: textFieldAttrs,
+    VTable: {
+      density: 'comfortable',
+    },
     VBtn: {
       color: 'primary',
       variant: 'text',

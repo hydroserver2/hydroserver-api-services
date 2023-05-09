@@ -18,28 +18,18 @@
         >
       </div>
 
-      <v-table v-if="ownedThings.length" class="mb-12">
-        <thead>
-          <tr>
-            <th><strong>Site Code</strong></th>
-            <th>Site Name</th>
-            <th>Site Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="thing in ownedThings"
-            :key="thing.id"
-            @click="
-              $router.push({ name: 'SingleSite', params: { id: thing.id } })
-            "
-          >
-            <td>{{ thing.sampling_feature_code }}</td>
-            <td>{{ thing.name }}</td>
-            <td>{{ thing.site_type }}</td>
-          </tr>
-        </tbody>
-      </v-table>
+      <v-data-table
+        v-if="ownedThings.length"
+        :headers="headers"
+        :items="ownedThings"
+        hover
+        item-value="id"
+        class="elevation-1"
+        @click:row="onRowClick"
+      >
+        <template v-slot:bottom></template>
+      </v-data-table>
+
       <p v-else class="text-body-1 text-medium-emphasis">
         You have not registered any sites.
       </p>
@@ -47,33 +37,17 @@
 
     <v-container class="mb-8">
       <h5 class="text-h5 mb-4">Followed Sites</h5>
-      <v-table
+      <v-data-table
         v-if="followedThings.length"
-        :hover="true"
-        class="table-bordered"
+        :headers="headers"
+        :items="followedThings"
+        hover
+        item-value="id"
+        class="elevation-1"
+        @click:row="onRowClick"
       >
-        <thead>
-          <tr class="header-bordered">
-            <th><strong>Site Code</strong></th>
-            <th>Site Name</th>
-            <th>Site Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="thing in followedThings"
-            :key="thing.id"
-            @click="
-              $router.push({ name: 'SingleSite', params: { id: thing.id } })
-            "
-            class="row-bordered"
-          >
-            <td>{{ thing.sampling_feature_code }}</td>
-            <td>{{ thing.name }}</td>
-            <td>{{ thing.site_type }}</td>
-          </tr>
-        </tbody>
-      </v-table>
+        <template v-slot:bottom></template>
+      </v-data-table>
       <p v-else class="text-body-1 text-medium-emphasis">
         You are not following any sites.
       </p>
@@ -99,7 +73,9 @@ import GoogleMap from '@/components/GoogleMap.vue'
 import { useDataStore } from '@/store/data'
 import SiteForm from '@/components/Site/SiteForm.vue'
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const dataStore = useDataStore()
 const ownedThings = ref([])
 const followedThings = ref([])
@@ -113,6 +89,32 @@ async function updateMarkers() {
   ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
   followedThings.value = dataStore.things.filter((thing) => thing.follows_thing)
   markers.value = [...ownedThings.value, ...followedThings.value]
+}
+
+const headers = [
+  {
+    title: 'Site Code',
+    align: 'start',
+    sortable: true,
+    key: 'sampling_feature_code',
+  },
+  {
+    title: 'Site Name',
+    align: 'start',
+    sortable: true,
+    key: 'name',
+  },
+  {
+    title: 'Site Type',
+    align: 'start',
+    sortable: true,
+    key: 'site_type',
+  },
+]
+
+const onRowClick = (event: Event, item: any) => {
+  const thing = item.item.raw
+  router.push({ name: 'SingleSite', params: { id: thing.id } })
 }
 
 onMounted(() => {

@@ -65,7 +65,6 @@ const dialog: IDialog & { isActive: boolean } = reactive(INITIAL_DIALOG)
 
 const onToast: Subscription = Notification.toast$.subscribe(
   (nextToast: IToast) => {
-    console.log('here')
     snackbar.message = nextToast.message
     snackbar.isInfinite = nextToast.isInfinite || INITIAL_SNACKBAR.isInfinite
     snackbar.position = nextToast.position || INITIAL_SNACKBAR.position
