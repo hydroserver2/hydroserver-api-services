@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import router from '@/router/router'
-import Notification, { IToast } from './notifications'
+import Notification from './notifications'
 
 const initialState = () => ({
   access_token: '',

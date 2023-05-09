@@ -40,6 +40,7 @@ export default createVuetify({
     VTextField: textFieldAttrs,
     VAutocomplete: textFieldAttrs,
     VTextarea: textFieldAttrs,
+    VCheckbox: textFieldAttrs,
     VBtn: {
       color: 'primary',
       variant: 'text',

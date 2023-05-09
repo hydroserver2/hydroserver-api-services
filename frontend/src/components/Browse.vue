@@ -1,11 +1,12 @@
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12" md="4">
-        <h1>Browse Data Collection Sites</h1>
-        <v-btn color="teal-lighten-1" @click="clearFilters">Clear Filters</v-btn
-        ><br /><br />
-        <h3>Filter by Organizations</h3>
+  <div class="d-flex fill-height">
+    <v-card class="sidebar">
+      <v-card-title>Browse Data Collection Sites</v-card-title>
+      <v-card-text>
+        <div class="d-flex my-2">
+          <v-spacer></v-spacer>
+          <v-btn-secondary @click="clearFilters">Clear Filters</v-btn-secondary>
+        </div>
         <SearchBar
           :items="organizations"
           :clear-search="clearSearch"
@@ -14,8 +15,8 @@
         <div v-for="organization in filteredOrganizations">
           <p>{{ organization }}</p>
         </div>
-        <v-expansion-panels class="custom-expansion-panel">
-          <v-expansion-panel title="Site Types" color="teal-lighten-1">
+        <v-expansion-panels class="mt-4">
+          <v-expansion-panel title="Site Types">
             <v-expansion-panel-text>
               <template v-for="type in siteTypes" :key="type">
                 <v-checkbox
@@ -27,16 +28,14 @@
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
-      </v-col>
-      <v-col cols="12" md="8">
-        <GoogleMap
-          :markers="filteredThings"
-          :mapOptions="{ center: { lat: 39, lng: -100 }, zoom: 4 }"
-          style="width: 100%; height: 80vh"
-        />
-      </v-col>
-    </v-row>
-  </v-container>
+      </v-card-text>
+    </v-card>
+
+    <GoogleMap
+      :markers="filteredThings"
+      :mapOptions="{ center: { lat: 39, lng: -100 }, zoom: 4 }"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -118,7 +117,14 @@ function clearFilters() {
 }
 
 dataStore.fetchOrGetFromCache('things', '/things').then(() => {
-  console.log('things', dataStore.things)
   things.value = dataStore.things
 })
 </script>
+
+<style scoped lang="scss">
+.v-card.sidebar {
+  flex-basis: 35rem;
+  height: 100%;
+  overflow: auto;
+}
+</style>

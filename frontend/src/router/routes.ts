@@ -12,7 +12,12 @@ import Profile from '@/components/account/Profile.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Home', component: Home },
-  { path: '/browse', name: 'Browse', component: Browse },
+  {
+    path: '/browse',
+    name: 'Browse',
+    component: Browse,
+    meta: { hideFooter: true, isFullScreen: true },
+  },
   { path: '/sites', name: 'Sites', component: Sites },
   { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
   {

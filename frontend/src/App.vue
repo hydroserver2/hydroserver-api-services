@@ -1,37 +1,34 @@
 <template>
   <v-app>
     <Navbar />
-    <v-main class="flex-grow-1"><router-view /></v-main>
-    <Footer class="flex-grow-0" />
+    <v-main class="flex-grow-1" :class="{ 'is-full-screen': isFullScreen }"
+      ><router-view
+    /></v-main>
+    <Footer v-if="!hideFooter" class="flex-grow-0" />
     <Notifications />
   </v-app>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import Navbar from '@/components/base/Navbar.vue'
 import Footer from '@/components/base/Footer.vue'
 import Notifications from '@/components/base/Notifications.vue'
-import Notification, { IDialog, IToast } from '@/store/notifications'
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 
-export default {
-  name: 'App',
-  components: {
-    Footer,
-    Navbar,
-    Notifications,
-  },
-  mounted() {
-    // Example notifications:
-    // Notification.openDialog({
-    //   title: 'some title',
-    //   content: 'some content',
-    //   onConfirm: () => {
-    //     console.log(confirm)
-    //   },
-    // } as IDialog)
-    // Notification.toast({ message: 'some message' } as IToast)
-  },
-}
+const route = useRoute()
+
+const hideFooter = computed(() => {
+  return route.meta.hideFooter
+})
+
+const isFullScreen = computed(() => {
+  return route.meta.isFullScreen
+})
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.v-main.is-full-screen {
+  height: 100vh;
+}
+</style>

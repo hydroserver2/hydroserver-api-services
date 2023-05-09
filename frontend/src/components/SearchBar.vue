@@ -1,14 +1,14 @@
 <template>
   <div>
     <v-text-field
-      label="Search"
+      label="Filter by Organizations"
       prepend-inner-icon="mdi-magnify"
       clearable
       v-model="searchInput"
       @input="updateSearchFilter"
     ></v-text-field>
 
-    <v-checkbox
+    <!-- <v-checkbox
       label="Regex"
       v-model="regex"
       @change="updateSearchFilter"
@@ -24,7 +24,7 @@
       label="Case sensitive"
       v-model="caseSensitive"
       @change="updateSearchFilter"
-    ></v-checkbox>
+    ></v-checkbox> -->
   </div>
 </template>
 
