@@ -1,6 +1,4 @@
 import { defineStore } from 'pinia'
-import { useApiClient } from '@/utils/api-client'
-const http = useApiClient()
 
 export const useDataStore = defineStore({
   id: 'data',
@@ -22,7 +20,7 @@ export const useDataStore = defineStore({
       } else {
         // console.log(`Fetching ${key} data from API...`);
         try {
-          const { data } = await http.get(apiEndpoint)
+          const { data } = await this.$http.get(apiEndpoint)
           this.cacheProperty(key, data)
         } catch (error) {
           console.error(`Error fetching ${key} data from API`, error)

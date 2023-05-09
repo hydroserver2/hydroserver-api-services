@@ -66,6 +66,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useDataStore } from '@/store/data'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const dataStore = useDataStore()
 const dialog = ref(false)
@@ -81,10 +83,7 @@ const emit = defineEmits(['observedPropertyCreated'])
 
 async function createObservedProperty() {
   try {
-    const response = await this.$http.post(
-      '/observed-properties',
-      formData.value
-    )
+    const response = await api.post('/observed-properties', formData.value)
     const newObservedProperty = response.data
     dataStore.addObservedProperty(newObservedProperty)
     dialog.value = false

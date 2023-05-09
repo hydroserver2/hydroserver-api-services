@@ -115,6 +115,8 @@ import ObservedPropertyModal from '@/components/Site/ObservedPropertyModal.vue'
 import UnitModal from '@/components/Site/UnitModal.vue'
 import ProcessingLevelModal from '@/components/Site/ProcessingLevelModal.vue'
 import router from '@/router/router'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const dataStore = useDataStore()
 const route = useRoute()
@@ -233,9 +235,9 @@ async function uploadDatastream() {
       observation_type: ds_observation_type.value,
     }
     if (datastreamId) {
-      await this.$http.put(`/datastreams/${datastreamId}`, payload)
+      await api.put(`/datastreams/${datastreamId}`, payload)
     } else {
-      const response = await this.$http.post('/datastreams', payload)
+      const response = await api.post('/datastreams', payload)
       const newDatastream = response.data
       dataStore.addDatastream(newDatastream)
     }

@@ -153,6 +153,8 @@ import { useDataStore } from '@/store/data'
 import { useAuthStore } from '@/store/authentication'
 import { useRoute } from 'vue-router'
 import SiteForm from '@/components/Site/SiteForm.vue'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const authStore = useAuthStore()
 const dataStore = useDataStore()
@@ -207,7 +209,7 @@ function loadThing() {
 loadThing()
 
 function updateFollow() {
-  this.$http
+  api
     .get(`/things/${thing_id}/ownership`)
     .then((response) => {
       dataStore.cacheProperty(cachedThingName, response.data)

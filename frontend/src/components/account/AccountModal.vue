@@ -77,6 +77,8 @@
 <script setup lang="ts">
 import { useDataStore } from '@/store/data.ts'
 import { reactive, ref } from 'vue'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const emit = defineEmits(['accountUpdated'])
 const dataStore = useDataStore()
@@ -103,7 +105,7 @@ dataStore.fetchOrGetFromCache('user', '/user').then(() => {
 
 async function updateUser() {
   try {
-    const response = await this.$http.patch('/user', user)
+    const response = await api.patch('/user', user)
     const datastore = useDataStore()
     datastore.cacheProperty('user', response.data)
     dialog.value = false

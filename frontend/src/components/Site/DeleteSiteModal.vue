@@ -28,6 +28,8 @@
 import { ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 import router from '@/router/router'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const props = defineProps({
   siteId: String,
@@ -62,7 +64,7 @@ async function deleteSite() {
   }
 
   try {
-    await this.$http.delete(`/things/${props.siteId}`)
+    await api.delete(`/things/${props.siteId}`)
     await removeThingsFromLocalStorage()
     close()
     emit('deleted')

@@ -58,6 +58,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useDataStore } from '@/store/data'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const emit = defineEmits(['unitCreated'])
 
@@ -72,7 +74,7 @@ const formData = ref({
 
 async function createUnit() {
   try {
-    const response = await this.$http.post('/units', formData.value)
+    const response = await api.post('/units', formData.value)
     const newUnit = response.data
     dataStore.addUnit(newUnit)
     dialog.value = false

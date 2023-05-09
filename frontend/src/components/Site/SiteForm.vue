@@ -96,7 +96,8 @@
 import { ref } from 'vue'
 import { useDataStore } from '@/store/data'
 import GoogleMap from '../GoogleMap.vue'
-
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close', 'siteCreated'])
 
@@ -177,7 +178,7 @@ function closeDialog() {
 
 // TODO: move method implementation to api wrapper
 async function createThing() {
-  const axiosMethod = props.thingId ? this.$http.patch : this.$http.post
+  const axiosMethod = props.thingId ? api.patch : api.post
   const endpoint = props.thingId ? `/things/${props.thingId}` : '/things'
 
   try {

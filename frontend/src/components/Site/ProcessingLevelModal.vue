@@ -52,6 +52,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useDataStore } from '@/store/data'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const dataStore = useDataStore()
 const dialog = ref(false)
@@ -65,7 +67,7 @@ const emit = defineEmits(['processingLevelCreated'])
 
 async function createProcessingLevel() {
   try {
-    const response = await this.$http.post('/processing-levels', formData.value)
+    const response = await api.post('/processing-levels', formData.value)
     const newProcessingLevel = response.data
     dataStore.addProcessingLevel(newProcessingLevel)
     dialog.value = false

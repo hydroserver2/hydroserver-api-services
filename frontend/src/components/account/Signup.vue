@@ -107,6 +107,8 @@
 <script setup lang="ts">
 import router from '@/router/router'
 import { ref } from 'vue'
+import { useApiClient } from '@/utils/api-client'
+const api = useApiClient()
 
 const firstName = ref('')
 const lastName = ref('')
@@ -139,7 +141,7 @@ async function submitForm() {
   }
 
   try {
-    const response = await this.$http.post('/user', {
+    const response = await api.post('/user', {
       first_name: firstName.value,
       last_name: lastName.value,
       email: email.value,
