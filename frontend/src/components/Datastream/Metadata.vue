@@ -1,94 +1,179 @@
 <template>
   <h1>Manage Metadata</h1>
+
+  <!--    Sensor Table and Modal-->
   <div class="table-title-container">
     <h2>Sensors</h2>
     <v-btn
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="showSensorModal = true"
+      @click="
+        () => {
+          selectedProperty = null
+          showSensorModal = true
+        }
+      "
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
   <ManagerTable :names="sensorNameMappings" :rows="sensors">
     <template v-slot:actions="{ row }">
-      <router-link to="/home"> Edit </router-link>
+      <a
+        @click="
+          () => {
+            selectedProperty = row
+            showSensorModal = true
+          }
+        "
+      >
+        Edit
+      </a>
       <span> | </span>
       <a @click="">Delete</a>
     </template>
   </ManagerTable>
+  <v-dialog v-model="showSensorModal" width="60rem">
+    <SensorModal
+      :sensor="selectedProperty"
+      @close="showSensorModal = false"
+      @uploaded="updateSensors"
+    ></SensorModal>
+  </v-dialog>
 
+  <!--    Observed Properties Table and Modal-->
   <div class="table-title-container">
     <h2>Observed Properties</h2>
     <v-btn
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="showObservedPropertyModal = true"
+      @click="
+        () => {
+          selectedProperty = null
+          showObservedPropertyModal = true
+        }
+      "
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
   <ManagerTable :names="OPNameMappings" :rows="observedProperties">
     <template v-slot:actions="{ row }">
-      <router-link to="/home"> Edit </router-link>
+      <a
+        @click="
+          () => {
+            selectedProperty = row
+            showObservedPropertyModal = true
+          }
+        "
+      >
+        Edit
+      </a>
       <span> | </span>
       <a @click="">Delete</a>
     </template>
   </ManagerTable>
+  <v-dialog v-model="showObservedPropertyModal" width="60rem">
+    <ObservedPropertyModal
+      :observedProperty="selectedProperty"
+      @close="showObservedPropertyModal = false"
+      @uploaded="updateObservedProperties"
+    ></ObservedPropertyModal>
+  </v-dialog>
 
+  <!--    Processing Levels Table and Modal-->
   <div class="table-title-container">
     <h2>Processing Levels</h2>
     <v-btn
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="showProcessingLevelModal = true"
+      @click="
+        () => {
+          selectedProperty = null
+          showProcessingLevelModal = true
+        }
+      "
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
   <ManagerTable :names="ProcLevelNameMappings" :rows="ownedProcessingLevels">
     <template v-slot:actions="{ row }">
-      <router-link to="/home"> Edit </router-link>
+      <a
+        @click="
+          () => {
+            selectedProperty = row
+            showProcessingLevelModal = true
+          }
+        "
+      >
+        Edit
+      </a>
       <span> | </span>
       <a @click="">Delete</a>
     </template></ManagerTable
   >
+  <v-dialog v-model="showProcessingLevelModal" width="60rem">
+    <ProcessingLevelModal
+      :processingLevel="selectedProperty"
+      @close="showProcessingLevelModal = false"
+      @uploaded="updateProcessingLevels"
+    ></ProcessingLevelModal>
+  </v-dialog>
 
+  <!--    Units Table and Modal-->
   <div class="table-title-container">
     <h2>Units</h2>
     <v-btn
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="showUnitModal = true"
+      @click="
+        () => {
+          selectedProperty = null
+          showUnitModal = true
+        }
+      "
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
   <ManagerTable :names="UnitNameMappings" :rows="ownedUnits">
     <template v-slot:actions="{ row }">
-      <router-link to="/home"> Edit </router-link>
+      <a
+        @click="
+          () => {
+            selectedProperty = row
+            showUnitModal = true
+          }
+        "
+      >
+        Edit
+      </a>
       <span> | </span>
       <a @click="">Delete</a>
     </template></ManagerTable
   >
-
-  <v-dialog v-model="showSensorModal" width="60rem">
-    <SensorModal
-      @close="showSensorModal = false"
-      @siteCreated="fetchStateData('sensors', '/sensors', sensors)"
-    ></SensorModal>
+  <v-dialog v-model="showUnitModal" width="60rem">
+    <UnitModal
+      :unit="selectedProperty"
+      @close="showUnitModal = false"
+      @uploaded="updateUnits"
+    ></UnitModal>
   </v-dialog>
 </template>
 
 <script lang="ts" setup>
 import ManagerTable from '@/components/ManagerTable.vue'
-import { computed, Ref, ref } from 'vue'
+import { computed, onMounted, Ref, ref } from 'vue'
 import { useDataStore } from '@/store/data'
-import SensorModal from '@/components/Site/SensorModal.vue'
+import SensorModal from '@/components/Datastream/SensorModal.vue'
+import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
+import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
+import UnitModal from '@/components/Datastream/UnitModal.vue'
 
 const showObservedPropertyModal = ref(false)
 const showSensorModal = ref(false)
@@ -128,6 +213,8 @@ let sensors = ref([])
 let processingLevels = ref([])
 let units = ref([])
 
+let selectedProperty = ref(null)
+
 const ownedProcessingLevels = computed(() => {
   if (processingLevels.value.length === 0) return []
   return processingLevels.value.filter(
@@ -148,13 +235,37 @@ async function fetchStateData<T>(
 ): Promise<void> {
   await dataStore.fetchOrGetFromCache(cacheKey, url)
   dataRef.value = dataStore[cacheKey] as T[]
-  console.log(cacheKey, dataRef.value)
 }
 
-fetchStateData('sensors', '/sensors', sensors)
-fetchStateData('observedProperties', '/observed-properties', observedProperties)
-fetchStateData('units', '/units', units)
-fetchStateData('processingLevels', '/processing-levels', processingLevels)
+async function updateSensors() {
+  await dataStore.fetchOrGetFromCache('sensors', '/sensors')
+  sensors.value = dataStore.sensors
+}
+
+async function updateObservedProperties() {
+  await dataStore.fetchOrGetFromCache(
+    'observedProperties',
+    '/observed-properties'
+  )
+  observedProperties.value = dataStore.observedProperties
+}
+
+async function updateUnits() {
+  await dataStore.fetchOrGetFromCache('units', '/units')
+  units.value = dataStore.units
+}
+
+async function updateProcessingLevels() {
+  await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
+  processingLevels.value = dataStore.processingLevels
+}
+
+onMounted(() => {
+  updateSensors()
+  updateObservedProperties()
+  updateUnits()
+  updateProcessingLevels()
+})
 </script>
 
 <style scoped>

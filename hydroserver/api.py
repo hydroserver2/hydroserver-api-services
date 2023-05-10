@@ -474,11 +474,11 @@ def create_sensor(request, data: SensorInput):
 
 @api.get('/sensors', auth=jwt_auth)
 def get_sensors(request):
-    sensors = Sensor.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
+    sensors = Sensor.objects.filter(Q(person=request.authenticated_user))
     return JsonResponse([sensor_to_dict(sensor) for sensor in sensors], safe=False)
 
 
-@api.put('/sensors/{sensor_id}', auth=jwt_auth)
+@api.patch('/sensors/{sensor_id}', auth=jwt_auth)
 def update_sensor(request, sensor_id: str, data: SensorInput):
     sensor = Sensor.objects.get(id=sensor_id)
     if request.authenticated_user != sensor.person:
@@ -505,7 +505,7 @@ def update_sensor(request, sensor_id: str, data: SensorInput):
 
     sensor.save()
 
-    return {'id': sensor.id, 'detail': 'Sensor updated successfully.'}
+    return JsonResponse(sensor_to_dict(sensor))
 
 
 @api.delete('/sensors/{sensor_id}', auth=jwt_auth)
@@ -536,7 +536,7 @@ def observed_property_to_dict(observed_property):
 
 @api.get('/observed-properties', auth=jwt_auth)
 def get_observed_properties(request):
-    observed_properties = ObservedProperty.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
+    observed_properties = ObservedProperty.objects.filter(Q(person=request.authenticated_user))
     return JsonResponse([observed_property_to_dict(op) for op in observed_properties], safe=False)
 
 
@@ -561,7 +561,7 @@ def create_observed_property(request, data: ObservedPropertyInput):
     return JsonResponse(observed_property_to_dict(observed_property))
 
 
-@api.put('/observed-properties/{observed_property_id}', auth=jwt_auth)
+@api.patch('/observed-properties/{observed_property_id}', auth=jwt_auth)
 def update_observed_property(request, observed_property_id: str, data: ObservedPropertyInput):
     observed_property = ObservedProperty.objects.get(id=observed_property_id)
     if request.authenticated_user != observed_property.person:
@@ -879,7 +879,7 @@ class UpdateUnitInput(Schema):
     unit_type: str
 
 
-@api.put('/units/{unit_id}', auth=jwt_auth)
+@api.patch('/units/{unit_id}', auth=jwt_auth)
 def update_unit(request, unit_id: str, data: UpdateUnitInput):
     unit = Unit.objects.get(id=unit_id)
     if request.authenticated_user != unit.person:
@@ -895,7 +895,7 @@ def update_unit(request, unit_id: str, data: UpdateUnitInput):
         unit.unit_type = data.unit_type
 
     unit.save()
-    return {'detail': 'Unit updated successfully.'}
+    return JsonResponse(unit_to_dict(unit))
 
 
 @api.delete('/units/{unit_id}', auth=jwt_auth)
@@ -942,5 +942,23 @@ def create_processing_level(request, data: ProcessingLevelInput):
         definition=data.definition,
         explanation=data.explanation,
     )
+
+    return JsonResponse(processing_level_to_dict(processing_level))
+
+
+@api.patch('/processing-levels/{processing_level_id}', auth=jwt_auth)
+def update_processing_level(request, processing_level_id: str, data: ProcessingLevelInput):
+    processing_level = ProcessingLevel.objects.get(id=processing_level_id)
+    if request.authenticated_user != processing_level.person:
+        return JsonResponse({'detail': 'You are not authorized to update this observed property.'}, status=403)
+
+    if data.processing_level_code:
+        processing_level.processing_level_code = data.processing_level_code
+    if data.definition:
+        processing_level.definition = data.definition
+    if data.explanation:
+        processing_level.explanation = data.explanation
+
+    processing_level.save()
 
     return JsonResponse(processing_level_to_dict(processing_level))
