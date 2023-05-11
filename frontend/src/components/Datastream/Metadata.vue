@@ -31,7 +31,15 @@
         Edit
       </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a
+        @click="
+          () => {
+            selectedProperty = row
+            showSensorDeleteModal = true
+          }
+        "
+        >Delete</a
+      >
     </template>
   </ManagerTable>
   <v-dialog v-model="showSensorModal" width="60rem">
@@ -40,6 +48,52 @@
       @close="showSensorModal = false"
       @uploaded="updateSensors"
     ></SensorModal>
+  </v-dialog>
+
+  <v-dialog
+    v-if="selectedProperty"
+    v-model="showSensorDeleteModal"
+    width="40rem"
+  >
+    <v-card>
+      <v-card-title>
+        <span class="text-h5">Confirm Sensor Deletion</span>
+      </v-card-title>
+      <v-card-text>
+        Are you sure you want to delete
+        <strong>{{ selectedProperty.name }}</strong
+        >?
+        <br />
+        <br />
+        <div v-if="datastreamsForSensor.length > 0">
+          This action will not only delete the sensor method, but will delete
+          all datastreams that use this method and all the observations that
+          belong to those datastreams. The datastreams that will be deleted with
+          this sensor are:
+          <br />
+          <div v-for="datastream in datastreamsForSensor" :key="datastream.id">
+            <br />
+            DatastreamID: {{ datastream.id }} <br />
+            Observed Property:
+            {{ datastream.observed_property_name }}<br />
+            Unit:
+            {{ datastream.unit_name }}
+            <br />
+          </div>
+        </div>
+        <div v-else>
+          This sensor method isn't being used by any datastreams and is safe to
+          delete
+        </div>
+
+        <br />
+        <!--        <strong>ID:</strong> {{ selectedProperty.id }} <br />-->
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="red" @click="showSensorDeleteModal = false">Cancel</v-btn>
+        <v-btn color="green" @click="deleteSensor()">Confirm</v-btn>
+      </v-card-actions>
+    </v-card>
   </v-dialog>
 
   <!--    Observed Properties Table and Modal-->
@@ -174,11 +228,18 @@ import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
 import UnitModal from '@/components/Datastream/UnitModal.vue'
+import axios from 'axios'
+
+const dataStore = useDataStore()
 
 const showObservedPropertyModal = ref(false)
 const showSensorModal = ref(false)
 const showProcessingLevelModal = ref(false)
 const showUnitModal = ref(false)
+const showObservedPropertyDeleteModal = ref(false)
+const showSensorDeleteModal = ref(false)
+const showProcessingLevelDeleteModal = ref(false)
+const showUnitDeleteModal = ref(false)
 
 type NameTuple = [string, string]
 
@@ -208,6 +269,7 @@ const UnitNameMappings = ref<NameTuple[]>([
   ['unit_type', 'Unit Type'],
 ])
 
+const datastreams = ref([])
 let observedProperties = ref([])
 let sensors = ref([])
 let processingLevels = ref([])
@@ -226,16 +288,6 @@ const ownedUnits = computed(() => {
   if (units.value.length === 0) return []
   return units.value.filter((unit) => unit.person !== null)
 })
-
-const dataStore = useDataStore()
-async function fetchStateData<T>(
-  cacheKey: string,
-  url: string,
-  dataRef: Ref<T[]>
-): Promise<void> {
-  await dataStore.fetchOrGetFromCache(cacheKey, url)
-  dataRef.value = dataStore[cacheKey] as T[]
-}
 
 async function updateSensors() {
   await dataStore.fetchOrGetFromCache('sensors', '/sensors')
@@ -260,11 +312,39 @@ async function updateProcessingLevels() {
   processingLevels.value = dataStore.processingLevels
 }
 
+async function getDatastreams() {
+  await dataStore.fetchOrGetFromCache('datastreams', '/datastreams')
+  datastreams.value = dataStore.datastreams
+}
+
+async function deleteSensor() {
+  showSensorDeleteModal.value = false
+  await axios.delete(`/sensors/${selectedProperty.value.id}`)
+  localStorage.removeItem('sensors')
+  localStorage.removeItem('datastreams')
+  // Since multiple datastreams could have been deleted from multiple things
+  // we'll have to invalidate the cache for each thing_
+  for (let i = 0; i < localStorage.length; i++) {
+    let key = localStorage.key(i)
+    if (key.startsWith('thing_')) {
+      localStorage.removeItem(key)
+    }
+  }
+  await updateSensors()
+}
+
+const datastreamsForSensor = computed(() => {
+  return datastreams.value.filter(
+    (datastream) => datastream.method_id === selectedProperty.value.id
+  )
+})
+
 onMounted(() => {
   updateSensors()
   updateObservedProperties()
   updateUnits()
   updateProcessingLevels()
+  getDatastreams()
 })
 </script>
 
