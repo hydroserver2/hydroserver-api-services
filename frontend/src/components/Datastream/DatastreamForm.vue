@@ -22,7 +22,20 @@
                 item-value="id"
                 no-data-text="No available sensors"
               ></v-autocomplete>
-              <sensor-modal @sensorCreated="updateSensors"></sensor-modal>
+              <v-btn
+                variant="elevated"
+                density="comfortable"
+                color="green"
+                @click="showSensorModal = true"
+                prependIcon="mdi-plus"
+                >Add New</v-btn
+              >
+              <v-dialog v-model="showSensorModal" width="60rem">
+                <sensor-modal
+                  @uploaded="updateSensors"
+                  @close="showSensorModal = false"
+                ></sensor-modal>
+              </v-dialog>
             </v-col>
             <v-col cols="12" md="3">
               <v-autocomplete
@@ -33,9 +46,19 @@
                 item-value="id"
                 no-data-text="No available properties"
               ></v-autocomplete>
-              <observed-property-modal
-                @observedPropertyCreated="updateObservedProperties"
-                >Add New</observed-property-modal
+              <v-dialog v-model="showObservedPropertyModal" width="60rem">
+                <ObservedPropertyModal
+                  @uploaded="updateObservedProperties"
+                  @close="showObservedPropertyModal = false"
+                ></ObservedPropertyModal>
+              </v-dialog>
+              <v-btn
+                variant="elevated"
+                density="comfortable"
+                color="green"
+                @click="showObservedPropertyModal = true"
+                prependIcon="mdi-plus"
+                >Add New</v-btn
               >
             </v-col>
             <v-col cols="12" md="3">
@@ -47,7 +70,21 @@
                 item-value="id"
                 no-data-text="No available units"
               ></v-autocomplete>
-              <unit-modal @unitCreated="updateUnits">Add New</unit-modal>
+              <v-btn
+                variant="elevated"
+                density="comfortable"
+                color="green"
+                @click="showUnitModal = true"
+                prependIcon="mdi-plus"
+                >Add New</v-btn
+              >
+              <v-dialog v-model="showUnitModal" width="60rem">
+                <unit-modal
+                  @uploaded="updateUnits"
+                  @close="showUnitModal = false"
+                  >Add New</unit-modal
+                >
+              </v-dialog>
             </v-col>
             <v-col cols="12" md="3">
               <v-autocomplete
@@ -57,10 +94,21 @@
                 item-value="id"
                 no-data-text="No available processing level"
               ></v-autocomplete>
-              <processing-level-modal
-                @processingLevelCreated="updateProcessingLevels"
-                >Add New</processing-level-modal
+              <v-btn
+                variant="elevated"
+                density="comfortable"
+                color="green"
+                @click="showProcessingLevelModal = true"
+                prependIcon="mdi-plus"
+                >Add New</v-btn
               >
+              <v-dialog v-model="showProcessingLevelModal" width="60rem">
+                <processing-level-modal
+                  @uploaded="updateProcessingLevels"
+                  @close="showProcessingLevelModal = false"
+                  >Add New</processing-level-modal
+                >
+              </v-dialog>
             </v-col>
           </v-row>
 
@@ -110,10 +158,10 @@
 import { computed, ref, watch } from 'vue'
 import { useDataStore } from '@/store/data'
 import { useRoute } from 'vue-router'
-import SensorModal from '@/components/Site/SensorModal.vue'
-import ObservedPropertyModal from '@/components/Site/ObservedPropertyModal.vue'
-import UnitModal from '@/components/Site/UnitModal.vue'
-import ProcessingLevelModal from '@/components/Site/ProcessingLevelModal.vue'
+import SensorModal from '@/components/Datastream/SensorModal.vue'
+import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
+import UnitModal from '@/components/Datastream/UnitModal.vue'
+import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
 import router from '@/router/router'
 import { useApiClient } from '@/utils/api-client'
 const api = useApiClient()
@@ -135,6 +183,11 @@ let units = ref([])
 let observedProperties = ref([])
 let sensors = ref([])
 let processingLevels = ref([])
+
+let showSensorModal = ref(false)
+let showObservedPropertyModal = ref(false)
+let showUnitModal = ref(false)
+let showProcessingLevelModal = ref(false)
 
 const ds_sampled_medium = ref('')
 const ds_status = ref('')
