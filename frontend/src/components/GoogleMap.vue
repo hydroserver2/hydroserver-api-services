@@ -37,7 +37,7 @@ function loadMarkers() {
       let marker = new google.maps.Marker({ position: latLng, map })
       const content = `
             <h5>${markerData.name}</h5>
-            <p><b>${markerData.city ? markerData.city : ''}
+            <p><b>
                    ${markerData.state ? markerData.state : ''}
                    ${markerData.country ? markerData.country : ''}
             </b></p>

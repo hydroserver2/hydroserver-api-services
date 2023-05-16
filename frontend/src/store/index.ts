@@ -1,3 +1,10 @@
-import { createPinia } from 'pinia';
+import { createPinia } from 'pinia'
+import { createPersistedState } from 'pinia-plugin-persistedstate'
 
-export const store = createPinia();
+const store = createPinia()
+store.use(
+  createPersistedState({
+    auto: true,
+  })
+)
+export default store

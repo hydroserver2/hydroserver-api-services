@@ -1,6 +1,6 @@
 <template>
-  <div v-if="sitesLoaded">
-    <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
+  <div v-if="markerStore.loaded">
+    <GoogleMap :markers="markerStore.ownedOrFollowedMarkers"></GoogleMap>
     <hr />
     <div
       style="display: flex; justify-content: space-between; align-items: center"
@@ -10,10 +10,7 @@
         <v-btn to="Metadata" color="grey" style="margin: 1rem"
           >Manage Metadata</v-btn
         >
-        <v-btn
-          @click="showRegisterSiteModal = true"
-          color="green"
-          style="margin: 1rem"
+        <v-btn @click="showSiteForm = true" color="green" style="margin: 1rem"
           >Register a new site</v-btn
         >
       </div>
@@ -28,30 +25,29 @@
       </thead>
       <tbody style="border: 1px black">
         <tr
-          v-for="thing in ownedThings"
-          :key="thing.id"
+          v-for="marker in markerStore.ownedMarkers"
+          :key="marker.id"
           @click="
-            $router.push({ name: 'SingleSite', params: { id: thing.id } })
+            $router.push({ name: 'SingleSite', params: { id: marker.id } })
           "
           class="row-bordered"
         >
-          <td>{{ thing.sampling_feature_code }}</td>
-          <td>{{ thing.name }}</td>
-          <td>{{ thing.site_type }}</td>
+          <td>{{ marker.sampling_feature_code }}</td>
+          <td>{{ marker.name }}</td>
+          <td>{{ marker.site_type }}</td>
         </tr>
       </tbody>
     </v-table>
 
     <transition name="modal-fade">
       <div
-        v-if="showRegisterSiteModal"
+        v-if="showSiteForm"
         class="modal-overlay"
-        @click.self="showRegisterSiteModal = false"
+        @click.self="showSiteForm = false"
       >
-        <site-form
-          @close="showRegisterSiteModal = false"
-          @siteCreated="updateMarkers"
-        ></site-form>
+        <v-dialog v-model="showSiteForm" width="80rem">
+          <SiteForm @close="showSiteForm = false"></SiteForm>
+        </v-dialog>
       </div>
     </transition>
 
@@ -66,16 +62,16 @@
       </thead>
       <tbody style="border: 1px black">
         <tr
-          v-for="thing in followedThings"
-          :key="thing.id"
+          v-for="marker in markerStore.followedMarkers"
+          :key="marker.id"
           @click="
-            $router.push({ name: 'SingleSite', params: { id: thing.id } })
+            $router.push({ name: 'SingleSite', params: { id: marker.id } })
           "
           class="row-bordered"
         >
-          <td>{{ thing.sampling_feature_code }}</td>
-          <td>{{ thing.name }}</td>
-          <td>{{ thing.site_type }}</td>
+          <td>{{ marker.sampling_feature_code }}</td>
+          <td>{{ marker.name }}</td>
+          <td>{{ marker.site_type }}</td>
         </tr>
       </tbody>
     </v-table>
@@ -96,27 +92,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import GoogleMap from '@/components/GoogleMap.vue'
-import { useDataStore } from '@/store/data'
 import SiteForm from '@/components/Site/SiteForm.vue'
+import { ref, onMounted } from 'vue'
+import { useMarkerStore } from '@/store/markers'
 
-const dataStore = useDataStore()
-const showRegisterSiteModal = ref(false)
-const ownedThings = ref([])
-const followedThings = ref([])
-const markers = ref(null)
+const markerStore = useMarkerStore()
+const showSiteForm = ref(false)
 
-const sitesLoaded = computed(() => ownedThings.value && followedThings.value)
-
-async function updateMarkers() {
-  await dataStore.fetchOrGetFromCache('things', '/things')
-  ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
-  followedThings.value = dataStore.things.filter((thing) => thing.follows_thing)
-  markers.value = [...ownedThings.value, ...followedThings.value]
-}
-
-updateMarkers()
+onMounted(async () => {
+  await markerStore.fetchMarkers()
+})
 </script>
 
 <style scoped lang="scss">

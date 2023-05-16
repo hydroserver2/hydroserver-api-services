@@ -30,7 +30,7 @@
       </v-col>
       <v-col cols="12" md="8">
         <GoogleMap
-          :markers="filteredThings"
+          :markers="filteredMarkers"
           :mapOptions="{ center: { lat: 39, lng: -100 }, zoom: 4 }"
           style="width: 100%; height: 80vh"
         />
@@ -41,11 +41,11 @@
 
 <script setup lang="ts">
 import GoogleMap from '@/components/GoogleMap.vue'
-import { useDataStore } from '@/store/data'
-import { computed, ref } from 'vue'
 import SearchBar from '@/components/SearchBar.vue'
+import { computed, onMounted, ref } from 'vue'
+import { useMarkerStore } from '@/store/markers'
 
-const dataStore = useDataStore()
+const markerStore = useMarkerStore()
 const siteTypes = ref([
   'Borehole',
   'Ditch',
@@ -70,15 +70,14 @@ const siteTypes = ref([
 ])
 const clearSearch = ref(false)
 const selectedSiteTypes = ref([])
-const things = ref(null)
 const filteredOrganizations = ref([])
 const filteredOrganizationsSet = ref(new Set())
 
 const organizations = computed(() => {
-  if (!things.value) return []
+  if (!Array.isArray(markerStore.markers)) return []
   const allOrgs = new Set()
-  things.value.forEach((thing) => {
-    thing.owners.forEach((owner) => {
+  markerStore.markers.forEach((marker) => {
+    marker.owners.forEach((owner) => {
       if (owner.organization) {
         allOrgs.add(owner.organization)
       }
@@ -87,28 +86,28 @@ const organizations = computed(() => {
   return Array.from(allOrgs)
 })
 
-const handleFilteredOrganizations = (filtered) => {
+const filteredMarkers = computed(() => {
+  if (!Array.isArray(markerStore.markers)) return []
+  return markerStore.markers.filter(isMarkerValid)
+})
+
+function handleFilteredOrganizations(filtered) {
   filteredOrganizations.value = filtered
   filteredOrganizationsSet.value = new Set(filtered)
 }
 
-const isThingValid = (thing) => {
+function isMarkerValid(marker) {
   const orgValid =
     filteredOrganizationsSet.value.size === 0 ||
-    thing.owners.some((owner) =>
+    marker.owners.some((owner) =>
       filteredOrganizationsSet.value.has(owner.organization)
     )
   const siteTypeValid =
     selectedSiteTypes.value.length === 0 ||
-    selectedSiteTypes.value.includes(thing.site_type)
+    selectedSiteTypes.value.includes(marker.site_type)
 
   return orgValid && siteTypeValid
 }
-
-const filteredThings = computed(() => {
-  if (!things.value) return []
-  return things.value.filter(isThingValid)
-})
 
 function clearFilters() {
   selectedSiteTypes.value = []
@@ -117,8 +116,8 @@ function clearFilters() {
   clearSearch.value = !clearSearch.value
 }
 
-dataStore.fetchOrGetFromCache('things', '/things').then(() => {
-  console.log('things', dataStore.things)
-  things.value = dataStore.things
+onMounted(async () => {
+  await markerStore.fetchMarkers()
+  console.log('markers', markerStore.markers)
 })
 </script>
