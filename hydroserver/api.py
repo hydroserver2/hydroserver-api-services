@@ -809,7 +809,7 @@ class UpdateDatastreamInput(Schema):
     is_visible: bool = None
 
 
-@api.put('/datastreams/{datastream_id}', auth=jwt_auth)
+@api.patch('/datastreams/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
 def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
     with transaction.atomic():
@@ -901,7 +901,7 @@ def unit_to_dict(unit):
         "symbol": unit.symbol,
         "definition": unit.definition,
         "unit_type": unit.unit_type,
-        "person": unit.person.pk if unit.person else None
+        "person_id": unit.person.pk if unit.person else None
     }
 
 

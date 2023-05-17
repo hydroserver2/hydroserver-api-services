@@ -20,19 +20,19 @@ export interface Owner {
 export interface Thing {
   id: string
   name: string
-  description: string
-  sampling_feature_type: string
-  sampling_feature_code: string
+  owners: Owner[]
   site_type: string
+  sampling_feature_code: string
   latitude: number
   longitude: number
   elevation: number
+  owns_thing: boolean
+  follows_thing: boolean
+  description: string
+  sampling_feature_type: string
   state: string
   county: string
   is_primary_owner: boolean
-  owns_thing: boolean
-  follows_thing: boolean
-  owners: Owner[]
   followers: number
 }
 

@@ -6,7 +6,7 @@ export const useSensorStore = defineStore('sensor', {
   state: () => ({ sensors: [] as Sensor[], loaded: false }),
   getters: {},
   actions: {
-    async fetchUnits() {
+    async fetchSensors() {
       if (this.sensors.length > 0) return
       try {
         const { data } = await axios.get('/sensors')

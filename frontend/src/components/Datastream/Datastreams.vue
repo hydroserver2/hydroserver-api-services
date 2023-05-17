@@ -1,7 +1,7 @@
 <template>
   <div class="manage-datastreams" style="margin: 1rem">
     <h1>Manage Site Datastreams</h1>
-    <h2>{{ thing?.name }}</h2>
+    <h2>{{ thingStore.things[thing_id]?.name }}</h2>
     <v-btn
       style="margin-top: 0.5rem; margin-bottom: 1rem"
       color="primary"
@@ -9,7 +9,10 @@
       >Add New Datastream</v-btn
     >
 
-    <ManagerTable :names="datastreamNameMappings" :rows="datastreams">
+    <ManagerTable
+      :names="datastreamNameMappings"
+      :rows="datastreamStore.datastreams[thing_id]"
+    >
       <template v-slot:actions="{ row }">
         <router-link
           class="action-link"
@@ -62,9 +65,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useDataStore } from '@/store/data'
-import axios from 'axios'
 import ManagerTable from '@/components/ManagerTable.vue'
+import { useDatastreamStore } from '@/store/datastreams'
+import { useThingStore } from '@/store/things'
 
 type NameTuple = [string, string]
 
@@ -76,50 +79,31 @@ const datastreamNameMappings = ref<NameTuple[]>([
 ])
 
 const route = useRoute()
-const dataStore = useDataStore()
+const datastreamStore = useDatastreamStore()
+const thingStore = useThingStore()
 
 const thing_id = route.params.id.toString()
-const cachedThingName = `thing_${thing_id}`
-const thing = ref(null)
-const datastreams = ref([])
+
 const showDeleteModal = ref(false)
 const selectedDatastream = ref(null)
 
 function showModal(datastream) {
-  console.log(datastream)
   selectedDatastream.value = datastream
   showDeleteModal.value = true
 }
 
 async function toggleVisibility(datastream) {
-  try {
-    await axios.put(`/datastreams/${datastream.id}`, {
-      is_visible: !datastream.is_visible,
-    })
-    datastream.is_visible = !datastream.is_visible
-    thing.value.datastreams = datastreams
-    dataStore.cacheProperty(cachedThingName, thing.value)
-  } catch (error) {
-    console.error(error)
-  }
+  await datastreamStore.setVisibility(datastream.id, !datastream.is_visible)
+  datastream.is_visible = !datastream.is_visible
 }
 
 async function deleteDatastream() {
   showDeleteModal.value = false
-  await axios.delete(`/datastreams/${selectedDatastream.value.id}`)
-  localStorage.removeItem(cachedThingName)
-  await dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-  thing.value = dataStore[cachedThingName]
-  datastreams.value = thing.value.datastreams
+  await datastreamStore.deleteDatastream(selectedDatastream.value.id, thing_id)
 }
 
 onMounted(async () => {
-  try {
-    await dataStore.fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-    thing.value = dataStore[cachedThingName]
-    datastreams.value = thing.value.datastreams
-  } catch (error) {
-    console.error('Error fetching thing data from API', error)
-  }
+  await datastreamStore.fetchDatastreamsByThingId(thing_id)
+  await thingStore.fetchThingById(thing_id)
 })
 </script>
