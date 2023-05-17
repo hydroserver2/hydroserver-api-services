@@ -18,7 +18,16 @@
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="sensorNameMappings" :rows="sensors">
+
+  <!--  <v-data-table-->
+  <!--    v-if="sensorStore.sensors.length"-->
+  <!--    :headers="sensorHeaders"-->
+  <!--    :items="sensorStore.sensors"-->
+  <!--    hover-->
+  <!--    item-value="id"-->
+  <!--    class="elevation-1"-->
+  <!--  ></v-data-table>-->
+  <ManagerTable :names="sensorNameMappings" :rows="sensorStore.sensors">
     <template v-slot:actions="{ row }">
       <a
         @click="
@@ -46,10 +55,8 @@
     <SensorModal
       :sensor="selectedProperty"
       @close="showSensorModal = false"
-      @uploaded="updateSensors"
     ></SensorModal>
   </v-dialog>
-
   <v-dialog
     v-if="selectedProperty"
     v-model="showSensorDeleteModal"
@@ -85,9 +92,7 @@
           This sensor method isn't being used by any datastreams and is safe to
           delete
         </div>
-
         <br />
-        <!--        <strong>ID:</strong> {{ selectedProperty.id }} <br />-->
       </v-card-text>
       <v-card-actions>
         <v-btn color="red" @click="showSensorDeleteModal = false">Cancel</v-btn>
@@ -113,7 +118,7 @@
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="OPNameMappings" :rows="observedProperties">
+  <ManagerTable :names="OPNameMappings" :rows="opStore.observedProperties">
     <template v-slot:actions="{ row }">
       <a
         @click="
@@ -133,7 +138,6 @@
     <ObservedPropertyModal
       :observedProperty="selectedProperty"
       @close="showObservedPropertyModal = false"
-      @uploaded="updateObservedProperties"
     ></ObservedPropertyModal>
   </v-dialog>
 
@@ -154,7 +158,10 @@
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="ProcLevelNameMappings" :rows="ownedProcessingLevels">
+  <ManagerTable
+    :names="ProcLevelNameMappings"
+    :rows="plStore.ownedProcessingLevels"
+  >
     <template v-slot:actions="{ row }">
       <a
         @click="
@@ -174,7 +181,6 @@
     <ProcessingLevelModal
       :processingLevel="selectedProperty"
       @close="showProcessingLevelModal = false"
-      @uploaded="updateProcessingLevels"
     ></ProcessingLevelModal>
   </v-dialog>
 
@@ -195,7 +201,7 @@
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="UnitNameMappings" :rows="ownedUnits">
+  <ManagerTable :names="UnitNameMappings" :rows="unitStore.ownedUnits">
     <template v-slot:actions="{ row }">
       <a
         @click="
@@ -215,27 +221,34 @@
     <UnitModal
       :unit="selectedProperty"
       @close="showUnitModal = false"
-      @uploaded="updateUnits"
     ></UnitModal>
   </v-dialog>
 </template>
 
 <script lang="ts" setup>
 import ManagerTable from '@/components/ManagerTable.vue'
-import { computed, onMounted, Ref, ref } from 'vue'
-import { useDataStore } from '@/store/data'
+import { computed, onMounted, ref } from 'vue'
 import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
 import UnitModal from '@/components/Datastream/UnitModal.vue'
-import axios from 'axios'
+import { useProcessingLevelStore } from '@/store/processingLevels'
+import { useSensorStore } from '@/store/sensors'
+import { useObservedPropertyStore } from '@/store/observedProperties'
+import { useUnitStore } from '@/store/unit'
+import { useDatastreamStore } from '@/store/datastreams'
 
-const dataStore = useDataStore()
+const sensorStore = useSensorStore()
+const opStore = useObservedPropertyStore()
+const plStore = useProcessingLevelStore()
+const unitStore = useUnitStore()
+const datastreamStore = useDatastreamStore()
 
 const showObservedPropertyModal = ref(false)
 const showSensorModal = ref(false)
 const showProcessingLevelModal = ref(false)
 const showUnitModal = ref(false)
+
 const showObservedPropertyDeleteModal = ref(false)
 const showSensorDeleteModal = ref(false)
 const showProcessingLevelDeleteModal = ref(false)
@@ -250,7 +263,33 @@ const sensorNameMappings = ref<NameTuple[]>([
   ['method_code', 'Method Code'],
 ])
 
-// For Observed Properties Table
+// const sensorHeaders = [
+//   {
+//     title: 'UUID',
+//     align: 'start',
+//     sortable: true,
+//     key: 'id',
+//   },
+//   {
+//     title: 'Method Type',
+//     align: 'start',
+//     sortable: true,
+//     key: 'method_type',
+//   },
+//   {
+//     title: 'Name',
+//     align: 'start',
+//     sortable: true,
+//     key: 'name',
+//   },
+//   {
+//     title: 'Method Code',
+//     align: 'start',
+//     sortable: true,
+//     key: 'method_code',
+//   },
+// ]
+
 const OPNameMappings = ref<NameTuple[]>([
   ['name', 'Name'],
   ['variable_type', 'Variable Type'],
@@ -269,82 +308,26 @@ const UnitNameMappings = ref<NameTuple[]>([
   ['unit_type', 'Unit Type'],
 ])
 
-const datastreams = ref([])
-let observedProperties = ref([])
-let sensors = ref([])
-let processingLevels = ref([])
-let units = ref([])
-
 let selectedProperty = ref(null)
 
-const ownedProcessingLevels = computed(() => {
-  if (processingLevels.value.length === 0) return []
-  return processingLevels.value.filter(
-    (processingLevel) => processingLevel.person !== null
-  )
-})
-
-const ownedUnits = computed(() => {
-  if (units.value.length === 0) return []
-  return units.value.filter((unit) => unit.person !== null)
-})
-
-async function updateSensors() {
-  await dataStore.fetchOrGetFromCache('sensors', '/sensors')
-  sensors.value = dataStore.sensors
-}
-
-async function updateObservedProperties() {
-  await dataStore.fetchOrGetFromCache(
-    'observedProperties',
-    '/observed-properties'
-  )
-  observedProperties.value = dataStore.observedProperties
-}
-
-async function updateUnits() {
-  await dataStore.fetchOrGetFromCache('units', '/units')
-  units.value = dataStore.units
-}
-
-async function updateProcessingLevels() {
-  await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
-  processingLevels.value = dataStore.processingLevels
-}
-
-async function getDatastreams() {
-  await dataStore.fetchOrGetFromCache('datastreams', '/datastreams')
-  datastreams.value = dataStore.datastreams
-}
-
-async function deleteSensor() {
+async function deleteSensor(id: string) {
   showSensorDeleteModal.value = false
-  await axios.delete(`/sensors/${selectedProperty.value.id}`)
-  localStorage.removeItem('sensors')
-  localStorage.removeItem('datastreams')
-  // Since multiple datastreams could have been deleted from multiple things
-  // we'll have to invalidate the cache for each thing_
-  for (let i = 0; i < localStorage.length; i++) {
-    let key = localStorage.key(i)
-    if (key.startsWith('thing_')) {
-      localStorage.removeItem(key)
-    }
-  }
-  await updateSensors()
+  // sensorStore.deleteSensor()
 }
 
 const datastreamsForSensor = computed(() => {
-  return datastreams.value.filter(
-    (datastream) => datastream.method_id === selectedProperty.value.id
+  return datastreamStore.getDatastreamsByParameter(
+    'method_id',
+    selectedProperty.value.id
   )
 })
 
 onMounted(() => {
-  updateSensors()
-  updateObservedProperties()
-  updateUnits()
-  updateProcessingLevels()
-  getDatastreams()
+  sensorStore.fetchSensors()
+  opStore.fetchObservedProperties()
+  plStore.fetchProcessingLevels()
+  unitStore.fetchUnits()
+  datastreamStore.fetchDatastreams()
 })
 </script>
 

@@ -1,20 +1,53 @@
 <template>
-  <div v-if="isLoaded" style="margin: 1rem">
-    <h2>{{ thing?.name }}</h2>
-    <GoogleMap :markers="[thing]" :mapOptions="mapOptions" />
+  <div style="margin: 1rem" v-if="thingStore.things[thingId]">
+    <h2>{{ thingStore.things[thingId]?.name }}</h2>
+    <GoogleMap
+      :markers="[thingStore.things[thingId]]"
+      :mapOptions="mapOptions"
+    />
 
     <div class="site-information-container">
       <h2 class="site-information-title">Site Information</h2>
-      <div v-if="isAuthenticated && thing && thing.owns_thing">
+      <div
+        v-if="
+          isAuthenticated &&
+          thingStore.things[thingId] &&
+          thingStore.things[thingId].owns_thing
+        "
+      >
         <v-btn @click="showRegisterSiteModal = true" color="green"
           >Edit Site Information</v-btn
         >
-        <DeleteSiteModal
-          :site-id="thing.id"
-          :site-name="thing.name"
-          v-model="showDeleteModal"
-          @close="showDeleteModal = false"
-        />
+        <v-dialog v-model="showDeleteModal" width="40rem">
+          <v-card>
+            <v-card-title>
+              <span class="text-h5">Confirm Deletion</span>
+            </v-card-title>
+            <v-card-text>
+              Please type the site name (<strong>{{
+                thingStore.things[thingId].name
+              }}</strong
+              >) to confirm deletion:
+              <v-form>
+                <v-text-field
+                  v-model="deleteInput"
+                  label="Site name"
+                  solo
+                  @keydown.enter.prevent="deleteThing"
+                ></v-text-field>
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="red darken-1" text @click="showDeleteModal = false"
+                >Cancel</v-btn
+              >
+              <v-btn color="green darken-1" text @click="deleteThing"
+                >Confirm</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <v-btn
           color="red-darken-3"
           style="margin-left: 1rem"
@@ -22,70 +55,72 @@
           >Delete Site</v-btn
         >
       </div>
-      <div v-else-if="isAuthenticated && thing && !thing.owns_thing">
+      <div
+        v-else-if="
+          isAuthenticated &&
+          thingStore.things[thingId] &&
+          !thingStore.things[thingId].owns_thing
+        "
+      >
         <input
           class="follow-checkbox"
           type="checkbox"
-          :checked="followsThing"
+          :checked="thingStore.things[thingId].follows_thing"
           @change="updateFollow"
         />
         <label>Follow Thing</label>
       </div>
     </div>
 
-    <site-form
-      v-if="showRegisterSiteModal && thing_id"
-      @close="showRegisterSiteModal = false"
-      @siteCreated="loadThing"
-      :thing-id="thing_id"
-    ></site-form>
+    <v-dialog v-model="showRegisterSiteModal" width="80rem">
+      <SiteForm
+        @close="showRegisterSiteModal = false"
+        :thing-id="thingId"
+      ></SiteForm>
+    </v-dialog>
 
     <div class="content-wrapper">
       <div class="table-container">
         <table>
           <tr>
             <td><i class="fas fa-id-badge"></i> ID</td>
-            <td>{{ thing?.id }}</td>
+            <td>{{ thingStore.things[thingId]?.id }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-barcode"></i> Site Code</td>
-            <td>{{ thing?.sampling_feature_code }}</td>
+            <td>{{ thingStore.things[thingId]?.sampling_feature_code }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map"></i> Latitude</td>
-            <td>{{ thing?.latitude }}</td>
+            <td>{{ thingStore.things[thingId]?.latitude }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map"></i> Longitude</td>
-            <td>{{ thing?.longitude }}</td>
+            <td>{{ thingStore.things[thingId]?.longitude }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-mountain"></i> Elevation</td>
-            <td>{{ thing?.elevation }}</td>
+            <td>{{ thingStore.things[thingId]?.elevation }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-file-alt"></i> Description</td>
-            <td>{{ thing?.description }}</td>
+            <td>{{ thingStore.things[thingId]?.description }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map-marker-alt"></i> Sampling Feature Type</td>
-            <td>{{ thing?.sampling_feature_type }}</td>
+            <td>{{ thingStore.things[thingId]?.sampling_feature_type }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-map-pin"></i> Site Type</td>
-            <td>{{ thing?.site_type }}</td>
+            <td>{{ thingStore.things[thingId]?.site_type }}</td>
           </tr>
-          <!--          <tr>-->
-          <!--            <td><i class="fas fa-users"></i> Followers</td>-->
-          <!--            <td>{{ thing?.followers }}</td>-->
-          <!--          </tr>-->
           <tr>
             <td><i class="fas fa-flag-usa"></i>State</td>
-            <td>{{ thing?.state }}</td>
+            <td>{{ thingStore.things[thingId]?.state }}</td>
           </tr>
           <tr>
             <td><i class="fas fa-flag-usa"></i>Site Owners</td>
-            <td v-for="owner in thing?.owners">
+            <td v-for="owner in thingStore.things[thingId]?.owners">
               <li style="list-style: none">
                 {{ owner.firstname }} {{ owner.lastname }}:
                 {{ owner.organization }}
@@ -101,9 +136,12 @@
   <div class="site-information-container">
     <h2 class="site-information-title">Datastreams Available at this Site</h2>
     <v-btn
-      v-if="thing?.owns_thing"
+      v-if="thingStore.things[thingId]?.owns_thing"
       color="grey-lighten-2"
-      :to="{ name: 'SiteDatastreams', params: { id: thing.id } }"
+      :to="{
+        name: 'SiteDatastreams',
+        params: { id: thingStore.things[thingId].id },
+      }"
       >Manage Datastreams</v-btn
     >
     <img src="@/assets/hydro.png" alt="hydro" class="site-information-image" />
@@ -113,7 +151,10 @@
   </div>
 
   <v-row class="ma-2">
-    <template v-for="datastream in thing?.datastreams" :key="datastream.id">
+    <template
+      v-for="datastream in datastreamStore.datastreams[thingId]"
+      :key="datastream.id"
+    >
       <v-col
         v-if="datastream.is_visible"
         md="3"
@@ -144,26 +185,29 @@
 <script setup lang="ts">
 import GoogleMap from '@/components/GoogleMap.vue'
 import ImageCarousel from '@/components/ImageCarousel.vue'
-import DeleteSiteModal from '@/components/Site/DeleteSiteModal.vue'
 import MoonIm1 from '@/assets/moon_bridge1.jpg'
 import MoonIm2 from '@/assets/moon_bridge2.jpg'
 import MoonIm3 from '@/assets/moon_bridge3.jpg'
-import { computed, ref } from 'vue'
-import { useDataStore } from '@/store/data'
-import { useAuthStore } from '@/store/authentication'
-import axios from '@/plugins/axios.config'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/store/authentication'
+import { useThingStore } from '@/store/things'
+import router from '@/router/router'
+import { useDatastreamStore } from '@/store/datastreams'
 
 const authStore = useAuthStore()
-const dataStore = useDataStore()
+const thingStore = useThingStore()
+const datastreamStore = useDatastreamStore()
 const route = useRoute()
 
 authStore.fetchAccessToken()
+
+const thingId = route.params.id.toString()
+
 const showRegisterSiteModal = ref(false)
-const thing_id = route.params.id.toString()
-const thing = ref(null)
 const showDeleteModal = ref(false)
+const deleteInput = ref('')
 const carouselItems = ref([
   {
     src: MoonIm1,
@@ -180,47 +224,45 @@ const carouselItems = ref([
 ])
 
 const isAuthenticated = computed(() => !!authStore.access_token)
-const isLoaded = computed(() => thing.value)
-const mapOptions = computed(() =>
-  thing.value
-    ? {
-        center: { lat: thing.value.latitude, lng: thing.value.longitude },
-        zoom: 16,
-        mapTypeId: 'satellite',
-      }
-    : null
-)
-
-let cachedThingName = `thing_${thing_id}`
-const followsThing = ref(false)
-function loadThing() {
-  dataStore
-    .fetchOrGetFromCache(cachedThingName, `/things/${thing_id}`)
-    .then(() => {
-      thing.value = dataStore[cachedThingName]
-      followsThing.value = thing.value.follows_thing
-    })
-    .catch((error) => {
-      console.error('Error fetching thing data from API', error)
-    })
-}
-
-loadThing()
+const mapOptions = computed(() => {
+  if (thingStore.things[thingId])
+    return {
+      center: {
+        lat: thingStore.things[thingId].latitude,
+        lng: thingStore.things[thingId].longitude,
+      },
+      zoom: 16,
+      mapTypeId: 'satellite',
+    }
+  else return null
+})
 
 function updateFollow() {
-  axios
-    .get(`/things/${thing_id}/ownership`)
-    .then((response) => {
-      dataStore.cacheProperty(cachedThingName, response.data)
-      localStorage.removeItem('things')
-      dataStore.things = []
-      thing.value = dataStore[cachedThingName]
-      followsThing.value = thing.value.follows_thing
-    })
-    .catch((error) => {
-      console.error('Error updating follow status:', error)
-    })
+  if (thingStore.things[thingId]) {
+    thingStore.things[thingId].follows_thing =
+      !thingStore.things[thingId].follows_thing
+    thingStore.updateThingFollowership(thingStore.things[thingId])
+  }
 }
+
+async function deleteThing() {
+  if (!thingStore.things[thingId]) {
+    console.error('Site could not be found.')
+    return
+  }
+  if (deleteInput.value !== thingStore.things[thingId].name) {
+    console.error('Site name does not match.')
+    return
+  }
+  await thingStore.deleteThing(thingStore.things[thingId].id)
+  await router.push('/sites')
+}
+
+onMounted(async () => {
+  await thingStore.fetchThingById(thingId)
+  await datastreamStore.fetchDatastreamsByThingId(thingId)
+  console.log('Datastreams from store', datastreamStore.datastreams[thingId])
+})
 </script>
 
 <style scoped lang="scss">
