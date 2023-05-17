@@ -118,6 +118,5 @@ function clearFilters() {
 
 onMounted(async () => {
   await markerStore.fetchMarkers()
-  console.log('markers', markerStore.markers)
 })
 </script>

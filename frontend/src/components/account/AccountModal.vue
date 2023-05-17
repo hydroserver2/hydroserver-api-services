@@ -75,16 +75,15 @@
 </template>
 
 <script setup>
-import { useDataStore } from '@/store/data.ts'
 import { reactive, ref } from 'vue'
-import axios from 'axios'
+import { useAuthStore } from '@/store/authentication.ts'
+const authStore = useAuthStore()
 
 const emit = defineEmits(['accountUpdated'])
-const dataStore = useDataStore()
-const user = reactive({})
 const dialog = ref(false)
+let user = reactive(authStore.user)
 
-const userTypes = ref([
+const userTypes = [
   'University Faculty',
   'University Professional or Research Staff',
   'Post-Doctoral Fellow',
@@ -96,21 +95,11 @@ const userTypes = ref([
   'School Teacher Kindergarten to 12th Grade',
   'Organization',
   'Other',
-])
-
-dataStore.fetchOrGetFromCache('user', '/user').then(() => {
-  Object.assign(user, dataStore.user)
-})
+]
 
 async function updateUser() {
-  try {
-    const response = await axios.patch('/user', user)
-    const datastore = useDataStore()
-    datastore.cacheProperty('user', response.data)
-    dialog.value = false
-    emit('accountUpdated')
-  } catch (error) {
-    console.error('Failed to update user:', error)
-  }
+  await authStore.updateUser(user)
+  dialog.value = false
+  emit('accountUpdated')
 }
 </script>

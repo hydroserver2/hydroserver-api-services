@@ -23,12 +23,12 @@ const processQueue = (error, token = null) => {
 // Axios interceptor for handling JWT tokens
 axios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) config.headers.Authorization = `Bearer ${token}`
+    const authStore = useAuthStore()
+    if (authStore.access_token)
+      config.headers.Authorization = `Bearer ${authStore.access_token}`
 
-    const refresh_token = localStorage.getItem('refresh_token')
-    if (refresh_token)
-      config.headers.Refresh_Authorization = `Bearer ${refresh_token}`
+    if (authStore.refresh_token)
+      config.headers.Refresh_Authorization = `Bearer ${authStore.refresh_token}`
     return config
   },
   (error) => Promise.reject(error)
@@ -45,7 +45,7 @@ axios.interceptors.response.use(
       originalRequest.url === '/token/refresh'
     ) {
       console.log('Refresh Token has failed. Redirecting to login page...')
-      authStore.logout()
+      await authStore.logout()
       await router.push('/login')
       return Promise.reject(error)
     }

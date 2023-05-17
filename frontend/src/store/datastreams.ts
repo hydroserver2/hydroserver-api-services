@@ -12,7 +12,6 @@ export const useDatastreamStore = defineStore('datastreams', {
       (state) =>
       (parameter_name: keyof Datastream, parameter_id: string | number) => {
         const datastreams = Object.values(state.datastreams).flat()
-        console.log('by param', state.datastreams)
         return datastreams.filter((ds) => ds[parameter_name] === parameter_id)
       },
   },

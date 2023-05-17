@@ -102,3 +102,15 @@ export interface ProcessingLevel {
   definition: string
   explanation: string
 }
+
+export interface User {
+  id: string
+  email: string
+  first_name: string
+  middle_name: string
+  last_name: string
+  phone: string
+  address: string
+  organization: string
+  type: string
+}

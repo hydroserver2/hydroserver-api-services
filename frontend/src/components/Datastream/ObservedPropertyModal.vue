@@ -80,8 +80,6 @@ const formData = ref({
   variable_code: '',
 })
 onMounted(() => {
-  console.log('Mounted')
-  console.log('props.observedProperty', props.observedProperty)
   if (isEdit.value) {
     formData.value = {
       name: props.observedProperty.name || '',

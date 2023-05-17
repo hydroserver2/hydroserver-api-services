@@ -113,6 +113,7 @@ def get_token(request, data: GetTokenInput):
         return {
             'access_token': str(token.access_token),
             'refresh_token': str(token),
+            'user': user_to_dict(user)
         }
     else:
         return JsonResponse({'detail': 'Invalid credentials'}, status=401)
@@ -138,11 +139,6 @@ def refresh_token(request, data: CreateRefreshInput):
         return JsonResponse({'error': 'User does not exist'}, status=401)
     except (InvalidToken, TokenError, KeyError, ValueError) as e:
         return JsonResponse({'error': str(e)}, status=401)
-
-
-@api.post('/hello', auth=jwt_auth)
-def say_hello(request):
-    return "Hello"
 
 
 class CreateUserInput(Schema):
@@ -200,9 +196,9 @@ def user_to_dict(user):
     }
 
 
-@api.get("/user", auth=jwt_auth)
-def get_user(request):
-    return JsonResponse(user_to_dict(request.authenticated_user))
+# @api.get("/user", auth=jwt_auth)
+# def get_user(request):
+#     return JsonResponse(user_to_dict(request.authenticated_user))
 
 
 class UpdateUserInput(Schema):

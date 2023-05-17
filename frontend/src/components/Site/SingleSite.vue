@@ -200,9 +200,6 @@ const authStore = useAuthStore()
 const thingStore = useThingStore()
 const datastreamStore = useDatastreamStore()
 const route = useRoute()
-
-authStore.fetchAccessToken()
-
 const thingId = route.params.id.toString()
 
 const showRegisterSiteModal = ref(false)
@@ -261,7 +258,6 @@ async function deleteThing() {
 onMounted(async () => {
   await thingStore.fetchThingById(thingId)
   await datastreamStore.fetchDatastreamsByThingId(thingId)
-  console.log('Datastreams from store', datastreamStore.datastreams[thingId])
 })
 </script>
 

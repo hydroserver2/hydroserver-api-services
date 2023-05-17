@@ -4,7 +4,7 @@
       <v-card class="elevation-12 semi-opaque light-text">
         <v-card-title class="headline light-text">Login</v-card-title>
         <v-card-text>
-          <v-form @submit.prevent="loginSubmit">
+          <v-form @submit.prevent="authStore.login(email, password)">
             <v-text-field
               label="Email"
               v-model="email"
@@ -36,13 +36,6 @@ import { ref } from 'vue'
 const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
-
-function loginSubmit() {
-  authStore.login({
-    email: email.value,
-    password: password.value,
-  })
-}
 </script>
 
 <style scoped lang="scss">
