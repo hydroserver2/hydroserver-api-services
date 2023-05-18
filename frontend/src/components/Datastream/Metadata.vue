@@ -8,12 +8,7 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showSensorModal = true
-        }
-      "
+      @click="handleModal('sensorModal', 'sensor')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
@@ -29,46 +24,25 @@
   <!--  ></v-data-table>-->
   <ManagerTable :names="sensorNameMappings" :rows="sensorStore.sensors">
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showSensorModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('sensorModal', 'sensor', row)"> Edit </a>
       <span> | </span>
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showSensorDeleteModal = true
-          }
-        "
-        >Delete</a
-      >
+      <a @click="handleModal('sensorDelete', 'sensor', row)">Delete</a>
     </template>
   </ManagerTable>
-  <v-dialog v-model="showSensorModal" width="60rem">
+  <v-dialog v-model="flags.sensorModal" width="60rem">
     <SensorModal
-      :sensor="selectedProperty"
-      @close="showSensorModal = false"
+      :id="properties.sensor ? properties.sensor.id : undefined"
+      @close="flags.sensorModal = false"
     ></SensorModal>
   </v-dialog>
-  <v-dialog
-    v-if="selectedProperty"
-    v-model="showSensorDeleteModal"
-    width="40rem"
-  >
+  <v-dialog v-model="flags.sensorDelete" width="40rem">
     <v-card>
       <v-card-title>
         <span class="text-h5">Confirm Sensor Deletion</span>
       </v-card-title>
       <v-card-text>
         Are you sure you want to delete
-        <strong>{{ selectedProperty.name }}</strong
+        <strong>{{ properties.sensor ? properties.sensor.name : null }}</strong
         >?
         <br />
         <br />
@@ -95,8 +69,8 @@
         <br />
       </v-card-text>
       <v-card-actions>
-        <v-btn color="red" @click="showSensorDeleteModal = false">Cancel</v-btn>
-        <v-btn color="green" @click="deleteSensor()">Confirm</v-btn>
+        <v-btn color="red" @click="flags.sensorDelete = false">Cancel</v-btn>
+        <v-btn color="green" @click="deleteSensor">Confirm</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -108,36 +82,23 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showObservedPropertyModal = true
-        }
-      "
+      @click="handleModal('opModal', 'op')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
   <ManagerTable :names="OPNameMappings" :rows="opStore.observedProperties">
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showObservedPropertyModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('opModal', 'op', row)"> Edit </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a @click="handleModal('opDelete', 'op', row)">Delete</a>
     </template>
   </ManagerTable>
-  <v-dialog v-model="showObservedPropertyModal" width="60rem">
+  <v-dialog v-model="flags.opModal" width="60rem">
     <ObservedPropertyModal
-      :observedProperty="selectedProperty"
-      @close="showObservedPropertyModal = false"
+      :observedProperty="properties.op"
+      :id="properties.op ? properties.op.id : undefined"
+      @close="flags.opModal = false"
     ></ObservedPropertyModal>
   </v-dialog>
 
@@ -148,12 +109,7 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showProcessingLevelModal = true
-        }
-      "
+      @click="handleModal('plModal', 'pl')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
@@ -163,24 +119,15 @@
     :rows="plStore.ownedProcessingLevels"
   >
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showProcessingLevelModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('plModal', 'pl', row)"> Edit </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a @click="handleModal('plDelete', 'pl', row)">Delete</a>
     </template></ManagerTable
   >
-  <v-dialog v-model="showProcessingLevelModal" width="60rem">
+  <v-dialog v-model="flags.plModal" width="60rem">
     <ProcessingLevelModal
-      :processingLevel="selectedProperty"
-      @close="showProcessingLevelModal = false"
+      :id="properties.pl ? String(properties.pl.id) : undefined"
+      @close="flags.plModal = false"
     ></ProcessingLevelModal>
   </v-dialog>
 
@@ -191,43 +138,29 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showUnitModal = true
-        }
-      "
+      @click="handleModal('unitModal', 'unit')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
   <ManagerTable :names="UnitNameMappings" :rows="unitStore.ownedUnits">
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showUnitModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('unitModal', 'unit', row)"> Edit </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a @click="handleModal('unitDelete', 'unit', row)">Delete</a>
     </template></ManagerTable
   >
-  <v-dialog v-model="showUnitModal" width="60rem">
+  <v-dialog v-model="flags.unitModal" width="60rem">
     <UnitModal
-      :unit="selectedProperty"
-      @close="showUnitModal = false"
+      :id="properties.unit ? String(properties.unit.id) : undefined"
+      @close="flags.unitModal = false"
     ></UnitModal>
   </v-dialog>
 </template>
 
 <script lang="ts" setup>
 import ManagerTable from '@/components/ManagerTable.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
@@ -237,6 +170,7 @@ import { useSensorStore } from '@/store/sensors'
 import { useObservedPropertyStore } from '@/store/observedProperties'
 import { useUnitStore } from '@/store/unit'
 import { useDatastreamStore } from '@/store/datastreams'
+import { ObservedProperty, ProcessingLevel, Sensor, Unit } from '@/types'
 
 const sensorStore = useSensorStore()
 const opStore = useObservedPropertyStore()
@@ -244,15 +178,23 @@ const plStore = useProcessingLevelStore()
 const unitStore = useUnitStore()
 const datastreamStore = useDatastreamStore()
 
-const showObservedPropertyModal = ref(false)
-const showSensorModal = ref(false)
-const showProcessingLevelModal = ref(false)
-const showUnitModal = ref(false)
+let properties = reactive({
+  op: null as ObservedProperty | null,
+  sensor: null as Sensor | null,
+  pl: null as ProcessingLevel | null,
+  unit: null as Unit | null,
+})
 
-const showObservedPropertyDeleteModal = ref(false)
-const showSensorDeleteModal = ref(false)
-const showProcessingLevelDeleteModal = ref(false)
-const showUnitDeleteModal = ref(false)
+const flags = reactive({
+  opModal: ref(false),
+  opDelete: ref(false),
+  sensorModal: ref(false),
+  sensorDelete: ref(false),
+  plModal: ref(false),
+  plDelete: ref(false),
+  unitModal: ref(false),
+  unitDelete: ref(false),
+})
 
 type NameTuple = [string, string]
 
@@ -308,18 +250,24 @@ const UnitNameMappings = ref<NameTuple[]>([
   ['unit_type', 'Unit Type'],
 ])
 
-let selectedProperty = ref(null)
-
-async function deleteSensor(id: string) {
-  showSensorDeleteModal.value = false
-  // sensorStore.deleteSensor()
+function handleModal(
+  flagKey: string,
+  propertyKey: string,
+  property = null as any
+) {
+  properties[propertyKey] = property
+  flags[flagKey] = true
 }
 
+async function deleteSensor(id: string) {}
+
 const datastreamsForSensor = computed(() => {
-  return datastreamStore.getDatastreamsByParameter(
-    'method_id',
-    selectedProperty.value.id
-  )
+  if (properties.sensor) {
+    return datastreamStore.getDatastreamsByParameter(
+      'method_id',
+      properties.sensor.id
+    )
+  }
 })
 
 onMounted(() => {

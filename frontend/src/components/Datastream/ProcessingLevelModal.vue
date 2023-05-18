@@ -50,8 +50,9 @@ import { ProcessingLevel } from '@/types'
 import { useProcessingLevelStore } from '@/store/processingLevels'
 
 const plStore = useProcessingLevelStore()
-const props = defineProps({ plId: String })
-const isEdit = computed(() => props.plId != null)
+const props = defineProps({ id: String })
+const isEdit = computed(() => props.id != null)
+const emit = defineEmits(['uploaded', 'close'])
 
 const processingLevel = reactive<ProcessingLevel>({
   id: '',
@@ -61,30 +62,21 @@ const processingLevel = reactive<ProcessingLevel>({
   explanation: '',
 })
 
-const emit = defineEmits(['uploaded', 'close'])
-
 async function uploadProcessingLevel() {
-  if (isEdit.value) {
-    await plStore.updateProcessingLevel(processingLevel)
-    emit('uploaded', String(processingLevel.id))
-  } else {
+  if (isEdit.value) await plStore.updateProcessingLevel(processingLevel)
+  else {
     const newPl = await plStore.createProcessingLevel(processingLevel)
     emit('uploaded', String(newPl.id))
   }
   emit('close')
 }
 
-async function populateForm(id: string | undefined) {
-  if (id) {
-    const newPl = plStore.getProcessingLevelById(id)
-    for (const key in newPl) {
-      processingLevel[key] = newPl[key]
-    }
-  }
-}
-
 onMounted(async () => {
   await plStore.fetchProcessingLevels()
-  await populateForm(props.plId)
+  if (props.id)
+    Object.assign(
+      processingLevel,
+      await plStore.getProcessingLevelById(props.id)
+    )
 })
 </script>

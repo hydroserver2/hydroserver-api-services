@@ -4,11 +4,11 @@
       <span class="headline">{{ isEdit ? 'Edit' : 'Add' }} Unit</span>
     </v-card-title>
     <v-card-text>
-      <v-container>
+      <v-container v-if="unit">
         <v-row>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.name"
+              v-model="unit.name"
               label="Name"
               outlined
               required
@@ -16,7 +16,7 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.symbol"
+              v-model="unit.symbol"
               label="Symbol"
               outlined
               required
@@ -24,14 +24,14 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.definition"
+              v-model="unit.definition"
               label="Definition"
               outlined
             ></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.unit_type"
+              v-model="unit.unit_type"
               label="Unit Type"
               outlined
               required
@@ -49,55 +49,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import axios from '@/plugins/axios.config'
-import { useDataStore } from '@/store/data'
+import { computed, onMounted, reactive } from 'vue'
+import { useUnitStore } from '@/store/unit'
+import { Unit } from '@/types'
 
-const emit = defineEmits(['uploaded', 'close'])
+const unitStore = useUnitStore()
+const props = defineProps({ id: String })
+const isEdit = computed(() => props.id != null)
 
-const props = defineProps({
-  unit: { type: Object, default: null },
-})
-
-const isEdit = computed(() => {
-  return props.unit != null
-})
-
-const dataStore = useDataStore()
-const formData = ref({
+const unit = reactive<Unit>({
+  id: '',
+  person_id: '',
   name: '',
   symbol: '',
   definition: '',
   unit_type: '',
 })
 
-onMounted(() => {
-  if (isEdit.value) {
-    formData.value = {
-      name: props.unit.name || '',
-      symbol: props.unit.symbol || '',
-      definition: props.unit.definition || '',
-      unit_type: props.unit.unit_type || '',
-    }
-  }
-})
+const emit = defineEmits(['uploaded', 'close'])
 
 async function uploadUnit() {
-  try {
-    if (isEdit.value) {
-      await axios.patch(`/units/${props.unit.id}`, formData.value)
-      localStorage.removeItem(`units`)
-      dataStore.units = []
-      emit('uploaded', String(props.unit.id))
-    } else {
-      const response = await axios.post('/units', formData.value)
-      const newUnit = response.data
-      dataStore.addUnit(newUnit)
-      emit('uploaded', newUnit.id)
-    }
-    emit('close')
-  } catch (error) {
-    console.log('Error Registering Unit: ', error)
+  if (isEdit.value) await unitStore.updateUnit(unit)
+  else {
+    const newUnit = await unitStore.createUnit(unit)
+    emit('uploaded', newUnit.id)
   }
+  emit('close')
 }
+
+onMounted(async () => {
+  await unitStore.fetchUnits()
+  if (props.id) Object.assign(unit, await unitStore.getUnitById(props.id))
+})
 </script>

@@ -64,9 +64,10 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
       }
     },
     async getProcessingLevelById(id: string) {
-      if (!this.loaded) await this.fetchProcessingLevels()
-
-      const processingLevel = this.processingLevels.find((pl) => pl.id === id)
+      await this.fetchProcessingLevels()
+      const processingLevel = this.processingLevels.find(
+        (pl) => pl.id.toString() === id.toString()
+      )
 
       if (!processingLevel)
         throw new Error(`Processing Level with id ${id} not found`)

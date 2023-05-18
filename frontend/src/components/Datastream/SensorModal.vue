@@ -8,16 +8,16 @@
         <v-row>
           <v-col cols="12" sm="6">
             <v-select
-              v-model="formData.method_type"
+              v-model="sensor.method_type"
               :items="allowedMethodTypes"
               label="Method Type"
               outlined
               required
             ></v-select>
           </v-col>
-          <v-col cols="12" sm="6" v-if="!isSensorMethod">
+          <v-col cols="12" sm="6" v-if="!isInstrument">
             <v-text-field
-              v-model="formData.name"
+              v-model="sensor.name"
               label="Name"
               outlined
               required
@@ -25,22 +25,22 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.description"
+              v-model="sensor.description"
               label="Description"
               outlined
             ></v-text-field>
           </v-col>
-          <v-col cols="12" sm="6" v-if="isSensorMethod">
+          <v-col cols="12" sm="6" v-if="isInstrument">
             <v-text-field
-              v-model="formData.manufacturer"
+              v-model="sensor.manufacturer"
               label="Manufacturer"
               outlined
               required
             ></v-text-field>
           </v-col>
-          <v-col cols="12" sm="6" v-if="isSensorMethod">
+          <v-col cols="12" sm="6" v-if="isInstrument">
             <v-text-field
-              v-model="formData.model"
+              v-model="sensor.model"
               label="Model"
               outlined
               required
@@ -48,28 +48,28 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.encoding_type"
+              v-model="sensor.encoding_type"
               label="Encoding Type"
               outlined
             ></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.model_url"
+              v-model="sensor.model_url"
               label="Model URL"
               outlined
             ></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.method_link"
+              v-model="sensor.method_link"
               label="Method Link"
               outlined
             ></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.method_code"
+              v-model="sensor.method_code"
               label="Method Code"
               outlined
             ></v-text-field>
@@ -88,31 +88,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import axios from '@/plugins/axios.config'
-import { useDataStore } from '@/store/data'
+import { computed, onMounted, reactive } from 'vue'
+import { useSensorStore } from '@/store/sensors'
+import { Sensor } from '@/types'
 
-const props = defineProps({
-  sensor: { type: Object, default: null },
-})
+const sensorStore = useSensorStore()
+const props = defineProps({ id: String })
+const isEdit = computed(() => props.id != null)
+const emit = defineEmits(['uploaded', 'close'])
 
-const isEdit = computed(() => {
-  return props.sensor != null
-})
-
-const dataStore = useDataStore()
-const formData = ref({
-  manufacturer: '',
-  model: '',
+const sensor = reactive<Sensor>({
+  id: '',
   name: '',
   description: '',
+  manufacturer: '',
+  model: '',
+  method_type: 'Instrument Deployment',
+  method_code: '',
+  method_link: '',
   encoding_type: '',
   model_url: '',
-  method_link: '',
-  method_code: '',
-  method_type: 'Instrument Deployment',
 })
-const allowedMethodTypes = ref([
+
+const allowedMethodTypes = [
   'Derivation',
   'Estimation',
   'Instrument Deployment',
@@ -120,54 +118,32 @@ const allowedMethodTypes = ref([
   'Simulation',
   'Specimen Analysis',
   'Unknown',
-])
+]
 
-onMounted(() => {
-  if (isEdit.value) {
-    formData.value = {
-      manufacturer: props.sensor.manufacturer || '',
-      model: props.sensor.model || '',
-      name: props.sensor.name || '',
-      description: props.sensor.description || '',
-      encoding_type: props.sensor.encoding_type || '',
-      model_url: props.sensor.model_url || '',
-      method_link: props.sensor.method_link || '',
-      method_code: props.sensor.method_code || '',
-      method_type: props.sensor.method_type || 'Instrument Deployment',
-    }
-  }
-})
-
-const isSensorMethod = computed(
-  () => formData.value.method_type === 'Instrument Deployment'
+const isInstrument = computed(
+  () => sensor.method_type === 'Instrument Deployment'
 )
-
-const emit = defineEmits(['uploaded', 'close'])
 
 async function uploadSensor() {
   if (
-    formData.value.method_type === 'Instrument Deployment' &&
-    formData.value.manufacturer &&
-    formData.value.model
+    sensor.method_type === 'Instrument Deployment' &&
+    sensor.manufacturer &&
+    sensor.model
   ) {
-    formData.value.name =
-      formData.value.manufacturer + ': ' + formData.value.model
+    sensor.name = sensor.manufacturer + ': ' + sensor.model
   }
-  try {
-    if (isEdit.value) {
-      await axios.patch(`/sensors/${props.sensor.id}`, formData.value)
-      localStorage.removeItem(`sensors`)
-      dataStore.sensors = []
-      emit('uploaded', String(props.sensor.id))
-    } else {
-      const response = await axios.post('/sensors', formData.value)
-      const newSensor = response.data
-      dataStore.addSensor(newSensor)
-      emit('uploaded', String(newSensor.id))
-    }
-    emit('close')
-  } catch (error) {
-    console.log('Error Registering Sensor: ', error)
+
+  if (isEdit.value) await sensorStore.updateSensor(sensor)
+  else {
+    const newSensor = await sensorStore.createSensor(sensor)
+    emit('uploaded', String(newSensor.id))
   }
+  emit('close')
 }
+
+onMounted(async () => {
+  await sensorStore.fetchSensors()
+  if (props.id) Object.assign(sensor, await sensorStore.getSensorById(props.id))
+  console.log('sensor', sensor)
+})
 </script>

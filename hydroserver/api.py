@@ -470,18 +470,6 @@ def delete_thing(request, thing_id: str):
     return {'detail': 'Thing deleted successfully.'}
 
 
-class SensorInput(Schema):
-    name: str = None
-    description: str = None
-    encoding_type: str = None
-    manufacturer: str = None
-    model: str = None
-    model_url: str = None
-    method_type: str = None
-    method_link: str = None
-    method_code: str = None
-
-
 def sensor_to_dict(sensor):
     return {
         "id": sensor.pk,
@@ -495,6 +483,18 @@ def sensor_to_dict(sensor):
         "encoding_type": sensor.encoding_type,
         "model_url": sensor.model_url,
     }
+
+
+class SensorInput(Schema):
+    name: str = None
+    description: str = None
+    encoding_type: str = None
+    manufacturer: str = None
+    model: str = None
+    model_url: str = None
+    method_type: str = None
+    method_link: str = None
+    method_code: str = None
 
 
 @api.post('/sensors', auth=jwt_auth)

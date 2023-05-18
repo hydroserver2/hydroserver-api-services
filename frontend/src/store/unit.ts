@@ -20,5 +20,30 @@ export const useUnitStore = defineStore('units', {
         console.error('Error fetching units from DB', error)
       }
     },
+    async createUnit(unit: Unit) {
+      try {
+        const { data } = await axios.post('/units', unit)
+        this.units.push(data)
+        return data
+      } catch (error) {
+        console.error('Error creating unit', error)
+      }
+    },
+    async updateUnit(unit: Unit) {
+      try {
+        await axios.patch(`/units/${unit.id}`, unit)
+        const index = this.units.findIndex((u) => u.id === unit.id)
+        if (index !== -1) {
+          this.units[index] = unit
+        }
+      } catch (error) {
+        console.error('Error updating unit', error)
+      }
+    },
+    async getUnitById(id: string) {
+      const unit = this.units.find((u) => u.id.toString() === id.toString())
+      if (!unit) throw new Error(`Unit with id ${id} not found`)
+      return unit
+    },
   },
 })
