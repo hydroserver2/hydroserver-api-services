@@ -6,7 +6,17 @@ import Notification from './notifications'
 const initialState = () => ({
   access_token: null,
   refresh_token: null,
-  user: null as User | null,
+  user: {
+    id: '',
+    email: '',
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    phone: '',
+    address: '',
+    organization: '',
+    type: '',
+  },
   loggingIn: false,
 })
 

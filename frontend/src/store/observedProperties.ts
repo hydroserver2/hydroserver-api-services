@@ -10,10 +10,9 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
   getters: {},
   actions: {
     async fetchObservedProperties() {
-      const api = useApiClient()
       if (this.observedProperties.length > 0) return
       try {
-        const { data } = await api.get('/observed-properties')
+        const { data } = await this.$http.get('/observed-properties')
         this.observedProperties = data
         this.loaded = true
       } catch (error) {
@@ -21,9 +20,8 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
       }
     },
     async createObservedProperty(observedProperty: ObservedProperty) {
-      const api = useApiClient()
       try {
-        const { data } = await api.post(
+        const { data } = await this.$http.post(
           '/observed-properties',
           observedProperty
         )
@@ -34,9 +32,8 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
       }
     },
     async updateObservedProperty(observedProperty: ObservedProperty) {
-      const api = useApiClient()
       try {
-        await api.patch(
+        await this.$http.patch(
           `/observed-properties/${observedProperty.id}`,
           observedProperty
         )

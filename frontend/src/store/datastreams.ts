@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { Datastream } from '@/types'
-import { useApiClient } from '@/utils/api-client'
 
 export const useDatastreamStore = defineStore('datastreams', {
   state: () => ({
@@ -17,10 +16,9 @@ export const useDatastreamStore = defineStore('datastreams', {
   },
   actions: {
     async fetchDatastreams() {
-      const api = useApiClient()
       if (this.loaded) return
       try {
-        const { data } = await api.get('/datastreams')
+        const { data } = await this.$http.get('/datastreams')
         data.forEach((datastream: Datastream) => {
           if (!this.datastreams[datastream.thing_id]) {
             this.datastreams[datastream.thing_id] = []
@@ -33,10 +31,9 @@ export const useDatastreamStore = defineStore('datastreams', {
       }
     },
     async fetchDatastreamsByThingId(id: string) {
-      const api = useApiClient()
       if (this.datastreams[id]) return
       try {
-        const { data } = await api.get(`/datastreams/${id}`)
+        const { data } = await this.$http.get(`/datastreams/${id}`)
         this.datastreams[id] = data
       } catch (error) {
         console.error(
@@ -46,9 +43,8 @@ export const useDatastreamStore = defineStore('datastreams', {
       }
     },
     async updateDatastream(updatedDatastream: Datastream) {
-      const api = useApiClient()
       try {
-        await api.patch(
+        await this.$http.patch(
           `/datastreams/${updatedDatastream.id}`,
           updatedDatastream
         )
@@ -62,9 +58,8 @@ export const useDatastreamStore = defineStore('datastreams', {
       }
     },
     async createDatastream(newDatastream: Datastream) {
-      const api = useApiClient()
       try {
-        const { data } = await api.post(`/datastreams/`, newDatastream)
+        const { data } = await this.$http.post(`/datastreams/`, newDatastream)
         if (!this.datastreams[newDatastream.thing_id]) {
           this.datastreams[newDatastream.thing_id] = []
         }
@@ -74,9 +69,8 @@ export const useDatastreamStore = defineStore('datastreams', {
       }
     },
     async deleteDatastream(id: string, thingId: string) {
-      const api = useApiClient()
       try {
-        await api.delete(`/datastreams/${id}`)
+        await this.$http.delete(`/datastreams/${id}`)
         const datastreams = this.datastreams[thingId].filter(
           (datastream) => datastream.id !== id
         )
@@ -88,9 +82,8 @@ export const useDatastreamStore = defineStore('datastreams', {
       }
     },
     async setVisibility(id: string, visibility: boolean) {
-      const api = useApiClient()
       try {
-        const { data } = await api.patch(`/datastreams/${id}`, {
+        const { data } = await this.$http.patch(`/datastreams/${id}`, {
           is_visible: visibility,
         })
         const datastreamIndex = this.datastreams[data.thing_id].findIndex(

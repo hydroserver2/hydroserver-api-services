@@ -1,16 +1,14 @@
 import { defineStore } from 'pinia'
 import { Sensor } from '@/types'
-import { useApiClient } from '@/utils/api-client'
 
 export const useSensorStore = defineStore('sensor', {
   state: () => ({ sensors: [] as Sensor[], loaded: false }),
   getters: {},
   actions: {
     async fetchSensors() {
-      const api = useApiClient()
       if (this.sensors.length > 0) return
       try {
-        const { data } = await api.get('/sensors')
+        const { data } = await this.$http.get('/sensors')
         this.sensors = data
         this.loaded = true
       } catch (error) {
@@ -18,9 +16,8 @@ export const useSensorStore = defineStore('sensor', {
       }
     },
     async updateSensor(sensor: Sensor) {
-      const api = useApiClient()
       try {
-        const { data } = await api.patch(`/sensors/${sensor.id}`, sensor)
+        const { data } = await this.$http.patch(`/sensors/${sensor.id}`, sensor)
         const index = this.sensors.findIndex((s) => s.id === sensor.id)
         if (index !== -1) {
           this.sensors[index] = data
@@ -30,9 +27,8 @@ export const useSensorStore = defineStore('sensor', {
       }
     },
     async createSensor(sensor: Sensor) {
-      const api = useApiClient()
       try {
-        const { data } = await api.post('/sensors', sensor)
+        const { data } = await this.$http.post('/sensors', sensor)
         this.sensors.push(data)
         return data
       } catch (error) {

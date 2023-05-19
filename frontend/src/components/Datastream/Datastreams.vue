@@ -65,9 +65,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useDataStore } from '@/store/data'
 import { useApiClient } from '@/utils/api-client'
-const api = useApiClient()
 import ManagerTable from '@/components/ManagerTable.vue'
 import { useDatastreamStore } from '@/store/datastreams'
 import { useThingStore } from '@/store/things'

@@ -153,6 +153,7 @@ async function submitForm() {
       type: type.value,
     })
     const { access_token, refresh_token } = response.data
+    // TODO: save this in the store and configure property as persistent
     localStorage.setItem('access_token', access_token)
     localStorage.setItem('refresh_token', refresh_token)
     await router.push('/profile')

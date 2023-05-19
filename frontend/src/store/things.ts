@@ -7,28 +7,25 @@ export const useThingStore = defineStore('things', {
   getters: {},
   actions: {
     async fetchThingById(id: string) {
-      const api = useApiClient()
       if (this.things[id]) return
       try {
-        const { data } = await api.get(`/things/${id}`)
+        const { data } = await this.$http.get(`/things/${id}`)
         this.things[id] = data
       } catch (error) {
         console.error('Error creating thing', error)
       }
     },
     async createThing(newThing: Thing) {
-      const api = useApiClient()
       try {
-        const { data } = await api.post(`/things/`, newThing)
+        const { data } = await this.$http.post(`/things/`, newThing)
         this.$patch({ things: { ...this.things, [data.id]: data } })
       } catch (error) {
         console.error('Error creating thing', error)
       }
     },
     async updateThing(updatedThing: Thing) {
-      const api = useApiClient()
       try {
-        await api.patch(`/things/${updatedThing.id}`, updatedThing)
+        await this.$http.patch(`/things/${updatedThing.id}`, updatedThing)
         this.$patch({
           things: { ...this.things, [updatedThing.id]: updatedThing },
         })
@@ -37,9 +34,8 @@ export const useThingStore = defineStore('things', {
       }
     },
     async updateThingFollowership(updatedThing: Thing) {
-      const api = useApiClient()
       try {
-        await api.patch(`/things/${updatedThing.id}/followership`)
+        await this.$http.patch(`/things/${updatedThing.id}/followership`)
         this.$patch({
           things: { ...this.things, [updatedThing.id]: updatedThing },
         })
@@ -48,9 +44,8 @@ export const useThingStore = defineStore('things', {
       }
     },
     async deleteThing(thingId: string) {
-      const api = useApiClient()
       try {
-        await api.delete(`/things/${thingId}`)
+        await this.$http.delete(`/things/${thingId}`)
         const newThings = { ...this.things }
         delete newThings[thingId]
         this.things = newThings

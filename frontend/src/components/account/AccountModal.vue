@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { useAuthStore } from '@/store/authentication.ts'
+import { useAuthStore } from '@/store/authentication'
 const authStore = useAuthStore()
 
 const emit = defineEmits(['accountUpdated'])

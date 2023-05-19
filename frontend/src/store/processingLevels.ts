@@ -11,10 +11,9 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
   },
   actions: {
     async fetchProcessingLevels() {
-      const api = useApiClient()
       if (this.loaded) return
       try {
-        const { data } = await api.get('/processing-levels')
+        const { data } = await this.$http.get('/processing-levels')
         this.processingLevels = data.sort(
           (a: ProcessingLevel, b: ProcessingLevel) =>
             a.processing_level_code.localeCompare(b.processing_level_code)
@@ -25,9 +24,8 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
       }
     },
     async updateProcessingLevel(processingLevel: ProcessingLevel) {
-      const api = useApiClient()
       try {
-        const { data } = await api.patch(
+        const { data } = await this.$http.patch(
           `/processing-levels/${processingLevel.id}`,
           processingLevel
         )
@@ -43,9 +41,11 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
       }
     },
     async createProcessingLevel(processingLevel: ProcessingLevel) {
-      const api = useApiClient()
       try {
-        const { data } = await api.post('/processing-levels', processingLevel)
+        const { data } = await this.$http.post(
+          '/processing-levels',
+          processingLevel
+        )
         this.processingLevels.push(data)
         this.processingLevels = this.processingLevels.sort(
           (a: ProcessingLevel, b: ProcessingLevel) =>
@@ -57,9 +57,8 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
       }
     },
     async deleteProcessingLevel(id: string) {
-      const api = useApiClient()
       try {
-        await api.delete(`/processing-levels/${id}`)
+        await this.$http.delete(`/processing-levels/${id}`)
         this.processingLevels = this.processingLevels.filter(
           (pl) => pl.id !== id
         )

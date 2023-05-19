@@ -11,10 +11,9 @@ export const useUnitStore = defineStore('units', {
   },
   actions: {
     async fetchUnits() {
-      const api = useApiClient()
       if (this.units.length > 0) return
       try {
-        const { data } = await api.get('/units')
+        const { data } = await this.$http.get('/units')
         this.units = data
         this.loaded = true
       } catch (error) {
@@ -22,9 +21,8 @@ export const useUnitStore = defineStore('units', {
       }
     },
     async createUnit(unit: Unit) {
-      const api = useApiClient()
       try {
-        const { data } = await api.post('/units', unit)
+        const { data } = await this.$http.post('/units', unit)
         this.units.push(data)
         return data
       } catch (error) {
@@ -32,9 +30,8 @@ export const useUnitStore = defineStore('units', {
       }
     },
     async updateUnit(unit: Unit) {
-      const api = useApiClient()
       try {
-        await api.patch(`/units/${unit.id}`, unit)
+        await this.$http.patch(`/units/${unit.id}`, unit)
         const index = this.units.findIndex((u) => u.id === unit.id)
         if (index !== -1) {
           this.units[index] = unit

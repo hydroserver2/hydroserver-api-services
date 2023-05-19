@@ -67,9 +67,9 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AccountModal from '@/components/account/AccountModal.vue'
-import { useAuthStore } from '@/store/authentication.ts'
+import { useAuthStore } from '@/store/authentication'
 
 const authStore = useAuthStore()
 </script>

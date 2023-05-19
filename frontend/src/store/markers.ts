@@ -37,11 +37,9 @@ export const useMarkerStore = defineStore('markers', {
       }
     },
     async fetchMarkers() {
-      const api = useApiClient()
-
       if (this.markers.length > 0) return
       try {
-        const { data } = await api.get('/things/markers')
+        const { data } = await this.$http.get('/things/markers')
         this.markers = data
         this.loaded = true
       } catch (error) {
