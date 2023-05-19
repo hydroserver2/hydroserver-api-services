@@ -71,13 +71,19 @@
                 v-model="thing.elevation"
                 type="number"
             /></v-col>
-                              <v-text-field label="State" v-model="thing.state" />
-                <v-text-field
-                  disabled
-                  label="Elevation Datum"
-                  v-model="thing.elevation_datum"
-                />
-                <v-text-field disabled label="County" v-model="thing.county" />
+            <v-col cols="12" sm="6">
+              <v-text-field label="State" v-model="thing.state" />
+            </v-col>
+            <!--            <v-col cols="12" sm="6">-->
+            <!--              <v-text-field-->
+            <!--                disabled-->
+            <!--                label="Elevation Datum"-->
+            <!--                v-model="thing.elevation_datum"-->
+            <!--              />-->
+            <!--            </v-col>-->
+            <v-col cols="12" sm="6">
+              <v-text-field disabled label="County" v-model="thing.county" />
+            </v-col>
           </v-row>
         </v-col>
       </v-row>
@@ -170,9 +176,9 @@ function uploadThing() {
 }
 
 function onMapLocationClicked(locationData: Thing) {
-  thing.latitude = parseFloat(locationData.latitude)
-  thing.longitude = parseFloat(locationData.longitude)
-  thing.elevation = parseFloat(locationData.elevation)
+  thing.latitude = locationData.latitude
+  thing.longitude = locationData.longitude
+  thing.elevation = locationData.elevation
   thing.state = locationData.state
   // thing.county = locationData.county
 }
