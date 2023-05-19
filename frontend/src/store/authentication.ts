@@ -4,8 +4,8 @@ import { User } from '@/types'
 import Notification from './notifications'
 
 const initialState = () => ({
-  access_token: null,
-  refresh_token: null,
+  access_token: '',
+  refresh_token: '',
   user: {
     id: '',
     email: '',

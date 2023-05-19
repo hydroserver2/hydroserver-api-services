@@ -98,7 +98,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import GoogleMap from '../GoogleMap.vue'
 import { useThingStore } from '@/store/things'
-import { Thing } from '@/types'
+import { Marker, Thing } from '@/types'
 
 const thingStore = useThingStore()
 const props = defineProps({ thingId: String })
@@ -109,7 +109,7 @@ const mapOptions = ref({
   zoom: 4,
   mapTypeId: 'roadmap',
 })
-let thing = reactive<Thing>({
+const thing = reactive<Thing>({
   id: '',
   name: '',
   description: '',
@@ -153,13 +153,15 @@ const siteTypes = ref([
 
 // TODO: move method implementation to api wrapper
 async function populateThing() {
-  if (!props.thingId) return
-  await thingStore.fetchThingById(props.thingId)
-  thing = thingStore[props.thingId]
-  mapOptions.value = {
-    center: { lat: thing.latitude, lng: thing.longitude },
-    zoom: 8,
-    mapTypeId: 'satellite',
+  if (props.thingId) {
+    await thingStore.fetchThingById(props.thingId) // TODO: these fetch methods should also return the item that was fetched
+    Object.assign(thing, thingStore.$state.things[props.thingId])
+
+    mapOptions.value = {
+      center: { lat: thing.latitude, lng: thing.longitude },
+      zoom: 8,
+      mapTypeId: 'satellite',
+    }
   }
 }
 
@@ -180,7 +182,7 @@ function uploadThing() {
   emit('siteCreated')
 }
 
-function onMapLocationClicked(locationData) {
+function onMapLocationClicked(locationData: Marker) {
   thing.latitude = locationData.latitude
   thing.longitude = locationData.longitude
   thing.elevation = locationData.elevation

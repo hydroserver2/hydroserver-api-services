@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { Marker, Thing } from '@/types'
-import { useApiClient } from '@/utils/api-client'
 
 export const useMarkerStore = defineStore('markers', {
   state: () => ({ markers: [] as Marker[], loaded: false }),
@@ -20,18 +19,18 @@ export const useMarkerStore = defineStore('markers', {
   actions: {
     async addMarker(thingData: Thing) {
       try {
-        let newMarker = {
+        this.markers.push({
           id: thingData.id,
           name: thingData.name,
           owners: thingData.owners,
           site_type: thingData.site_type,
           latitude: thingData.latitude,
           longitude: thingData.longitude,
+          elevation: thingData.elevation,
           owns_thing: thingData.owns_thing,
           follows_thing: thingData.follows_thing,
           sampling_feature_code: thingData.sampling_feature_code,
-        }
-        this.markers.push(newMarker)
+        })
       } catch (error) {
         console.error('Error adding marker to marker store', error)
       }
@@ -57,6 +56,7 @@ export const useMarkerStore = defineStore('markers', {
             site_type: updatedThing.site_type,
             latitude: updatedThing.latitude,
             longitude: updatedThing.longitude,
+            elevation: updatedThing.elevation,
             owns_thing: updatedThing.owns_thing,
             follows_thing: updatedThing.follows_thing,
             sampling_feature_code: updatedThing.sampling_feature_code,

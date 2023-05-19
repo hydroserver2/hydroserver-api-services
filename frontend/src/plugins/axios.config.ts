@@ -4,6 +4,7 @@ import http from '@/utils/common-https'
 import router from '@/router/router'
 import { useAuthStore } from '@/store/authentication'
 import type { App } from 'vue'
+import 'pinia'
 
 let isRefreshing = false
 let failedQueue: any[] = []
@@ -16,8 +17,14 @@ const processQueue = (error: any, token = '') => {
   failedQueue = []
 }
 
-declare module 'vue' {
-  interface ComponentCustomProperties {
+// declare module 'vue' {
+//   interface ComponentCustomProperties {
+//     $http: AxiosInstance
+//   }
+// }
+
+declare module 'pinia' {
+  export interface PiniaCustomProperties {
     $http: AxiosInstance
   }
 }

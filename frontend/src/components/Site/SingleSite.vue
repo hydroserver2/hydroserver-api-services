@@ -231,7 +231,6 @@ const mapOptions = computed(() => {
       zoom: 16,
       mapTypeId: 'satellite',
     }
-  else return null
 })
 
 function updateFollow() {

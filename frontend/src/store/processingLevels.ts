@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ProcessingLevel } from '@/types'
-import { useApiClient } from '@/utils/api-client'
 
 export const useProcessingLevelStore = defineStore('processingLevels', {
   state: () => ({ processingLevels: [] as ProcessingLevel[], loaded: false }),

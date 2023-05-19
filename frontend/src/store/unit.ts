@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { useApiClient } from '@/utils/api-client'
 import { Unit } from '@/types'
 
 export const useUnitStore = defineStore('units', {

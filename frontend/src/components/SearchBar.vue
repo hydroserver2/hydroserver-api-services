@@ -33,7 +33,7 @@ import { computed, ref, watch, watchEffect } from 'vue'
 
 const props = defineProps({
   items: {
-    type: Array,
+    type: Array<any>,
     default: () => [],
   },
   clearSearch: Boolean,

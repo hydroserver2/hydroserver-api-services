@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ObservedProperty } from '@/types'
-import { useApiClient } from '@/utils/api-client'
 
 export const useObservedPropertyStore = defineStore('observedProperties', {
   state: () => ({

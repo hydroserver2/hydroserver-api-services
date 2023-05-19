@@ -18,20 +18,20 @@
           class="action-link"
           :to="{
             name: 'DatastreamForm',
-            params: { id: thing_id, datastreamId: row.id },
+            params: { id: thing_id, datastreamId: (row as Datastream).id },
           }"
           >Edit
         </router-link>
         <span> | </span>
-        <a @click="showModal(row)">Delete</a>
+        <a @click="showModal(row as Datastream)">Delete</a>
         <span> | </span>
         <a
-          v-if="row.is_visible"
+          v-if="(row as Datastream).is_visible"
           class="action-link"
-          @click="toggleVisibility(row)"
+          @click="toggleVisibility(row as Datastream)"
           >Hide
         </a>
-        <a v-else @click="toggleVisibility(row)">Make visible</a>
+        <a v-else @click="toggleVisibility(row as Datastream)">Make visible</a>
       </template>
     </ManagerTable>
 
@@ -65,10 +65,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApiClient } from '@/utils/api-client'
 import ManagerTable from '@/components/ManagerTable.vue'
 import { useDatastreamStore } from '@/store/datastreams'
 import { useThingStore } from '@/store/things'
+import { Datastream } from '@/types'
+import { Ref } from 'vue'
 
 type NameTuple = [string, string]
 
@@ -86,21 +87,26 @@ const thingStore = useThingStore()
 const thing_id = route.params.id.toString()
 
 const showDeleteModal = ref(false)
-const selectedDatastream = ref(null)
+const selectedDatastream: Ref<Datastream | null> = ref(null)
 
-function showModal(datastream) {
+function showModal(datastream: Datastream) {
   selectedDatastream.value = datastream
   showDeleteModal.value = true
 }
 
-async function toggleVisibility(datastream) {
+async function toggleVisibility(datastream: Datastream) {
   await datastreamStore.setVisibility(datastream.id, !datastream.is_visible)
   datastream.is_visible = !datastream.is_visible
 }
 
 async function deleteDatastream() {
   showDeleteModal.value = false
-  await datastreamStore.deleteDatastream(selectedDatastream.value.id, thing_id)
+  if (selectedDatastream.value) {
+    await datastreamStore.deleteDatastream(
+      selectedDatastream.value.id,
+      thing_id
+    )
+  }
 }
 
 onMounted(async () => {

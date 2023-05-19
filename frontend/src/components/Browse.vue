@@ -43,6 +43,8 @@ import GoogleMap from '@/components/GoogleMap.vue'
 import SearchBar from '@/components/SearchBar.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useMarkerStore } from '@/store/markers'
+import { Ref } from 'vue'
+import { Marker } from '@/types'
 
 const markerStore = useMarkerStore()
 const siteTypes = ref([
@@ -68,12 +70,14 @@ const siteTypes = ref([
   'Other',
 ])
 const clearSearch = ref(false)
-const selectedSiteTypes = ref([])
-const filteredOrganizations = ref([])
+const selectedSiteTypes: Ref<any[]> = ref([])
+const filteredOrganizations: Ref<string[]> = ref([])
 const filteredOrganizationsSet = ref(new Set())
 
 const organizations = computed(() => {
-  if (!Array.isArray(markerStore.markers)) return []
+  if (!Array.isArray(markerStore.markers)) {
+    return []
+  }
   const allOrgs = new Set()
   markerStore.markers.forEach((marker) => {
     marker.owners.forEach((owner) => {
@@ -90,12 +94,12 @@ const filteredMarkers = computed(() => {
   return markerStore.markers.filter(isMarkerValid)
 })
 
-function handleFilteredOrganizations(filtered) {
+function handleFilteredOrganizations(filtered: any) {
   filteredOrganizations.value = filtered
   filteredOrganizationsSet.value = new Set(filtered)
 }
 
-function isMarkerValid(marker) {
+function isMarkerValid(marker: Marker) {
   const orgValid =
     filteredOrganizationsSet.value.size === 0 ||
     marker.owners.some((owner) =>

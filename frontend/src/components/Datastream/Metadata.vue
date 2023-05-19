@@ -46,7 +46,7 @@
         >?
         <br />
         <br />
-        <div v-if="datastreamsForSensor.length > 0">
+        <div v-if="datastreamsForSensor && datastreamsForSensor.length > 0">
           This action will not only delete the sensor method, but will delete
           all datastreams that use this method and all the observations that
           belong to those datastreams. The datastreams that will be deleted with
@@ -178,22 +178,30 @@ const plStore = useProcessingLevelStore()
 const unitStore = useUnitStore()
 const datastreamStore = useDatastreamStore()
 
-let properties = reactive({
-  op: null as ObservedProperty | null,
-  sensor: null as Sensor | null,
-  pl: null as ProcessingLevel | null,
-  unit: null as Unit | null,
+const properties: {
+  op: ObservedProperty | null
+  sensor: Sensor | null
+  pl: ProcessingLevel | null
+  unit: Unit | null
+  [key: string]: any
+} = reactive({
+  op: null,
+  sensor: null,
+  pl: null,
+  unit: null,
 })
 
-const flags = reactive({
-  opModal: ref(false),
-  opDelete: ref(false),
-  sensorModal: ref(false),
-  sensorDelete: ref(false),
-  plModal: ref(false),
-  plDelete: ref(false),
-  unitModal: ref(false),
-  unitDelete: ref(false),
+const flags: {
+  [key: string]: boolean
+} = reactive({
+  opModal: false,
+  opDelete: false,
+  sensorModal: false,
+  sensorDelete: false,
+  plModal: false,
+  plDelete: false,
+  unitModal: false,
+  unitDelete: false,
 })
 
 type NameTuple = [string, string]

@@ -179,14 +179,14 @@ const route = useRoute()
 const thingId = route.params.id.toString()
 const datastreamId = route.params.datastreamId?.toString() || ''
 
-let selectedDatastreamID = ref(datastreamId)
+const selectedDatastreamID = ref(datastreamId)
 
-let showSensorModal = ref(false)
-let showObservedPropertyModal = ref(false)
-let showUnitModal = ref(false)
-let showProcessingLevelModal = ref(false)
+const showSensorModal = ref(false)
+const showObservedPropertyModal = ref(false)
+const showUnitModal = ref(false)
+const showProcessingLevelModal = ref(false)
 
-let datastream = reactive<Datastream | null>({
+const datastream = reactive<Datastream>({
   id: '',
   thing_id: thingId,
   observation_type: '',
@@ -222,16 +222,16 @@ const formattedProcessingLevels = computed(() => {
   }))
 })
 
-async function updateSensors(id) {
+async function updateSensors(id: string) {
   if (datastream) datastream.method_id = id
 }
-async function updateObservedProperties(id) {
+async function updateObservedProperties(id: string) {
   if (datastream) datastream.observed_property_id = id
 }
-async function updateUnits(id) {
+async function updateUnits(id: string) {
   if (datastream) datastream.unit_id = id
 }
-async function updateProcessingLevels(id) {
+async function updateProcessingLevels(id: string) {
   if (datastream) datastream.processing_level_id = id
 }
 
@@ -241,9 +241,7 @@ async function populateForm(id: string) {
 
     // This ensures Vue doesn't lose reactivity.
     if (datastream && newDatastream) {
-      for (const key in newDatastream) {
-        datastream[key] = newDatastream[key]
-      }
+      Object.assign(datastream, newDatastream)
     }
   }
 }

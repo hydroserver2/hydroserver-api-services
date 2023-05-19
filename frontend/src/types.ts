@@ -6,6 +6,7 @@ export interface Marker {
   sampling_feature_code: string
   latitude: number
   longitude: number
+  elevation: number
   owns_thing: boolean
   follows_thing: boolean
 }
@@ -46,7 +47,7 @@ export interface Datastream {
   no_data_value: number
   aggregation_statistic: string
   observations: Observation[]
-  most_recent_observation: string
+  most_recent_observation: any
   unit_id: string
   unit_name: string
   observed_property_id: string
