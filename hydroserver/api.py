@@ -345,9 +345,8 @@ class ThingInput(Schema):
     latitude: float
     longitude: float
     elevation: float
-    city: str = None
     state: str = None
-    country: str = None
+    county: str = None
 
 
 @api.post('/things', auth=jwt_auth)
@@ -363,7 +362,9 @@ def create_thing(request, data: ThingInput):
                                 description='location',
                                 encoding_type="application/geo+json",
                                 latitude=data.latitude, longitude=data.longitude, elevation=data.elevation,
-                                city=data.city, state=data.state, country=data.country,
+                                # city=data.city,
+                                state=data.state,
+                                # county=data.county,
                                 thing=new_thing)
 
         ThingAssociation.objects.create(thing=new_thing, person=request.authenticated_user,
@@ -643,10 +644,10 @@ def delete_observed_property(request, observed_property_id: str):
 
 class CreateDatastreamInput(Schema):
     thing_id: str
-    sensor: str
-    observed_property: str
-    processing_level: str = None
-    unit: str = None
+    method_id: str
+    observed_property_id: str
+    processing_level_id: str = None
+    unit_id: str = None
 
     observation_type: str = None
     result_type: str = None
@@ -716,22 +717,22 @@ def create_datastream(request, data: CreateDatastreamInput):
         return JsonResponse({'detail': 'Thing not found.'}, status=404)
 
     try:
-        sensor = Sensor.objects.get(id=data.sensor)
+        sensor = Sensor.objects.get(id=data.method_id)
     except Sensor.DoesNotExist:
         return JsonResponse({'detail': 'Sensor not found.'}, status=404)
 
     try:
-        observed_property = ObservedProperty.objects.get(id=data.observed_property)
+        observed_property = ObservedProperty.objects.get(id=data.observed_property_id)
     except ObservedProperty.DoesNotExist:
         return JsonResponse({'detail': 'Observed Property not found.'}, status=404)
 
     try:
-        unit = Unit.objects.get(id=data.unit) if data.unit else None
+        unit = Unit.objects.get(id=data.unit_id) if data.unit_id else None
     except Unit.DoesNotExist:
         return JsonResponse({'detail': 'Unit not found.'}, status=404)
 
-    if data.processing_level:
-        processing_level = ProcessingLevel.objects.get(id=data.processing_level)
+    if data.processing_level_id:
+        processing_level = ProcessingLevel.objects.get(id=data.processing_level_id)
     else:
         processing_level = None
 
@@ -780,10 +781,10 @@ def get_datastreams_for_thing(request, thing_id: str):
 
 
 class UpdateDatastreamInput(Schema):
-    unit: str = None
-    sensor: str = None
-    observed_property: str = None
-    processing_level: str = None
+    unit_id: str = None
+    method_id: str = None
+    observed_property_id: str = None
+    processing_level_id: str = None
 
     observation_type: str = None
     result_type: str = None
@@ -805,33 +806,32 @@ class UpdateDatastreamInput(Schema):
     is_visible: bool = None
 
 
-@api.patch('/datastreams/{datastream_id}', auth=jwt_auth)
+@api.patch('/datastreams/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
 def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
     with transaction.atomic():
         datastream = request.datastream
-
-        if data.sensor:
+        if data.method_id:
             try:
-                datastream.sensor = Sensor.objects.get(id=data.sensor)
+                datastream.sensor = Sensor.objects.get(id=data.method_id)
             except Sensor.DoesNotExist:
                 return JsonResponse({'detail': 'Sensor not found.'}, status=404)
 
-        if data.observed_property:
+        if data.observed_property_id:
             try:
-                datastream.observed_property = ObservedProperty.objects.get(id=data.observed_property)
+                datastream.observed_property = ObservedProperty.objects.get(id=data.observed_property_id)
             except ObservedProperty.DoesNotExist:
                 return JsonResponse({'detail': 'Observed Property not found.'}, status=404)
 
-        if data.unit:
+        if data.unit_id:
             try:
-                datastream.unit = Unit.objects.get(id=data.unit)
+                datastream.unit = Unit.objects.get(id=data.unit_id)
             except Unit.DoesNotExist:
                 return JsonResponse({'detail': 'Unit not found.'}, status=404)
 
-        if data.processing_level:
+        if data.processing_level_id:
             try:
-                datastream.processing_level = ProcessingLevel.objects.get(id=data.processing_level)
+                datastream.processing_level = ProcessingLevel.objects.get(id=data.processing_level_id)
             except ProcessingLevel.DoesNotExist:
                 return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 

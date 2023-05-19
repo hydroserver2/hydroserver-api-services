@@ -3,10 +3,12 @@ import router from '@/router/router'
 import { User } from '@/types'
 import Notification from './notifications'
 
-const initialState = () => ({
+export const useAuthStore = defineStore({
+  id: 'authentication',
+  state: () => ({
   access_token: '',
   refresh_token: '',
-  user: {
+    user: {
     id: '',
     email: '',
     first_name: '',
@@ -17,15 +19,11 @@ const initialState = () => ({
     organization: '',
     type: '',
   },
-  loggingIn: false,
-})
-
-export const useAuthStore = defineStore({
-  id: 'authentication',
-  state: initialState,
+    loggingIn: false,
+  }),
   actions: {
     resetState() {
-      Object.assign(this, initialState())
+      this.$reset()
       localStorage.clear()
     },
     async login(email: string, password: string) {

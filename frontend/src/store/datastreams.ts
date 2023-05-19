@@ -42,24 +42,23 @@ export const useDatastreamStore = defineStore('datastreams', {
         )
       }
     },
-    async updateDatastream(updatedDatastream: Datastream) {
+    async updateDatastream(datastream: Datastream) {
       try {
-        await this.$http.patch(
-          `/datastreams/${updatedDatastream.id}`,
-          updatedDatastream
+        console.log('updatedDS', datastream.id)
+        const { data } = await this.$http.patch(
+          `/datastreams/patch/${datastream.id}`,
+          datastream
         )
-        const datastreamsForThing = this.datastreams[updatedDatastream.thing_id]
-        const index = datastreamsForThing.findIndex(
-          (ds) => ds.id === updatedDatastream.id
-        )
-        if (index !== -1) datastreamsForThing[index] = updatedDatastream
+        const datastreamsForThing = this.datastreams[data.thing_id]
+        const index = datastreamsForThing.findIndex((ds) => ds.id === data.id)
+        if (index !== -1) datastreamsForThing[index] = data
       } catch (error) {
         console.error('Error updating datastream', error)
       }
     },
     async createDatastream(newDatastream: Datastream) {
       try {
-        const { data } = await this.$http.post(`/datastreams/`, newDatastream)
+        const { data } = await this.$http.post(`/datastreams`, newDatastream)
         if (!this.datastreams[newDatastream.thing_id]) {
           this.datastreams[newDatastream.thing_id] = []
         }
@@ -83,15 +82,15 @@ export const useDatastreamStore = defineStore('datastreams', {
     },
     async setVisibility(id: string, visibility: boolean) {
       try {
-        const { data } = await this.$http.patch(`/datastreams/${id}`, {
+        const { data } = await this.$http.patch(`/datastreams/patch/${id}`, {
           is_visible: visibility,
         })
         const datastreamIndex = this.datastreams[data.thing_id].findIndex(
           (ds) => ds.id === id
         )
-        if (datastreamIndex !== -1) {
+        if (datastreamIndex !== -1)
           this.datastreams[data.thing_id][datastreamIndex] = data
-        } else {
+        else {
           console.error(
             `Datastream with id ${id} not found in the datastreams list`
           )

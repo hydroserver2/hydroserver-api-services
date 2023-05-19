@@ -25,13 +25,11 @@
         <span> | </span>
         <a @click="showModal(row as Datastream)">Delete</a>
         <span> | </span>
-        <a
-          v-if="(row as Datastream).is_visible"
-          class="action-link"
-          @click="toggleVisibility(row as Datastream)"
-          >Hide
-        </a>
-        <a v-else @click="toggleVisibility(row as Datastream)">Make visible</a>
+        <v-checkbox
+          v-model="(row as Datastream).is_visible"
+          @change="toggleVisibility(row as Datastream)"
+          label="Visible"
+        ></v-checkbox>
       </template>
     </ManagerTable>
 
@@ -95,8 +93,7 @@ function showModal(datastream: Datastream) {
 }
 
 async function toggleVisibility(datastream: Datastream) {
-  await datastreamStore.setVisibility(datastream.id, !datastream.is_visible)
-  datastream.is_visible = !datastream.is_visible
+  await datastreamStore.setVisibility(datastream.id, datastream.is_visible)
 }
 
 async function deleteDatastream() {

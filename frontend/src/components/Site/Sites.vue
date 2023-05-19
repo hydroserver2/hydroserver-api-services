@@ -1,9 +1,9 @@
 <template>
-  <template v-if="markerStore.loaded">
+  <template v-if="thingStore.loaded">
     <div class="mb-8 flex-shrink-0" style="height: 25rem">
       <GoogleMap
-        :markers="markerStore.ownedOrFollowedMarkers"
-        v-if="markerStore.ownedOrFollowedMarkers"
+        :markers="thingStore.ownedOrFollowedThings"
+        v-if="thingStore.ownedOrFollowedThings"
       ></GoogleMap>
       <v-divider></v-divider>
     </div>
@@ -22,9 +22,9 @@
       </div>
 
       <v-data-table
-        v-if="markerStore.ownedMarkers.length"
+        v-if="thingStore.ownedThings.length"
         :headers="headers"
-        :items="markerStore.ownedMarkers"
+        :items="thingStore.ownedThings"
         hover
         item-value="id"
         class="elevation-1"
@@ -41,9 +41,9 @@
     <v-container class="mb-8">
       <h5 class="text-h5 mb-4">Followed Sites</h5>
       <v-data-table
-        v-if="markerStore.followedMarkers.length"
+        v-if="thingStore.followedThings.length"
         :headers="headers"
-        :items="markerStore.followedMarkers"
+        :items="thingStore.followedThings"
         hover
         item-value="id"
         class="elevation-1"
@@ -57,7 +57,7 @@
     </v-container>
 
     <v-dialog v-model="showSiteForm" width="60rem">
-      <site-form @close="showSiteForm = false"></site-form>
+      <SiteForm @close="showSiteForm = false"></SiteForm>
     </v-dialog>
   </template>
 
@@ -72,9 +72,9 @@ import GoogleMap from '@/components/GoogleMap.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
-import { useMarkerStore } from '@/store/markers'
+import { useThingStore } from '@/store/things'
 
-const markerStore = useMarkerStore()
+const thingStore = useThingStore()
 const showSiteForm = ref(false)
 const router = useRouter()
 
@@ -104,8 +104,8 @@ const onRowClick = (event: Event, item: any) => {
   router.push({ name: 'SingleSite', params: { id: thing.id } })
 }
 
-onMounted(() => {
-  markerStore.fetchMarkers()
+onMounted(async () => {
+  await thingStore.fetchThings()
 })
 </script>
 

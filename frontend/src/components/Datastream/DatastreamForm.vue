@@ -32,7 +32,7 @@
               >
               <v-dialog v-model="showSensorModal" width="60rem">
                 <sensor-modal
-                  @uploaded="updateSensors"
+                  @uploaded="datastream.method_id = $event"
                   @close="showSensorModal = false"
                 ></sensor-modal>
               </v-dialog>
@@ -48,7 +48,7 @@
               ></v-autocomplete>
               <v-dialog v-model="showObservedPropertyModal" width="60rem">
                 <ObservedPropertyModal
-                  @uploaded="updateObservedProperties"
+                  @uploaded="datastream.observed_property_id = $event"
                   @close="showObservedPropertyModal = false"
                 ></ObservedPropertyModal>
               </v-dialog>
@@ -80,7 +80,7 @@
               >
               <v-dialog v-model="showUnitModal" width="60rem">
                 <unit-modal
-                  @uploaded="updateUnits"
+                  @uploaded="datastream.unit_id = $event"
                   @close="showUnitModal = false"
                   >Add New</unit-modal
                 >
@@ -104,7 +104,7 @@
               >
               <v-dialog v-model="showProcessingLevelModal" width="60rem">
                 <processing-level-modal
-                  @uploaded="updateProcessingLevels"
+                  @uploaded="datastream.processing_level_id = $event"
                   @close="showProcessingLevelModal = false"
                   >Add New</processing-level-modal
                 >
@@ -222,33 +222,22 @@ const formattedProcessingLevels = computed(() => {
   }))
 })
 
-async function updateSensors(id: string) {
-  if (datastream) datastream.method_id = id
-}
-async function updateObservedProperties(id: string) {
-  if (datastream) datastream.observed_property_id = id
-}
-async function updateUnits(id: string) {
-  if (datastream) datastream.unit_id = id
-}
-async function updateProcessingLevels(id: string) {
-  if (datastream) datastream.processing_level_id = id
-}
-
-async function populateForm(id: string) {
-  if (id) {
-    const newDatastream = await datastreamStore.getDatastreamById(thingId, id)
-
-    // This ensures Vue doesn't lose reactivity.
-    if (datastream && newDatastream) {
-      Object.assign(datastream, newDatastream)
-    }
-  }
-}
-
 watch(selectedDatastreamID, async () => {
   await populateForm(selectedDatastreamID.value)
 })
+
+async function populateForm(id: string) {
+  Object.assign(
+    datastream,
+    await datastreamStore.getDatastreamById(thingId, id)
+  )
+}
+
+async function uploadDatastream() {
+  if (datastreamId) await datastreamStore.updateDatastream(datastream)
+  else await datastreamStore.createDatastream(datastream)
+  await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
+}
 
 onMounted(async () => {
   // TODO: fetch all at the same time with Promise.all
@@ -257,18 +246,6 @@ onMounted(async () => {
   await opStore.fetchObservedProperties()
   await unitStore.fetchUnits()
   await plStore.fetchProcessingLevels()
-  await populateForm(datastreamId)
+  if (datastreamId) await populateForm(datastreamId)
 })
-
-async function uploadDatastream() {
-  try {
-    if (datastream) {
-      if (datastreamId) await datastreamStore.updateDatastream(datastream)
-      else await datastreamStore.createDatastream(datastream)
-    }
-    await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
-  } catch (error) {
-    console.log('Error Registering Datastream: ', error)
-  }
-}
 </script>
