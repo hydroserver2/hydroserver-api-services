@@ -20,7 +20,7 @@ export const useThingStore = defineStore('things', {
     async fetchThings() {
       if (this.loaded) return
       try {
-        const { data } = await axios.get('/things')
+        const { data } = await this.$http.get('/things')
         console.log('fetched things', data)
         const thingsDictionary = data.reduce(
           (acc: Record<string, Thing>, thing: Thing) => {
