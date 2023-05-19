@@ -49,9 +49,7 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const form = ref(null)
-
 const valid = ref(false)
-
 const rules = {
   password: [
     (value: string) => {
@@ -81,10 +79,7 @@ const rules = {
 
 const loginSubmit = async () => {
   if (valid) {
-    authStore.login({
-      email: email.value,
-      password: password.value,
-    })
+    authStore.login(email.value, password.value)
   }
 }
 </script>

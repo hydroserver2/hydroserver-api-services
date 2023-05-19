@@ -31,7 +31,7 @@ const props = defineProps({
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 table {
   width: 100%;
   max-width: 100%;

@@ -10,7 +10,7 @@
         <v-row>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.name"
+              v-model="observedProperty.name"
               label="Name"
               outlined
               required
@@ -18,7 +18,7 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.definition"
+              v-model="observedProperty.definition"
               label="Definition"
               outlined
               required
@@ -26,21 +26,21 @@
           </v-col>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.description"
+              v-model="observedProperty.description"
               label="Description"
               outlined
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
             <v-text-field
-              v-model="formData.variable_type"
+              v-model="observedProperty.variable_type"
               label="Variable Type"
               outlined
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
             <v-text-field
-              v-model="formData.variable_code"
+              v-model="observedProperty.variable_code"
               label="Variable Code"
               outlined
             ></v-text-field>
@@ -59,62 +59,35 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useDataStore } from '@/store/data'
-import { useApiClient } from '@/utils/api-client'
-const api = useApiClient()
+import { computed, onMounted, reactive } from 'vue'
+import { ObservedProperty } from '@/types'
+import { useObservedPropertyStore } from '@/store/observedProperties'
 
-const props = defineProps({
-  observedProperty: { type: Object, default: null },
-})
+const opStore = useObservedPropertyStore()
+const props = defineProps({ id: String })
+const isEdit = computed(() => props.id != null)
+const emit = defineEmits(['uploaded', 'close'])
 
-const isEdit = computed(() => {
-  return props.observedProperty != null
-})
-
-const dataStore = useDataStore()
-const formData = ref({
+const observedProperty = reactive<ObservedProperty>({
+  id: '',
   name: '',
   definition: '',
   description: '',
   variable_type: '',
   variable_code: '',
 })
-onMounted(() => {
-  console.log('Mounted')
-  console.log('props.observedProperty', props.observedProperty)
-  if (isEdit.value) {
-    formData.value = {
-      name: props.observedProperty.name || '',
-      definition: props.observedProperty.definition || '',
-      description: props.observedProperty.description || '',
-      variable_type: props.observedProperty.variable_type || '',
-      variable_code: props.observedProperty.variable_code || '',
-    }
-  }
-})
-
-const emit = defineEmits(['uploaded', 'close'])
 
 async function uploadObservedProperty() {
-  try {
-    if (isEdit.value) {
-      await api.patch(
-        `/observed-properties/${props.observedProperty.id}`,
-        formData.value
-      )
-      localStorage.removeItem(`observedProperties`)
-      dataStore.observedProperties = []
-      emit('uploaded', String(props.observedProperty.id))
-    } else {
-      const response = await api.post('/observed-properties', formData.value)
-      const newObservedProperty = response.data
-      dataStore.addObservedProperty(newObservedProperty)
-      emit('uploaded', String(newObservedProperty.id))
-    }
-    emit('close')
-  } catch (error) {
-    console.log('Error Registering Observed Property: ', error)
+  if (isEdit.value) await opStore.updateObservedProperty(observedProperty)
+  else {
+    const newOP = await opStore.createObservedProperty(observedProperty)
+    emit('uploaded', String(newOP.id))
   }
+  emit('close')
 }
+
+onMounted(async () => {
+  await opStore.fetchObservedProperties()
+  if (props.id) Object.assign(observedProperty, await opStore.getById(props.id))
+})
 </script>

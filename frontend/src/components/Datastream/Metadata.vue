@@ -8,60 +8,41 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showSensorModal = true
-        }
-      "
+      @click="handleModal('sensorModal', 'sensor')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="sensorNameMappings" :rows="sensors">
+
+  <!--  <v-data-table-->
+  <!--    v-if="sensorStore.sensors.length"-->
+  <!--    :headers="sensorHeaders"-->
+  <!--    :items="sensorStore.sensors"-->
+  <!--    hover-->
+  <!--    item-value="id"-->
+  <!--    class="elevation-1"-->
+  <!--  ></v-data-table>-->
+  <ManagerTable :names="sensorNameMappings" :rows="sensorStore.sensors">
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showSensorModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('sensorModal', 'sensor', row)"> Edit </a>
       <span> | </span>
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showSensorDeleteModal = true
-          }
-        "
-        >Delete</a
-      >
+      <a @click="handleModal('sensorDelete', 'sensor', row)">Delete</a>
     </template>
   </ManagerTable>
-  <v-dialog v-model="showSensorModal" width="60rem">
+  <v-dialog v-model="flags.sensorModal" width="60rem">
     <SensorModal
-      :sensor="selectedProperty"
-      @close="showSensorModal = false"
-      @uploaded="updateSensors"
+      :id="properties.sensor ? properties.sensor.id : undefined"
+      @close="flags.sensorModal = false"
     ></SensorModal>
   </v-dialog>
-
-  <v-dialog
-    v-if="selectedProperty"
-    v-model="showSensorDeleteModal"
-    width="40rem"
-  >
+  <v-dialog v-model="flags.sensorDelete" width="40rem">
     <v-card>
       <v-card-title>
         <span class="text-h5">Confirm Sensor Deletion</span>
       </v-card-title>
       <v-card-text>
         Are you sure you want to delete
-        <strong>{{ selectedProperty.name }}</strong
+        <strong>{{ properties.sensor ? properties.sensor.name : null }}</strong
         >?
         <br />
         <br />
@@ -85,13 +66,11 @@
           This sensor method isn't being used by any datastreams and is safe to
           delete
         </div>
-
         <br />
-        <!--        <strong>ID:</strong> {{ selectedProperty.id }} <br />-->
       </v-card-text>
       <v-card-actions>
-        <v-btn color="red" @click="showSensorDeleteModal = false">Cancel</v-btn>
-        <v-btn color="green" @click="deleteSensor()">Confirm</v-btn>
+        <v-btn color="red" @click="flags.sensorDelete = false">Cancel</v-btn>
+        <v-btn color="green" @click="deleteSensor">Confirm</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -103,37 +82,23 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showObservedPropertyModal = true
-        }
-      "
+      @click="handleModal('opModal', 'op')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="OPNameMappings" :rows="observedProperties">
+  <ManagerTable :names="OPNameMappings" :rows="opStore.observedProperties">
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showObservedPropertyModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('opModal', 'op', row)"> Edit </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a @click="handleModal('opDelete', 'op', row)">Delete</a>
     </template>
   </ManagerTable>
-  <v-dialog v-model="showObservedPropertyModal" width="60rem">
+  <v-dialog v-model="flags.opModal" width="60rem">
     <ObservedPropertyModal
-      :observedProperty="selectedProperty"
-      @close="showObservedPropertyModal = false"
-      @uploaded="updateObservedProperties"
+      :observedProperty="properties.op"
+      :id="properties.op ? properties.op.id : undefined"
+      @close="flags.opModal = false"
     ></ObservedPropertyModal>
   </v-dialog>
 
@@ -144,37 +109,25 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showProcessingLevelModal = true
-        }
-      "
+      @click="handleModal('plModal', 'pl')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="ProcLevelNameMappings" :rows="ownedProcessingLevels">
+  <ManagerTable
+    :names="ProcLevelNameMappings"
+    :rows="plStore.ownedProcessingLevels"
+  >
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showProcessingLevelModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('plModal', 'pl', row)"> Edit </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a @click="handleModal('plDelete', 'pl', row)">Delete</a>
     </template></ManagerTable
   >
-  <v-dialog v-model="showProcessingLevelModal" width="60rem">
+  <v-dialog v-model="flags.plModal" width="60rem">
     <ProcessingLevelModal
-      :processingLevel="selectedProperty"
-      @close="showProcessingLevelModal = false"
-      @uploaded="updateProcessingLevels"
+      :id="properties.pl ? String(properties.pl.id) : undefined"
+      @close="flags.plModal = false"
     ></ProcessingLevelModal>
   </v-dialog>
 
@@ -185,61 +138,63 @@
       variant="elevated"
       density="comfortable"
       color="green"
-      @click="
-        () => {
-          selectedProperty = null
-          showUnitModal = true
-        }
-      "
+      @click="handleModal('unitModal', 'unit')"
       prependIcon="mdi-plus"
       >Add New</v-btn
     >
   </div>
-  <ManagerTable :names="UnitNameMappings" :rows="ownedUnits">
+  <ManagerTable :names="UnitNameMappings" :rows="unitStore.ownedUnits">
     <template v-slot:actions="{ row }">
-      <a
-        @click="
-          () => {
-            selectedProperty = row
-            showUnitModal = true
-          }
-        "
-      >
-        Edit
-      </a>
+      <a @click="handleModal('unitModal', 'unit', row)"> Edit </a>
       <span> | </span>
-      <a @click="">Delete</a>
+      <a @click="handleModal('unitDelete', 'unit', row)">Delete</a>
     </template></ManagerTable
   >
-  <v-dialog v-model="showUnitModal" width="60rem">
+  <v-dialog v-model="flags.unitModal" width="60rem">
     <UnitModal
-      :unit="selectedProperty"
-      @close="showUnitModal = false"
-      @uploaded="updateUnits"
+      :id="properties.unit ? String(properties.unit.id) : undefined"
+      @close="flags.unitModal = false"
     ></UnitModal>
   </v-dialog>
 </template>
 
 <script lang="ts" setup>
 import ManagerTable from '@/components/ManagerTable.vue'
-import { computed, onMounted, Ref, ref } from 'vue'
-import { useDataStore } from '@/store/data'
+import { computed, onMounted, reactive, ref } from 'vue'
 import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
 import UnitModal from '@/components/Datastream/UnitModal.vue'
-import axios from 'axios'
+import { useProcessingLevelStore } from '@/store/processingLevels'
+import { useSensorStore } from '@/store/sensors'
+import { useObservedPropertyStore } from '@/store/observedProperties'
+import { useUnitStore } from '@/store/unit'
+import { useDatastreamStore } from '@/store/datastreams'
+import { ObservedProperty, ProcessingLevel, Sensor, Unit } from '@/types'
 
-const dataStore = useDataStore()
+const sensorStore = useSensorStore()
+const opStore = useObservedPropertyStore()
+const plStore = useProcessingLevelStore()
+const unitStore = useUnitStore()
+const datastreamStore = useDatastreamStore()
 
-const showObservedPropertyModal = ref(false)
-const showSensorModal = ref(false)
-const showProcessingLevelModal = ref(false)
-const showUnitModal = ref(false)
-const showObservedPropertyDeleteModal = ref(false)
-const showSensorDeleteModal = ref(false)
-const showProcessingLevelDeleteModal = ref(false)
-const showUnitDeleteModal = ref(false)
+let properties = reactive({
+  op: null as ObservedProperty | null,
+  sensor: null as Sensor | null,
+  pl: null as ProcessingLevel | null,
+  unit: null as Unit | null,
+})
+
+const flags = reactive({
+  opModal: ref(false),
+  opDelete: ref(false),
+  sensorModal: ref(false),
+  sensorDelete: ref(false),
+  plModal: ref(false),
+  plDelete: ref(false),
+  unitModal: ref(false),
+  unitDelete: ref(false),
+})
 
 type NameTuple = [string, string]
 
@@ -250,7 +205,33 @@ const sensorNameMappings = ref<NameTuple[]>([
   ['method_code', 'Method Code'],
 ])
 
-// For Observed Properties Table
+// const sensorHeaders = [
+//   {
+//     title: 'UUID',
+//     align: 'start',
+//     sortable: true,
+//     key: 'id',
+//   },
+//   {
+//     title: 'Method Type',
+//     align: 'start',
+//     sortable: true,
+//     key: 'method_type',
+//   },
+//   {
+//     title: 'Name',
+//     align: 'start',
+//     sortable: true,
+//     key: 'name',
+//   },
+//   {
+//     title: 'Method Code',
+//     align: 'start',
+//     sortable: true,
+//     key: 'method_code',
+//   },
+// ]
+
 const OPNameMappings = ref<NameTuple[]>([
   ['name', 'Name'],
   ['variable_type', 'Variable Type'],
@@ -269,82 +250,32 @@ const UnitNameMappings = ref<NameTuple[]>([
   ['unit_type', 'Unit Type'],
 ])
 
-const datastreams = ref([])
-let observedProperties = ref([])
-let sensors = ref([])
-let processingLevels = ref([])
-let units = ref([])
-
-let selectedProperty = ref(null)
-
-const ownedProcessingLevels = computed(() => {
-  if (processingLevels.value.length === 0) return []
-  return processingLevels.value.filter(
-    (processingLevel) => processingLevel.person !== null
-  )
-})
-
-const ownedUnits = computed(() => {
-  if (units.value.length === 0) return []
-  return units.value.filter((unit) => unit.person !== null)
-})
-
-async function updateSensors() {
-  await dataStore.fetchOrGetFromCache('sensors', '/sensors')
-  sensors.value = dataStore.sensors
+function handleModal(
+  flagKey: string,
+  propertyKey: string,
+  property = null as any
+) {
+  properties[propertyKey] = property
+  flags[flagKey] = true
 }
 
-async function updateObservedProperties() {
-  await dataStore.fetchOrGetFromCache(
-    'observedProperties',
-    '/observed-properties'
-  )
-  observedProperties.value = dataStore.observedProperties
-}
-
-async function updateUnits() {
-  await dataStore.fetchOrGetFromCache('units', '/units')
-  units.value = dataStore.units
-}
-
-async function updateProcessingLevels() {
-  await dataStore.fetchOrGetFromCache('processingLevels', '/processing-levels')
-  processingLevels.value = dataStore.processingLevels
-}
-
-async function getDatastreams() {
-  await dataStore.fetchOrGetFromCache('datastreams', '/datastreams')
-  datastreams.value = dataStore.datastreams
-}
-
-async function deleteSensor() {
-  showSensorDeleteModal.value = false
-  await axios.delete(`/sensors/${selectedProperty.value.id}`)
-  localStorage.removeItem('sensors')
-  localStorage.removeItem('datastreams')
-  // Since multiple datastreams could have been deleted from multiple things
-  // we'll have to invalidate the cache for each thing_
-  for (let i = 0; i < localStorage.length; i++) {
-    let key = localStorage.key(i)
-    if (key.startsWith('thing_')) {
-      localStorage.removeItem(key)
-    }
-  }
-  await updateSensors()
-}
+async function deleteSensor(id: string) {}
 
 const datastreamsForSensor = computed(() => {
-  return datastreams.value.filter(
-    (datastream) => datastream.method_id === selectedProperty.value.id
-  )
+  if (properties.sensor) {
+    return datastreamStore.getDatastreamsByParameter(
+      'method_id',
+      properties.sensor.id
+    )
+  }
 })
 
 onMounted(() => {
-  updateSensors()
-  updateObservedProperties()
-  updateUnits()
-  updateProcessingLevels()
-  getDatastreams()
+  sensorStore.fetchSensors()
+  opStore.fetchObservedProperties()
+  plStore.fetchProcessingLevels()
+  unitStore.fetchUnits()
+  datastreamStore.fetchDatastreams()
 })
 </script>
 

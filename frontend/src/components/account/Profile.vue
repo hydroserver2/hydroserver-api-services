@@ -6,16 +6,17 @@
       </v-col>
     </v-row>
 
-    <v-row class="text-left">
+    <v-row class="text-left" v-if="authStore.user">
       <v-col>
         <h3>
-          Welcome, {{ user.first_name }} {{ user.middle_name }}
-          {{ user.last_name }}
+          Welcome, {{ authStore.user.first_name }}
+          {{ authStore.user.middle_name }}
+          {{ authStore.user.last_name }}
         </h3>
-        <div>{{ user.organization }}</div>
-        <div>{{ user.address }}</div>
-        <div>{{ user.phone }}</div>
-        <div>{{ user.email }}</div>
+        <div>{{ authStore.user.organization }}</div>
+        <div>{{ authStore.user.address }}</div>
+        <div>{{ authStore.user.phone }}</div>
+        <div>{{ authStore.user.email }}</div>
       </v-col>
     </v-row>
 
@@ -57,7 +58,7 @@
             src="https://via.placeholder.com/150x150"
             alt="Edit My Profile"
           />
-          <account-modal @accountUpdated="loadAccount" />
+          <AccountModal />
         </div>
 
         <div>Edit My Profile</div>
@@ -67,19 +68,10 @@
 </template>
 
 <script setup>
-import { useDataStore } from '@/store/data.ts'
-import { reactive } from 'vue'
 import AccountModal from '@/components/account/AccountModal.vue'
+import { useAuthStore } from '@/store/authentication.ts'
 
-const dataStore = useDataStore()
-let user = reactive({})
-
-function loadAccount() {
-  dataStore.fetchOrGetFromCache('user', '/user').then(() => {
-    Object.assign(user, dataStore.user)
-  })
-}
-loadAccount()
+const authStore = useAuthStore()
 </script>
 
 <style scoped>

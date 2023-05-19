@@ -1,7 +1,10 @@
 <template>
-  <template v-if="sitesLoaded">
+  <template v-if="markerStore.loaded">
     <div class="mb-8 flex-shrink-0" style="height: 25rem">
-      <GoogleMap :markers="markers" v-if="markers"></GoogleMap>
+      <GoogleMap
+        :markers="markerStore.ownedOrFollowedMarkers"
+        v-if="markerStore.ownedOrFollowedMarkers"
+      ></GoogleMap>
       <v-divider></v-divider>
     </div>
 
@@ -19,9 +22,9 @@
       </div>
 
       <v-data-table
-        v-if="ownedThings.length"
+        v-if="markerStore.ownedMarkers.length"
         :headers="headers"
-        :items="ownedThings"
+        :items="markerStore.ownedMarkers"
         hover
         item-value="id"
         class="elevation-1"
@@ -38,9 +41,9 @@
     <v-container class="mb-8">
       <h5 class="text-h5 mb-4">Followed Sites</h5>
       <v-data-table
-        v-if="followedThings.length"
+        v-if="markerStore.followedMarkers.length"
         :headers="headers"
-        :items="followedThings"
+        :items="markerStore.followedMarkers"
         hover
         item-value="id"
         class="elevation-1"
@@ -54,10 +57,7 @@
     </v-container>
 
     <v-dialog v-model="showSiteForm" width="60rem">
-      <site-form
-        @close="showSiteForm = false"
-        @siteCreated="updateMarkers"
-      ></site-form>
+      <site-form @close="showSiteForm = false"></site-form>
     </v-dialog>
   </template>
 
@@ -68,28 +68,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import GoogleMap from '@/components/GoogleMap.vue'
-import { useDataStore } from '@/store/data'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useMarkerStore } from '@/store/markers'
 
-const router = useRouter()
-const dataStore = useDataStore()
-const ownedThings = ref([])
-const followedThings = ref([])
-const markers = ref(null)
+const markerStore = useMarkerStore()
 const showSiteForm = ref(false)
-
-const sitesLoaded = computed(() => ownedThings.value && followedThings.value)
-
-async function updateMarkers() {
-  await dataStore.fetchOrGetFromCache('things', '/things')
-  ownedThings.value = dataStore.things.filter((thing) => thing.owns_thing)
-  followedThings.value = dataStore.things.filter((thing) => thing.follows_thing)
-  markers.value = [...ownedThings.value, ...followedThings.value]
-}
+const router = useRouter()
 
 const headers = [
   {
@@ -118,7 +105,7 @@ const onRowClick = (event: Event, item: any) => {
 }
 
 onMounted(() => {
-  updateMarkers()
+  markerStore.fetchMarkers()
 })
 </script>
 

@@ -28,24 +28,27 @@ export default {
     const $http = app.config.globalProperties.$http
 
     // Axios interceptor for handling JWT tokens
-    const handleRequest = (config: InternalAxiosRequestConfig) => {
-      const token = localStorage.getItem('access_token')
-      if (config.headers) {
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-        }
+    const handleRequest = async (config: InternalAxiosRequestConfig) => {
+      const authStore = useAuthStore()
+      if (authStore.access_token)
+        config.headers.Authorization = `Bearer ${authStore.access_token}`
 
-        const refresh_token = localStorage.getItem('refresh_token')
-        if (refresh_token) {
-          config.headers.Refresh_Authorization = `Bearer ${refresh_token}`
-        }
-      }
-
+      if (authStore.refresh_token)
+        config.headers.Refresh_Authorization = `Bearer ${authStore.refresh_token}`
       return config
     }
 
-    const handleRequestError = (error: AxiosError) => {
-      return Promise.reject(error)
+    const handleRequestError = async (error: AxiosError) => {
+      if (
+        error.response?.status === 401 &&
+        error.config?.url === '/token/refresh'
+      ) {
+        const authStore = useAuthStore()
+        console.log('Refresh Token has failed. Redirecting to login page...')
+        await authStore.logout()
+        await router.push('/login')
+        return Promise.reject(error)
+      }
     }
 
     const handleResponse = (response: AxiosResponse) => {

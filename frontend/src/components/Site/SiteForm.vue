@@ -3,11 +3,10 @@
     <v-card-title class="text-h5">Register a Site</v-card-title>
     <div class="flex-shrink-0" style="height: 20rem">
       <GoogleMap
-        v-if="markerLoaded"
-        @location-clicked="onMapLocationClicked"
         clickable
+        @location-clicked="onMapLocationClicked"
         :mapOptions="mapOptions"
-        :markers="[marker]"
+        :markers="[thing]"
       />
     </div>
     <v-divider></v-divider>
@@ -24,28 +23,28 @@
           <h6 class="text-h6 my-4">Site Information</h6>
           <v-form
             ref="form"
-            @submit.prevent="createThing"
+            @submit.prevent="uploadThing"
             enctype="multipart/form-data"
           >
             <v-row>
               <v-col cols="12"
                 ><v-text-field
                   label="Site Code"
-                  v-model="formData.sampling_feature_code"
+                  v-model="thing.sampling_feature_code"
               /></v-col>
               <v-col cols="12"
-                ><v-text-field label="Site Name" v-model="formData.name"
+                ><v-text-field label="Site Name" v-model="thing.name"
               /></v-col>
               <v-col cols="12"
                 ><v-textarea
                   label="Site Description"
-                  v-model="formData.description"
+                  v-model="thing.description"
               /></v-col>
               <v-col cols="12"
                 ><v-autocomplete
                   label="Select Site Type"
                   :items="siteTypes"
-                  v-model="formData.site_type"
+                  v-model="thing.site_type"
                 ></v-autocomplete
               ></v-col>
             </v-row>
@@ -57,32 +56,32 @@
             <v-col cols="12" sm="6">
               <v-text-field
                 label="Latitude"
-                v-model="formData.latitude"
+                v-model="thing.latitude"
                 type="number"
             /></v-col>
             <v-col cols="12" sm="6"
               ><v-text-field
                 label="Longitude"
-                v-model="formData.longitude"
+                v-model="thing.longitude"
                 type="number"
             /></v-col>
             <v-col cols="12" sm="6"
               ><v-text-field
                 label="Elevation"
-                v-model="formData.elevation"
+                v-model="thing.elevation"
                 type="number"
             /></v-col>
-            <v-col cols="12" sm="6"
+            <!-- <v-col cols="12" sm="6"
               ><v-text-field
                 label="Elevation Datum"
-                v-model="formData.elevation_datum"
-            /></v-col>
-            <v-col cols="12" sm="6"
-              ><v-text-field label="State" v-model="formData.state"
-            /></v-col>
-            <v-col cols="12" sm="6"
-              ><v-text-field label="Country" v-model="formData.country"
-            /></v-col>
+                v-model="thing.elevation_datum"
+            /></v-col> -->
+            <!-- <v-col cols="12" sm="6"
+              ><v-text-field label="State" v-model="thing.state"
+            /></v-col> -->
+            <!-- <v-col cols="12" sm="6"
+              ><v-text-field label="Country" v-model="thing.country"
+            /></v-col> -->
           </v-row>
         </v-col>
       </v-row>
@@ -90,36 +89,45 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn @click="closeDialog">Cancel</v-btn>
-      <v-btn color="primary" @click="createThing">Save</v-btn>
+      <v-btn color="primary" @click="uploadThing">Save</v-btn>
     </v-card-actions>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useDataStore } from '@/store/data'
+import { onMounted, reactive, ref } from 'vue'
 import GoogleMap from '../GoogleMap.vue'
-import { useApiClient } from '@/utils/api-client'
-const api = useApiClient()
+import { useThingStore } from '@/store/things'
+import { Thing } from '@/types'
+
+const thingStore = useThingStore()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close', 'siteCreated'])
 
-const formData = ref({
+const mapOptions = ref({
+  center: { lat: 39, lng: -100 },
+  zoom: 4,
+  mapTypeId: 'roadmap',
+})
+let thing = reactive<Thing>({
+  id: '',
   name: '',
   description: '',
   sampling_feature_type: '',
   sampling_feature_code: '',
-  site_type: null,
-  latitude: null,
-  longitude: null,
-  elevation: null,
+  site_type: '',
+  latitude: 0,
+  longitude: 0,
+  elevation: 0,
   state: '',
-  country: '',
+  county: '',
+  is_primary_owner: false,
+  owns_thing: false,
+  follows_thing: false,
+  owners: [],
+  followers: 0,
 })
 
-const mapOptions = ref({ center: { lat: 39, lng: -100 }, zoom: 4 })
-let marker = ref(null)
-let markerLoaded = ref(false)
 const siteTypes = ref([
   'Atmosphere',
   'Borehole',
@@ -145,67 +153,35 @@ const siteTypes = ref([
 
 // TODO: move method implementation to api wrapper
 async function populateThing() {
-  const dataStore = useDataStore()
-  try {
-    await dataStore.fetchOrGetFromCache(
-      `thing_${props.thingId}`,
-      `/things/${props.thingId}`
-    )
-    marker.value = dataStore[`thing_${props.thingId}`]
-    markerLoaded.value = true
-    for (const key in formData.value) {
-      if (marker.value.hasOwnProperty(key)) {
-        formData.value[key] = marker.value[key]
-      }
-    }
-    mapOptions.value = {
-      center: { lat: marker.value.latitude, lng: marker.value.longitude },
-      zoom: 8,
-      mapTypeId: 'satellite',
-    }
-  } catch (error) {
-    console.log('Error Fetching Thing: ', error)
+  if (!props.thingId) return
+  await thingStore.fetchThingById(props.thingId)
+  thing = thingStore[props.thingId]
+  mapOptions.value = {
+    center: { lat: thing.latitude, lng: thing.longitude },
+    zoom: 8,
+    mapTypeId: 'satellite',
   }
 }
 
-if (props.thingId) {
-  populateThing()
-} else {
-  markerLoaded.value = true
-}
+onMounted(async () => {
+  if (props.thingId) await populateThing()
+})
 
-function closeDialog() {
+function uploadThing() {
+  if (thing) {
+    if (props.thingId) thingStore.updateThing(thing)
+    else thingStore.createThing(thing)
+  }
   emit('close')
-}
-
-// TODO: move method implementation to api wrapper
-async function createThing() {
-  const axiosMethod = props.thingId ? api.patch : api.post
-  const endpoint = props.thingId ? `/things/${props.thingId}` : '/things'
-
-  try {
-    const response = await axiosMethod(endpoint, formData.value)
-
-    const updatedThing = response.data
-    const dataStore = useDataStore()
-    if (!props.thingId) dataStore.addThing(updatedThing)
-    else {
-      localStorage.removeItem(`thing_${props.thingId}`)
-      localStorage.removeItem('things')
-    }
-    emit('close')
-    emit('siteCreated')
-  } catch (error) {
-    console.log('Error Registering Site: ', error)
-  }
+  emit('siteCreated')
 }
 
 function onMapLocationClicked(locationData) {
-  formData.value.latitude = locationData.latitude
-  formData.value.longitude = locationData.longitude
-  formData.value.elevation = locationData.elevation
-  formData.value.state = locationData.state
-  formData.value.country = locationData.country
+  thing.latitude = locationData.latitude
+  thing.longitude = locationData.longitude
+  thing.elevation = locationData.elevation
+  // thing.state = locationData.state
+  // thing.country = locationData.country
 }
 </script>
 

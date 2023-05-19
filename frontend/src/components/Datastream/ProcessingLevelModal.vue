@@ -10,7 +10,7 @@
         <v-row>
           <v-col cols="12">
             <v-text-field
-              v-model="formData.processing_level_code"
+              v-model="processingLevel.processing_level_code"
               label="Processing Level Code"
               outlined
               required
@@ -18,7 +18,7 @@
           </v-col>
           <v-col cols="12">
             <v-textarea
-              v-model="formData.definition"
+              v-model="processingLevel.definition"
               label="Definition"
               outlined
               required
@@ -26,7 +26,7 @@
           </v-col>
           <v-col cols="12">
             <v-textarea
-              v-model="formData.explanation"
+              v-model="processingLevel.explanation"
               label="Explanation"
               outlined
             ></v-textarea>
@@ -45,57 +45,38 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useDataStore } from '@/store/data'
-import { useApiClient } from '@/utils/api-client'
-const api = useApiClient()
+import { computed, onMounted, reactive } from 'vue'
+import { ProcessingLevel } from '@/types'
+import { useProcessingLevelStore } from '@/store/processingLevels'
 
-const dataStore = useDataStore()
-const formData = ref({
+const plStore = useProcessingLevelStore()
+const props = defineProps({ id: String })
+const isEdit = computed(() => props.id != null)
+const emit = defineEmits(['uploaded', 'close'])
+
+const processingLevel = reactive<ProcessingLevel>({
+  id: '',
+  person_id: '',
   processing_level_code: '',
   definition: '',
   explanation: '',
 })
 
-onMounted(() => {
-  if (isEdit.value) {
-    formData.value = {
-      processing_level_code: props.processingLevel.processing_level_code || '',
-      definition: props.processingLevel.definition || '',
-      explanation: props.processingLevel.explanation || '',
-    }
-  }
-})
-
-const props = defineProps({
-  processingLevel: { type: Object, default: null },
-})
-
-const isEdit = computed(() => {
-  return props.processingLevel != null
-})
-
-const emit = defineEmits(['uploaded', 'close'])
-
 async function uploadProcessingLevel() {
-  try {
-    if (isEdit.value) {
-      await api.patch(
-        `/processing-levels/${props.processingLevel.id}`,
-        formData.value
-      )
-      localStorage.removeItem(`processingLevels`)
-      dataStore.processingLevels = []
-      emit('uploaded', String(props.processingLevel.id))
-    } else {
-      const response = await api.post('/processing-levels', formData.value)
-      const newProcessingLevel = response.data
-      dataStore.addProcessingLevel(newProcessingLevel)
-      emit('uploaded', newProcessingLevel.id)
-    }
-    emit('close')
-  } catch (error) {
-    console.log('Error Registering Processing Level: ', error)
+  if (isEdit.value) await plStore.updateProcessingLevel(processingLevel)
+  else {
+    const newPl = await plStore.createProcessingLevel(processingLevel)
+    emit('uploaded', String(newPl.id))
   }
+  emit('close')
 }
+
+onMounted(async () => {
+  await plStore.fetchProcessingLevels()
+  if (props.id)
+    Object.assign(
+      processingLevel,
+      await plStore.getProcessingLevelById(props.id)
+    )
+})
 </script>

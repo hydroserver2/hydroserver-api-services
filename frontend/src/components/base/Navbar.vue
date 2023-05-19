@@ -116,8 +116,6 @@ const authStore = useAuthStore()
 const { mdAndDown } = useDisplay()
 const drawer = ref(false)
 
-authStore.fetchAccessToken()
-
 const paths: {
   attrs: { to?: string; href?: string }
   label: string

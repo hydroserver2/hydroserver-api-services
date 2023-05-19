@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { provide, ref, watch, watchEffect } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 
 const props = defineProps({
   items: {
@@ -65,7 +65,9 @@ const updateSearchFilter = () => {
   emit('filtered-items', filteredItems)
 }
 
-watch(props.items, () => {
+const items = computed(() => props.items)
+
+watch(items, () => {
   updateSearchFilter()
 })
 
