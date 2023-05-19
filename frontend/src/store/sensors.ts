@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { Sensor } from '@/types'
 import { useApiClient } from '@/utils/api-client'
-// const api = useApiClient()
 
 export const useSensorStore = defineStore('sensor', {
   state: () => ({ sensors: [] as Sensor[], loaded: false }),

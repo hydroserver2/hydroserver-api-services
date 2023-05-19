@@ -253,6 +253,7 @@ watch(selectedDatastreamID, async () => {
 })
 
 onMounted(async () => {
+  // TODO: fetch all at the same time with Promise.all
   await datastreamStore.fetchDatastreamsByThingId(thingId)
   await sensorStore.fetchSensors()
   await opStore.fetchObservedProperties()

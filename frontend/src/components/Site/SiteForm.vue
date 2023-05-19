@@ -163,6 +163,10 @@ async function populateThing() {
   }
 }
 
+function closeDialog() {
+  emit('close')
+}
+
 onMounted(async () => {
   if (props.thingId) await populateThing()
 })
