@@ -11,4 +11,4 @@ pandas==1.5.3
 djangorestframework==3.14
 django-cors-headers==3.14
 djangorestframework-simplejwt==5.2.2
-urllib3>=2.0.0
+urllib3==1.26.6
