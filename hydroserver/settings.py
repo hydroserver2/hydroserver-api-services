@@ -70,6 +70,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'Refresh_Authorization',
 ]
 
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
