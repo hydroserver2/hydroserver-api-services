@@ -118,9 +118,9 @@ const thing = reactive<Thing>({
   sampling_feature_type: '',
   sampling_feature_code: '',
   site_type: '',
-  latitude: null as number,
-  longitude: null as number,
-  elevation: null as number,
+  latitude: null as unknown as number, // TODO: This fixed a typescript error, but I don't know if it's the correct or best solution.
+  longitude: null as unknown as number,
+  elevation: null as unknown as number,
   state: '',
   county: '',
   is_primary_owner: false,
