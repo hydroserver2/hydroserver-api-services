@@ -31,7 +31,7 @@ export const useThingStore = defineStore('things', {
         )
         this.$patch({ things: thingsDictionary, loaded: true })
       } catch (error) {
-        console.error('Error fetching markers from DB', error)
+        console.error('Error fetching things from DB', error)
       }
     },
     async fetchThingById(id: string) {

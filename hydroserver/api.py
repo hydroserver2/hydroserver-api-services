@@ -295,47 +295,6 @@ def thing_to_dict(thing, user):
     return thing_dict
 
 
-def thing_to_marker_dict(thing, user):
-    thing_dict = {
-        "id": thing.pk,
-        "name": thing.name,
-        # "description": thing.description,
-        # "sampling_feature_type": thing.sampling_feature_type,
-        "sampling_feature_code": thing.sampling_feature_code,
-        "site_type": thing.site_type,
-        "latitude": round(float(thing.location.latitude), 6),
-        "longitude": round(float(thing.location.longitude), 6),
-        # "elevation": round(float(thing.location.elevation), 6),
-        # "state": thing.location.state,
-        # "country": thing.location.country,
-        # "is_primary_owner": False,
-        "owns_thing": False,
-        "follows_thing": False,
-        "owners": [],
-    }
-    thing_associations = ThingAssociation.objects.filter(thing=thing)
-    for thing_association in thing_associations:
-        person = thing_association.person
-        if thing_association.owns_thing:
-            thing_dict['owners'].append({
-                "firstname": person.first_name,
-                "lastname": person.last_name,
-                "organization": person.organization,
-                "is_primary_owner": thing_association.is_primary_owner
-            })
-        # elif thing_association.follows_thing:
-        #     thing_dict['followers'] += 1
-    if user is not None:
-        thing_association = thing_associations.filter(person=user).first()
-        if thing_association:
-            thing_dict.update({
-                # "is_primary_owner": thing_association.is_primary_owner,
-                "owns_thing": thing_association.owns_thing,
-                "follows_thing": thing_association.follows_thing,
-            })
-    return thing_dict
-
-
 class ThingInput(Schema):
     name: str
     description: str = None
@@ -377,12 +336,6 @@ def create_thing(request, data: ThingInput):
 def get_things(request):
     things = Thing.objects.all()
     return JsonResponse([thing_to_dict(thing, request.user_if_there_is_one) for thing in things], safe=False)
-
-
-@api.get('/things/markers', auth=jwt_check_user)
-def get_things(request):
-    things = Thing.objects.all()
-    return JsonResponse([thing_to_marker_dict(thing, request.user_if_there_is_one) for thing in things], safe=False)
 
 
 @api.get('/things/{thing_id}', auth=jwt_check_user)

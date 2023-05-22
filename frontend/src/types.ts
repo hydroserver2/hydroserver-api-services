@@ -1,16 +1,3 @@
-export interface Marker {
-  id: string
-  name: string
-  owners: Owner[]
-  site_type: string
-  sampling_feature_code: string
-  latitude: number
-  longitude: number
-  elevation: number
-  owns_thing: boolean
-  follows_thing: boolean
-}
-
 export interface Owner {
   firstname: string
   lastname: string

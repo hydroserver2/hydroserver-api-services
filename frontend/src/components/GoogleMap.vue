@@ -5,10 +5,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Loader } from '@googlemaps/js-api-loader'
-import { Marker } from '@/types'
+import { Thing } from '@/types'
 
 const props = defineProps({
-  markers: { type: Array<Marker>, default: [] },
+  markers: { type: Array<Thing>, default: [] },
   mapOptions: {
     type: Object,
     default: { center: { lat: 39, lng: -100 }, zoom: 4 },
@@ -31,7 +31,7 @@ async function loadMap() {
 }
 
 function loadMarkers() {
-  return props.markers.map((markerData: Marker) => {
+  return props.markers.map((markerData: Thing) => {
     if (markerData && map.value) {
       const marker = new google.maps.Marker({
         position: new google.maps.LatLng(
@@ -125,5 +125,6 @@ onMounted(async () => {
   await loadMap()
   loadMarkers()
   if (props.clickable) addLocationClicking()
+  console.log('markers', props.markers)
 })
 </script>

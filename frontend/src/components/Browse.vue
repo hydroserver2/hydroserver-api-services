@@ -32,7 +32,7 @@
     </v-card>
 
     <GoogleMap
-      :markers="filteredMarkers"
+      :markers="filteredThings"
       :mapOptions="{ center: { lat: 39, lng: -100 }, zoom: 4 }"
     />
   </div>
@@ -42,11 +42,11 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SearchBar from '@/components/SearchBar.vue'
 import { computed, onMounted, ref } from 'vue'
-import { useMarkerStore } from '@/store/markers'
 import { Ref } from 'vue'
-import { Marker } from '@/types'
+import { Thing } from '@/types'
+import { useThingStore } from '@/store/things'
 
-const markerStore = useMarkerStore()
+const thingStore = useThingStore()
 const siteTypes = ref([
   'Borehole',
   'Ditch',
@@ -75,23 +75,22 @@ const filteredOrganizations: Ref<string[]> = ref([])
 const filteredOrganizationsSet = ref(new Set())
 
 const organizations = computed(() => {
-  if (!Array.isArray(markerStore.markers)) {
-    return []
-  }
   const allOrgs = new Set()
-  markerStore.markers.forEach((marker) => {
-    marker.owners.forEach((owner) => {
+
+  Object.values(thingStore.things).forEach((thing) => {
+    thing.owners.forEach((owner) => {
       if (owner.organization) {
         allOrgs.add(owner.organization)
       }
     })
   })
+
   return Array.from(allOrgs)
 })
 
-const filteredMarkers = computed(() => {
-  if (!Array.isArray(markerStore.markers)) return []
-  return markerStore.markers.filter(isMarkerValid)
+const filteredThings = computed(() => {
+  if (typeof thingStore.things !== 'object' || !thingStore.things) return []
+  return Object.values(thingStore.things).filter(isThingValid)
 })
 
 function handleFilteredOrganizations(filtered: any) {
@@ -99,15 +98,15 @@ function handleFilteredOrganizations(filtered: any) {
   filteredOrganizationsSet.value = new Set(filtered)
 }
 
-function isMarkerValid(marker: Marker) {
+function isThingValid(thing: Thing) {
   const orgValid =
     filteredOrganizationsSet.value.size === 0 ||
-    marker.owners.some((owner) =>
+    thing.owners.some((owner) =>
       filteredOrganizationsSet.value.has(owner.organization)
     )
   const siteTypeValid =
     selectedSiteTypes.value.length === 0 ||
-    selectedSiteTypes.value.includes(marker.site_type)
+    selectedSiteTypes.value.includes(thing.site_type)
 
   return orgValid && siteTypeValid
 }
@@ -120,7 +119,7 @@ function clearFilters() {
 }
 
 onMounted(() => {
-  markerStore.fetchMarkers()
+  thingStore.fetchThings()
 })
 </script>
 
