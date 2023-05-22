@@ -11,14 +11,20 @@
     <v-container>
       <div class="d-flex justify-space-between mb-4">
         <h5 class="text-h5">My Registered Sites</h5>
-        <v-btn
-          color="green"
-          variant="elevated"
-          density="comfortable"
-          @click="showSiteForm = true"
-          prependIcon="mdi-plus"
-          >Register a new site</v-btn
-        >
+        <div>
+          <v-btn to="Metadata" color="grey" style="margin: 1rem"
+            >Manage Metadata</v-btn
+          >
+
+          <v-btn
+            color="green"
+            variant="elevated"
+            density="comfortable"
+            @click="showSiteForm = true"
+            prependIcon="mdi-plus"
+            >Register a new site</v-btn
+          >
+        </div>
       </div>
 
       <v-data-table
