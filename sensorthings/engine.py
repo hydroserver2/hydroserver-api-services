@@ -1,4 +1,5 @@
 import uuid
+import numpy as np
 import pandas as pd
 from typing import List, Union, Tuple, Optional
 from odata_query.django.django_q import AstToDjangoQVisitor
@@ -237,8 +238,23 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         else:
             return query.count()
 
+    @staticmethod
+    def format_isointerval(start_time, end_time):
+        """"""
+
+        if pd.isnull(start_time) and pd.isnull(end_time):
+            return None
+        elif pd.isnull(start_time):
+            return end_time.strftime('%Y-%m-%dT%H:%M:%SZ') + '/' + end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        elif pd.isnull(end_time):
+            return start_time.strftime('%Y-%m-%dT%H:%M:%SZ') + '/' + start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        else:
+            return start_time.strftime('%Y-%m-%dT%H:%M:%SZ') + '/' + end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
     def transform_response(self, response_df):
         """"""
+
+        response_df = response_df.replace({np.nan: None})
 
         if response_df.empty:
             pass
@@ -325,7 +341,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     'result_type': row['result_type'],
                     'status': row['status'],
                     'sampled_medium': row['sampled_medium'],
-                    'value_count': row['value_count'],
+                    'value_count': row['value_count'] if not pd.isnull(row['value_count']) else 0,
                     'no_data_value': row['no_data_value'],
                     'processing_level_code': row['processing_level__processing_level_code'],
                     'intended_time_spacing': row['intended_time_spacing'],
@@ -341,15 +357,17 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         'symbol': row['time_aggregation_interval_units__symbol'],
                         'definition': row['time_aggregation_interval_units__definition']
                     },
-                    'phenomenon_time': row['phenomenon_start_time'].strftime('%Y-%m-%d %H:%M:%S') + '/' +
-                    row['phenomenon_end_time'].strftime('%Y-%m-%d %H:%M:%S'),
-                    'result_time': row['result_begin_time'].strftime('%Y-%m-%d %H:%M:%S') + '/' +
-                    row['result_end_time'].strftime('%Y-%m-%d %H:%M:%S'),
+                    'phenomenon_time': self.format_isointerval(
+                        row['phenomenon_start_time'], row['phenomenon_end_time']
+                    ),
+                    'result_time': self.format_isointerval(
+                        row['result_begin_time'], row['result_end_time']
+                    )
                 }, axis=1
             )
         elif self.component == 'Observation':
             response_df['result_time'] = response_df.apply(
-                lambda row: row['result_time'].strftime('%Y-%m-%d %H:%M:%S'),
+                lambda row: row['result_time'].strftime('%Y-%m-%dT%H:%M:%SZ'),
                 axis=1
             )
 

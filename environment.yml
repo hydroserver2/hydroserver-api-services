@@ -17,7 +17,7 @@ dependencies:
   - django-cors-headers==3.14
 
   - pip:
-      - django-hydrothings==0.1.4
+      - django-hydrothings==0.1.5
       - django-vite==2.0.2
       - sqlalchemy-json==0.5.0
       - geojson-pydantic==0.5.0

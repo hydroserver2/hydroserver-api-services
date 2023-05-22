@@ -1,6 +1,10 @@
 <template>
   <div class="carousel-container">
-    <img :src="carouselItems[currentIndex].src" :alt="carouselItems[currentIndex].alt" class="carousel-image" />
+    <img
+      :src="carouselItems[currentIndex].src"
+      :alt="carouselItems[currentIndex].alt"
+      class="carousel-image"
+    />
     <div class="carousel-controls">
       <button @click="previous" class="carousel-control">&lt;</button>
       <div class="pagination-bar">
@@ -16,35 +20,32 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref } from 'vue'
 
-<script>
-export default {
-  name: "ImageCarousel",
-  props: {
-    carouselItems: {
-      type: Array,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      currentIndex: 0,
-    };
-  },
-  methods: {
-    previous() {
-      this.currentIndex = this.currentIndex === 0 ? this.carouselItems.length - 1 : this.currentIndex - 1;
-    },
-    next() {
-      this.currentIndex = (this.currentIndex + 1) % this.carouselItems.length;
-    },
-    goTo(index) {
-      this.currentIndex = index;
-    },
-  },
-};
+const props = defineProps<{
+  carouselItems: Array<any>
+}>()
+
+const currentIndex = ref(0)
+
+function previous() {
+  currentIndex.value =
+    currentIndex.value === 0
+      ? props.carouselItems.length - 1
+      : currentIndex.value - 1
+}
+
+function next() {
+  currentIndex.value = (currentIndex.value + 1) % props.carouselItems.length
+}
+
+function goTo(index: number) {
+  currentIndex.value = index
+}
 </script>
-<style scoped>
+
+<style scoped lang="scss">
 .carousel-container {
   position: relative;
   width: 100%;
@@ -103,7 +104,3 @@ export default {
   background-color: darkgrey;
 }
 </style>
-
-
-
-

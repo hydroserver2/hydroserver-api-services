@@ -1,12 +1,14 @@
 .DS_Store
 .idea
 .env
+/frontend/.env
 __pycache__/
 db.sqlite3
 staticfiles/
 *.db
 *test.ipynb
 *test.yaml
+**/launch.json
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
