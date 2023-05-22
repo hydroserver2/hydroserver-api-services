@@ -46,6 +46,22 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
         console.error('Error updating observed property', error)
       }
     },
+    async deleteObservedProperty(id: string) {
+      try {
+        const response = await this.$http.delete(`/observed-properties/${id}`)
+        if (response.status === 200 || response.status === 204)
+          this.observedProperties = this.observedProperties.filter(
+            (op) => op.id !== id
+          )
+        else
+          console.error(
+            'Error deleting observed property from server',
+            response
+          )
+      } catch (error) {
+        console.error('Error deleting observed property', error)
+      }
+    },
     getById(id: string) {
       const op = this.observedProperties.find((op) => op.id === id)
       if (!op) throw new Error(`Observed Property with id ${id} not found`)

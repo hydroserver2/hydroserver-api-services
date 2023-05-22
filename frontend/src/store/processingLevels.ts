@@ -57,12 +57,15 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
     },
     async deleteProcessingLevel(id: string) {
       try {
-        await this.$http.delete(`/processing-levels/${id}`)
-        this.processingLevels = this.processingLevels.filter(
-          (pl) => pl.id !== id
-        )
+        const response = await this.$http.delete(`/processing-levels/${id}`)
+        if (response.status === 200 || response.status === 204)
+          this.processingLevels = this.processingLevels.filter(
+            (pl) => pl.id !== id
+          )
+        else
+          console.error('Error deleting processing level from server', response)
       } catch (error) {
-        console.error(`Error deleting processing level with id ${id}`, error)
+        console.error('Error deleting processing level', error)
       }
     },
     async getProcessingLevelById(id: string) {

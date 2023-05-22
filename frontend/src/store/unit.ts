@@ -39,6 +39,16 @@ export const useUnitStore = defineStore('units', {
         console.error('Error updating unit', error)
       }
     },
+    async deleteUnit(unitId: string) {
+      try {
+        const response = await this.$http.delete(`/units/${unitId}`)
+        if (response.status === 200 || response.status === 204)
+          this.units = this.units.filter((unit) => unit.id !== unitId)
+        else console.error('Error deleting unit from server', response)
+      } catch (error) {
+        console.error('Error deleting unit', error)
+      }
+    },
     async getUnitById(id: string) {
       const unit = this.units.find((u) => u.id.toString() === id.toString())
       if (!unit) throw new Error(`Unit with id ${id} not found`)

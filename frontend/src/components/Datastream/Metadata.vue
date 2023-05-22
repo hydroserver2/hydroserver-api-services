@@ -36,43 +36,13 @@
     ></SensorModal>
   </v-dialog>
   <v-dialog v-model="flags.sensorDelete" width="40rem">
-    <v-card>
-      <v-card-title>
-        <span class="text-h5">Confirm Sensor Deletion</span>
-      </v-card-title>
-      <v-card-text>
-        Are you sure you want to delete
-        <strong>{{ properties.sensor ? properties.sensor.name : null }}</strong
-        >?
-        <br />
-        <br />
-        <div v-if="datastreamsForSensor && datastreamsForSensor.length > 0">
-          This action will not only delete the sensor method, but will delete
-          all datastreams that use this method and all the observations that
-          belong to those datastreams. The datastreams that will be deleted with
-          this sensor are:
-          <br />
-          <div v-for="datastream in datastreamsForSensor" :key="datastream.id">
-            <br />
-            DatastreamID: {{ datastream.id }} <br />
-            Observed Property:
-            {{ datastream.observed_property_name }}<br />
-            Unit:
-            {{ datastream.unit_name }}
-            <br />
-          </div>
-        </div>
-        <div v-else>
-          This sensor method isn't being used by any datastreams and is safe to
-          delete
-        </div>
-        <br />
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="red" @click="flags.sensorDelete = false">Cancel</v-btn>
-        <v-btn color="green" @click="deleteSensor">Confirm</v-btn>
-      </v-card-actions>
-    </v-card>
+    <DeleteModal
+      itemName="sensor"
+      :item="properties.sensor"
+      parameter-name="method_id"
+      @delete="deleteSensor"
+      @close="flags.sensorDelete = false"
+    ></DeleteModal>
   </v-dialog>
 
   <!--    Observed Properties Table and Modal-->
@@ -100,6 +70,15 @@
       :id="properties.op ? properties.op.id : undefined"
       @close="flags.opModal = false"
     ></ObservedPropertyModal>
+  </v-dialog>
+  <v-dialog v-model="flags.opDelete" width="40rem">
+    <DeleteModal
+      itemName="Observed Property"
+      :item="properties.op"
+      parameter-name="observed_property_id"
+      @delete="deleteObservedProperty"
+      @close="flags.opDelete = false"
+    ></DeleteModal>
   </v-dialog>
 
   <!--    Processing Levels Table and Modal-->
@@ -130,6 +109,15 @@
       @close="flags.plModal = false"
     ></ProcessingLevelModal>
   </v-dialog>
+  <v-dialog v-model="flags.plDelete" width="40rem">
+    <DeleteModal
+      itemName="processing level"
+      :item="properties.pl"
+      parameter-name="processing_level_id"
+      @delete="deleteProcessingLevel"
+      @close="flags.plDelete = false"
+    ></DeleteModal>
+  </v-dialog>
 
   <!--    Units Table and Modal-->
   <div class="table-title-container">
@@ -156,11 +144,20 @@
       @close="flags.unitModal = false"
     ></UnitModal>
   </v-dialog>
+  <v-dialog v-model="flags.unitDelete" width="40rem">
+    <DeleteModal
+      itemName="unit"
+      :item="properties.unit"
+      parameter-name="unit_id"
+      @delete="deleteUnit"
+      @close="flags.unitDelete = false"
+    ></DeleteModal>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
 import ManagerTable from '@/components/ManagerTable.vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
@@ -170,7 +167,14 @@ import { useSensorStore } from '@/store/sensors'
 import { useObservedPropertyStore } from '@/store/observedProperties'
 import { useUnitStore } from '@/store/unit'
 import { useDatastreamStore } from '@/store/datastreams'
-import { ObservedProperty, ProcessingLevel, Sensor, Unit } from '@/types'
+import {
+  Datastream,
+  ObservedProperty,
+  ProcessingLevel,
+  Sensor,
+  Unit,
+} from '@/types'
+import DeleteModal from '@/components/Datastream/deleteModal.vue'
 
 const sensorStore = useSensorStore()
 const opStore = useObservedPropertyStore()
@@ -267,16 +271,25 @@ function handleModal(
   flags[flagKey] = true
 }
 
-async function deleteSensor(id: string) {}
+async function deleteSensor() {
+  flags.sensorDelete = false
+  if (properties.sensor) await sensorStore.deleteSensor(properties.sensor.id)
+}
 
-const datastreamsForSensor = computed(() => {
-  if (properties.sensor) {
-    return datastreamStore.getDatastreamsByParameter(
-      'method_id',
-      properties.sensor.id
-    )
-  }
-})
+async function deleteObservedProperty() {
+  flags.opDelete = false
+  if (properties.op) await opStore.deleteObservedProperty(properties.op.id)
+}
+
+async function deleteProcessingLevel() {
+  flags.plDelete = false
+  if (properties.pl) await plStore.deleteProcessingLevel(properties.pl.id)
+}
+
+async function deleteUnit() {
+  flags.unitDelete = false
+  if (properties.unit) await unitStore.deleteUnit(properties.unit.id)
+}
 
 onMounted(() => {
   sensorStore.fetchSensors()

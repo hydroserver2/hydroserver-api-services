@@ -35,6 +35,16 @@ export const useSensorStore = defineStore('sensor', {
         console.error('Error creating sensor', error)
       }
     },
+    async deleteSensor(id: string) {
+      try {
+        const response = await this.$http.delete(`/sensors/${id}`)
+        if (response.status === 200 || response.status === 204)
+          this.sensors = this.sensors.filter((sensor) => sensor.id !== id)
+        else console.error('Error deleting sensor from server', response)
+      } catch (error) {
+        console.error('Error deleting sensor', error)
+      }
+    },
     getSensorById(id: string) {
       const sensor = this.sensors.find((sensor) => sensor.id === id)
       if (!sensor) throw new Error(`Processing Level with id ${id} not found`)

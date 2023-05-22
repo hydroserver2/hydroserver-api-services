@@ -969,3 +969,17 @@ def update_processing_level(request, processing_level_id: str, data: ProcessingL
     processing_level.save()
 
     return JsonResponse(processing_level_to_dict(processing_level))
+
+
+@api.delete('/processing-levels/{processing_level_id}', auth=jwt_auth)
+def delete_processing_level(request, processing_level_id: str):
+    try:
+        pl = ProcessingLevel.objects.get(id=processing_level_id)
+    except Unit.DoesNotExist:
+        return JsonResponse({'detail': 'processing level not found.'}, status=404)
+
+    if request.authenticated_user != pl.person:
+        return JsonResponse({'detail': 'You are not authorized to delete this unit.'}, status=403)
+
+    pl.delete()
+    return {'detail': 'Processing level deleted successfully.'}
