@@ -100,11 +100,11 @@ class Unit(models.Model):
 class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name='datastreams')
-    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.CASCADE)
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.SET_NULL, null=True, blank=True)
+    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, related_name='datastreams')
+    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True)
 
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
