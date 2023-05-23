@@ -34,7 +34,7 @@ def observation_authorization(request: SensorThingsRequest, **kwargs):
 
         if isinstance(observation, Sequence):
             datastream_id_list = [
-                obs.datastream_id for obs in observation
+                obs.datastream.id for obs in observation
             ]
         else:
             datastream_id_list = [observation.datastream.id]

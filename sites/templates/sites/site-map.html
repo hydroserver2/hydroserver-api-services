@@ -1,9 +1,0 @@
-    {% load static %}
-
-    {{ markers|json_script:'markers' }}
-
-    <div style="height: 500px" id="map"></div>
-    <script src="{% static 'js/map.js' %}"></script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key  }}&callback=initMap">
-    </script>

@@ -37,7 +37,7 @@ class Location(models.Model):
 
 class Sensor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     encoding_type = models.CharField(max_length=255, blank=True, null=True)  # CV Table or constant?
@@ -58,7 +58,7 @@ class Sensor(models.Model):
 class ObservedProperty(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     definition = models.TextField()
     description = models.TextField()
     variable_type = models.CharField(max_length=50, blank=True, null=True)
@@ -69,6 +69,7 @@ class ObservedProperty(models.Model):
 
 
 class FeatureOfInterest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)
@@ -76,7 +77,7 @@ class FeatureOfInterest(models.Model):
 
 
 class ProcessingLevel(models.Model):
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels')
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
     processing_level_code = models.CharField(max_length=255)
     definition = models.TextField()
     explanation = models.TextField()
@@ -87,7 +88,7 @@ class ProcessingLevel(models.Model):
 
 class Unit(models.Model):
     name = models.CharField(max_length=100)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     symbol = models.CharField(max_length=50)
     definition = models.TextField()
     unit_type = models.CharField(max_length=100)
@@ -99,11 +100,11 @@ class Unit(models.Model):
 class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name='datastreams')
-    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.CASCADE)
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.SET_NULL, null=True, blank=True)
+    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, related_name='datastreams')
+    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True)
 
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
@@ -126,6 +127,13 @@ class Datastream(models.Model):
     result_begin_time = models.DateTimeField(null=True, blank=True)
     result_end_time = models.DateTimeField(null=True, blank=True)
 
+    is_visible = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = str(self.id)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -145,8 +153,10 @@ class Observation(models.Model):
         managed = False
 
     def __str__(self):
-        return f"{self.datastream.thing.name}: " \
-               f"{self.datastream.observed_property.name} - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name}"
+        if hasattr(self.phenomenon_time, 'strftime'):
+            name += f" - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        return name
 
 
 class ThingAssociation(models.Model):
@@ -164,13 +174,3 @@ class ThingAssociation(models.Model):
 #     time = models.DateTimeField()
 #     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='historical_locations')
 #     locations = models.ManyToManyField(Location, related_name='historical_locations')
-
-# class Site(models.Model):
-#     # This model should only contain the data related to how a Thing will be managed
-#     name = models.CharField(max_length=200)
-#     latitude = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-#     longitude = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-#     elevation = DecimalField(max_digits=22, decimal_places=16, blank=True, null=True)
-#     # registration_date = models.DateTimeField(auto_now_add=True)
-#     # id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-
