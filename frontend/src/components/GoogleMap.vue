@@ -47,7 +47,7 @@ function loadMarkers() {
       // TODO: figure out how this data will be populated
       // <p><b>
       //   ${markerData.state ? markerData.state : ''}
-      //   ${markerData.country ? markerData.country : ''}
+      //   ${markerData.county ? markerData.county : ''}
       // </b></p>
       // <p>${markerData.description}</p>
 
@@ -78,7 +78,7 @@ function addLocationClicking() {
             longitude: mapsMouseEvent.latLng.lng().toFixed(6),
             elevation: Math.round(results[0].elevation),
             state: undefined,
-            country: undefined,
+            county: undefined,
           }
 
           if (newMarker) {
@@ -100,18 +100,18 @@ function addLocationClicking() {
                 return console.log('No results found')
               }
 
-              const { state, country } = results[0].address_components.reduce(
+              const { state, county } = results[0].address_components.reduce(
                 (acc, component) => {
                   if (component.types.includes('administrative_area_level_1'))
                     acc.state = component.short_name
-                  if (component.types.includes('country'))
-                    acc.country = component.short_name
+                  if (component.types.includes('administrative_area_level_2'))
+                    acc.county = component.short_name
                   return acc
                 },
-                { state: '', country: '' }
+                { state: '', county: '' }
               )
               locationData.state = state
-              locationData.country = country
+              locationData.county = county
               emit('location-clicked', locationData)
             }
           )

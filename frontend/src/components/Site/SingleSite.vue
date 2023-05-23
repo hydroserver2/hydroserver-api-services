@@ -119,12 +119,20 @@
             <td>{{ thingStore.things[thingId]?.state }}</td>
           </tr>
           <tr>
-            <td><i class="fas fa-flag-usa"></i>Site Owners</td>
-            <td v-for="owner in thingStore.things[thingId]?.owners">
-              <li style="list-style: none">
-                {{ owner.firstname }} {{ owner.lastname }}:
-                {{ owner.organization }}
-              </li>
+            <td><i class="fas fa-flag-usa"></i>County</td>
+            <td>{{ thingStore.things[thingId]?.county }}</td>
+          </tr>
+          <tr>
+            <td><i class="fas fa-user"></i>Site Owners</td>
+            <td>
+              <div v-for="owner in thingStore.things[thingId]?.owners">
+                <ul>
+                  <li style="list-style: none">
+                    {{ owner.firstname }} {{ owner.lastname }}:
+                    {{ owner.organization }}
+                  </li>
+                </ul>
+              </div>
             </td>
           </tr>
         </table>

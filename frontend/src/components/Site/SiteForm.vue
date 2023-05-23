@@ -82,7 +82,7 @@
             <!--              />-->
             <!--            </v-col>-->
             <v-col cols="12" sm="6">
-              <v-text-field disabled label="County" v-model="thing.county" />
+              <v-text-field label="County" v-model="thing.county" />
             </v-col>
           </v-row>
         </v-col>
@@ -180,7 +180,7 @@ function onMapLocationClicked(locationData: Thing) {
   thing.longitude = locationData.longitude
   thing.elevation = locationData.elevation
   thing.state = locationData.state
-  // thing.county = locationData.county
+  thing.county = locationData.county
 }
 
 onMounted(async () => {

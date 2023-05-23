@@ -29,7 +29,7 @@ class Location(models.Model):
     elevation_datum = models.CharField(max_length=255)  # CV Table?
     city = models.CharField(max_length=150, null=True, blank=True)
     state = models.CharField(max_length=150, null=True, blank=True)
-    country = models.CharField(max_length=150, null=True, blank=True)
+    county = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return self.name
