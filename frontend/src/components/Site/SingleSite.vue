@@ -1,11 +1,13 @@
 <template>
   <div style="margin: 1rem" v-if="thingStore.things[thingId]">
     <h2>{{ thingStore.things[thingId]?.name }}</h2>
-    <GoogleMap
-      :key="thingStore.things[thingId]"
-      :things="[thingStore.things[thingId]]"
-      :mapOptions="mapOptions"
-    />
+    <div class="mb-8 flex-shrink-0" style="height: 25rem">
+      <GoogleMap
+        :key="thingStore.things[thingId]"
+        :things="[thingStore.things[thingId]]"
+        :mapOptions="mapOptions"
+      />
+    </div>
 
     <div class="site-information-container">
       <h2 class="site-information-title">Site Information</h2>
