@@ -70,57 +70,57 @@ class Thing(ComponentMap):
 
     id = FieldMap(
         MappedField(['id']),
-        MappedField(['thing', 'id'])
+        MappedField(['id'])
     )
 
     name = FieldMap(
         MappedField(['name']),
-        MappedField(['thing', 'name'])
+        MappedField(['name'])
     )
 
     description = FieldMap(
         MappedField(['description']),
-        MappedField(['thing', 'description'])
+        MappedField(['description'])
     )
 
     sampling_feature_code = FieldMap(
         MappedField(['properties', 'samplingFeatureCode']),
-        MappedField(['thing', 'sampling_feature_code'])
+        MappedField(['sampling_feature_code'])
     )
 
     sampling_feature_type = FieldMap(
         MappedField(['properties', 'samplingFeatureType']),
-        MappedField(['thing', 'sampling_feature_type'])
+        MappedField(['sampling_feature_type'])
     )
 
     site_type = FieldMap(
         MappedField(['properties', 'siteType']),
-        MappedField(['thing', 'site_type'])
+        MappedField(['site_type'])
     )
 
     first_name = FieldMap(
         MappedField(['properties', 'contactPeople', 'firstName']),
-        MappedField(['person', 'first_name'])
+        MappedField(['associates', 'person', 'first_name'])
     )
 
     last_name = FieldMap(
         MappedField(['properties', 'contactPeople', 'lastName']),
-        MappedField(['person', 'last_name'])
+        MappedField(['associates', 'person', 'last_name'])
     )
 
     email = FieldMap(
         MappedField(['properties', 'contactPeople', 'email']),
-        MappedField(['person', 'email'])
+        MappedField(['associates', 'person', 'email'])
     )
 
     organization = FieldMap(
         MappedField(['properties', 'contactPeople', 'organization']),
-        MappedField(['person', 'organization'])
+        MappedField(['associates', 'person', 'organization'])
     )
 
     phone = FieldMap(
         MappedField(['properties', 'contactPeople', 'phone']),
-        MappedField(['person', 'phone'])
+        MappedField(['associates', 'person', 'phone'])
     )
 
 

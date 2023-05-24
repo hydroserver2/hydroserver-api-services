@@ -7,7 +7,7 @@ from odata_query.rewrite import AliasRewriter
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls.exceptions import Http404
 from django.db.models.expressions import F
-from hydrothings import SensorThingsAbstractEngine
+from hydrothings import SensorThingsAbstractEngine, components
 from hydrothings.utils import lookup_component
 from sensorthings.mapper import sensorthings_mapper
 from sites import models as core_models
@@ -24,25 +24,32 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         self.path = path
         self.component = component
 
-    def get_fields(self, select=None):
+    def get_fields(self, select=None, expand=None, component_override=None, prefix=''):
         """"""
 
-        if self.component == 'Observation':
-            extra_fields = ['datastream_id']
-        else:
-            extra_fields = []
+        component = component_override if component_override else self.component
 
-        if select is not None:
-            select = [
-                [field] for field in select.split(',')
-            ]
+        if not expand:
+            expand = []
 
-        if not sensorthings_mapper.get(self.component):
+        if not sensorthings_mapper.get(component):
             return []
-        else:
-            return [
-                '__'.join(field) for field in sensorthings_mapper[self.component].get_output_paths(select)
-            ] + extra_fields
+
+        fields = [
+            prefix + '__'.join(field) for field in sensorthings_mapper[component].get_output_paths(select)
+        ]
+
+        extra_fields = [prefix + 'datastream_id'] if component == 'Observation' else []
+
+        nested_fields = [i for j in [
+            self.get_fields(
+                component_override=field['entity'],
+                expand=[field['child']] if field['child'] else None,
+                prefix=prefix + lookup_component(field['entity'], 'camel_singular', 'snake_singular') + '__'
+            ) for field in expand
+        ] for i in j]
+
+        return fields + extra_fields + nested_fields
 
     def resolve_entity_id_chain(self, entity_chain: List[Tuple[str, Union[uuid.UUID, int, str]]]) -> bool:
         """"""
@@ -78,9 +85,14 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     ) -> dict:
         """"""
 
-        if self.component == 'Thing':
-            query = core_models.ThingAssociation.objects
-        elif hasattr(core_models, self.component):
+        # if self.component == 'Thing':
+        #     query = core_models.ThingAssociation.objects
+        # elif hasattr(core_models, self.component):
+        #     query = getattr(core_models, self.component).objects
+        # else:
+        #     query = core_models.Thing.objects.none()
+
+        if hasattr(core_models, self.component):
             query = getattr(core_models, self.component).objects
         else:
             query = core_models.Thing.objects.none()
@@ -95,9 +107,6 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         if order_by is not None:
             query = self.apply_order(query, order_by)
 
-        # if expand is not None:
-        #     query = self.apply_expand(query, expand)
-
         if count is True:
             response['count'] = response_count
 
@@ -110,8 +119,12 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         if skip is None:
             skip = 0
 
-        queryset = query.values(*self.get_fields(select))
+        fields = self.get_fields(select, expand)
+
+        queryset = query.values(*fields)
         queryset = self.apply_pagination(queryset, top, skip)
+
+        return {}
 
         response_df = pd.DataFrame(list(queryset))
         response_df = self.transform_response(response_df)
@@ -126,6 +139,9 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             self.build_self_links(entity, is_collection=True)
             for entity in response_value
         ]
+
+        response_value[0]['thing'] = {'name': 'hello'}
+        response_value[0]['sensor'] = {'name': 'some_sensor'}
 
         response['value'] = response_value
         response['next_link'] = self.build_next_link(top, skip)
