@@ -2,7 +2,8 @@
   <template v-if="thingStore.loaded">
     <div class="mb-8 flex-shrink-0" style="height: 25rem">
       <GoogleMap
-        :markers="thingStore.ownedOrFollowedThings"
+        :key="thingStore.ownedOrFollowedThings"
+        :things="thingStore.ownedOrFollowedThings"
         v-if="thingStore.ownedOrFollowedThings"
       ></GoogleMap>
       <v-divider></v-divider>

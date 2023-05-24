@@ -2,7 +2,8 @@
   <div style="margin: 1rem" v-if="thingStore.things[thingId]">
     <h2>{{ thingStore.things[thingId]?.name }}</h2>
     <GoogleMap
-      :markers="[thingStore.things[thingId]]"
+      :key="thingStore.things[thingId]"
+      :things="[thingStore.things[thingId]]"
       :mapOptions="mapOptions"
     />
 
