@@ -74,7 +74,7 @@
     elevation_datum: DATUM
     city: Logan
     state: UT
-    country: USA
+    county: USA
 - model: sites.location
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
@@ -87,7 +87,7 @@
     elevation_datum: DATUM
     city: Logan
     state: UT
-    country: USA
+    county: USA
 - model: sites.location
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
@@ -100,7 +100,7 @@
     elevation_datum: DATUM
     city: Logan
     state: UT
-    country: USA
+    county: USA
 
 
 - model: sites.sensor

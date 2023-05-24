@@ -39,6 +39,7 @@
     <DeleteModal
       itemName="sensor"
       :item="properties.sensor"
+      v-if="properties.sensor"
       parameter-name="method_id"
       @delete="deleteSensor"
       @close="flags.sensorDelete = false"
@@ -75,6 +76,7 @@
     <DeleteModal
       itemName="Observed Property"
       :item="properties.op"
+      v-if="properties.op"
       parameter-name="observed_property_id"
       @delete="deleteObservedProperty"
       @close="flags.opDelete = false"
@@ -113,6 +115,7 @@
     <DeleteModal
       itemName="processing level"
       :item="properties.pl"
+      v-if="properties.pl"
       parameter-name="processing_level_id"
       @delete="deleteProcessingLevel"
       @close="flags.plDelete = false"
@@ -148,6 +151,7 @@
     <DeleteModal
       itemName="unit"
       :item="properties.unit"
+      v-if="properties.unit"
       parameter-name="unit_id"
       @delete="deleteUnit"
       @close="flags.unitDelete = false"

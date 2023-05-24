@@ -265,7 +265,7 @@ def thing_to_dict(thing, user):
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
         "state": thing.location.state,
-        "country": thing.location.country,
+        "county": thing.location.county,
         "is_primary_owner": False,
         "owns_thing": False,
         "follows_thing": False,
@@ -321,9 +321,8 @@ def create_thing(request, data: ThingInput):
                                 description='location',
                                 encoding_type="application/geo+json",
                                 latitude=data.latitude, longitude=data.longitude, elevation=data.elevation,
-                                # city=data.city,
                                 state=data.state,
-                                # county=data.county,
+                                county=data.county,
                                 thing=new_thing)
 
         ThingAssociation.objects.create(thing=new_thing, person=request.authenticated_user,
@@ -359,7 +358,7 @@ class UpdateThingInput(Schema):
     elevation: float = None
     city: str = None
     state: str = None
-    country: str = None
+    county: str = None
 
 
 @api.patch('/things/{thing_id}/followership', auth=jwt_auth)
@@ -408,8 +407,8 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
         location.city = data.city
     if data.state is not None:
         location.state = data.state
-    if data.country is not None:
-        location.country = data.country
+    if data.county is not None:
+        location.county = data.county
 
     thing.save()
     location.save()
