@@ -18,8 +18,27 @@
           thingStore.things[thingId].owns_thing
         "
       >
+        <v-btn @click="showAccessControlModal = true">Access Control</v-btn>
+        <v-dialog v-model="showAccessControlModal" width="80rem">
+          <SiteAccessControl
+            @close="showAccessControlModal = false"
+            :thing-id="thingId"
+          ></SiteAccessControl>
+        </v-dialog>
         <v-btn @click="showRegisterSiteModal = true" color="green"
           >Edit Site Information</v-btn
+        >
+        <v-dialog v-model="showRegisterSiteModal" width="80rem">
+          <SiteForm
+            @close="showRegisterSiteModal = false"
+            :thing-id="thingId"
+          ></SiteForm>
+        </v-dialog>
+        <v-btn
+          color="red-darken-3"
+          style="margin-left: 1rem"
+          @click="showDeleteModal = true"
+          >Delete Site</v-btn
         >
         <v-dialog v-model="showDeleteModal" width="40rem">
           <v-card>
@@ -50,13 +69,6 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-
-        <v-btn
-          color="red-darken-3"
-          style="margin-left: 1rem"
-          @click="showDeleteModal = true"
-          >Delete Site</v-btn
-        >
       </div>
       <div
         v-else-if="
@@ -74,13 +86,6 @@
         <label>Follow Thing</label>
       </div>
     </div>
-
-    <v-dialog v-model="showRegisterSiteModal" width="80rem">
-      <SiteForm
-        @close="showRegisterSiteModal = false"
-        :thing-id="thingId"
-      ></SiteForm>
-    </v-dialog>
 
     <div class="content-wrapper">
       <div class="table-container">
@@ -184,7 +189,9 @@
             </div>
             {{ datastream.unit_name }}
             <br />
-            {{ datastream.most_recent_observation.result_time }}
+            {{
+              (datastream.most_recent_observation as Observation).result_time
+            }}
           </v-card-item>
           <v-card-item v-else>No data for this datastream</v-card-item>
         </v-card>
@@ -196,16 +203,18 @@
 <script setup lang="ts">
 import GoogleMap from '@/components/GoogleMap.vue'
 import ImageCarousel from '@/components/ImageCarousel.vue'
+import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
+import SiteForm from '@/components/Site/SiteForm.vue'
 import MoonIm1 from '@/assets/moon_bridge1.jpg'
 import MoonIm2 from '@/assets/moon_bridge2.jpg'
 import MoonIm3 from '@/assets/moon_bridge3.jpg'
 import { computed, onMounted, ref } from 'vue'
-import SiteForm from '@/components/Site/SiteForm.vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import router from '@/router/router'
 import { useDatastreamStore } from '@/store/datastreams'
+import { Observation } from '@/types'
 
 const authStore = useAuthStore()
 const thingStore = useThingStore()
@@ -215,6 +224,8 @@ const thingId = route.params.id.toString()
 
 const showRegisterSiteModal = ref(false)
 const showDeleteModal = ref(false)
+const showAccessControlModal = ref(false)
+
 const deleteInput = ref('')
 const carouselItems = ref([
   {
