@@ -244,8 +244,10 @@ def update_user(request, data: UpdateUserInput):
 
 
 @api.delete('/user', auth=jwt_auth)
+@transaction.atomic
 def delete_user(request):
     try:
+        Thing.objects.filter(associates__person=request.authenticated_user, associates__is_primary_owner=True).delete()
         request.authenticated_user.delete()
         logout(request)
         return {'detail': 'Your account has been removed!'}

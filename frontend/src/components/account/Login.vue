@@ -79,7 +79,7 @@ const rules = {
 
 const loginSubmit = async () => {
   if (valid) {
-    authStore.login(email.value, password.value)
+    await authStore.login(email.value, password.value)
   }
 }
 </script>

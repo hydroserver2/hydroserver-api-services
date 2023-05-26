@@ -6,19 +6,19 @@ import Notification from './notifications'
 export const useAuthStore = defineStore({
   id: 'authentication',
   state: () => ({
-  access_token: '',
-  refresh_token: '',
+    access_token: '',
+    refresh_token: '',
     user: {
-    id: '',
-    email: '',
-    first_name: '',
-    middle_name: '',
-    last_name: '',
-    phone: '',
-    address: '',
-    organization: '',
-    type: '',
-  },
+      id: '',
+      email: '',
+      first_name: '',
+      middle_name: '',
+      last_name: '',
+      phone: '',
+      address: '',
+      organization: '',
+      type: '',
+    },
     loggingIn: false,
   }),
   actions: {
@@ -30,17 +30,37 @@ export const useAuthStore = defineStore({
       try {
         this.loggingIn = true
         this.resetState()
-        const { data } = await this.$http.post('/token', {
+        const response = await this.$http.post('/token', {
           email: email,
           password: password,
         })
-        this.access_token = data.access_token
-        this.refresh_token = data.refresh_token
-        this.user = data.user
-        await router.push({ name: 'Sites' })
-        Notification.toast({ message: 'You have logged in!' })
-      } catch (error) {
-        await this.logout()
+        if (response.status === 401) {
+          Notification.toast({
+            message: 'Invalid email or password.',
+          })
+        } else if (response.status >= 500 && response.status < 600) {
+          Notification.toast({
+            message: 'Server error. Please try again later.',
+          })
+        } else {
+          this.access_token = response.data.access_token
+          this.refresh_token = response.data.refresh_token
+          this.user = response.data.user
+          await router.push({ name: 'Sites' })
+          Notification.toast({ message: 'You have logged in!' })
+        }
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+          })
+        } else {
+          this.resetState()
+          Notification.toast({
+            message: 'Something went wrong',
+          })
+        }
+        console.error('Error Logging in', error)
       } finally {
         this.loggingIn = false
       }
@@ -68,6 +88,19 @@ export const useAuthStore = defineStore({
         const { data } = await this.$http.patch('/user', user)
         this.user = data
       } catch (error) {}
+    },
+    async deleteAccount() {
+      try {
+        await this.$http.delete('/user')
+        await this.logout()
+        Notification.toast({ message: 'Your account has been deleted' })
+      } catch (error) {
+        console.error('Error deleting account:', error)
+        Notification.toast({
+          message:
+            'Error occurred while deleting your account. Please try again.',
+        })
+      }
     },
   },
   getters: {

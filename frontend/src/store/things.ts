@@ -4,6 +4,11 @@ import { Thing } from '@/types'
 export const useThingStore = defineStore('things', {
   state: () => ({ things: {} as Record<string, Thing>, loaded: false }),
   getters: {
+    primaryOwnedThings(): Thing[] {
+      return Object.values(this.things).filter(
+        (thing) => thing.is_primary_owner
+      )
+    },
     ownedThings(): Thing[] {
       return Object.values(this.things).filter((thing) => thing.owns_thing)
     },
