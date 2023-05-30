@@ -46,6 +46,16 @@
               <span class="text-h5">Confirm Deletion</span>
             </v-card-title>
             <v-card-text>
+              This action will permanently delete the site along with all
+              associated datastreams and observations
+              <strong>for all users of this system</strong>. If you want to keep
+              your data, you can backup to HydroShare or download a local copy
+              before deletion. Alternatively, you can pass ownership of this
+              site to someone else on the
+              <v-btn @click="switchToAccessControlModal">Access Control</v-btn>
+              page.
+            </v-card-text>
+            <v-card-text>
               Please type the site name (<strong>{{
                 thingStore.things[thingId].name
               }}</strong
@@ -280,6 +290,11 @@ onMounted(async () => {
   await thingStore.fetchThingById(thingId)
   await datastreamStore.fetchDatastreamsByThingId(thingId)
 })
+
+function switchToAccessControlModal() {
+  showDeleteModal.value = false
+  showAccessControlModal.value = true
+}
 </script>
 
 <style scoped lang="scss">
