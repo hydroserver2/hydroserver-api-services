@@ -2,7 +2,7 @@
   <v-card>
     <v-card-title class="text-h5">Access Control</v-card-title>
     <v-card-text>
-      <v-row>
+      <v-row v-if="thingStore.things[thingId]?.is_primary_owner">
         <v-col cols="12" md="6">
           <h6 class="text-h6 my-4">
             Add a secondary owner to this site
@@ -93,6 +93,18 @@
                 {{ owner.firstname }} {{ owner.lastname }} -
                 {{ owner.organization }}
                 <strong v-if="owner.is_primary_owner">(Primary)</strong>
+                <div v-else style="text-align: right">
+                  <v-btn
+                    color="red"
+                    v-if="
+                      thingStore.things[thingId]?.is_primary_owner ||
+                      owner.email == authStore.user.email
+                    "
+                    @click="removeOwner(owner.email)"
+                  >
+                    Remove
+                  </v-btn>
+                </div>
               </li>
             </ul>
           </v-card-text>
@@ -120,6 +132,7 @@
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, onMounted } from 'vue'
 import { useThingStore } from '@/store/things'
+import { useAuthStore } from '@/store/authentication'
 
 const props = defineProps({
   thingId: String,
@@ -131,12 +144,23 @@ const newOwnerEmail = ref('')
 const newPrimaryOwnerEmail = ref('')
 const sitePrivacy = ref(false)
 const thingStore = useThingStore()
-const addSecondaryOwner = () => {
-  // Add secondary owner logic here
+const authStore = useAuthStore()
+
+async function addSecondaryOwner() {
+  if (props.thingId && newOwnerEmail.value)
+    await thingStore.addSecondaryOwner(props.thingId, newOwnerEmail.value)
 }
 
-const transferPrimaryOwnership = () => {
-  // Transfer primary ownership logic here
+async function transferPrimaryOwnership() {
+  if (props.thingId && newPrimaryOwnerEmail.value)
+    await thingStore.transferPrimaryOwnership(
+      props.thingId,
+      newPrimaryOwnerEmail.value
+    )
+}
+
+async function removeOwner(email: string) {
+  if (props.thingId && email) await thingStore.removeOwner(props.thingId, email)
 }
 
 const toggleSitePrivacy = () => {

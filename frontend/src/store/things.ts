@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Thing } from '@/types'
+import Notification from '@/store/notifications'
 
 export const useThingStore = defineStore('things', {
   state: () => ({ things: {} as Record<string, Thing>, loaded: false }),
@@ -81,6 +82,75 @@ export const useThingStore = defineStore('things', {
         this.$patch({ things: newThings })
       } catch (error) {
         console.error('Error deleting thing', error)
+      }
+    },
+    async addSecondaryOwner(thingId: string, email: string) {
+      try {
+        const response = await this.$http.patch(
+          `/things/${thingId}/ownership`,
+          {
+            email: email,
+            make_owner: true,
+          }
+        )
+        if (response && response.status == 200) {
+          this.things[thingId] = response.data
+          Notification.toast({
+            message: `Successfully added secondary owner!`,
+          })
+        } else {
+          Notification.toast({
+            message: `${response.data.error}`,
+          })
+        }
+      } catch (error) {
+        console.error('Error adding secondary owner', error)
+      }
+    },
+    async transferPrimaryOwnership(thingId: string, email: string) {
+      try {
+        const response = await this.$http.patch(
+          `/things/${thingId}/ownership`,
+          {
+            email: email,
+            transfer_primary: true,
+          }
+        )
+        if (response && response.status == 200) {
+          this.things[thingId] = response.data
+          Notification.toast({
+            message: `Successfully transferred ownership!`,
+          })
+        } else {
+          Notification.toast({
+            message: `${response.data.error}`,
+          })
+        }
+      } catch (error) {
+        console.error('Error transferring primary ownership', error)
+      }
+    },
+    async removeOwner(thingId: string, email: string) {
+      try {
+        const response = await this.$http.patch(
+          `/things/${thingId}/ownership`,
+          {
+            email: email,
+            remove_owner: true,
+          }
+        )
+        if (response && response.status == 200) {
+          this.things[thingId] = response.data
+          Notification.toast({
+            message: `Successfully removed owner`,
+          })
+        } else {
+          Notification.toast({
+            message: `${response.data.error}`,
+          })
+        }
+      } catch (error) {
+        console.error('Error removing owner', error)
       }
     },
   },

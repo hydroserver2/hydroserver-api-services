@@ -65,7 +65,7 @@ def thing_ownership_required(func):
         except Thing.DoesNotExist:
             raise HttpError(403, 'Site cannot be found')
         if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
-            raise HttpError(403, 'You do not have permission to access this thing.')
+            raise HttpError(403, 'You do not have permission to access this site.')
 
         request.thing = thing
         return func(request, *args, **kwargs)
@@ -282,6 +282,7 @@ def thing_to_dict(thing, user):
                 "firstname": person.first_name,
                 "lastname": person.last_name,
                 "organization": person.organization,
+                "email": person.email,
                 "is_primary_owner": thing_association.is_primary_owner
             })
         elif thing_association.follows_thing:
@@ -347,6 +348,55 @@ def get_thing(request, thing_id: str):
     # thing_dict["datastreams"] = [datastream.id for datastream in datastreams]
 
     return JsonResponse(thing_dict)
+
+
+class UpdateOwnershipInput(Schema):
+    email: str
+    make_owner: bool = False
+    remove_owner: bool = False
+    transfer_primary: bool = False
+
+
+@api.patch('/things/{thing_id}/ownership', auth=jwt_auth)
+@thing_ownership_required
+def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
+    flags = [data.make_owner, data.remove_owner, data.transfer_primary]
+    if sum(flag is True for flag in flags) != 1:
+        return JsonResponse(
+            {"error": "Only one action (make_owner, remove_owner, transfer_primary) should be true."}, status=400)
+
+    try:
+        user = CustomUser.objects.get(email=data.email)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({"error": "Specified user not found."}, status=404)
+
+    current_user_association = ThingAssociation.objects.get(thing=request.thing, person=request.authenticated_user)
+
+    if request.authenticated_user == user and current_user_association.is_primary_owner:
+        return JsonResponse({"error": "Primary owner cannot edit their own ownership."}, status=403)
+    if not current_user_association.is_primary_owner and user != request.authenticated_user:
+        return JsonResponse({"error": "Only the primary owner can modify other users' ownership."}, status=403)
+
+    thing_association, created = ThingAssociation.objects.get_or_create(thing=request.thing, person=user)
+
+    if data.transfer_primary:
+        if not current_user_association.is_primary_owner:
+            return JsonResponse({"error": "Only primary owner can transfer primary ownership."}, status=403)
+        current_user_association.is_primary_owner = False
+        current_user_association.save()
+        thing_association.is_primary_owner = True
+        thing_association.owns_thing = True
+    elif data.remove_owner:
+        if thing_association.is_primary_owner:
+            return JsonResponse({"error": "Cannot remove primary owner."}, status=400)
+        thing_association.delete()
+        return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
+    elif data.make_owner:
+        thing_association.owns_thing = True
+
+    thing_association.follows_thing = False
+    thing_association.save()
+    return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
 
 
 class UpdateThingInput(Schema):

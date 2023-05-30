@@ -3,6 +3,7 @@ export interface Owner {
   lastname: string
   organization: string
   is_primary_owner: boolean
+  email: string
 }
 
 export interface Thing {
