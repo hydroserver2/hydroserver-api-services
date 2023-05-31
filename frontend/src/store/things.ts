@@ -60,8 +60,13 @@ export const useThingStore = defineStore('things', {
     },
     async updateThing(updatedThing: Thing) {
       try {
-        await this.$http.patch(`/things/${updatedThing.id}`, updatedThing)
-        this.things[updatedThing.id] = updatedThing
+        const response = await this.$http.patch(
+          `/things/${updatedThing.id}`,
+          updatedThing
+        )
+        if (response && response.status == 200) {
+          this.things[updatedThing.id] = response.data as Thing
+        }
       } catch (error) {
         console.error('Error updating thing', error)
       }
@@ -70,6 +75,18 @@ export const useThingStore = defineStore('things', {
       try {
         await this.$http.patch(`/things/${updatedThing.id}/followership`)
         this.things[updatedThing.id] = updatedThing
+      } catch (error) {
+        console.error('Error updating thing followership', error)
+      }
+    },
+    async updateThingPrivacy(thingId: string, thingPrivacy: boolean) {
+      try {
+        const response = await this.$http.patch(`/things/${thingId}/privacy`, {
+          is_private: thingPrivacy,
+        })
+        if (response && response.status == 200) {
+          this.things[thingId] = response.data as Thing
+        }
       } catch (error) {
         console.error('Error updating thing followership', error)
       }

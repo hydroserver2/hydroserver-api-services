@@ -263,6 +263,7 @@ def thing_to_dict(thing, user):
         "sampling_feature_type": thing.sampling_feature_type,
         "sampling_feature_code": thing.sampling_feature_code,
         "site_type": thing.site_type,
+        "is_private": thing.is_private,
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
@@ -272,7 +273,6 @@ def thing_to_dict(thing, user):
         "owns_thing": False,
         "follows_thing": False,
         "owners": [],
-        "followers": 0,
     }
     thing_associations = ThingAssociation.objects.filter(thing=thing)
     for thing_association in thing_associations:
@@ -285,8 +285,6 @@ def thing_to_dict(thing, user):
                 "email": person.email,
                 "is_primary_owner": thing_association.is_primary_owner
             })
-        elif thing_association.follows_thing:
-            thing_dict['followers'] += 1
     if user is not None:
         thing_association = thing_associations.filter(person=user).first()
         if thing_association:
@@ -336,7 +334,12 @@ def create_thing(request, data: ThingInput):
 
 @api.get('/things', auth=jwt_check_user)
 def get_things(request):
-    things = Thing.objects.all()
+    if request.user_if_there_is_one:
+        owned_things = ThingAssociation.objects.filter(
+            person=request.user_if_there_is_one).values_list('thing', flat=True)
+        things = Thing.objects.filter(Q(is_private=False) | Q(id__in=owned_things))
+    else:
+        things = Thing.objects.filter(is_private=False)
     return JsonResponse([thing_to_dict(thing, request.user_if_there_is_one) for thing in things], safe=False)
 
 
@@ -399,18 +402,25 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
     return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
 
 
-class UpdateThingInput(Schema):
-    name: str = None
-    description: str = None
-    sampling_feature_type: str = None
-    sampling_feature_code: str = None
-    site_type: str = None
-    latitude: float = None
-    longitude: float = None
-    elevation: float = None
-    city: str = None
-    state: str = None
-    county: str = None
+class UpdateThingPrivacy(Schema):
+    is_private: bool
+
+
+@api.patch('/things/{thing_id}/privacy', auth=jwt_auth)
+@thing_ownership_required
+def update_thing_privacy(request, thing_id: str, data: UpdateThingPrivacy):
+    thing = request.thing
+    thing.is_private = data.is_private
+    thing_associations = ThingAssociation.objects.filter(thing=thing)
+
+    if data.is_private:
+        for thing_association in thing_associations:
+            if thing_association.follows_thing:
+                thing_association.delete()
+
+    thing.save()
+
+    return JsonResponse(thing_to_dict(thing, request.authenticated_user))
 
 
 @api.patch('/things/{thing_id}/followership', auth=jwt_auth)
@@ -429,6 +439,20 @@ def update_thing_followership(request, thing_id: str):
         thing_association.save()
 
     return JsonResponse(thing_to_dict(thing, request.authenticated_user))
+
+
+class UpdateThingInput(Schema):
+    name: str = None
+    description: str = None
+    sampling_feature_type: str = None
+    sampling_feature_code: str = None
+    site_type: str = None
+    latitude: float = None
+    longitude: float = None
+    elevation: float = None
+    city: str = None
+    state: str = None
+    county: str = None
 
 
 @api.patch('/things/{thing_id}')
@@ -465,7 +489,7 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
     thing.save()
     location.save()
 
-    return JsonResponse(thing_to_dict(thing, request.authenticated_user))
+    return JsonResponse(thing_to_dict(thing, request.authenticated_user), status=200)
 
 
 @api.delete('/things/{thing_id}')

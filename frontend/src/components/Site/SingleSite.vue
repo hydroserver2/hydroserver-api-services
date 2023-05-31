@@ -19,7 +19,7 @@
         "
       >
         <v-btn @click="showAccessControlModal = true">Access Control</v-btn>
-        <v-dialog v-model="showAccessControlModal" width="80rem">
+        <v-dialog v-model="showAccessControlModal" width="60rem">
           <SiteAccessControl
             @close="showAccessControlModal = false"
             :thing-id="thingId"
@@ -139,6 +139,23 @@
           <tr>
             <td><i class="fas fa-flag-usa"></i>County</td>
             <td>{{ thingStore.things[thingId]?.county }}</td>
+          </tr>
+          <tr>
+            <td>
+              <i
+                :class="
+                  thingStore.things[thingId]?.is_private
+                    ? 'fas fa-lock'
+                    : 'fas fa-globe'
+                "
+              ></i>
+              Privacy
+            </td>
+            <td>
+              {{
+                thingStore.things[thingId]?.is_private ? 'Private' : 'Public'
+              }}
+            </td>
           </tr>
           <tr>
             <td><i class="fas fa-user"></i>Site Owners</td>

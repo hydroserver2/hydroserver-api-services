@@ -12,6 +12,7 @@ export interface Thing {
   owners: Owner[]
   site_type: string
   sampling_feature_code: string
+  is_private: boolean
   latitude: number
   longitude: number
   elevation: number

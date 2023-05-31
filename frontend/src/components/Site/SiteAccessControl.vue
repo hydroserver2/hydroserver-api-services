@@ -110,11 +110,43 @@
           </v-card-text>
         </v-col>
         <v-col cols="12" md="6">
-          <h6 class="text-h6 my-4">Toggle Site Privacy</h6>
-          <v-card-text>
+          <h6 class="text-h6 my-4" v-if="thingStore.things[props.thingId]">
+            Toggle Site Privacy
+            <v-tooltip>
+              <template v-slot:activator="{ props }">
+                <v-icon
+                  small
+                  class="ml-2"
+                  color="grey lighten-1"
+                  v-bind="props"
+                >
+                  mdi-help-circle-outline
+                </v-icon>
+              </template>
+              <template v-slot:default>
+                <p v-if="thingStore.things[props.thingId].is_private">
+                  Setting your site to public will make it visible to all users
+                  and guests of the system. They will be able to follow your
+                  site and download its data
+                </p>
+                <p v-else>
+                  setting your site to private will make it visible to only you
+                  and other owners of your site. Anyone who is currently
+                  following your site who is not an owner will be removed as a
+                  follower
+                </p>
+              </template>
+            </v-tooltip>
+          </h6>
+          <v-card-text v-if="thingStore.things[props.thingId]">
             <v-switch
-              v-model="sitePrivacy"
-              :label="sitePrivacy ? 'Site is private' : 'Site is public'"
+              v-model="thingStore.things[props.thingId].is_private"
+              :label="
+                thingStore.things[props.thingId].is_private
+                  ? 'Site is private'
+                  : 'Site is public'
+              "
+              color="red"
               @change="toggleSitePrivacy"
             ></v-switch>
           </v-card-text>
@@ -142,7 +174,6 @@ const emits = defineEmits(['close'])
 
 const newOwnerEmail = ref('')
 const newPrimaryOwnerEmail = ref('')
-const sitePrivacy = ref(false)
 const thingStore = useThingStore()
 const authStore = useAuthStore()
 
@@ -163,8 +194,12 @@ async function removeOwner(email: string) {
   if (props.thingId && email) await thingStore.removeOwner(props.thingId, email)
 }
 
-const toggleSitePrivacy = () => {
-  // Toggle site privacy logic here
+async function toggleSitePrivacy() {
+  if (!props.thingId) return
+  await thingStore.updateThingPrivacy(
+    props.thingId,
+    thingStore.things[props.thingId].is_private
+  )
 }
 
 const emitClose = () => {
