@@ -7,7 +7,6 @@ from sensorthings.auth import observation_authorization, BasicAuth
 
 
 st_api_1_1 = SensorThingsAPI(
-    auth=BasicAuth(),
     engine=SensorThingsEngine,
     title=settings.STAPI_TITLE,
     version='1.1',
@@ -97,6 +96,7 @@ st_api_1_1 = SensorThingsAPI(
         ),
         SensorThingsEndpoint(
             name='create_observation',
+            authentication=BasicAuth(),
             authorization=observation_authorization
         ),
         SensorThingsEndpoint(
@@ -106,6 +106,7 @@ st_api_1_1 = SensorThingsAPI(
         ),
         SensorThingsEndpoint(
             name='delete_observation',
+            authentication=BasicAuth(),
             authorization=observation_authorization
         ),
         SensorThingsEndpoint(
