@@ -1,4 +1,5 @@
-import time
+import copy
+import uuid
 from functools import wraps
 from datetime import timedelta
 
@@ -360,8 +361,115 @@ class UpdateOwnershipInput(Schema):
     transfer_primary: bool = False
 
 
+def transfer_properties_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's observed property from the old owner to the new owner.
+    Checks if the old owner is assigned and correct, then searches for a matching property in
+    the new owner's properties. If found, assigns this property to the datastream. If not found,
+    creates a new property for the datastream. This way each owner keeps their own list of unique properties
+    """
+    if datastream.observed_property.person != old_owner or datastream.observed_property.person is None:
+        return
+
+    fields_to_compare = ['name', 'definition', 'description', 'variable_type', 'variable_code']
+    same_properties = ObservedProperty.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.observed_property, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.observed_property = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.observed_property)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.observed_property = new_property
+
+    datastream.save()
+
+
+def transfer_processing_level_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's processing level from the old owner to the new owner.
+    """
+    if datastream.processing_level.person != old_owner or datastream.processing_level.person is None:
+        return
+
+    fields_to_compare = ['processing_level_code', 'definition', 'explanation']
+    same_properties = ProcessingLevel.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.processing_level, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.processing_level = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.processing_level)
+        new_property.id = None  # Set to None so Django can auto-generate a new unique integer id
+        new_property.person = new_owner
+        new_property.save()
+        datastream.processing_level = new_property
+
+    datastream.save()
+
+
+def transfer_unit_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's unit from the old owner to the new owner.
+    """
+    if datastream.unit.person != old_owner or datastream.unit.person is None:
+        return
+
+    fields_to_compare = ['name', 'symbol', 'definition', 'unit_type']
+
+    same_properties = Unit.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.unit, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.unit = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.unit)
+        new_property.id = None  # Set to None so Django can auto-generate a new unique integer id
+        new_property.person = new_owner
+        new_property.save()
+        datastream.unit = new_property
+
+    datastream.save()
+
+
+def transfer_sensor_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's sensor from the old owner to the new owner.
+    """
+    if datastream.sensor.person != old_owner or datastream.sensor.person is None:
+        return
+
+    fields_to_compare = ['name', 'description', 'encoding_type', 'manufacturer', 'model', 'model_url',
+                         'method_type', 'method_link', 'method_code']
+
+    same_properties = Sensor.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.sensor, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.sensor = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.sensor)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.sensor = new_property
+
+    datastream.save()
+
+
 @api.patch('/things/{thing_id}/ownership', auth=jwt_auth)
 @thing_ownership_required
+@transaction.atomic
 def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
     flags = [data.make_owner, data.remove_owner, data.transfer_primary]
     if sum(flag is True for flag in flags) != 1:
@@ -385,6 +493,12 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
     if data.transfer_primary:
         if not current_user_association.is_primary_owner:
             return JsonResponse({"error": "Only primary owner can transfer primary ownership."}, status=403)
+        datastreams = request.thing.datastreams.all()
+        for datastream in datastreams:
+            transfer_properties_ownership(datastream, user, request.authenticated_user)
+            transfer_processing_level_ownership(datastream, user, request.authenticated_user)
+            transfer_unit_ownership(datastream, user, request.authenticated_user)
+            transfer_sensor_ownership(datastream, user, request.authenticated_user)
         current_user_association.is_primary_owner = False
         current_user_association.save()
         thing_association.is_primary_owner = True

@@ -139,7 +139,7 @@
       </v-col>
       <v-col>
         <img
-          style="max-height: 50px"
+          style="max-height: 30px"
           src="@/assets/hydro.png"
           alt="hydro"
           class="site-information-image"

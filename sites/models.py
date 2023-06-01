@@ -167,6 +167,9 @@ class ThingAssociation(models.Model):
     follows_thing = models.BooleanField(default=False)
     is_primary_owner = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.person.first_name} {self.person.last_name} - {self.thing.name}"
+
     class Meta:
         unique_together = ("thing", "person")
 
