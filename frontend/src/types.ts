@@ -3,6 +3,7 @@ export interface Owner {
   lastname: string
   organization: string
   is_primary_owner: boolean
+  email: string
 }
 
 export interface Thing {
@@ -11,6 +12,7 @@ export interface Thing {
   owners: Owner[]
   site_type: string
   sampling_feature_code: string
+  is_private: boolean
   latitude: number
   longitude: number
   elevation: number

@@ -32,7 +32,8 @@
     </v-card>
 
     <GoogleMap
-      :markers="filteredThings"
+      :key="filteredThings"
+      :things="filteredThings"
       :mapOptions="{ center: { lat: 39, lng: -100 }, zoom: 4 }"
     />
   </div>
@@ -94,8 +95,8 @@ const filteredThings = computed(() => {
 })
 
 function handleFilteredOrganizations(filtered: any) {
-  filteredOrganizations.value = filtered
-  filteredOrganizationsSet.value = new Set(filtered)
+  filteredOrganizations.value = [...filtered]
+  filteredOrganizationsSet.value = new Set([...filtered])
 }
 
 function isThingValid(thing: Thing) {

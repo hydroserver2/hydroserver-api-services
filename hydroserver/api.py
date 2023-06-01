@@ -1,4 +1,5 @@
-import time
+import copy
+import uuid
 from functools import wraps
 from datetime import timedelta
 
@@ -65,7 +66,7 @@ def thing_ownership_required(func):
         except Thing.DoesNotExist:
             raise HttpError(403, 'Site cannot be found')
         if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
-            raise HttpError(403, 'You do not have permission to access this thing.')
+            raise HttpError(403, 'You do not have permission to access this site.')
 
         request.thing = thing
         return func(request, *args, **kwargs)
@@ -244,8 +245,10 @@ def update_user(request, data: UpdateUserInput):
 
 
 @api.delete('/user', auth=jwt_auth)
+@transaction.atomic
 def delete_user(request):
     try:
+        Thing.objects.filter(associates__person=request.authenticated_user, associates__is_primary_owner=True).delete()
         request.authenticated_user.delete()
         logout(request)
         return {'detail': 'Your account has been removed!'}
@@ -261,6 +264,7 @@ def thing_to_dict(thing, user):
         "sampling_feature_type": thing.sampling_feature_type,
         "sampling_feature_code": thing.sampling_feature_code,
         "site_type": thing.site_type,
+        "is_private": thing.is_private,
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
@@ -270,7 +274,6 @@ def thing_to_dict(thing, user):
         "owns_thing": False,
         "follows_thing": False,
         "owners": [],
-        "followers": 0,
     }
     thing_associations = ThingAssociation.objects.filter(thing=thing)
     for thing_association in thing_associations:
@@ -280,10 +283,9 @@ def thing_to_dict(thing, user):
                 "firstname": person.first_name,
                 "lastname": person.last_name,
                 "organization": person.organization,
+                "email": person.email,
                 "is_primary_owner": thing_association.is_primary_owner
             })
-        elif thing_association.follows_thing:
-            thing_dict['followers'] += 1
     if user is not None:
         thing_association = thing_associations.filter(person=user).first()
         if thing_association:
@@ -333,7 +335,12 @@ def create_thing(request, data: ThingInput):
 
 @api.get('/things', auth=jwt_check_user)
 def get_things(request):
-    things = Thing.objects.all()
+    if request.user_if_there_is_one:
+        owned_things = ThingAssociation.objects.filter(
+            person=request.user_if_there_is_one).values_list('thing', flat=True)
+        things = Thing.objects.filter(Q(is_private=False) | Q(id__in=owned_things))
+    else:
+        things = Thing.objects.filter(is_private=False)
     return JsonResponse([thing_to_dict(thing, request.user_if_there_is_one) for thing in things], safe=False)
 
 
@@ -347,18 +354,187 @@ def get_thing(request, thing_id: str):
     return JsonResponse(thing_dict)
 
 
-class UpdateThingInput(Schema):
-    name: str = None
-    description: str = None
-    sampling_feature_type: str = None
-    sampling_feature_code: str = None
-    site_type: str = None
-    latitude: float = None
-    longitude: float = None
-    elevation: float = None
-    city: str = None
-    state: str = None
-    county: str = None
+class UpdateOwnershipInput(Schema):
+    email: str
+    make_owner: bool = False
+    remove_owner: bool = False
+    transfer_primary: bool = False
+
+
+def transfer_properties_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's observed property from the old owner to the new owner.
+    Checks if the old owner is assigned and correct, then searches for a matching property in
+    the new owner's properties. If found, assigns this property to the datastream. If not found,
+    creates a new property for the datastream. This way each owner keeps their own list of unique properties
+    """
+    if datastream.observed_property.person != old_owner or datastream.observed_property.person is None:
+        return
+
+    fields_to_compare = ['name', 'definition', 'description', 'variable_type', 'variable_code']
+    same_properties = ObservedProperty.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.observed_property, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.observed_property = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.observed_property)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.observed_property = new_property
+
+    datastream.save()
+
+
+def transfer_processing_level_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's processing level from the old owner to the new owner.
+    """
+    if datastream.processing_level.person != old_owner or datastream.processing_level.person is None:
+        return
+
+    fields_to_compare = ['processing_level_code', 'definition', 'explanation']
+    same_properties = ProcessingLevel.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.processing_level, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.processing_level = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.processing_level)
+        new_property.id = None  # Set to None so Django can auto-generate a new unique integer id
+        new_property.person = new_owner
+        new_property.save()
+        datastream.processing_level = new_property
+
+    datastream.save()
+
+
+def transfer_unit_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's unit from the old owner to the new owner.
+    """
+    if datastream.unit.person != old_owner or datastream.unit.person is None:
+        return
+
+    fields_to_compare = ['name', 'symbol', 'definition', 'unit_type']
+
+    same_properties = Unit.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.unit, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.unit = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.unit)
+        new_property.id = None  # Set to None so Django can auto-generate a new unique integer id
+        new_property.person = new_owner
+        new_property.save()
+        datastream.unit = new_property
+
+    datastream.save()
+
+
+def transfer_sensor_ownership(datastream, new_owner, old_owner):
+    """
+    Transfers ownership of a datastream's sensor from the old owner to the new owner.
+    """
+    if datastream.sensor.person != old_owner or datastream.sensor.person is None:
+        return
+
+    fields_to_compare = ['name', 'description', 'encoding_type', 'manufacturer', 'model', 'model_url',
+                         'method_type', 'method_link', 'method_code']
+
+    same_properties = Sensor.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.sensor, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.sensor = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.sensor)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.sensor = new_property
+
+    datastream.save()
+
+
+@api.patch('/things/{thing_id}/ownership', auth=jwt_auth)
+@thing_ownership_required
+@transaction.atomic
+def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
+    flags = [data.make_owner, data.remove_owner, data.transfer_primary]
+    if sum(flag is True for flag in flags) != 1:
+        return JsonResponse(
+            {"error": "Only one action (make_owner, remove_owner, transfer_primary) should be true."}, status=400)
+
+    try:
+        user = CustomUser.objects.get(email=data.email)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({"error": "Specified user not found."}, status=404)
+
+    current_user_association = ThingAssociation.objects.get(thing=request.thing, person=request.authenticated_user)
+
+    if request.authenticated_user == user and current_user_association.is_primary_owner:
+        return JsonResponse({"error": "Primary owner cannot edit their own ownership."}, status=403)
+    if not current_user_association.is_primary_owner and user != request.authenticated_user:
+        return JsonResponse({"error": "Only the primary owner can modify other users' ownership."}, status=403)
+
+    thing_association, created = ThingAssociation.objects.get_or_create(thing=request.thing, person=user)
+
+    if data.transfer_primary:
+        if not current_user_association.is_primary_owner:
+            return JsonResponse({"error": "Only primary owner can transfer primary ownership."}, status=403)
+        datastreams = request.thing.datastreams.all()
+        for datastream in datastreams:
+            transfer_properties_ownership(datastream, user, request.authenticated_user)
+            transfer_processing_level_ownership(datastream, user, request.authenticated_user)
+            transfer_unit_ownership(datastream, user, request.authenticated_user)
+            transfer_sensor_ownership(datastream, user, request.authenticated_user)
+        current_user_association.is_primary_owner = False
+        current_user_association.save()
+        thing_association.is_primary_owner = True
+        thing_association.owns_thing = True
+    elif data.remove_owner:
+        if thing_association.is_primary_owner:
+            return JsonResponse({"error": "Cannot remove primary owner."}, status=400)
+        thing_association.delete()
+        return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
+    elif data.make_owner:
+        thing_association.owns_thing = True
+
+    thing_association.follows_thing = False
+    thing_association.save()
+    return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
+
+
+class UpdateThingPrivacy(Schema):
+    is_private: bool
+
+
+@api.patch('/things/{thing_id}/privacy', auth=jwt_auth)
+@thing_ownership_required
+def update_thing_privacy(request, thing_id: str, data: UpdateThingPrivacy):
+    thing = request.thing
+    thing.is_private = data.is_private
+    thing_associations = ThingAssociation.objects.filter(thing=thing)
+
+    if data.is_private:
+        for thing_association in thing_associations:
+            if thing_association.follows_thing:
+                thing_association.delete()
+
+    thing.save()
+
+    return JsonResponse(thing_to_dict(thing, request.authenticated_user))
 
 
 @api.patch('/things/{thing_id}/followership', auth=jwt_auth)
@@ -377,6 +553,20 @@ def update_thing_followership(request, thing_id: str):
         thing_association.save()
 
     return JsonResponse(thing_to_dict(thing, request.authenticated_user))
+
+
+class UpdateThingInput(Schema):
+    name: str = None
+    description: str = None
+    sampling_feature_type: str = None
+    sampling_feature_code: str = None
+    site_type: str = None
+    latitude: float = None
+    longitude: float = None
+    elevation: float = None
+    city: str = None
+    state: str = None
+    county: str = None
 
 
 @api.patch('/things/{thing_id}')
@@ -413,7 +603,7 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
     thing.save()
     location.save()
 
-    return JsonResponse(thing_to_dict(thing, request.authenticated_user))
+    return JsonResponse(thing_to_dict(thing, request.authenticated_user), status=200)
 
 
 @api.delete('/things/{thing_id}')

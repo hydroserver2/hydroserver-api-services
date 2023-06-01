@@ -13,6 +13,7 @@ class Thing(models.Model):
     sampling_feature_type = models.CharField(max_length=200, null=True, blank=True)  # CV Table?
     sampling_feature_code = models.CharField(max_length=200, null=True, blank=True)
     site_type = models.CharField(max_length=200, null=True, blank=True)  # CV Table?
+    is_private = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -165,6 +166,9 @@ class ThingAssociation(models.Model):
     owns_thing = models.BooleanField(default=False)
     follows_thing = models.BooleanField(default=False)
     is_primary_owner = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.person.first_name} {self.person.last_name} - {self.thing.name}"
 
     class Meta:
         unique_together = ("thing", "person")

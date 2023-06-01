@@ -1,20 +1,27 @@
 <template>
   <v-card>
-    <v-card-title class="text-h5">Register a Site</v-card-title>
-    <div class="flex-shrink-0" style="height: 20rem">
+    <v-card-title class="text-h5"
+      >{{ thingId ? 'Edit' : 'Register a' }} Site</v-card-title
+    >
+    <div v-if="thingId" class="flex-shrink-0" style="height: 20rem">
       <GoogleMap
+        v-if="loaded"
         clickable
         @location-clicked="onMapLocationClicked"
         :mapOptions="mapOptions"
-        :markers="[thing]"
+        :things="[thing]"
       />
+    </div>
+    <div v-else class="flex-shrink-0" style="height: 20rem">
+      <GoogleMap clickable @location-clicked="onMapLocationClicked" />
     </div>
     <v-divider></v-divider>
     <v-card-text
       class="text-subtitle-2 text-medium-emphasis d-flex align-center"
     >
-      <v-icon class="mr-1">mdi-information</v-icon>Click on the map to update
-      Site Location data.
+      <v-icon class="mr-1">mdi-information</v-icon>Click on the map to
+      {{ thingId ? 'edit' : 'populate' }}
+      site location data.
     </v-card-text>
 
     <v-card-text>
@@ -105,6 +112,7 @@ import { Thing } from '@/types'
 const thingStore = useThingStore()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close'])
+let loaded = ref(false)
 
 const mapOptions = ref({
   center: { lat: 39, lng: -100 },
@@ -158,9 +166,10 @@ async function populateThing(id: string) {
   Object.assign(thing, thingStore.things[id])
   mapOptions.value = {
     center: { lat: thing.latitude, lng: thing.longitude },
-    zoom: 8,
+    zoom: 10,
     mapTypeId: 'satellite',
   }
+  loaded.value = true
 }
 
 function closeDialog() {

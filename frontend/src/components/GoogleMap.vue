@@ -8,37 +8,41 @@ import { Loader } from '@googlemaps/js-api-loader'
 import { Thing } from '@/types'
 
 const props = defineProps({
-  markers: { type: Array<Thing>, default: [] },
+  things: { type: Array<Thing>, default: [] },
   mapOptions: {
     type: Object,
     default: { center: { lat: 39, lng: -100 }, zoom: 4 },
   },
-  clickable: { type: Boolean, default: false },
+  clickable: Boolean,
 })
 const emit = defineEmits(['location-clicked'])
 
 const loader = new Loader({
   apiKey: import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY,
 })
-const map = ref<google.maps.Map>()
-const mapContainer = ref<HTMLDivElement>()
+let map: google.maps.Map | null = null
+let markers: google.maps.Marker[]
+const mapContainer = ref(null)
+let infoWindow: google.maps.InfoWindow | null = null
 
-async function loadMap() {
-  await loader.load()
-  if (mapContainer.value) {
-    map.value = new google.maps.Map(mapContainer.value, props.mapOptions)
-  }
+const clearMarkers = () => {
+  if (!markers) return
+  markers.forEach((marker) => marker.setMap(null))
+  markers = []
 }
 
 function loadMarkers() {
-  return props.markers.map((markerData: Thing) => {
-    if (markerData && map.value) {
+  clearMarkers()
+  if (!props.things) return
+  markers = props.things
+    .map((markerData: Thing) => {
+      if (!markerData || !map) return null
       const marker = new google.maps.Marker({
         position: new google.maps.LatLng(
           markerData.latitude,
           markerData.longitude
         ),
-        map: map.value,
+        map: map,
       })
       const content = `
             <h5>${markerData.name}</h5>
@@ -51,80 +55,89 @@ function loadMarkers() {
       // </b></p>
       // <p>${markerData.description}</p>
 
-      const infoWindow = new google.maps.InfoWindow({ content })
-      marker.addListener('click', () =>
-        infoWindow.open({ anchor: marker, map: map.value })
-      )
+      marker.addListener('click', (e) => {
+        if (infoWindow) infoWindow.close()
+        infoWindow = new google.maps.InfoWindow({ content })
+        infoWindow.open({ anchor: marker, map: map })
+        e.stop()
+      })
       return marker
+    })
+    .filter(
+      (marker: google.maps.Marker | null): marker is google.maps.Marker =>
+        marker !== null
+    )
+}
+
+async function addLocationClicking() {
+  if (!map) return
+  const elevator = new google.maps.ElevationService()
+  const geocoder = new google.maps.Geocoder()
+
+  map.addListener('click', async (mapsMouseEvent: any) => {
+    const { elevation } = await getElevation(mapsMouseEvent, elevator)
+    const { state, county } = await getGeoData(mapsMouseEvent, geocoder)
+
+    const locationData: any = {
+      latitude: mapsMouseEvent.latLng.lat().toFixed(6),
+      longitude: mapsMouseEvent.latLng.lng().toFixed(6),
+      elevation: Math.round(elevation),
+      state: state,
+      county: county,
     }
-    return null
+    emit('location-clicked', locationData)
+
+    clearMarkers()
+    markers.push(
+      new google.maps.Marker({
+        position: mapsMouseEvent.latLng,
+        map: map,
+      })
+    )
   })
 }
 
-function addLocationClicking() {
-  const elevator = new google.maps.ElevationService()
-  const geocoder = new google.maps.Geocoder()
-  let newMarker: google.maps.Marker | null = null
+async function getElevation(mapsMouseEvent, elevator) {
+  const { results } = await elevator.getElevationForLocations({
+    locations: [mapsMouseEvent.latLng],
+  })
+  if (!results[0]) throw new Error('No elevation found')
+  return results[0]
+}
 
-  if (map.value) {
-    map.value.addListener('click', (mapsMouseEvent: any) => {
-      elevator
-        .getElevationForLocations({ locations: [mapsMouseEvent.latLng] })
-        .then(({ results }) => {
-          if (!results[0]) return console.log('No results found')
-
-          const locationData: any = {
-            latitude: mapsMouseEvent.latLng.lat().toFixed(6),
-            longitude: mapsMouseEvent.latLng.lng().toFixed(6),
-            elevation: Math.round(results[0].elevation),
-            state: undefined,
-            county: undefined,
-          }
-
-          if (newMarker) {
-            newMarker.setMap(null)
-          }
-          newMarker = new google.maps.Marker({
-            position: mapsMouseEvent.latLng,
-            map: map.value,
-          })
-
-          geocoder.geocode(
-            { location: mapsMouseEvent.latLng },
-            function (results, status) {
-              if (status !== 'OK') {
-                return console.log('Geocoder failed due to: ' + status)
-              }
-
-              if (!results?.length) {
-                return console.log('No results found')
-              }
-
-              const { state, county } = results[0].address_components.reduce(
-                (acc, component) => {
-                  if (component.types.includes('administrative_area_level_1'))
-                    acc.state = component.short_name
-                  if (component.types.includes('administrative_area_level_2'))
-                    acc.county = component.short_name
-                  return acc
-                },
-                { state: '', county: '' }
-              )
-              locationData.state = state
-              locationData.county = county
-              emit('location-clicked', locationData)
-            }
-          )
-        })
-        .catch((e) => console.log('Elevation service failed due to: ' + e))
+async function getGeoData(mapsMouseEvent, geocoder) {
+  try {
+    const { results } = await geocoder.geocode({
+      location: mapsMouseEvent.latLng,
     })
+
+    const { state, county } = results[0].address_components.reduce(
+      (acc, component) => {
+        if (component.types.includes('administrative_area_level_1'))
+          acc.state = component.short_name
+        if (component.types.includes('administrative_area_level_2'))
+          acc.county = component.short_name
+        return acc
+      },
+      { state: '', county: '' }
+    )
+
+    return { state, county }
+  } catch (error) {
+    console.error(`Failed to get geolocation data: ${error}`)
   }
 }
 
 onMounted(async () => {
-  await loadMap()
+  const google = await loader.load()
+  map = new google.maps.Map(mapContainer.value, props.mapOptions)
+  if (props.clickable) await addLocationClicking()
   loadMarkers()
-  if (props.clickable) addLocationClicking()
-  console.log('markers', props.markers)
+
+  if (map) {
+    map.addListener('click', () => {
+      if (infoWindow) infoWindow.close()
+    })
+  }
 })
 </script>

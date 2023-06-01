@@ -8,6 +8,7 @@ import * as directives from 'vuetify/directives'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 
 import { md3 } from 'vuetify/blueprints'
+import { VTooltip } from 'v-tooltip'
 
 const theme: ThemeDefinition = {
   dark: false,
@@ -39,6 +40,7 @@ export default createVuetify({
   },
   components: {
     VDataTable,
+    VTooltip,
   },
   defaults: {
     VTextField: textFieldAttrs,

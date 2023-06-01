@@ -1,157 +1,173 @@
 <template>
-  <div style="margin: 1rem">
-    <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
-    <v-autocomplete
-      v-if="!datastreamId"
-      v-model="selectedDatastreamID"
-      label="Start from an existing datastream"
-      :items="formattedDatastream"
-      item-value="id"
-    ></v-autocomplete>
+  <v-container v-if="datastream">
+    <v-row>
+      <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-autocomplete
+          v-if="!datastreamId"
+          v-model="selectedDatastreamID"
+          label="Start from an existing datastream"
+          :items="formattedDatastream"
+          item-value="id"
+        ></v-autocomplete>
+      </v-col>
+    </v-row>
 
-    <div>
-      <v-form @submit.prevent="uploadDatastream">
-        <v-container v-if="datastream">
-          <v-row style="margin-bottom: 1rem">
-            <v-col cols="12" md="3">
-              <v-autocomplete
-                v-model="datastream.method_id"
-                label="Select sensor"
-                :items="sensorStore.sensors"
-                item-title="name"
-                item-value="id"
-                no-data-text="No available sensors"
-              ></v-autocomplete>
-              <v-btn
-                variant="elevated"
-                density="comfortable"
-                color="green"
-                @click="showSensorModal = true"
-                prependIcon="mdi-plus"
-                >Add New</v-btn
-              >
-              <v-dialog v-model="showSensorModal" width="60rem">
-                <sensor-modal
-                  @uploaded="datastream.method_id = $event"
-                  @close="showSensorModal = false"
-                ></sensor-modal>
-              </v-dialog>
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-autocomplete
-                v-model="datastream.observed_property_id"
-                label="Select observed property"
-                :items="opStore.observedProperties"
-                item-title="name"
-                item-value="id"
-                no-data-text="No available properties"
-              ></v-autocomplete>
-              <v-dialog v-model="showObservedPropertyModal" width="60rem">
-                <ObservedPropertyModal
-                  @uploaded="datastream.observed_property_id = $event"
-                  @close="showObservedPropertyModal = false"
-                ></ObservedPropertyModal>
-              </v-dialog>
-              <v-btn
-                variant="elevated"
-                density="comfortable"
-                color="green"
-                @click="showObservedPropertyModal = true"
-                prependIcon="mdi-plus"
-                >Add New</v-btn
-              >
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-autocomplete
-                v-model="datastream.unit_id"
-                label="Select unit"
-                :items="unitStore.units"
-                item-title="name"
-                item-value="id"
-                no-data-text="No available units"
-              ></v-autocomplete>
-              <v-btn
-                variant="elevated"
-                density="comfortable"
-                color="green"
-                @click="showUnitModal = true"
-                prependIcon="mdi-plus"
-                >Add New</v-btn
-              >
-              <v-dialog v-model="showUnitModal" width="60rem">
-                <unit-modal
-                  @uploaded="datastream.unit_id = $event"
-                  @close="showUnitModal = false"
-                  >Add New</unit-modal
-                >
-              </v-dialog>
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-autocomplete
-                v-model="datastream.processing_level_id"
-                label="Select processing level"
-                :items="formattedProcessingLevels"
-                item-value="id"
-                no-data-text="No available processing level"
-              ></v-autocomplete>
-              <v-btn
-                variant="elevated"
-                density="comfortable"
-                color="green"
-                @click="showProcessingLevelModal = true"
-                prependIcon="mdi-plus"
-                >Add New</v-btn
-              >
-              <v-dialog v-model="showProcessingLevelModal" width="60rem">
-                <processing-level-modal
-                  @uploaded="datastream.processing_level_id = $event"
-                  @close="showProcessingLevelModal = false"
-                  >Add New</processing-level-modal
-                >
-              </v-dialog>
-            </v-col>
-          </v-row>
-
+    <v-form @submit.prevent="uploadDatastream">
+      <v-row>
+        <v-col cols="12" md="3">
+          <v-autocomplete
+            v-model="datastream.method_id"
+            label="Select sensor"
+            :items="sensorStore.sensors"
+            item-title="name"
+            item-value="id"
+            no-data-text="No available sensors"
+          ></v-autocomplete>
+          <v-btn
+            variant="elevated"
+            density="comfortable"
+            color="green"
+            @click="showSensorModal = true"
+            prependIcon="mdi-plus"
+            >Add New</v-btn
+          >
+          <v-dialog v-model="showSensorModal" width="60rem">
+            <sensor-modal
+              @uploaded="datastream.method_id = $event"
+              @close="showSensorModal = false"
+            ></sensor-modal>
+          </v-dialog>
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-autocomplete
+            v-model="datastream.observed_property_id"
+            label="Select observed property"
+            :items="opStore.observedProperties"
+            item-title="name"
+            item-value="id"
+            no-data-text="No available properties"
+          ></v-autocomplete>
+          <v-dialog v-model="showObservedPropertyModal" width="60rem">
+            <ObservedPropertyModal
+              @uploaded="datastream.observed_property_id = $event"
+              @close="showObservedPropertyModal = false"
+            ></ObservedPropertyModal>
+          </v-dialog>
+          <v-btn
+            variant="elevated"
+            density="comfortable"
+            color="green"
+            @click="showObservedPropertyModal = true"
+            prependIcon="mdi-plus"
+            >Add New</v-btn
+          >
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-autocomplete
+            v-model="datastream.unit_id"
+            label="Select unit"
+            :items="unitStore.units"
+            item-title="name"
+            item-value="id"
+            no-data-text="No available units"
+          ></v-autocomplete>
+          <v-btn
+            variant="elevated"
+            density="comfortable"
+            color="green"
+            @click="showUnitModal = true"
+            prependIcon="mdi-plus"
+            >Add New</v-btn
+          >
+          <v-dialog v-model="showUnitModal" width="60rem">
+            <unit-modal
+              @uploaded="datastream.unit_id = $event"
+              @close="showUnitModal = false"
+              >Add New</unit-modal
+            >
+          </v-dialog>
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-autocomplete
+            v-model="datastream.processing_level_id"
+            label="Select processing level"
+            :items="formattedProcessingLevels"
+            item-value="id"
+            no-data-text="No available processing level"
+          ></v-autocomplete>
+          <v-btn
+            variant="elevated"
+            density="comfortable"
+            color="green"
+            @click="showProcessingLevelModal = true"
+            prependIcon="mdi-plus"
+            >Add New</v-btn
+          >
+          <v-dialog v-model="showProcessingLevelModal" width="60rem">
+            <processing-level-modal
+              @uploaded="datastream.processing_level_id = $event"
+              @close="showProcessingLevelModal = false"
+              >Add New</processing-level-modal
+            >
+          </v-dialog>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
           <v-text-field
             v-model="datastream.sampled_medium"
             label="Sampled medium"
             :rules="[(v) => !!v || 'Sampled medium is required']"
             required
           ></v-text-field>
+        </v-col>
+        <v-col>
           <v-text-field
             v-model="datastream.status"
             label="Status"
             :rules="[(v) => !!v || 'Status is required']"
             required
           ></v-text-field>
+        </v-col>
+        <v-col>
           <v-text-field
             v-model="datastream.no_data_value"
             label="No data value"
             :rules="[(v) => !!v || 'No data value is required']"
             required
           ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
           <v-text-field
             v-model="datastream.aggregation_statistic"
             label="Aggregation statistic"
             :rules="[(v) => !!v || 'Aggregation statistic is required']"
             required
           ></v-text-field>
+        </v-col>
+        <v-col>
           <v-text-field
             v-model="datastream.result_type"
             label="Result type"
           ></v-text-field>
+        </v-col>
+        <v-col>
           <v-text-field
             v-model="datastream.observation_type"
             label="Observation type"
           ></v-text-field>
-
-          <v-btn type="submit" color="green">{{
-            datastreamId ? 'Update' : 'Save'
-          }}</v-btn>
-        </v-container>
-      </v-form>
-    </div>
-  </div>
+        </v-col>
+      </v-row>
+      <v-btn type="submit" color="green">{{
+        datastreamId ? 'Update' : 'Save'
+      }}</v-btn>
+    </v-form>
+  </v-container>
 </template>
 
 <script setup lang="ts">
