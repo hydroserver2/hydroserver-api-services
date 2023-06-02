@@ -68,7 +68,6 @@ const props = defineProps({
 const emit = defineEmits(['delete', 'close'])
 
 const datastreamsForItem = computed(() => {
-  console.log('Property', props.item)
   if (props.item && props.parameterName) {
     return datastreamStore.getDatastreamsByParameter(
       props.parameterName as keyof Datastream,

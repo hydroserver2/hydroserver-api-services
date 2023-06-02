@@ -34,7 +34,7 @@
         :items="thingStore.ownedThings"
         hover
         item-value="id"
-        class="elevation-1"
+        class="elevation-3"
         @click:row="onRowClick"
       >
         <template v-slot:bottom></template>
@@ -53,7 +53,7 @@
         :items="thingStore.followedThings"
         hover
         item-value="id"
-        class="elevation-1"
+        class="elevation-3"
         @click:row="onRowClick"
       >
         <template v-slot:bottom></template>

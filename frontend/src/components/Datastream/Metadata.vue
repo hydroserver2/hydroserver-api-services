@@ -1,167 +1,233 @@
 <template>
-  <h1>Manage Metadata</h1>
+  <v-container>
+    <h4 class="text-h4 mb-4">Manage Metadata</h4>
 
-  <!--    Sensor Table and Modal-->
-  <div class="table-title-container">
-    <h2>Sensors</h2>
-    <v-btn
-      variant="elevated"
-      density="comfortable"
-      color="green"
-      @click="handleModal('sensorModal', 'sensor')"
-      prependIcon="mdi-plus"
-      >Add New</v-btn
+    <!--    Sensor Table and Modal-->
+    <v-row class="justify-start pt-5 pb-2">
+      <v-col cols="auto">
+        <h5 class="text-h5">Sensors</h5>
+      </v-col>
+      <v-col>
+        <v-btn
+          variant="elevated"
+          density="comfortable"
+          color="green"
+          @click="handleModal('sensorModal', 'sensor')"
+          prependIcon="mdi-plus"
+          >Add New</v-btn
+        >
+      </v-col>
+    </v-row>
+    <v-data-table
+      v-if="sensorStore.sensors.length"
+      :headers="sensorHeaders"
+      :items="sensorStore.sensors"
+      class="elevation-3"
     >
-  </div>
-
-  <!--  <v-data-table-->
-  <!--    v-if="sensorStore.sensors.length"-->
-  <!--    :headers="sensorHeaders"-->
-  <!--    :items="sensorStore.sensors"-->
-  <!--    hover-->
-  <!--    item-value="id"-->
-  <!--    class="elevation-1"-->
-  <!--  ></v-data-table>-->
-  <ManagerTable :names="sensorNameMappings" :rows="sensorStore.sensors">
-    <template v-slot:actions="{ row }">
-      <a @click="handleModal('sensorModal', 'sensor', row)"> Edit </a>
-      <span> | </span>
-      <a @click="handleModal('sensorDelete', 'sensor', row)">Delete</a>
-    </template>
-  </ManagerTable>
-  <v-dialog v-model="flags.sensorModal" width="60rem">
-    <SensorModal
-      :id="properties.sensor ? properties.sensor.id : undefined"
-      @close="flags.sensorModal = false"
-    ></SensorModal>
-  </v-dialog>
-  <v-dialog v-model="flags.sensorDelete" width="40rem">
-    <DeleteModal
-      itemName="sensor"
-      :item="properties.sensor"
-      v-if="properties.sensor"
-      parameter-name="method_id"
-      @delete="deleteSensor"
-      @close="flags.sensorDelete = false"
-    ></DeleteModal>
-  </v-dialog>
-
-  <!--    Observed Properties Table and Modal-->
-  <div class="table-title-container">
-    <h2>Observed Properties</h2>
-    <v-btn
-      variant="elevated"
-      density="comfortable"
-      color="green"
-      @click="handleModal('opModal', 'op')"
-      prependIcon="mdi-plus"
-      >Add New</v-btn
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('sensorModal', 'sensor', item.raw)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('sensorDelete', 'sensor', item.raw)"
+        >
+          mdi-delete
+        </v-icon>
+      </template></v-data-table
     >
-  </div>
-  <ManagerTable :names="OPNameMappings" :rows="opStore.observedProperties">
-    <template v-slot:actions="{ row }">
-      <a @click="handleModal('opModal', 'op', row)"> Edit </a>
-      <span> | </span>
-      <a @click="handleModal('opDelete', 'op', row)">Delete</a>
-    </template>
-  </ManagerTable>
-  <v-dialog v-model="flags.opModal" width="60rem">
-    <ObservedPropertyModal
-      :observedProperty="properties.op"
-      :id="properties.op ? properties.op.id : undefined"
-      @close="flags.opModal = false"
-    ></ObservedPropertyModal>
-  </v-dialog>
-  <v-dialog v-model="flags.opDelete" width="40rem">
-    <DeleteModal
-      itemName="Observed Property"
-      :item="properties.op"
-      v-if="properties.op"
-      parameter-name="observed_property_id"
-      @delete="deleteObservedProperty"
-      @close="flags.opDelete = false"
-    ></DeleteModal>
-  </v-dialog>
+    <v-dialog v-model="flags.sensorModal" width="60rem">
+      <SensorModal
+        :id="properties.sensor ? properties.sensor.id : undefined"
+        @close="flags.sensorModal = false"
+      ></SensorModal>
+    </v-dialog>
+    <v-dialog v-model="flags.sensorDelete" width="40rem">
+      <DeleteModal
+        itemName="sensor"
+        :item="properties.sensor"
+        v-if="properties.sensor"
+        parameter-name="method_id"
+        @delete="deleteSensor"
+        @close="flags.sensorDelete = false"
+      ></DeleteModal>
+    </v-dialog>
 
-  <!--    Processing Levels Table and Modal-->
-  <div class="table-title-container">
-    <h2>Processing Levels</h2>
-    <v-btn
-      variant="elevated"
-      density="comfortable"
-      color="green"
-      @click="handleModal('plModal', 'pl')"
-      prependIcon="mdi-plus"
-      >Add New</v-btn
+    <!--    Observed Properties Table and Modal-->
+    <v-row class="justify-start pt-5 pb-2">
+      <v-col cols="auto">
+        <h5 class="text-h5">Observed Properties</h5>
+      </v-col>
+      <v-col>
+        <v-btn
+          variant="elevated"
+          density="comfortable"
+          color="green"
+          @click="handleModal('opModal', 'op')"
+          prependIcon="mdi-plus"
+          >Add New</v-btn
+        >
+      </v-col>
+    </v-row>
+    <v-data-table
+      :headers="OPHeaders"
+      :items="opStore.observedProperties"
+      class="elevation-3"
     >
-  </div>
-  <ManagerTable
-    :names="ProcLevelNameMappings"
-    :rows="plStore.ownedProcessingLevels"
-  >
-    <template v-slot:actions="{ row }">
-      <a @click="handleModal('plModal', 'pl', row)"> Edit </a>
-      <span> | </span>
-      <a @click="handleModal('plDelete', 'pl', row)">Delete</a>
-    </template></ManagerTable
-  >
-  <v-dialog v-model="flags.plModal" width="60rem">
-    <ProcessingLevelModal
-      :id="properties.pl ? String(properties.pl.id) : undefined"
-      @close="flags.plModal = false"
-    ></ProcessingLevelModal>
-  </v-dialog>
-  <v-dialog v-model="flags.plDelete" width="40rem">
-    <DeleteModal
-      itemName="processing level"
-      :item="properties.pl"
-      v-if="properties.pl"
-      parameter-name="processing_level_id"
-      @delete="deleteProcessingLevel"
-      @close="flags.plDelete = false"
-    ></DeleteModal>
-  </v-dialog>
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('opModal', 'op', item.raw)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('opDelete', 'op', item.raw)"
+        >
+          mdi-delete
+        </v-icon>
+      </template></v-data-table
+    >
+    <v-dialog v-model="flags.opModal" width="60rem">
+      <ObservedPropertyModal
+        :observedProperty="properties.op"
+        :id="properties.op ? properties.op.id : undefined"
+        @close="flags.opModal = false"
+      ></ObservedPropertyModal>
+    </v-dialog>
+    <v-dialog v-model="flags.opDelete" width="40rem">
+      <DeleteModal
+        itemName="Observed Property"
+        :item="properties.op"
+        v-if="properties.op"
+        parameter-name="observed_property_id"
+        @delete="deleteObservedProperty"
+        @close="flags.opDelete = false"
+      ></DeleteModal>
+    </v-dialog>
 
-  <!--    Units Table and Modal-->
-  <div class="table-title-container">
-    <h2>Units</h2>
-    <v-btn
-      variant="elevated"
-      density="comfortable"
-      color="green"
-      @click="handleModal('unitModal', 'unit')"
-      prependIcon="mdi-plus"
-      >Add New</v-btn
+    <!--    Processing Levels Table and Modal-->
+    <v-row class="justify-start pt-5 pb-2">
+      <v-col cols="auto">
+        <h5 class="text-h5">Processing Levels</h5>
+      </v-col>
+      <v-col>
+        <v-btn
+          variant="elevated"
+          density="comfortable"
+          color="green"
+          @click="handleModal('plModal', 'pl')"
+          prependIcon="mdi-plus"
+          >Add New</v-btn
+        >
+      </v-col>
+    </v-row>
+    <v-data-table
+      :headers="ProcLevelHeaders"
+      :items="plStore.processingLevels"
+      class="elevation-3"
     >
-  </div>
-  <ManagerTable :names="UnitNameMappings" :rows="unitStore.ownedUnits">
-    <template v-slot:actions="{ row }">
-      <a @click="handleModal('unitModal', 'unit', row)"> Edit </a>
-      <span> | </span>
-      <a @click="handleModal('unitDelete', 'unit', row)">Delete</a>
-    </template></ManagerTable
-  >
-  <v-dialog v-model="flags.unitModal" width="60rem">
-    <UnitModal
-      :id="properties.unit ? String(properties.unit.id) : undefined"
-      @close="flags.unitModal = false"
-    ></UnitModal>
-  </v-dialog>
-  <v-dialog v-model="flags.unitDelete" width="40rem">
-    <DeleteModal
-      itemName="unit"
-      :item="properties.unit"
-      v-if="properties.unit"
-      parameter-name="unit_id"
-      @delete="deleteUnit"
-      @close="flags.unitDelete = false"
-    ></DeleteModal>
-  </v-dialog>
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('plModal', 'pl', item.raw)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('plDelete', 'pl', item.raw)"
+        >
+          mdi-delete
+        </v-icon>
+      </template></v-data-table
+    >
+    <v-dialog v-model="flags.plModal" width="60rem">
+      <ProcessingLevelModal
+        :id="properties.pl ? String(properties.pl.id) : undefined"
+        @close="flags.plModal = false"
+      ></ProcessingLevelModal>
+    </v-dialog>
+    <v-dialog v-model="flags.plDelete" width="40rem">
+      <DeleteModal
+        itemName="processing level"
+        :item="properties.pl"
+        v-if="properties.pl"
+        parameter-name="processing_level_id"
+        @delete="deleteProcessingLevel"
+        @close="flags.plDelete = false"
+      ></DeleteModal>
+    </v-dialog>
+
+    <!--    Units Table and Modal-->
+    <v-row class="justify-start pt-5 pb-2">
+      <v-col cols="auto">
+        <h5 class="text-h5">Units</h5>
+      </v-col>
+      <v-col>
+        <v-btn
+          variant="elevated"
+          density="comfortable"
+          color="green"
+          @click="handleModal('unitModal', 'unit')"
+          prependIcon="mdi-plus"
+          >Add New</v-btn
+        >
+      </v-col>
+    </v-row>
+    <v-data-table
+      :headers="UnitHeaders"
+      :items="unitStore.units"
+      class="elevation-3"
+    >
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('unitModal', 'unit', item.raw)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+          small
+          color="grey"
+          @click="handleModal('unitDelete', 'unit', item.raw)"
+        >
+          mdi-delete
+        </v-icon>
+      </template></v-data-table
+    >
+    <v-dialog v-model="flags.unitModal" width="60rem">
+      <UnitModal
+        :id="properties.unit ? String(properties.unit.id) : undefined"
+        @close="flags.unitModal = false"
+      ></UnitModal>
+    </v-dialog>
+    <v-dialog v-model="flags.unitDelete" width="40rem">
+      <DeleteModal
+        itemName="unit"
+        :item="properties.unit"
+        v-if="properties.unit"
+        parameter-name="unit_id"
+        @delete="deleteUnit"
+        @close="flags.unitDelete = false"
+      ></DeleteModal>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
-import ManagerTable from '@/components/ManagerTable.vue'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive } from 'vue'
 import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
@@ -204,59 +270,34 @@ const flags: {
   unitDelete: false,
 })
 
-type NameTuple = [string, string]
+const sensorHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Method Type', key: 'method_type' },
+  { title: 'Method Code', key: 'method_code' },
+  { title: 'UUID', key: 'id' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+]
 
-const sensorNameMappings = ref<NameTuple[]>([
-  ['id', 'UUID'],
-  ['method_type', 'Method Type'],
-  ['name', 'Name'],
-  ['method_code', 'Method Code'],
-])
+const OPHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Variable Type', key: 'variable_type' },
+  { title: 'Variable Code', key: 'variable_code' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+]
 
-// const sensorHeaders = [
-//   {
-//     title: 'UUID',
-//     align: 'start',
-//     sortable: true,
-//     key: 'id',
-//   },
-//   {
-//     title: 'Method Type',
-//     align: 'start',
-//     sortable: true,
-//     key: 'method_type',
-//   },
-//   {
-//     title: 'Name',
-//     align: 'start',
-//     sortable: true,
-//     key: 'name',
-//   },
-//   {
-//     title: 'Method Code',
-//     align: 'start',
-//     sortable: true,
-//     key: 'method_code',
-//   },
-// ]
+const ProcLevelHeaders = [
+  { title: 'Processing Level Code', key: 'processing_level_code' },
+  { title: 'Definition', key: 'definition' },
+  { title: 'Explanation', key: 'explanation' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+]
 
-const OPNameMappings = ref<NameTuple[]>([
-  ['name', 'Name'],
-  ['variable_type', 'Variable Type'],
-  ['variable_code', 'Variable Code'],
-])
-
-const ProcLevelNameMappings = ref<NameTuple[]>([
-  ['processing_level_code', 'Processing Level Code'],
-  ['definition', 'Definition'],
-  ['explanation', 'Explanation'],
-])
-
-const UnitNameMappings = ref<NameTuple[]>([
-  ['name', 'Name'],
-  ['symbol', 'Symbol'],
-  ['unit_type', 'Unit Type'],
-])
+const UnitHeaders = [
+  { title: 'Name', key: 'name' },
+  { title: 'Unit Type', key: 'unit_type' },
+  { title: 'Symbol', key: 'symbol' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+]
 
 function handleModal(
   flagKey: string,
@@ -294,12 +335,3 @@ onMounted(() => {
   unitStore.fetchUnits()
 })
 </script>
-
-<style scoped>
-.table-title-container {
-  display: flex;
-  align-items: center;
-  justify-content: left;
-  margin-bottom: 1rem;
-}
-</style>

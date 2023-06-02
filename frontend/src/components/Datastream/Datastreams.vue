@@ -1,46 +1,64 @@
 <template>
-  <div class="manage-datastreams" style="margin: 1rem">
-    <h1>Manage Site Datastreams</h1>
-    <h2>{{ thingStore.things[thing_id]?.name }}</h2>
-    <v-btn
-      style="margin-top: 0.5rem; margin-bottom: 1rem"
-      color="primary"
-      :to="{ name: 'DatastreamForm', params: { id: thing_id } }"
-      >Add New Datastream</v-btn
-    >
+  <v-container>
+    <h2 class="text-h4 mb-4">Manage Site Datastreams</h2>
+    <h5 class="text-h5 mb-4">{{ thingStore.things[thing_id]?.name }}</h5>
 
-    <ManagerTable
-      :names="datastreamNameMappings"
-      :rows="datastreamStore.datastreams[thing_id]"
+    <v-row class="pb-2">
+      <v-col>
+        <v-btn
+          variant="elevated"
+          density="comfortable"
+          color="green"
+          :to="{ name: 'DatastreamForm', params: { id: thing_id } }"
+          >Add New Datastream</v-btn
+        >
+      </v-col>
+    </v-row>
+    <v-data-table
+      class="elevation-3"
+      :headers="headers"
+      :items="datastreamStore.datastreams[thing_id]"
     >
-      <template v-slot:actions="{ row }">
+      <template v-slot:item.actions="{ item }">
         <router-link
-          class="action-link"
           :to="{
             name: 'DatastreamForm',
-            params: { id: thing_id, datastreamId: (row as Datastream).id },
+            params: { id: thing_id, datastreamId: item.raw.id },
           }"
-          >Edit
+        >
+          <v-icon color="grey" small> mdi-pencil </v-icon>
         </router-link>
-        <span> | </span>
-        <a @click="showModal(row as Datastream)">Delete</a>
-        <span> | </span>
-        <v-checkbox
-          v-model="(row as Datastream).is_visible"
-          @change="toggleVisibility(row as Datastream)"
-          label="Visible"
-        ></v-checkbox>
-      </template>
-    </ManagerTable>
 
+        <v-icon color="grey" small @click="showModal(item.raw)">
+          mdi-delete
+        </v-icon>
+
+        <v-icon
+          small
+          color="grey"
+          @click="toggleVisibility(item.raw)"
+          v-if="item.raw.is_visible"
+        >
+          mdi-eye
+        </v-icon>
+        <v-icon
+          small
+          color="grey-lighten-1"
+          @click="toggleVisibility(item.raw)"
+          v-else
+        >
+          mdi-eye-off
+        </v-icon>
+      </template>
+    </v-data-table>
     <v-dialog v-if="selectedDatastream" v-model="showDeleteModal" width="40rem">
       <v-card>
         <v-card-title>
           <span class="text-h5">Confirm Deletion</span>
         </v-card-title>
         <v-card-text>
-          Are you sure you want to delete the following datastream? This is
-          unrecoverable and will delete all associated observations
+          Are you sure you want to permanently delete the this datastream and
+          all the observations associated with it?
           <br />
           <br />
           <strong>ID:</strong> {{ selectedDatastream.id }} <br />
@@ -51,31 +69,34 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <v-btn
-      color="secondary"
-      :to="{ name: 'SingleSite', params: { id: thing_id } }"
-      >Back to Site Details</v-btn
-    >
-  </div>
+    <v-row class="pt-2">
+      <v-col>
+        <v-btn
+          color="secondary"
+          :to="{ name: 'SingleSite', params: { id: thing_id } }"
+        >
+          <v-icon left>mdi-arrow-left</v-icon>
+          Back to Site Details
+        </v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import ManagerTable from '@/components/ManagerTable.vue'
 import { useDatastreamStore } from '@/store/datastreams'
 import { useThingStore } from '@/store/things'
 import { Datastream } from '@/types'
 import { Ref } from 'vue'
 
-type NameTuple = [string, string]
-
-const datastreamNameMappings = ref<NameTuple[]>([
-  ['observed_property_name', 'ObservedProperty'],
-  ['method_name', 'Method / Sensor'],
-  ['unit_name', 'Units'],
-  ['processing_level_name', 'ProcessingLevel'],
+const headers = ref([
+  { title: 'ObservedProperty', key: 'observed_property_name' },
+  { title: 'Method / Sensor', key: 'method_name' },
+  { title: 'Units', key: 'unit_name' },
+  { title: 'Processing Level', key: 'processing_level_name' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
 ])
 
 const route = useRoute()
@@ -93,6 +114,7 @@ function showModal(datastream: Datastream) {
 }
 
 async function toggleVisibility(datastream: Datastream) {
+  datastream.is_visible = !datastream.is_visible
   await datastreamStore.setVisibility(datastream.id, datastream.is_visible)
 }
 

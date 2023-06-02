@@ -98,7 +98,7 @@
     </v-row>
     <v-row>
       <v-col cols="12" md="8">
-        <v-data-table>
+        <v-data-table class="elevation-2">
           <tbody>
             <tr v-for="property in thingProperties" :key="property.label">
               <td><i :class="property.icon"></i></td>
@@ -123,13 +123,13 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col>
+      <v-col cols="auto" class="d-flex justify-start">
         <h5 class="text-h5">Datastreams Available at this Site</h5>
       </v-col>
-      <v-col>
+      <v-col cols="auto" class="d-flex justify-start">
         <v-btn
           v-if="thingStore.things[thingId]?.owns_thing"
-          color="grey-lighten-2"
+          color="grey"
           :to="{
             name: 'SiteDatastreams',
             params: { id: thingStore.things[thingId].id },
@@ -137,7 +137,8 @@
           >Manage Datastreams</v-btn
         >
       </v-col>
-      <v-col>
+      <v-spacer></v-spacer>
+      <v-col cols="auto" class="d-flex justify-start">
         <img
           style="max-height: 30px"
           src="@/assets/hydro.png"
@@ -145,8 +146,8 @@
           class="site-information-image"
         />
       </v-col>
-      <v-col>
-        <v-btn color="grey-lighten-2" class="site-information-button"
+      <v-col cols="auto" class="d-flex justify-start">
+        <v-btn color="grey" class="site-information-button"
           >Download Data from HydroShare</v-btn
         >
       </v-col>
