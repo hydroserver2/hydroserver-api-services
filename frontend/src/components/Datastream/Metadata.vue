@@ -170,21 +170,13 @@ import { useProcessingLevelStore } from '@/store/processingLevels'
 import { useSensorStore } from '@/store/sensors'
 import { useObservedPropertyStore } from '@/store/observedProperties'
 import { useUnitStore } from '@/store/unit'
-import { useDatastreamStore } from '@/store/datastreams'
-import {
-  Datastream,
-  ObservedProperty,
-  ProcessingLevel,
-  Sensor,
-  Unit,
-} from '@/types'
+import { ObservedProperty, ProcessingLevel, Sensor, Unit } from '@/types'
 import DeleteModal from '@/components/Datastream/deleteModal.vue'
 
 const sensorStore = useSensorStore()
 const opStore = useObservedPropertyStore()
 const plStore = useProcessingLevelStore()
 const unitStore = useUnitStore()
-const datastreamStore = useDatastreamStore()
 
 const properties: {
   op: ObservedProperty | null
@@ -300,7 +292,6 @@ onMounted(() => {
   opStore.fetchObservedProperties()
   plStore.fetchProcessingLevels()
   unitStore.fetchUnits()
-  datastreamStore.fetchDatastreams()
 })
 </script>
 

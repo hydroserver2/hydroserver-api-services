@@ -13,18 +13,23 @@ export const useDatastreamStore = defineStore('datastreams', {
         const datastreams = Object.values(state.datastreams).flat()
         return datastreams.filter((ds) => ds[parameter_name] === parameter_id)
       },
+    primaryOwnedDatastreams: (state) => {
+      const allDatastreams = Object.values(state.datastreams).flat()
+      return allDatastreams.filter((ds) => ds.is_primary_owner)
+    },
   },
   actions: {
     async fetchDatastreams() {
-      if (this.loaded) return
       try {
         const { data } = await this.$http.get('/datastreams')
+        let newDatastreams: Record<string, Datastream[]> = {}
         data.forEach((datastream: Datastream) => {
-          if (!this.datastreams[datastream.thing_id]) {
-            this.datastreams[datastream.thing_id] = []
+          if (!newDatastreams[datastream.thing_id]) {
+            newDatastreams[datastream.thing_id] = []
           }
-          this.datastreams[datastream.thing_id].push(datastream)
+          newDatastreams[datastream.thing_id].push(datastream)
         })
+        this.$patch({ datastreams: newDatastreams })
         this.loaded = true
       } catch (error) {
         console.error('Error fetching datastreams from DB', error)
@@ -58,7 +63,10 @@ export const useDatastreamStore = defineStore('datastreams', {
     },
     async createDatastream(newDatastream: Datastream) {
       try {
-        const { data } = await this.$http.post(`/datastreams`, newDatastream)
+        const { data } = await this.$http.post(
+          `/datastreams/${newDatastream.thing_id}`,
+          newDatastream
+        )
         if (!this.datastreams[newDatastream.thing_id]) {
           this.datastreams[newDatastream.thing_id] = []
         }
@@ -69,13 +77,15 @@ export const useDatastreamStore = defineStore('datastreams', {
     },
     async deleteDatastream(id: string, thingId: string) {
       try {
-        await this.$http.delete(`/datastreams/${id}`)
-        const datastreams = this.datastreams[thingId].filter(
-          (datastream) => datastream.id !== id
-        )
-        this.$patch({
-          datastreams: { ...this.datastreams, [thingId]: datastreams },
-        })
+        const response = await this.$http.delete(`/datastreams/${id}/temp`)
+        if (response && response.status == 200) {
+          const datastreams = this.datastreams[thingId].filter(
+            (datastream) => datastream.id !== id
+          )
+          this.$patch({
+            datastreams: { ...this.datastreams, [thingId]: datastreams },
+          })
+        }
       } catch (error) {
         console.error(`Error deleting datastream with id ${id}`, error)
       }
@@ -102,7 +112,7 @@ export const useDatastreamStore = defineStore('datastreams', {
         )
       }
     },
-    getDatastreamById(
+    getDatastreamForThingById(
       thingId: string,
       datastreamId: string
     ): Datastream | null {
@@ -110,6 +120,16 @@ export const useDatastreamStore = defineStore('datastreams', {
       if (thingDatastreams) {
         const datastream = thingDatastreams.find((ds) => ds.id === datastreamId)
         return datastream ? datastream : null
+      }
+      return null
+    },
+    getDatastreamById(datastreamId: string): Datastream | null {
+      for (const thingId in this.datastreams) {
+        const thingDatastreams = this.datastreams[thingId]
+        const datastream = thingDatastreams.find((ds) => ds.id === datastreamId)
+        if (datastream) {
+          return datastream
+        }
       }
       return null
     },

@@ -170,5 +170,13 @@ export const useThingStore = defineStore('things', {
         console.error('Error removing owner', error)
       }
     },
+    async fetchPrimaryOwnerMetadataByThingId(id: string) {
+      try {
+        const response = await this.$http.get(`/things/${id}/metadata`)
+        return response.data
+      } catch (error) {
+        console.error('Error fetching primary owner data from DB', error)
+      }
+    },
   },
 })

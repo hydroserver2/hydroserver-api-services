@@ -3,7 +3,7 @@
     <v-row>
       <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
     </v-row>
-    <v-row>
+    <v-row v-if="thingStore.things[thingId].is_primary_owner">
       <v-col>
         <v-autocomplete
           v-if="!datastreamId"
@@ -21,12 +21,13 @@
           <v-autocomplete
             v-model="datastream.method_id"
             label="Select sensor"
-            :items="sensorStore.sensors"
+            :items="sensors"
             item-title="name"
             item-value="id"
             no-data-text="No available sensors"
           ></v-autocomplete>
           <v-btn
+            v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
             density="comfortable"
             color="green"
@@ -34,7 +35,11 @@
             prependIcon="mdi-plus"
             >Add New</v-btn
           >
-          <v-dialog v-model="showSensorModal" width="60rem">
+          <v-dialog
+            v-if="thingStore.things[thingId]?.is_primary_owner"
+            v-model="showSensorModal"
+            width="60rem"
+          >
             <sensor-modal
               @uploaded="datastream.method_id = $event"
               @close="showSensorModal = false"
@@ -45,18 +50,23 @@
           <v-autocomplete
             v-model="datastream.observed_property_id"
             label="Select observed property"
-            :items="opStore.observedProperties"
+            :items="observedProperties"
             item-title="name"
             item-value="id"
             no-data-text="No available properties"
           ></v-autocomplete>
-          <v-dialog v-model="showObservedPropertyModal" width="60rem">
+          <v-dialog
+            v-if="thingStore.things[thingId]?.is_primary_owner"
+            v-model="showObservedPropertyModal"
+            width="60rem"
+          >
             <ObservedPropertyModal
               @uploaded="datastream.observed_property_id = $event"
               @close="showObservedPropertyModal = false"
             ></ObservedPropertyModal>
           </v-dialog>
           <v-btn
+            v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
             density="comfortable"
             color="green"
@@ -69,12 +79,13 @@
           <v-autocomplete
             v-model="datastream.unit_id"
             label="Select unit"
-            :items="unitStore.units"
+            :items="units"
             item-title="name"
             item-value="id"
             no-data-text="No available units"
           ></v-autocomplete>
           <v-btn
+            v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
             density="comfortable"
             color="green"
@@ -82,7 +93,11 @@
             prependIcon="mdi-plus"
             >Add New</v-btn
           >
-          <v-dialog v-model="showUnitModal" width="60rem">
+          <v-dialog
+            v-if="thingStore.things[thingId]?.is_primary_owner"
+            v-model="showUnitModal"
+            width="60rem"
+          >
             <unit-modal
               @uploaded="datastream.unit_id = $event"
               @close="showUnitModal = false"
@@ -99,6 +114,7 @@
             no-data-text="No available processing level"
           ></v-autocomplete>
           <v-btn
+            v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
             density="comfortable"
             color="green"
@@ -106,7 +122,11 @@
             prependIcon="mdi-plus"
             >Add New</v-btn
           >
-          <v-dialog v-model="showProcessingLevelModal" width="60rem">
+          <v-dialog
+            v-if="thingStore.things[thingId]?.is_primary_owner"
+            v-model="showProcessingLevelModal"
+            width="60rem"
+          >
             <processing-level-modal
               @uploaded="datastream.processing_level_id = $event"
               @close="showProcessingLevelModal = false"
@@ -183,13 +203,21 @@ import { useSensorStore } from '@/store/sensors'
 import { useObservedPropertyStore } from '@/store/observedProperties'
 import { useUnitStore } from '@/store/unit'
 import { useProcessingLevelStore } from '@/store/processingLevels'
-import { Datastream } from '@/types'
+import {
+  Datastream,
+  ObservedProperty,
+  ProcessingLevel,
+  Sensor,
+  Unit,
+} from '@/types'
+import { useThingStore } from '@/store/things'
 
 const datastreamStore = useDatastreamStore()
 const sensorStore = useSensorStore()
 const opStore = useObservedPropertyStore()
 const unitStore = useUnitStore()
 const plStore = useProcessingLevelStore()
+const thingStore = useThingStore()
 
 const route = useRoute()
 const thingId = route.params.id.toString()
@@ -222,17 +250,24 @@ const datastream = reactive<Datastream>({
   processing_level_id: '',
   processing_level_name: '',
   is_visible: true,
+  is_primary_owner: false,
 })
+const units = reactive<Unit[]>([])
+const processingLevels = reactive<ProcessingLevel[]>([])
+const sensors = reactive<Sensor[]>([])
+const observedProperties = reactive<ObservedProperty[]>([])
 
 const formattedDatastream = computed(() => {
-  return datastreamStore.datastreams[thingId].map((datastream) => ({
+  return datastreamStore.primaryOwnedDatastreams.map((datastream) => ({
     id: datastream.id,
-    title: `${datastream.method_name} : ${datastream.observed_property_name} : ${datastream.unit_name} : ${datastream.processing_level_name}`,
+    title: `Sensor:${datastream.method_name},  Observed Property: ${datastream.observed_property_name},
+     Unit: ${datastream.unit_name},  Processing Level: ${datastream.processing_level_name},
+      Sampled Medium ${datastream.sampled_medium}`,
   }))
 })
 
 const formattedProcessingLevels = computed(() => {
-  return plStore.processingLevels.map((pl) => ({
+  return processingLevels.map((pl) => ({
     id: pl.id,
     title: `${pl.processing_level_code} : ${pl.definition}`,
   }))
@@ -243,10 +278,7 @@ watch(selectedDatastreamID, async () => {
 })
 
 async function populateForm(id: string) {
-  Object.assign(
-    datastream,
-    await datastreamStore.getDatastreamById(thingId, id)
-  )
+  Object.assign(datastream, await datastreamStore.getDatastreamById(id))
 }
 
 async function uploadDatastream() {
@@ -257,11 +289,25 @@ async function uploadDatastream() {
 
 onMounted(async () => {
   // TODO: fetch all at the same time with Promise.all
-  await datastreamStore.fetchDatastreamsByThingId(thingId)
+  await thingStore.fetchThingById(thingId)
+  await datastreamStore.fetchDatastreams()
   await sensorStore.fetchSensors()
   await opStore.fetchObservedProperties()
   await unitStore.fetchUnits()
   await plStore.fetchProcessingLevels()
+
+  if (!thingStore.things[thingId].is_primary_owner) {
+    const data = await thingStore.fetchPrimaryOwnerMetadataByThingId(thingId)
+    Object.assign(units, data.units)
+    Object.assign(processingLevels, data.processing_levels)
+    Object.assign(sensors, data.sensors)
+    Object.assign(observedProperties, data.observed_properties)
+  } else {
+    Object.assign(units, unitStore.units)
+    Object.assign(processingLevels, plStore.processingLevels)
+    Object.assign(sensors, sensorStore.sensors)
+    Object.assign(observedProperties, opStore.observedProperties)
+  }
   if (datastreamId) await populateForm(datastreamId)
 })
 </script>

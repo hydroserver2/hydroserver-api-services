@@ -46,6 +46,7 @@ export interface Datastream {
   processing_level_id: string
   processing_level_name: string
   is_visible: boolean
+  is_primary_owner: boolean
 }
 
 export interface Observation {

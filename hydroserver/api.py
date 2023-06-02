@@ -65,9 +65,11 @@ def thing_ownership_required(func):
             thing = Thing.objects.get(id=thing_id)
         except Thing.DoesNotExist:
             raise HttpError(403, 'Site cannot be found')
-        if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+        try:
+            thing_association = request.authenticated_user.thing_associations.get(thing=thing, owns_thing=True)
+        except ThingAssociation.DoesNotExist:
             raise HttpError(403, 'You do not have permission to access this site.')
-
+        request.thing_association = thing_association
         request.thing = thing
         return func(request, *args, **kwargs)
 
@@ -91,8 +93,11 @@ def datastream_ownership_required(func):
         request.datastream = datastream
         thing = datastream.thing
 
-        if not request.authenticated_user.thing_associations.filter(thing=thing, owns_thing=True).exists():
+        try:
+            thing_association = request.authenticated_user.thing_associations.get(thing=thing, owns_thing=True)
+        except ThingAssociation.DoesNotExist:
             raise HttpError(403, 'You do not have permission to access this datastream.')
+        request.thing_association = thing_association
 
         return func(request, *args, **kwargs)
 
@@ -810,7 +815,7 @@ class CreateDatastreamInput(Schema):
     result_end_time: str = None
 
 
-def datastream_to_dict(datastream, add_recent_observations=True):
+def datastream_to_dict(datastream, association, add_recent_observations=True):
     observation_list = []
     most_recent_observation = None
     if add_recent_observations:
@@ -846,18 +851,15 @@ def datastream_to_dict(datastream, add_recent_observations=True):
         "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
         "method_name": datastream.sensor.name if datastream.sensor else None,
         "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
-        "is_visible": datastream.is_visible
+        "is_visible": datastream.is_visible,
+        "is_primary_owner": association.is_primary_owner,
     }
 
 
-@api.post('/datastreams', auth=jwt_auth)
-def create_datastream(request, data: CreateDatastreamInput):
-    # Should only be able to create a datastream for a thing they own
-    try:
-        thing = Thing.objects.get(id=data.thing_id)
-    except Thing.DoesNotExist:
-        return JsonResponse({'detail': 'Thing not found.'}, status=404)
-
+@api.post('/datastreams/{thing_id}', auth=jwt_auth)
+@thing_ownership_required
+@transaction.atomic
+def create_datastream(request, thing_id, data: CreateDatastreamInput):
     try:
         sensor = Sensor.objects.get(id=data.method_id)
     except Sensor.DoesNotExist:
@@ -889,11 +891,11 @@ def create_datastream(request, data: CreateDatastreamInput):
         aggregation_statistic=data.aggregation_statistic,
         result_type=data.result_type if data.result_type else 'Time Series Coverage',
         observation_type=data.observation_type if data.observation_type else 'OM_Measurement',
-        thing=thing,
+        thing=request.thing,
         sensor=sensor,
     )
 
-    return JsonResponse(datastream_to_dict(datastream))
+    return JsonResponse(datastream_to_dict(datastream, request.thing_association))
 
 
 @api.get('/datastreams', auth=jwt_auth)
@@ -904,7 +906,7 @@ def get_datastreams(request):
     ).prefetch_related('thing__datastreams')
 
     user_datastreams = [
-        datastream_to_dict(datastream)
+        datastream_to_dict(datastream, association)
         for association in user_associations
         for datastream in association.thing.datastreams.all()
     ]
@@ -914,11 +916,18 @@ def get_datastreams(request):
 
 @api.get('/datastreams/{thing_id}', auth=jwt_auth)
 def get_datastreams_for_thing(request, thing_id: str):
-    thing = Thing.objects.get(id=thing_id)
+    user_association = ThingAssociation.objects.get(
+        person=request.authenticated_user,
+        thing_id=thing_id,
+        owns_thing=True,
+    )
+
+    if user_association is None:
+        return JsonResponse([], safe=False)
 
     return JsonResponse([
-        datastream_to_dict(datastream)
-        for datastream in thing.datastreams.all()
+        datastream_to_dict(datastream, user_association)
+        for datastream in user_association.thing.datastreams.all()
     ], safe=False)
 
 
@@ -950,86 +959,87 @@ class UpdateDatastreamInput(Schema):
 
 @api.patch('/datastreams/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
+@transaction.atomic
 def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
-    with transaction.atomic():
-        datastream = request.datastream
-        if data.method_id:
-            try:
-                datastream.sensor = Sensor.objects.get(id=data.method_id)
-            except Sensor.DoesNotExist:
-                return JsonResponse({'detail': 'Sensor not found.'}, status=404)
+    datastream = request.datastream
+    if data.method_id:
+        try:
+            datastream.sensor = Sensor.objects.get(id=data.method_id)
+        except Sensor.DoesNotExist:
+            return JsonResponse({'detail': 'Sensor not found.'}, status=404)
 
-        if data.observed_property_id:
-            try:
-                datastream.observed_property = ObservedProperty.objects.get(id=data.observed_property_id)
-            except ObservedProperty.DoesNotExist:
-                return JsonResponse({'detail': 'Observed Property not found.'}, status=404)
+    if data.observed_property_id:
+        try:
+            datastream.observed_property = ObservedProperty.objects.get(id=data.observed_property_id)
+        except ObservedProperty.DoesNotExist:
+            return JsonResponse({'detail': 'Observed Property not found.'}, status=404)
 
-        if data.unit_id:
-            try:
-                datastream.unit = Unit.objects.get(id=data.unit_id)
-            except Unit.DoesNotExist:
-                return JsonResponse({'detail': 'Unit not found.'}, status=404)
+    if data.unit_id:
+        try:
+            datastream.unit = Unit.objects.get(id=data.unit_id)
+        except Unit.DoesNotExist:
+            return JsonResponse({'detail': 'Unit not found.'}, status=404)
 
-        if data.processing_level_id:
-            try:
-                datastream.processing_level = ProcessingLevel.objects.get(id=data.processing_level_id)
-            except ProcessingLevel.DoesNotExist:
-                return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
+    if data.processing_level_id:
+        try:
+            datastream.processing_level = ProcessingLevel.objects.get(id=data.processing_level_id)
+        except ProcessingLevel.DoesNotExist:
+            return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-        if data.observation_type:
-            datastream.observation_type = data.observation_type
-        if data.result_type:
-            datastream.result_type = data.result_type
-        if data.status:
-            datastream.status = data.status
-        if data.sampled_medium:
-            datastream.sampled_medium = data.sampled_medium
-        if data.no_data_value:
-            datastream.no_data_value = data.no_data_value
-        if data.aggregation_statistic:
-            datastream.aggregation_statistic = data.aggregation_statistic
-        if data.time_aggregation_interval:
-            datastream.time_aggregation_interval = data.time_aggregation_interval
-        if data.time_aggregation_interval_units:
-            try:
-                datastream.time_aggregation_interval_units = Unit.objects.get(id=data.time_aggregation_interval_units)
-            except Unit.DoesNotExist:
-                return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
-        if data.phenomenon_start_time:
-            datastream.phenomenon_start_time = data.phenomenon_start_time
-        if data.phenomenon_end_time:
-            datastream.phenomenon_end_time = data.phenomenon_end_time
-        if data.result_begin_time:
-            datastream.result_begin_time = data.result_begin_time
-        if data.result_end_time:
-            datastream.result_end_time = data.result_end_time
-        if data.value_count:
-            datastream.value_count = data.value_count
-        if data.intended_time_spacing:
-            datastream.intended_time_spacing = data.intended_time_spacing
-        if data.intended_time_spacing_units:
-            try:
-                datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units)
-            except Unit.DoesNotExist:
-                return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
-        if data.is_visible is not None:
-            datastream.is_visible = data.is_visible
+    if data.observation_type:
+        datastream.observation_type = data.observation_type
+    if data.result_type:
+        datastream.result_type = data.result_type
+    if data.status:
+        datastream.status = data.status
+    if data.sampled_medium:
+        datastream.sampled_medium = data.sampled_medium
+    if data.no_data_value:
+        datastream.no_data_value = data.no_data_value
+    if data.aggregation_statistic:
+        datastream.aggregation_statistic = data.aggregation_statistic
+    if data.time_aggregation_interval:
+        datastream.time_aggregation_interval = data.time_aggregation_interval
+    if data.time_aggregation_interval_units:
+        try:
+            datastream.time_aggregation_interval_units = Unit.objects.get(id=data.time_aggregation_interval_units)
+        except Unit.DoesNotExist:
+            return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
+    if data.phenomenon_start_time:
+        datastream.phenomenon_start_time = data.phenomenon_start_time
+    if data.phenomenon_end_time:
+        datastream.phenomenon_end_time = data.phenomenon_end_time
+    if data.result_begin_time:
+        datastream.result_begin_time = data.result_begin_time
+    if data.result_end_time:
+        datastream.result_end_time = data.result_end_time
+    if data.value_count:
+        datastream.value_count = data.value_count
+    if data.intended_time_spacing:
+        datastream.intended_time_spacing = data.intended_time_spacing
+    if data.intended_time_spacing_units:
+        try:
+            datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units)
+        except Unit.DoesNotExist:
+            return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
+    if data.is_visible is not None:
+        datastream.is_visible = data.is_visible
 
-        datastream.save()
+    datastream.save()
 
-    return JsonResponse(datastream_to_dict(datastream))
+    return JsonResponse(datastream_to_dict(datastream, request.thing_association))
 
 
-@api.delete('/datastreams/{datastream_id}')
+@api.delete('/datastreams/{datastream_id}/temp')
 @datastream_ownership_required
+@transaction.atomic()
 def delete_datastream(request, datastream_id: str):
     try:
         request.datastream.delete()
     except Exception as e:
-        return JsonResponse(status_code=500, detail=str(e))
+        return JsonResponse(status=500, detail=str(e))
 
-    return {'detail': 'Datastream deleted successfully.'}
+    return JsonResponse({'detail': 'Datastream deleted successfully.'}, status=200)
 
 
 def unit_to_dict(unit):
@@ -1047,6 +1057,32 @@ def unit_to_dict(unit):
 def get_units(request):
     units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
+
+
+@api.get('/things/{thing_id}/metadata', auth=jwt_auth)
+@thing_ownership_required
+def get_primary_owner_metadata(request, thing_id):
+    thing_associations = ThingAssociation.objects.filter(thing=request.thing, is_primary_owner=True)
+    primary_owner = thing_associations.first().person if thing_associations.exists() else None
+
+    if not primary_owner:
+        return JsonResponse({'error': 'Primary owner cannot be found for thing'}, status=401)
+    units = Unit.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
+    sensors = Sensor.objects.filter(Q(person=primary_owner))
+    processing_levels = ProcessingLevel.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
+    observed_properties = ObservedProperty.objects.filter(Q(person=primary_owner))
+
+    unit_data = [unit_to_dict(unit) for unit in units]
+    sensor_data = [sensor_to_dict(sensor) for sensor in sensors]
+    processing_level_data = [processing_level_to_dict(pl) for pl in processing_levels]
+    observed_property_data = [observed_property_to_dict(op) for op in observed_properties]
+
+    return JsonResponse({
+        'units': unit_data,
+        'sensors': sensor_data,
+        'processing_levels': processing_level_data,
+        'observed_properties': observed_property_data
+    })
 
 
 class CreateUnitInput(Schema):
