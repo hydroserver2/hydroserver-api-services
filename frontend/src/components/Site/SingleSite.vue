@@ -123,10 +123,10 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="auto" class="d-flex justify-start">
+      <v-col cols="auto">
         <h5 class="text-h5">Datastreams Available at this Site</h5>
       </v-col>
-      <v-col cols="auto" class="d-flex justify-start">
+      <v-col cols="auto">
         <v-btn
           v-if="thingStore.things[thingId]?.owns_thing"
           color="grey"
@@ -138,15 +138,15 @@
         >
       </v-col>
       <v-spacer></v-spacer>
-      <v-col cols="auto" class="d-flex justify-start">
+      <v-col cols="auto">
         <img
-          style="max-height: 30px"
+          style="max-height: 1.5rem"
           src="@/assets/hydro.png"
           alt="hydro"
           class="site-information-image"
         />
       </v-col>
-      <v-col cols="auto" class="d-flex justify-start">
+      <v-col cols="auto">
         <v-btn color="grey" class="site-information-button"
           >Download Data from HydroShare</v-btn
         >
@@ -210,9 +210,7 @@ const is_owner = computed(
     thingStore.things[thingId] &&
     thingStore.things[thingId].owns_thing
 )
-const thing = computed(
-  () => thingStore.things[thingId] as unknown as string
-)
+const thing = computed(() => thingStore.things[thingId] as unknown as string)
 const showRegisterSiteModal = ref(false)
 const showDeleteModal = ref(false)
 const showAccessControlModal = ref(false)

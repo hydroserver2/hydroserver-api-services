@@ -3,58 +3,65 @@
     <v-card>
       <v-card-title>Edit Profile </v-card-title>
       <v-card-text>
-        <v-container>
-          <v-row>
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="user.first_name"
-                label="First Name"
-                outlined
-                required
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="user.middle_name"
-                label="Middle Name"
-                outlined
-                required
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="user.last_name"
-                label="Last Name"
-                outlined
-                required
-              ></v-text-field>
-            </v-col>
-          </v-row>
-          <v-row>
+        <v-row>
+          <v-col cols="12" sm="4">
+            <v-text-field
+              v-model="user.first_name"
+              label="First Name"
+              outlined
+              required
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-text-field
+              v-model="user.middle_name"
+              label="Middle Name"
+              outlined
+              required
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-text-field
+              v-model="user.last_name"
+              label="Last Name"
+              outlined
+              required
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
             <v-text-field
               v-model="user.phone"
               label="Phone Number"
               outlined
               required
-            ></v-text-field
-          ></v-row>
-          <v-row>
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
             <v-text-field
               v-model="user.address"
               label="Address"
               outlined
               required
-            ></v-text-field
-          ></v-row>
-          <v-row>
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
             <v-text-field
               v-model="user.organization"
               label="Organization"
               outlined
               required
-            ></v-text-field>
-          </v-row>
-          <v-row>
+            >
+            </v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
             <v-autocomplete
               v-model="user.type"
               label="User Type"
@@ -62,8 +69,8 @@
               outlined
               required
             ></v-autocomplete>
-          </v-row>
-        </v-container>
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>

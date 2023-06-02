@@ -2,14 +2,14 @@
   <v-container>
     <v-row class="text-center">
       <v-col>
-        <h1>Profile</h1>
+        <h3 class="text-h3">Profile</h3>
       </v-col>
     </v-row>
 
     <v-row class="text-left" v-if="authStore.user">
       <v-col>
         <h3>
-          Welcome, {{ authStore.user.first_name }}
+          {{ authStore.user.first_name }}
           {{ authStore.user.middle_name }}
           {{ authStore.user.last_name }}
         </h3>
@@ -20,12 +20,20 @@
       </v-col>
     </v-row>
 
-    <v-row class="text-center">
-      <v-col>
-        <h3>
-          Connect Account to
-          <img class="hydroserver-logo" src="@/assets/hydro.png" alt="Hydro" />
-        </h3>
+    <v-row class="justify-center text-center">
+      <v-col cols="12">
+        <v-row class="justify-center">
+          <v-col class="align-center" cols="auto">
+            <h5 class="text-h5">Connect Account to</h5>
+          </v-col>
+          <v-col cols="auto">
+            <img
+              class="hydroserver-logo"
+              src="@/assets/hydro.png"
+              alt="Hydro"
+            />
+          </v-col>
+        </v-row>
         <v-btn color="primary">CONNECT</v-btn>
       </v-col>
     </v-row>
@@ -39,33 +47,29 @@
     <v-row class="text-center">
       <v-col>
         <router-link to="/Sites">
-          <img
-            src="https://via.placeholder.com/150x150"
-            alt="Manage My Sites"
-          />
+          <v-icon color="black" large>mdi-domain</v-icon>
         </router-link>
         <div>Manage My Sites</div>
       </v-col>
       <v-col>
         <router-link to="/Browse">
-          <img src="https://via.placeholder.com/150x150" alt="Browse Sites" />
+          <v-icon color="black" large>mdi-magnify</v-icon>
         </router-link>
         <div>Browse Sites</div>
       </v-col>
       <v-col>
         <div>
-          <img
-            src="https://via.placeholder.com/150x150"
-            alt="Edit My Profile"
-          />
+          <v-icon large>mdi-account-edit-outline</v-icon>
           <AccountModal />
         </div>
-
         <div>Edit My Profile</div>
       </v-col>
-    </v-row>
-    <v-row>
-      <v-btn @click="deleteAccountDialog = true"> Delete Account</v-btn>
+      <v-col>
+        <v-icon large @click="deleteAccountDialog = true"
+          >mdi-account-remove</v-icon
+        >
+        <div>Delete Account</div>
+      </v-col>
     </v-row>
   </v-container>
 
