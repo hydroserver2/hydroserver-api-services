@@ -196,8 +196,8 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             )
             sql, params = query.query.sql_with_params()
             params = [f"'{param}'" if isinstance(param, uuid.UUID) else param for param in params]
-            rank_group_limit = 10
-            total_query_limit = 100
+            rank_group_limit = 1000
+            total_query_limit = 10000
 
             query = getattr(core_models, querysets['component']).objects.raw("""
                 SELECT * FROM ({}) ranked_result
@@ -588,7 +588,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         """"""
 
         try:
-            entity = getattr(core_models, self.component).objects.get(pk=entity_id)
+            getattr(core_models, self.component).objects.get(pk=entity_id)
         except ObjectDoesNotExist:
             raise Http404
 
