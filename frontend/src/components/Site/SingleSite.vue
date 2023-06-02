@@ -8,7 +8,7 @@
     <v-row v-if="thingStore.things[thingId]" style="height: 25rem">
       <v-col>
         <GoogleMap
-          :key="thingStore.things[thingId]"
+          :key="thing"
           :things="[thingStore.things[thingId]]"
           :mapOptions="mapOptions"
         />
@@ -208,6 +208,9 @@ const is_owner = computed(
     isAuthenticated &&
     thingStore.things[thingId] &&
     thingStore.things[thingId].owns_thing
+)
+const thing = computed(
+  () => thingStore.things[thingId] as unknown as string
 )
 const showRegisterSiteModal = ref(false)
 const showDeleteModal = ref(false)

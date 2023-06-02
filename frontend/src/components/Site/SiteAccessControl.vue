@@ -166,9 +166,9 @@ import { ref, defineProps, defineEmits, onMounted } from 'vue'
 import { useThingStore } from '@/store/things'
 import { useAuthStore } from '@/store/authentication'
 
-const props = defineProps({
-  thingId: String,
-})
+const props = defineProps<{
+  thingId: string
+}>()
 
 const emits = defineEmits(['close'])
 

@@ -89,7 +89,7 @@ const organizations = computed(() => {
   return Array.from(allOrgs)
 })
 
-const filteredThings = computed(() => {
+const filteredThings: any = computed(() => {
   if (typeof thingStore.things !== 'object' || !thingStore.things) return []
   return Object.values(thingStore.things).filter(isThingValid)
 })

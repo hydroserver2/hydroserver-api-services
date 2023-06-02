@@ -16,7 +16,7 @@ export const useThingStore = defineStore('things', {
     followedThings(): Thing[] {
       return Object.values(this.things).filter((thing) => thing.follows_thing)
     },
-    ownedOrFollowedThings(): Thing[] {
+    ownedOrFollowedThings(): Thing[] | any {
       return Object.values(this.things).filter(
         (thing) => thing.owns_thing || thing.follows_thing
       )

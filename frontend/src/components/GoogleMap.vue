@@ -55,7 +55,7 @@ function loadMarkers() {
       // </b></p>
       // <p>${markerData.description}</p>
 
-      marker.addListener('click', (e) => {
+      marker.addListener('click', (e: any) => {
         if (infoWindow) infoWindow.close()
         infoWindow = new google.maps.InfoWindow({ content })
         infoWindow.open({ anchor: marker, map: map })
@@ -75,8 +75,8 @@ async function addLocationClicking() {
   const geocoder = new google.maps.Geocoder()
 
   map.addListener('click', async (mapsMouseEvent: any) => {
-    const { elevation } = await getElevation(mapsMouseEvent, elevator)
-    const { state, county } = await getGeoData(mapsMouseEvent, geocoder)
+    const { elevation }: any = await getElevation(mapsMouseEvent, elevator)
+    const { state, county }: any = await getGeoData(mapsMouseEvent, geocoder)
 
     const locationData: any = {
       latitude: mapsMouseEvent.latLng.lat().toFixed(6),
@@ -97,7 +97,7 @@ async function addLocationClicking() {
   })
 }
 
-async function getElevation(mapsMouseEvent, elevator) {
+async function getElevation(mapsMouseEvent: any, elevator: any) {
   const { results } = await elevator.getElevationForLocations({
     locations: [mapsMouseEvent.latLng],
   })
@@ -105,14 +105,14 @@ async function getElevation(mapsMouseEvent, elevator) {
   return results[0]
 }
 
-async function getGeoData(mapsMouseEvent, geocoder) {
+async function getGeoData(mapsMouseEvent: any, geocoder: any) {
   try {
     const { results } = await geocoder.geocode({
       location: mapsMouseEvent.latLng,
     })
 
     const { state, county } = results[0].address_components.reduce(
-      (acc, component) => {
+      (acc: any, component: any) => {
         if (component.types.includes('administrative_area_level_1'))
           acc.state = component.short_name
         if (component.types.includes('administrative_area_level_2'))
@@ -130,7 +130,7 @@ async function getGeoData(mapsMouseEvent, geocoder) {
 
 onMounted(async () => {
   const google = await loader.load()
-  map = new google.maps.Map(mapContainer.value, props.mapOptions)
+  map = new google.maps.Map(mapContainer.value!, props.mapOptions)
   if (props.clickable) await addLocationClicking()
   loadMarkers()
 

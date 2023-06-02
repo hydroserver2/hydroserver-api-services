@@ -136,6 +136,7 @@ const thing = reactive<Thing>({
   follows_thing: false,
   owners: [],
   followers: 0,
+  is_private: false // TODO: I set a default value here so TypeScript doesn't complain about it being missing.
 })
 
 const siteTypes = [
