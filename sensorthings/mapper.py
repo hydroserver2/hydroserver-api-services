@@ -3,14 +3,21 @@ from typing import Optional, Callable, List, Union
 
 class MappedField:
 
-    def __init__(self, field_path: List[Union[str, int]], transformation: Optional[Callable] = None):
+    def __init__(
+            self,
+            field_path: List[Union[str, int]],
+            transformation: Optional[Callable] = None,
+            linked_component: Union[str, None] = None
+    ):
         self.field_path = field_path
         self.transformation = transformation
+        self.linked_component = linked_component
 
 
 class ComponentMap:
 
-    def __init__(self):
+    def __init__(self, ref):
+        self.ref = ref
         self.__field_maps__ = [
             getattr(self, attr) for attr in dir(self) if isinstance(getattr(self, attr), FieldMap)
         ]
@@ -33,11 +40,40 @@ class ComponentMap:
             for field_map in self.__field_maps__ if hasattr(field_map.output_field, 'field_path')
         }
 
-    def get_output_paths(self, input_paths: Optional[List[List[str]]] = None, delimiter: Optional[str] = None):
+    def get_output_paths(
+            self,
+            input_paths: Optional[List[List[str]]] = None,
+            delimiter: Optional[str] = None
+    ):
         return [
             delimiter.join(field_map.output_field.field_path) if delimiter is not None
             else field_map.output_field.field_path
             for field_map in self.__field_maps__ if hasattr(field_map.output_field, 'field_path')
+            and (
+                input_paths is None
+                or any(
+                    field_map.input_field.field_path[:len(input_path)] == input_path for input_path in input_paths
+                )
+            ) and field_map.output_field.field_path
+        ]
+
+    def get_output_components(
+            self,
+            input_paths: Optional[List[List[str]]] = None,
+            prefix: Optional[str] = '',
+            delimiter: Optional[str] = None
+    ):
+        return [
+            {
+                'component': field_map.output_field.linked_component,
+                'prefetch_filter': prefix + delimiter.join(field_map.output_field.field_path + ['id']),
+                'prefetch_field': self.ref + '_id',
+                'query_structure': {
+                    'component': field_map.output_field.linked_component,
+                    'array': True
+                } if delimiter is not None else field_map.output_field.field_path + ['id', 'in']
+            } for field_map in self.__field_maps__ if hasattr(field_map.output_field, 'field_path')
+            and field_map.output_field.linked_component is not None
             and (
                 input_paths is None
                 or any(
@@ -66,61 +102,84 @@ class FieldMap:
         self.output_field = output_field
 
 
-class Thing(ComponentMap):
+class ThingAssociation(ComponentMap):
 
     id = FieldMap(
         MappedField(['id']),
-        MappedField(['thing', 'id'])
+        MappedField(['id'])
     )
 
-    name = FieldMap(
-        MappedField(['name']),
-        MappedField(['thing', 'name'])
+    thing_id = FieldMap(
+        MappedField(['thing_id']),
+        MappedField(['thing_id'])
     )
 
-    description = FieldMap(
-        MappedField(['description']),
-        MappedField(['thing', 'description'])
-    )
-
-    sampling_feature_code = FieldMap(
-        MappedField(['properties', 'samplingFeatureCode']),
-        MappedField(['thing', 'sampling_feature_code'])
-    )
-
-    sampling_feature_type = FieldMap(
-        MappedField(['properties', 'samplingFeatureType']),
-        MappedField(['thing', 'sampling_feature_type'])
-    )
-
-    site_type = FieldMap(
-        MappedField(['properties', 'siteType']),
-        MappedField(['thing', 'site_type'])
+    person_id = FieldMap(
+        MappedField(['id']),
+        MappedField(['person', 'id'])
     )
 
     first_name = FieldMap(
-        MappedField(['properties', 'contactPeople', 'firstName']),
+        MappedField(['firstName']),
         MappedField(['person', 'first_name'])
     )
 
     last_name = FieldMap(
-        MappedField(['properties', 'contactPeople', 'lastName']),
+        MappedField(['lastName']),
         MappedField(['person', 'last_name'])
     )
 
     email = FieldMap(
-        MappedField(['properties', 'contactPeople', 'email']),
+        MappedField(['email']),
         MappedField(['person', 'email'])
     )
 
     organization = FieldMap(
-        MappedField(['properties', 'contactPeople', 'organization']),
+        MappedField(['organization']),
         MappedField(['person', 'organization'])
     )
 
     phone = FieldMap(
-        MappedField(['properties', 'contactPeople', 'phone']),
+        MappedField(['phone']),
         MappedField(['person', 'phone'])
+    )
+
+
+class Thing(ComponentMap):
+
+    id = FieldMap(
+        MappedField(['id']),
+        MappedField(['id'])
+    )
+
+    name = FieldMap(
+        MappedField(['name']),
+        MappedField(['name'])
+    )
+
+    description = FieldMap(
+        MappedField(['description']),
+        MappedField(['description'])
+    )
+
+    sampling_feature_code = FieldMap(
+        MappedField(['properties', 'samplingFeatureCode']),
+        MappedField(['sampling_feature_code'])
+    )
+
+    sampling_feature_type = FieldMap(
+        MappedField(['properties', 'samplingFeatureType']),
+        MappedField(['sampling_feature_type'])
+    )
+
+    site_type = FieldMap(
+        MappedField(['properties', 'siteType']),
+        MappedField(['site_type'])
+    )
+
+    contact_people = FieldMap(
+        MappedField(['properties', 'contactPeople']),
+        MappedField([], linked_component='ThingAssociation')
     )
 
 
@@ -174,9 +233,9 @@ class Location(ComponentMap):
         MappedField(['state'])
     )
 
-    country = FieldMap(
-        MappedField(['properties', 'country']),
-        MappedField(['country'])
+    county = FieldMap(
+        MappedField(['properties', 'county']),
+        MappedField(['county'])
     )
 
     elevation = FieldMap(
@@ -281,6 +340,21 @@ class Datastream(ComponentMap):
     id = FieldMap(
         MappedField(['id']),
         MappedField(['id'])
+    )
+
+    observed_property_id = FieldMap(
+        MappedField(['observed_property_id']),
+        MappedField(['observed_property_id'])
+    )
+
+    sensor_id = FieldMap(
+        MappedField(['sensor_id']),
+        MappedField(['sensor_id'])
+    )
+
+    thing_id = FieldMap(
+        MappedField(['thing_id']),
+        MappedField(['thing_id'])
     )
 
     name = FieldMap(
@@ -416,6 +490,11 @@ class Observation(ComponentMap):
         MappedField(['id'])
     )
 
+    datastream_id = FieldMap(
+        MappedField(['datastream_id']),
+        MappedField(['datastream_id'])
+    )
+
     result = FieldMap(
         MappedField(['result']),
         MappedField(['result'])
@@ -448,10 +527,11 @@ class Observation(ComponentMap):
 
 
 sensorthings_mapper = {
-    'Thing': Thing(),
-    'Location': Location(),
-    'Sensor': Sensor(),
-    'ObservedProperty': ObservedProperty(),
-    'Datastream': Datastream(),
-    'Observation': Observation()
+    'ThingAssociation': ThingAssociation(ref='thing_association'),
+    'Thing': Thing(ref='thing'),
+    'Location': Location(ref='location'),
+    'Sensor': Sensor(ref='sensor'),
+    'ObservedProperty': ObservedProperty(ref='observed_property'),
+    'Datastream': Datastream(ref='datastream'),
+    'Observation': Observation(ref='observation')
 }
