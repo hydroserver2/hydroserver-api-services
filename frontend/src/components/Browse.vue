@@ -1,6 +1,15 @@
 <template>
   <div class="d-flex fill-height">
-    <v-card class="sidebar">
+    <v-navigation-drawer v-model="drawer" app width="350" class="sidebar">
+      <v-row>
+        <v-spacer></v-spacer>
+        <v-col cols="auto">
+          <v-btn v-if="drawer" class="toggler" icon @click="drawer = !drawer">
+            <v-icon>mdi-menu-open</v-icon>
+          </v-btn>
+        </v-col>
+      </v-row>
+
       <v-card-title>Browse Data Collection Sites</v-card-title>
       <v-card-text>
         <div class="d-flex my-2">
@@ -29,7 +38,11 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </v-card-text>
-    </v-card>
+    </v-navigation-drawer>
+
+    <v-btn v-if="!drawer" class="toggler" icon @click="drawer = !drawer">
+      <v-icon>mdi-menu</v-icon>
+    </v-btn>
 
     <GoogleMap
       :key="filteredThings"
@@ -47,6 +60,7 @@ import { Ref } from 'vue'
 import { Thing } from '@/types'
 import { useThingStore } from '@/store/things'
 
+const drawer = ref(true)
 const thingStore = useThingStore()
 const siteTypes = ref([
   'Borehole',
