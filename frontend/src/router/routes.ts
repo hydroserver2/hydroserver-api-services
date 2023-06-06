@@ -78,7 +78,12 @@ export const routes: RouteRecordRaw[] = [
   },
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },
-  { path: '/profile', name: 'Profile', component: Profile },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    beforeEnter: requireAuth,
+  },
   {
     path: '/metadata',
     name: 'Metadata',

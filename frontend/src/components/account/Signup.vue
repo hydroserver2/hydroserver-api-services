@@ -7,20 +7,20 @@
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="firstName"
+                v-model="user.first_name"
                 label="First Name"
                 required
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="middleName"
+                v-model="user.middle_name"
                 label="Middle Name"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="lastName"
+                v-model="user.last_name"
                 label="Last Name"
                 required
               ></v-text-field>
@@ -29,7 +29,7 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="email"
+                v-model="user.email"
                 label="Email (This will be your login username)"
                 required
               ></v-text-field>
@@ -39,7 +39,7 @@
             <v-col cols="12" md="6">
               <v-text-field
                 type="password"
-                v-model="password"
+                v-model="user.password"
                 label="Password"
                 required
               ></v-text-field>
@@ -56,7 +56,7 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="address"
+                v-model="user.address"
                 label="Address (Optional)"
               ></v-text-field>
             </v-col>
@@ -64,7 +64,7 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="phone"
+                v-model="user.phone"
                 label="Phone (Optional)"
               ></v-text-field>
             </v-col>
@@ -72,7 +72,7 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="organization"
+                v-model="user.organization"
                 label="Organization (Optional)"
               ></v-text-field>
             </v-col>
@@ -80,7 +80,7 @@
           <v-row>
             <v-col>
               <v-autocomplete
-                v-model="type"
+                v-model="user.type"
                 label="User Type"
                 :items="userTypes"
                 outlined
@@ -89,7 +89,7 @@
             </v-col>
           </v-row>
           <div class="mt-6">
-            <v-btn-primary type="submit" @click="submitForm"
+            <v-btn-primary type="submit" @click="createUser"
               >Create User</v-btn-primary
             >
           </div>
@@ -105,21 +105,27 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router/router'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useApiClient } from '@/utils/api-client'
+import { useAuthStore } from '@/store/authentication'
+import { User } from '@/types'
+
 const api = useApiClient()
 
-const firstName = ref('')
-const lastName = ref('')
-const email = ref('')
-const password = ref('')
+const user = reactive<User>({
+  id: '',
+  email: '',
+  password: '',
+  first_name: '',
+  middle_name: '',
+  last_name: '',
+  phone: '',
+  address: '',
+  organization: '',
+  type: '',
+})
+
 const confirmPassword = ref('')
-const middleName = ref('')
-const phone = ref('')
-const address = ref('')
-const organization = ref('')
-const type = ref(null)
 const userTypes = ref([
   'University Faculty',
   'University Professional or Research Staff',
@@ -134,31 +140,11 @@ const userTypes = ref([
   'Other',
 ])
 
-async function submitForm() {
-  if (password.value !== confirmPassword.value) {
+async function createUser() {
+  if (user.password !== confirmPassword.value) {
     alert('Passwords do not match!')
     return
   }
-
-  try {
-    const response = await api.post('/user', {
-      first_name: firstName.value,
-      last_name: lastName.value,
-      email: email.value,
-      password: password.value,
-      middle_name: middleName.value,
-      phone: phone.value,
-      address: address.value,
-      organization: organization.value,
-      type: type.value,
-    })
-    const { access_token, refresh_token } = response.data
-    // TODO: save this in the store and configure property as persistent
-    localStorage.setItem('access_token', access_token)
-    localStorage.setItem('refresh_token', refresh_token)
-    await router.push('/profile')
-  } catch (error) {
-    console.error(error)
-  }
+  await useAuthStore().createUser(user)
 }
 </script>

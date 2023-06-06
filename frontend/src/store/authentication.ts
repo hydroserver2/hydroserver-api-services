@@ -84,6 +84,28 @@ export const useAuthStore = defineStore({
         await this.logout()
       }
     },
+    async createUser(user: User) {
+      try {
+        const response = await this.$http.post('/user', user)
+        if (response.status === 200) {
+          Notification.toast({
+            message: 'Account successfully created.',
+          })
+          await this.login(user.email, user.password)
+        }
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+          })
+        } else {
+          Notification.toast({
+            message: 'Something went wrong.',
+          })
+        }
+        console.error('Error creating user', error)
+      }
+    },
     async updateUser(user: User) {
       try {
         const { data } = await this.$http.patch('/user', user)
