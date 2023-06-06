@@ -44,16 +44,18 @@ function loadMarkers() {
         ),
         map: map,
       })
+
       const content = `
-            <h5>${markerData.name}</h5>
-            <p><a href="/sites/${markerData.id}">View data for this site</a>
-      `
-      // TODO: figure out how this data will be populated
-      // <p><b>
-      //   ${markerData.state ? markerData.state : ''}
-      //   ${markerData.county ? markerData.county : ''}
-      // </b></p>
-      // <p>${markerData.description}</p>
+            <h6 class="text-h6 pb-1">${markerData.name}</h6>
+            <p class="pb-1"><b>
+              ${markerData.county ? markerData.county : ''}
+              ${markerData.county && markerData.state ? ',' : ''}
+              ${markerData.state ? markerData.state : ''}
+            </b></p>
+            <p class="pb-1">${markerData.description}</p>
+            <p class="pt-1">
+              <a href="/sites/${markerData.id}">View data for this site</a>
+            </p>`
 
       marker.addListener('click', (e: any) => {
         if (infoWindow) infoWindow.close()
@@ -141,3 +143,15 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style>
+a {
+  text-decoration: none;
+  color: #1565c0;
+  text-transform: uppercase;
+}
+
+a:hover {
+  color: #0d47a1;
+}
+</style>

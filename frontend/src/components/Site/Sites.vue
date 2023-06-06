@@ -10,13 +10,15 @@
     </div>
 
     <v-container>
-      <div class="d-flex justify-space-between mb-4">
-        <h5 class="text-h5">My Registered Sites</h5>
-        <div>
-          <v-btn to="Metadata" color="grey" style="margin: 1rem"
-            >Manage Metadata</v-btn
-          >
-
+      <v-row class="mb-4">
+        <v-col cols="auto">
+          <h5 class="text-h5">My Registered Sites</h5>
+        </v-col>
+        <v-spacer></v-spacer>
+        <v-col cols="auto">
+          <v-btn to="Metadata" color="grey">Manage Metadata</v-btn>
+        </v-col>
+        <v-col cols="auto">
           <v-btn
             color="green"
             variant="elevated"
@@ -25,8 +27,8 @@
             prependIcon="mdi-plus"
             >Register a new site</v-btn
           >
-        </div>
-      </div>
+        </v-col>
+      </v-row>
 
       <v-data-table
         v-if="thingStore.ownedThings.length"
@@ -37,7 +39,6 @@
         class="elevation-3"
         @click:row="onRowClick"
       >
-        <template v-slot:bottom></template>
       </v-data-table>
 
       <p v-else class="text-body-1 text-medium-emphasis">
@@ -56,7 +57,6 @@
         class="elevation-3"
         @click:row="onRowClick"
       >
-        <template v-slot:bottom></template>
       </v-data-table>
       <p v-else class="text-body-1 text-medium-emphasis">
         You are not following any sites.
