@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import router from '@/router/router'
 import { User } from '@/types'
 import Notification from './notifications'
+import { useResetStore } from '@/store/resetStore'
 
 export const useAuthStore = defineStore({
   id: 'authentication',
@@ -23,7 +24,7 @@ export const useAuthStore = defineStore({
   }),
   actions: {
     resetState() {
-      this.$reset()
+      useResetStore().all()
       localStorage.clear()
     },
     async login(email: string, password: string) {
