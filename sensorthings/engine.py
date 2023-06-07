@@ -560,9 +560,16 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     ) -> List[str]:
 
         if self.component == 'Observation':
-            entities = getattr(core_models, self.component).objects.bulk_create(
+            grouped_observations = {}
+            for entity_body in entity_bodies:
+                grouped_observations[entity_body.datastream.id] = grouped_observations.get(
+                    entity_body.datastream.id, []
+                )
+                grouped_observations[entity_body.datastream.id].append(entity_body)
+
+            entities = core_models.Observation.objects.bulk_create(
                 [
-                    getattr(core_models, self.component)(
+                    core_models.Observation(
                         id=uuid.uuid4(),
                         datastream_id=entity_body.datastream.id,
                         result=entity_body.result,
@@ -571,9 +578,54 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         phenomenon_time=entity_body.phenomenon_time,
                         valid_begin_time=entity_body.valid_time,
                         valid_end_time=entity_body.valid_time,
-                    ) for entity_body in entity_bodies
+                    ) for entity_body in [
+                        observation for observations in grouped_observations.values() for observation in observations
+                    ]
                 ]
             )
+
+            for datastream_id, observations in grouped_observations.items():
+                datastream = core_models.Datastream.objects.get(pk=datastream_id)
+
+                ds_result_end_time = datastream.result_end_time
+                max_obs_result_time = max([
+                    observation.result_time for observation in observations
+                    if observation.result_time is not None
+                ], default=None)
+
+                if max_obs_result_time and ds_result_end_time and \
+                        max_obs_result_time.__datetime__() > ds_result_end_time:
+                    datastream.result_end_time = max_obs_result_time
+
+                ds_result_begin_time = datastream.result_begin_time
+                min_obs_result_time = min([
+                    observation.result_time for observation in observations
+                    if observation.result_time is not None
+                ], default=None)
+
+                if min_obs_result_time and ds_result_begin_time and \
+                        min_obs_result_time.__datetime__() < ds_result_begin_time:
+                    datastream.result_begin_time = min_obs_result_time
+
+                ds_phen_end_time = datastream.phenomenon_end_time
+                max_obs_phen_time = max([
+                    observation.phenomenon_time for observation in observations
+                    if observation.phenomenon_time is not None
+                ], default=None)
+
+                if max_obs_phen_time and ds_phen_end_time and max_obs_phen_time.__datetime__() > ds_phen_end_time:
+                    datastream.phenomenon_end_time = max_obs_phen_time
+
+                ds_phen_start_time = datastream.phenomenon_start_time
+                min_obs_phen_time = min([
+                    observation.phenomenon_time for observation in observations
+                    if observation.phenomenon_time is not None
+                ], default=None)
+
+                if min_obs_phen_time and ds_phen_start_time and min_obs_phen_time.__datetime__() < ds_phen_start_time:
+                    datastream.phenomenon_start_time = min_obs_phen_time
+
+                datastream.save()
 
         else:
             entities = []
