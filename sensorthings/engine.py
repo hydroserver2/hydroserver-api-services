@@ -593,8 +593,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     if observation.result_time is not None
                 ], default=None)
 
-                if max_obs_result_time and ds_result_end_time and \
-                        max_obs_result_time.__datetime__() > ds_result_end_time:
+                if (
+                        max_obs_result_time and ds_result_end_time and
+                        max_obs_result_time.__datetime__() > ds_result_end_time
+                   ) or (max_obs_result_time and not ds_result_end_time):
                     datastream.result_end_time = max_obs_result_time
 
                 ds_result_begin_time = datastream.result_begin_time
@@ -603,8 +605,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     if observation.result_time is not None
                 ], default=None)
 
-                if min_obs_result_time and ds_result_begin_time and \
-                        min_obs_result_time.__datetime__() < ds_result_begin_time:
+                if (
+                        min_obs_result_time and ds_result_begin_time and
+                        min_obs_result_time.__datetime__() < ds_result_begin_time
+                   ) or (min_obs_result_time and not ds_result_begin_time):
                     datastream.result_begin_time = min_obs_result_time
 
                 ds_phen_end_time = datastream.phenomenon_end_time
@@ -613,7 +617,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     if observation.phenomenon_time is not None
                 ], default=None)
 
-                if max_obs_phen_time and ds_phen_end_time and max_obs_phen_time.__datetime__() > ds_phen_end_time:
+                if (
+                        max_obs_phen_time and ds_phen_end_time and
+                        max_obs_phen_time.__datetime__() > ds_phen_end_time
+                   ) or (max_obs_phen_time and not ds_phen_end_time):
                     datastream.phenomenon_end_time = max_obs_phen_time
 
                 ds_phen_start_time = datastream.phenomenon_start_time
@@ -622,7 +629,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     if observation.phenomenon_time is not None
                 ], default=None)
 
-                if min_obs_phen_time and ds_phen_start_time and min_obs_phen_time.__datetime__() < ds_phen_start_time:
+                if (
+                        min_obs_phen_time and ds_phen_start_time and
+                        min_obs_phen_time.__datetime__() < ds_phen_start_time
+                   ) or (min_obs_phen_time and not ds_phen_start_time):
                     datastream.phenomenon_start_time = min_obs_phen_time
 
                 datastream.save()
