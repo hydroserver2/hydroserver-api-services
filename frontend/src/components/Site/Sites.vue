@@ -16,7 +16,9 @@
         </v-col>
         <v-spacer></v-spacer>
         <v-col cols="auto">
-          <v-btn to="Metadata" color="grey">Manage Metadata</v-btn>
+          <v-btn class="manage-metadata-button" to="Metadata" color="grey"
+            >Manage Metadata</v-btn
+          >
         </v-col>
         <v-col cols="auto">
           <v-btn

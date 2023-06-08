@@ -916,13 +916,14 @@ def get_datastreams(request):
 
 @api.get('/datastreams/{thing_id}', auth=jwt_auth)
 def get_datastreams_for_thing(request, thing_id: str):
-    user_association = ThingAssociation.objects.get(
-        person=request.authenticated_user,
-        thing_id=thing_id,
-        owns_thing=True,
-    )
-
-    if user_association is None:
+    # TODO: What about the case where a follower wants to view the sparkline plots?
+    try:
+        user_association = ThingAssociation.objects.get(
+            person=request.authenticated_user,
+            thing_id=thing_id,
+            owns_thing=True,
+        )
+    except ThingAssociation.DoesNotExist:
         return JsonResponse([], safe=False)
 
     return JsonResponse([

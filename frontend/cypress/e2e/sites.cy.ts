@@ -8,6 +8,9 @@ describe('Sites', () => {
     cy.url().should('include', '/login')
   })
 
+  // Site follower can view sparkline plots
+  // Private site can't be found by non-owner
+
   // it('Should load the Sites page when logged in', () => {
   //   cy.intercept({
   //     method: 'GET',

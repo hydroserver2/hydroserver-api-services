@@ -8,7 +8,7 @@ const apiClient = axios.create({
     'Content-type': 'application/json',
     // 'Access-Control-Allow-Origin': '*',
   },
-  validateStatus: () => true,
+  validateStatus: (status) => status >= 200 && status < 300,
 })
 
 export default apiClient
