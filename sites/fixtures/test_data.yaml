@@ -3,105 +3,112 @@
   fields:
     email: john@example.com
     username: john@example.com
-    password: pbkdf2_sha256$390000$ipDwketibbDt6d1nSFmViC$Jfk0Z7Hw24ZjEmO4OC/HHCNw4Biej5b6y5+FYmUn+HE=
+    # thisisjohnspassword
+    password: pbkdf2_sha256$390000$NzvnNJdX0S4HoGm5Dhv8rD$TXBWa+UH5h73xTNy0t6/SISXIBY9m0K+h4oPlxu/MVY=
     first_name: John
     last_name: Johnson
     is_staff: False
     is_superuser: False
     is_active: True
     date_joined: 2022-01-01 10:00:00.000 -0700
+    middle_name: "J"
+    phone: "1234567890"
+    address: "123, OpenAI Street"
+    type: "Commercial/Professional"
 - model: accounts.customuser
   pk: 2
   fields:
     email: paul@example.com
     username: paul@example.com
-    password: pbkdf2_sha256$390000$ipDwketibbDt6d1nSFmViC$Jfk0Z7Hw24ZjEmO4OC/HHCNw4Biej5b6y5+FYmUn+HE=
+    # thisispaulspassword
+    password: pbkdf2_sha256$390000$snIFTVCrBW97y7Lc26fRmv$JCUNrAUF8nPbgB+RgXbcEHnJN0dVpYzHTDLT1T7Z5Xc=
     first_name: Paul
     last_name: Paulson
     is_staff: False
     is_superuser: False
     is_active: True
     date_joined: 2022-01-01 10:00:00.000 -0700
+    phone: "0987654321"
+    address: "456, High Street, City B"
+    organization: "University A"
+    type: "University Faculty"
 - model: accounts.customuser
   pk: 3
   fields:
     email: jane@example.com
     username: jane@example.com
-    password: pbkdf2_sha256$390000$ipDwketibbDt6d1nSFmViC$Jfk0Z7Hw24ZjEmO4OC/HHCNw4Biej5b6y5+FYmUn+HE=
+    # thisisjanespassword
+    password: pbkdf2_sha256$390000$JQJGU5vA0lB8Z15hD9SkVM$UTJAyVoSIAub/JX+fILmXgOTvjH8wmyS9wI0Yx8Osak=
     first_name: Jane
     last_name: Doe
     is_staff: False
     is_superuser: False
     is_active: True
     date_joined: 2022-01-01 10:00:00.000 -0700
-
+    phone: "5678901234"
+    address: "789, West Street, City C"
+    organization: "University C"
+    type: "Post-Doctoral Fellow"
 
 - model: sites.thing
   pk: 0c04fcdc-3876-429e-8260-14b7baca0231
   fields:
-    name: test_thing_1
-    description: A test thing.
-    sampling_feature_type: Feature
-    sampling_feature_code: FEATURE1
-    site_type: SITE1
+    name: South Cheyenne Creek
+    description: Site at South Cheyenne Creek next to Seven Falls
+    sampling_feature_type: Test Site
+    sampling_feature_code: SCC_1
+    site_type: Stream
 - model: sites.thing
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
-    name: test_thing_3
-    description: A test thing.
-    sampling_feature_type: Feature
-    sampling_feature_code: FEATURE3
-    site_type: SITE3
+    name: Site in Miami
+    description: A test thing in Miami
+    sampling_feature_type: Test Site 2
+    sampling_feature_code: MIA1
+    site_type: House
 - model: sites.thing
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
-    name: test_thing_2
-    description: A test thing.
-    sampling_feature_type: Feature
-    sampling_feature_code: FEATURE2
-    site_type: SITE2
-
+    name: Lake Michigan
+    description: A test thing in Lake Michigan
+    sampling_feature_type: Test Site 3
+    sampling_feature_code: MICH_1
+    site_type: Lake, Reservoir, Impoundment
 
 - model: sites.location
   pk: 0c04fcdc-3876-429e-8260-14b7baca0231
   fields:
-    name: test_location_1
-    description: A test location.
+    description: Location for Site at South Cheyenne Creek next to Seven Falls
     encoding_type: application/geo+json
-    latitude: 0E-16
-    longitude: 0E-16
-    elevation: 0E-16
+    latitude: 38.781206
+    longitude: -104.879916
+    elevation: 2041
     elevation_datum: DATUM
-    city: Logan
-    state: UT
-    county: USA
+    state: CO
+    county: El Paso County
 - model: sites.location
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
-    name: test_location_3
-    description: A test location.
+    name: Location for Site in Miami
+    description: A test location for A test thing in Miami
     encoding_type: application/geo+json
-    latitude: 0E-16
-    longitude: 0E-16
-    elevation: 0E-16
+    latitude: 25.779063
+    longitude: -80.162356
+    elevation: 1
     elevation_datum: DATUM
-    city: Logan
-    state: UT
-    county: USA
+    state: FL
+    county: Miami-Dade County
 - model: sites.location
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
-    name: test_location_2
-    description: A test location.
+    description: A test location for A test thing in Lake Michigan
     encoding_type: application/geo+json
-    latitude: 0E-16
-    longitude: 0E-16
-    elevation: 0E-16
+    latitude: 42.098013
+    longitude: -86.495643
+    elevation: 174
     elevation_datum: DATUM
-    city: Logan
-    state: UT
-    county: USA
-
+    state: MI
+    county: Berrien County
 
 - model: sites.sensor
   pk: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
@@ -143,7 +150,6 @@
     method_link: http://www.example.com/method
     method_code: METHOD 1
 
-
 - model: sites.observedproperty
   pk: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
   fields:
@@ -172,7 +178,6 @@
     variable_type: Variable
     variable_code: VARIABLE3
 
-
 - model: sites.processinglevel
   pk: 1
   fields:
@@ -194,7 +199,6 @@
     processing_level_code: test_processing_level_3
     definition: Processing level 3
     explanation: A processing level
-
 
 - model: sites.unit
   pk: 1
@@ -220,7 +224,6 @@
     symbol: T
     definition: http://www.example.com/unit3
     unit_type: Unit
-
 
 - model: sites.datastream
   pk: 376be82c-b3a1-4d96-821b-c7954b931f94
@@ -322,7 +325,6 @@
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
     result_end_time: 2023-01-01 10:10:10+00:00
-
 
 - model: sites.observation
   pk: 056b132d-cf81-4627-90b0-e005076d4c68
@@ -444,7 +446,6 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-
 
 - model: sites.thingassociation
   pk: 1

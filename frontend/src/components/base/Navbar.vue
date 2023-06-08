@@ -29,7 +29,7 @@
       <v-spacer></v-spacer>
 
       <template v-if="authStore.isLoggedIn">
-        <v-btn elevation="2" rounded>
+        <v-btn elevation="2" rounded class="account-logout-button">
           <v-icon>mdi-account-circle</v-icon>
           <v-icon>mdi-menu-down</v-icon>
 
@@ -58,7 +58,12 @@
       </template>
 
       <template v-else>
-        <v-btn prepend-icon="mdi-login" to="/Login" color="white" variant="flat"
+        <v-btn
+          class="navbar-login-button"
+          prepend-icon="mdi-login"
+          to="/Login"
+          color="white"
+          variant="flat"
           >Log In</v-btn
         >
         <v-btn
@@ -72,7 +77,12 @@
     </template>
   </v-app-bar>
 
-  <v-navigation-drawer v-if="mdAndDown" temporary v-model="drawer">
+  <v-navigation-drawer
+    v-if="mdAndDown"
+    temporary
+    v-model="drawer"
+    location="right"
+  >
     <v-list density="compact" nav>
       <v-list-item
         v-for="path of paths"
@@ -138,11 +148,11 @@ const paths: {
     label: 'Browse Monitoring Sites',
     icon: 'mdi-layers-search',
   },
-  {
-    attrs: { to: '/sites' },
-    label: 'Visualize Data',
-    icon: 'mdi-chart-timeline-variant',
-  },
+  // {
+  //   attrs: { to: '/sites' },
+  //   label: 'Visualize Data',
+  //   icon: 'mdi-chart-timeline-variant',
+  // },
 ]
 </script>
 
