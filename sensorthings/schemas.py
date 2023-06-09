@@ -21,8 +21,6 @@ class DatastreamProperties(Schema):
     time_aggregation_interval_units: Union[st_components.UnitOfMeasurement, None] = Field(
         None, alias='timeAggregationIntervalUnitOfMeasurement'
     )
-    phenomenon_time: Union[ISOInterval, None] = Field(None, alias='phenomenonTime')
-    result_time: Union[ISOInterval, None] = Field(None, alias='resultTime')
 
     class Config:
         allow_population_by_field_name = True
