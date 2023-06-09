@@ -106,3 +106,10 @@ export interface User {
   organization: string
   type: string
 }
+
+export interface ThingMetadata {
+  units: Unit[]
+  sensors: Sensor[]
+  processing_levels: ProcessingLevel[]
+  observed_properties: ObservedProperty[]
+}

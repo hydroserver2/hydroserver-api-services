@@ -13,10 +13,11 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
       if (this.loaded) return
       try {
         const { data } = await this.$http.get('/processing-levels')
-        this.processingLevels = data.sort(
-          (a: ProcessingLevel, b: ProcessingLevel) =>
-            a.processing_level_code.localeCompare(b.processing_level_code)
-        )
+        this.processingLevels = data
+        // this.processingLevels = data.sort(
+        //   (a: ProcessingLevel, b: ProcessingLevel) =>
+        //     a.processing_level_code.localeCompare(b.processing_level_code)
+        // )
         this.loaded = true
       } catch (error) {
         console.error('Error fetching processing levels from DB', error)
@@ -46,10 +47,10 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
           processingLevel
         )
         this.processingLevels.push(data)
-        this.processingLevels = this.processingLevels.sort(
-          (a: ProcessingLevel, b: ProcessingLevel) =>
-            a.processing_level_code.localeCompare(b.processing_level_code)
-        )
+        // this.processingLevels = this.processingLevels.sort(
+        //   (a: ProcessingLevel, b: ProcessingLevel) =>
+        //     a.processing_level_code.localeCompare(b.processing_level_code)
+        // )
         return data
       } catch (error) {
         console.error('Error creating processing level', error)

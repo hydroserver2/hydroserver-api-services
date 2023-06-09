@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia'
-import { Thing } from '@/types'
+import { Thing, ThingMetadata } from '@/types'
 import Notification from '@/store/notifications'
 
 export const useThingStore = defineStore('things', {
-  state: () => ({ things: {} as Record<string, Thing>, loaded: false }),
+  state: () => ({
+    things: {} as Record<string, Thing>,
+    POMetadata: {} as Record<string, ThingMetadata>,
+    loaded: false,
+  }),
   getters: {
     primaryOwnedThings(): Thing[] {
       return Object.values(this.things).filter(
@@ -173,7 +177,7 @@ export const useThingStore = defineStore('things', {
     async fetchPrimaryOwnerMetadataByThingId(id: string) {
       try {
         const response = await this.$http.get(`/things/${id}/metadata`)
-        return response.data
+        this.$patch({ POMetadata: { ...this.POMetadata, [id]: response.data } })
       } catch (error) {
         console.error('Error fetching primary owner data from DB', error)
       }

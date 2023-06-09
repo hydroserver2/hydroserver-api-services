@@ -32,7 +32,6 @@ async function requireThingOwnership(
 ) {
   const authStore = useAuthStore()
   const thingStore = useThingStore()
-  console.log('requireThingOwnership')
   if (!authStore.isLoggedIn) {
     next({ name: 'Login' })
     return

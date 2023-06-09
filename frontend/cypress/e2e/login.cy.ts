@@ -32,6 +32,9 @@ describe('Login Component', () => {
     cy.url().should('include', '/signup')
   })
 
+  // TODO: When the user enters invalid credentials, they're redirected to the home page
+  //       Keep them on the login page! Why does this test pass then? I think it has
+  //       to do with how the interceptor keeps processing requests after a fail
   it('does not log in with invalid credentials', () => {
     cy.get('.email-input').type('invalidemail@test.com')
     cy.get('.password-input').type('invalidpassword')

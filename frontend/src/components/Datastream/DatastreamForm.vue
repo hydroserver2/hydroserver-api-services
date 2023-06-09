@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="datastream">
+  <v-container v-if="datastream && loaded">
     <v-row>
       <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
     </v-row>
@@ -21,7 +21,11 @@
           <v-autocomplete
             v-model="datastream.method_id"
             label="Select sensor"
-            :items="sensors"
+            :items="
+              thingStore.things[thingId].is_primary_owner
+                ? sensorStore.sensors
+                : thingStore.POMetadata[thingId].sensors
+            "
             item-title="name"
             item-value="id"
             no-data-text="No available sensors"
@@ -50,7 +54,11 @@
           <v-autocomplete
             v-model="datastream.observed_property_id"
             label="Select observed property"
-            :items="observedProperties"
+            :items="
+              thingStore.things[thingId].is_primary_owner
+                ? opStore.observedProperties
+                : thingStore.POMetadata[thingId].observed_properties
+            "
             item-title="name"
             item-value="id"
             no-data-text="No available properties"
@@ -79,7 +87,11 @@
           <v-autocomplete
             v-model="datastream.unit_id"
             label="Select unit"
-            :items="units"
+            :items="
+              thingStore.things[thingId].is_primary_owner
+                ? unitStore.units
+                : thingStore.POMetadata[thingId].units
+            "
             item-title="name"
             item-value="id"
             no-data-text="No available units"
@@ -109,7 +121,12 @@
           <v-autocomplete
             v-model="datastream.processing_level_id"
             label="Select processing level"
-            :items="formattedProcessingLevels"
+            :items="
+              thingStore.things[thingId].is_primary_owner
+                ? plStore.processingLevels
+                : thingStore.POMetadata[thingId].processing_levels
+            "
+            item-title="processing_level_code"
             item-value="id"
             no-data-text="No available processing level"
           ></v-autocomplete>
@@ -222,7 +239,7 @@ const thingStore = useThingStore()
 const route = useRoute()
 const thingId = route.params.id.toString()
 const datastreamId = route.params.datastreamId?.toString() || ''
-
+const loaded = ref(false)
 const selectedDatastreamID = ref(datastreamId)
 
 const showSensorModal = ref(false)
@@ -252,10 +269,6 @@ const datastream = reactive<Datastream>({
   is_visible: true,
   is_primary_owner: false,
 })
-const units = reactive<Unit[]>([])
-const processingLevels = reactive<ProcessingLevel[]>([])
-const sensors = reactive<Sensor[]>([])
-const observedProperties = reactive<ObservedProperty[]>([])
 
 const formattedDatastream = computed(() => {
   return datastreamStore.primaryOwnedDatastreams.map((datastream) => ({
@@ -266,12 +279,18 @@ const formattedDatastream = computed(() => {
   }))
 })
 
-const formattedProcessingLevels = computed(() => {
-  return processingLevels.map((pl) => ({
-    id: pl.id,
-    title: `${pl.processing_level_code} : ${pl.definition}`,
-  }))
-})
+// const formattedProcessingLevels = computed(() => {
+//   let processingLevels
+//   if (thingStore.things[thingId].is_primary_owner) {
+//     processingLevels = plStore.processingLevels
+//   } else {
+//     processingLevels = thingStore.POMetadata[thingId].processing_levels
+//   }
+//   return processingLevels.map((pl) => ({
+//     id: pl.id,
+//     title: `${pl.processing_level_code} : ${pl.definition}`,
+//   }))
+// })
 
 watch(selectedDatastreamID, async () => {
   await populateForm(selectedDatastreamID.value)
@@ -297,17 +316,10 @@ onMounted(async () => {
   await plStore.fetchProcessingLevels()
 
   if (!thingStore.things[thingId].is_primary_owner) {
-    const data = await thingStore.fetchPrimaryOwnerMetadataByThingId(thingId)
-    Object.assign(units, data.units)
-    Object.assign(processingLevels, data.processing_levels)
-    Object.assign(sensors, data.sensors)
-    Object.assign(observedProperties, data.observed_properties)
-  } else {
-    Object.assign(units, unitStore.units)
-    Object.assign(processingLevels, plStore.processingLevels)
-    Object.assign(sensors, sensorStore.sensors)
-    Object.assign(observedProperties, opStore.observedProperties)
+    await thingStore.fetchPrimaryOwnerMetadataByThingId(thingId)
   }
+
   if (datastreamId) await populateForm(datastreamId)
+  loaded.value = true
 })
 </script>
