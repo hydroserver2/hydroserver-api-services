@@ -378,6 +378,16 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     'definition': row[f'{prefix}unit__definition']
                 }, axis=1
             )
+            df[f'{prefix}phenomenon_time'] = df.apply(
+                lambda row: self.format_isointerval(
+                    row[f'{prefix}phenomenon_start_time'], row[f'{prefix}phenomenon_end_time']
+                ), axis=1
+            )
+            df[f'{prefix}result_time'] = df.apply(
+                lambda row: self.format_isointerval(
+                    row[f'{prefix}result_begin_time'], row[f'{prefix}result_end_time']
+                ), axis=1
+            )
             df[f'{prefix}properties'] = df.apply(
                 lambda row: {
                     'result_type': row[f'{prefix}result_type'],
@@ -398,13 +408,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         'name': row[f'{prefix}time_aggregation_interval_units__name'],
                         'symbol': row[f'{prefix}time_aggregation_interval_units__symbol'],
                         'definition': row[f'{prefix}time_aggregation_interval_units__definition']
-                    },
-                    'phenomenon_time': self.format_isointerval(
-                        row[f'{prefix}phenomenon_start_time'], row[f'{prefix}phenomenon_end_time']
-                    ),
-                    'result_time': self.format_isointerval(
-                        row[f'{prefix}result_begin_time'], row[f'{prefix}result_end_time']
-                    )
+                    }
                 }, axis=1
             )
         elif component == 'Observation':
