@@ -1183,7 +1183,7 @@ def create_processing_level(request, data: ProcessingLevelInput):
 def update_processing_level(request, processing_level_id: str, data: ProcessingLevelInput):
     processing_level = ProcessingLevel.objects.get(id=processing_level_id)
     if request.authenticated_user != processing_level.person:
-        return JsonResponse({'detail': 'You are not authorized to update this observed property.'}, status=403)
+        return JsonResponse({'detail': 'You are not authorized to update this processing level.'}, status=403)
 
     if data.processing_level_code:
         processing_level.processing_level_code = data.processing_level_code

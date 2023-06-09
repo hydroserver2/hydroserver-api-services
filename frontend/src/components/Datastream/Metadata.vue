@@ -132,7 +132,7 @@
     </v-row>
     <v-data-table
       :headers="ProcLevelHeaders"
-      :items="plStore.processingLevels"
+      :items="plStore.ownedProcessingLevels"
       class="elevation-3"
     >
       <template v-slot:item.actions="{ item }">
@@ -187,7 +187,7 @@
     </v-row>
     <v-data-table
       :headers="UnitHeaders"
-      :items="unitStore.units"
+      :items="unitStore.ownedUnits"
       class="elevation-3"
     >
       <template v-slot:item.actions="{ item }">
