@@ -110,6 +110,8 @@ export const useAuthStore = defineStore({
     async updateUser(user: User) {
       try {
         const { data } = await this.$http.patch('/user', user)
+        // things.organizations could be affected for many things so just invalidate cache
+        useResetStore().things()
         this.user = data
       } catch (error) {}
     },
