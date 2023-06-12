@@ -56,6 +56,7 @@ import { Unit } from '@/types'
 const unitStore = useUnitStore()
 const props = defineProps({ id: String })
 const isEdit = computed(() => props.id != null)
+const emit = defineEmits(['uploaded', 'close'])
 
 const unit = reactive<Unit>({
   id: '',
@@ -65,8 +66,6 @@ const unit = reactive<Unit>({
   definition: '',
   unit_type: '',
 })
-
-const emit = defineEmits(['uploaded', 'close'])
 
 async function uploadUnit() {
   if (isEdit.value) await unitStore.updateUnit(unit)

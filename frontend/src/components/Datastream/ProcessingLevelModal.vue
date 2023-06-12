@@ -66,7 +66,7 @@ async function uploadProcessingLevel() {
   if (isEdit.value) await plStore.updateProcessingLevel(processingLevel)
   else {
     const newPl = await plStore.createProcessingLevel(processingLevel)
-    emit('uploaded', String(newPl.id))
+    emit('uploaded', newPl.id)
   }
   emit('close')
 }
