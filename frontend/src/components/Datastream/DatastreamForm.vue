@@ -157,7 +157,7 @@
           <v-text-field
             v-model="datastream.sampled_medium"
             label="Sampled medium"
-            :rules="[(v) => !!v || 'Sampled medium is required']"
+            :rules="[(v:any) => !!v || 'Sampled medium is required']"
             required
           ></v-text-field>
         </v-col>
@@ -165,7 +165,7 @@
           <v-text-field
             v-model="datastream.status"
             label="Status"
-            :rules="[(v) => !!v || 'Status is required']"
+            :rules="[(v:any) => !!v || 'Status is required']"
             required
           ></v-text-field>
         </v-col>
@@ -173,7 +173,7 @@
           <v-text-field
             v-model="datastream.no_data_value"
             label="No data value"
-            :rules="[(v) => !!v || 'No data value is required']"
+            :rules="[(v:any) => !!v || 'No data value is required']"
             required
           ></v-text-field>
         </v-col>
@@ -183,7 +183,7 @@
           <v-text-field
             v-model="datastream.aggregation_statistic"
             label="Aggregation statistic"
-            :rules="[(v) => !!v || 'Aggregation statistic is required']"
+            :rules="[(v:any) => !!v || 'Aggregation statistic is required']"
             required
           ></v-text-field>
         </v-col>
@@ -220,13 +220,7 @@ import { useSensorStore } from '@/store/sensors'
 import { useObservedPropertyStore } from '@/store/observedProperties'
 import { useUnitStore } from '@/store/unit'
 import { useProcessingLevelStore } from '@/store/processingLevels'
-import {
-  Datastream,
-  ObservedProperty,
-  ProcessingLevel,
-  Sensor,
-  Unit,
-} from '@/types'
+import { Datastream } from '@/types'
 import { useThingStore } from '@/store/things'
 
 const datastreamStore = useDatastreamStore()

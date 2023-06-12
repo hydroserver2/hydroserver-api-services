@@ -84,25 +84,12 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useAuthStore } from '@/store/authentication'
+import { userTypes } from '@/vocabularies'
 const authStore = useAuthStore()
 
 const emit = defineEmits(['accountUpdated'])
 const dialog = ref(false)
 let user = reactive(authStore.user)
-
-const userTypes = [
-  'University Faculty',
-  'University Professional or Research Staff',
-  'Post-Doctoral Fellow',
-  'University Graduate Student',
-  'University Undergraduate Student',
-  'Commercial/Professional',
-  'Government Official',
-  'School Student Kindergarten to 12th Grade',
-  'School Teacher Kindergarten to 12th Grade',
-  'Organization',
-  'Other',
-]
 
 async function updateUser() {
   await authStore.updateUser(user)

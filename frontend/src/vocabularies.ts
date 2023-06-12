@@ -1,0 +1,46 @@
+export const siteTypes = [
+  'Atmosphere',
+  'Borehole',
+  'Ditch',
+  'Estuary',
+  'House',
+  'Lake, Reservoir, Impoundment',
+  'Land',
+  'Laboratory or sample-preparation area',
+  'Observation well',
+  'Other',
+  'Pavement',
+  'Soil hole',
+  'Spring',
+  'Stream',
+  'Stream gage',
+  'Storm sewer',
+  'Tidal stream',
+  'Water quality station',
+  'Weather station',
+  'Wetland',
+]
+
+export const userTypes = [
+  'University Faculty',
+  'University Professional or Research Staff',
+  'Post-Doctoral Fellow',
+  'University Graduate Student',
+  'University Undergraduate Student',
+  'Commercial/Professional',
+  'Government Official',
+  'School Student Kindergarten to 12th Grade',
+  'School Teacher Kindergarten to 12th Grade',
+  'Organization',
+  'Other',
+]
+
+export const methodTypes = [
+  'Derivation',
+  'Estimation',
+  'Instrument Deployment',
+  'Observation',
+  'Simulation',
+  'Specimen Analysis',
+  'Unknown',
+]

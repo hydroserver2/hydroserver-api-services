@@ -9,7 +9,7 @@
           <v-col cols="12" sm="6">
             <v-select
               v-model="sensor.method_type"
-              :items="allowedMethodTypes"
+              :items="methodTypes"
               label="Method Type"
               outlined
               required
@@ -91,6 +91,7 @@
 import { computed, onMounted, reactive } from 'vue'
 import { useSensorStore } from '@/store/sensors'
 import { Sensor } from '@/types'
+import { methodTypes } from '@/vocabularies'
 
 const sensorStore = useSensorStore()
 const props = defineProps({ id: String })
@@ -109,16 +110,6 @@ const sensor = reactive<Sensor>({
   encoding_type: '',
   model_url: '',
 })
-
-const allowedMethodTypes = [
-  'Derivation',
-  'Estimation',
-  'Instrument Deployment',
-  'Observation',
-  'Simulation',
-  'Specimen Analysis',
-  'Unknown',
-]
 
 const isInstrument = computed(
   () => sensor.method_type === 'Instrument Deployment'

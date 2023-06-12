@@ -108,6 +108,7 @@ import { onMounted, reactive, ref } from 'vue'
 import GoogleMap from '../GoogleMap.vue'
 import { useThingStore } from '@/store/things'
 import { Thing } from '@/types'
+import { siteTypes } from '@/vocabularies'
 
 const thingStore = useThingStore()
 const props = defineProps({ thingId: String })
@@ -136,31 +137,8 @@ const thing = reactive<Thing>({
   follows_thing: false,
   owners: [],
   followers: 0,
-  is_private: false // TODO: I set a default value here so TypeScript doesn't complain about it being missing.
+  is_private: false, // TODO: I set a default value here so TypeScript doesn't complain about it being missing.
 })
-
-const siteTypes = [
-  'Atmosphere',
-  'Borehole',
-  'Ditch',
-  'Estuary',
-  'House',
-  'Lake, Reservoir, Impoundment',
-  'Land',
-  'Laboratory or sample-preparation area',
-  'Observation well',
-  'Other',
-  'Pavement',
-  'Soil hole',
-  'Spring',
-  'Stream',
-  'Stream gage',
-  'Storm sewer',
-  'Tidal stream',
-  'Water quality station',
-  'Weather station',
-  'Wetland',
-]
 
 async function populateThing(id: string) {
   await thingStore.fetchThings()

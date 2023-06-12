@@ -106,12 +106,11 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { useApiClient } from '@/utils/api-client'
 import { useAuthStore } from '@/store/authentication'
 import { User } from '@/types'
+import { userTypes } from '@/vocabularies'
 
-const api = useApiClient()
-
+const confirmPassword = ref('')
 const user = reactive<User>({
   id: '',
   email: '',
@@ -124,21 +123,6 @@ const user = reactive<User>({
   organization: '',
   type: '',
 })
-
-const confirmPassword = ref('')
-const userTypes = ref([
-  'University Faculty',
-  'University Professional or Research Staff',
-  'Post-Doctoral Fellow',
-  'University Graduate Student',
-  'University Undergraduate Student',
-  'Commercial/Professional',
-  'Government Official',
-  'School Student Kindergarten to 12th Grade',
-  'School Teacher Kindergarten to 12th Grade',
-  'Organization',
-  'Other',
-])
 
 async function createUser() {
   if (user.password !== confirmPassword.value) {
