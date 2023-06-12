@@ -353,9 +353,6 @@ def get_things(request):
 def get_thing(request, thing_id: str):
     thing = Thing.objects.get(id=thing_id)
     thing_dict = thing_to_dict(thing, request.user_if_there_is_one)
-    # datastreams = thing.datastreams.all()
-    # thing_dict["datastreams"] = [datastream.id for datastream in datastreams]
-
     return JsonResponse(thing_dict)
 
 
@@ -815,7 +812,7 @@ class CreateDatastreamInput(Schema):
     result_end_time: str = None
 
 
-def datastream_to_dict(datastream, association, add_recent_observations=True):
+def datastream_to_dict(datastream, association=None, add_recent_observations=True):
     observation_list = []
     most_recent_observation = None
     if add_recent_observations:
@@ -852,7 +849,7 @@ def datastream_to_dict(datastream, association, add_recent_observations=True):
         "method_name": datastream.sensor.name if datastream.sensor else None,
         "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
         "is_visible": datastream.is_visible,
-        "is_primary_owner": association.is_primary_owner,
+        "is_primary_owner": association.is_primary_owner if association else False,
     }
 
 
@@ -914,22 +911,29 @@ def get_datastreams(request):
     return JsonResponse(user_datastreams, safe=False)
 
 
-@api.get('/datastreams/{thing_id}', auth=jwt_auth)
+@api.get('/datastreams/{thing_id}', auth=jwt_check_user)
 def get_datastreams_for_thing(request, thing_id: str):
-    # TODO: What about the case where a follower wants to view the sparkline plots?
-    try:
-        user_association = ThingAssociation.objects.get(
-            person=request.authenticated_user,
-            thing_id=thing_id,
-            owns_thing=True,
-        )
-    except ThingAssociation.DoesNotExist:
-        return JsonResponse([], safe=False)
-
-    return JsonResponse([
-        datastream_to_dict(datastream, user_association)
-        for datastream in user_association.thing.datastreams.all()
-    ], safe=False)
+    if request.user_if_there_is_one:
+        try:
+            user_association = ThingAssociation.objects.get(
+                person=request.user_if_there_is_one,
+                thing_id=thing_id,
+                owns_thing=True,
+            )
+        except ThingAssociation.DoesNotExist:
+            return JsonResponse([], safe=False)
+        return JsonResponse([
+            datastream_to_dict(datastream, user_association)
+            for datastream in user_association.thing.datastreams.all()
+        ], safe=False)
+    else:
+        try:
+            thing = Thing.objects.get(pk=thing_id)
+        except Thing.DoesNotExist:
+            return JsonResponse({'detail': 'Site not found.'}, status=404)
+        return JsonResponse([
+            datastream_to_dict(datastream) 
+            for datastream in thing.datastreams.all()], safe=False)
 
 
 class UpdateDatastreamInput(Schema):

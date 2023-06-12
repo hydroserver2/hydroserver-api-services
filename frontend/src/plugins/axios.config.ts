@@ -17,12 +17,6 @@ const processQueue = (error: any, token = '') => {
   failedQueue = []
 }
 
-// declare module 'vue' {
-//   interface ComponentCustomProperties {
-//     $http: AxiosInstance
-//   }
-// }
-
 declare module 'pinia' {
   export interface PiniaCustomProperties {
     $http: AxiosInstance

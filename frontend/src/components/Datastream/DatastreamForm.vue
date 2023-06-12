@@ -110,10 +110,10 @@
             v-model="showUnitModal"
             width="60rem"
           >
-            <unit-modal
+            <UnitModal
               @uploaded="datastream.unit_id = $event"
               @close="showUnitModal = false"
-              >Add New</unit-modal
+              >Add New</UnitModal
             >
           </v-dialog>
         </v-col>
@@ -144,10 +144,10 @@
             v-model="showProcessingLevelModal"
             width="60rem"
           >
-            <processing-level-modal
+            <ProcessingLevelModal
               @uploaded="datastream.processing_level_id = $event"
               @close="showProcessingLevelModal = false"
-              >Add New</processing-level-modal
+              >Add New</ProcessingLevelModal
             >
           </v-dialog>
         </v-col>
@@ -210,11 +210,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import router from '@/router/router'
 import SensorModal from '@/components/Datastream/SensorModal.vue'
 import ObservedPropertyModal from '@/components/Datastream/ObservedPropertyModal.vue'
 import UnitModal from '@/components/Datastream/UnitModal.vue'
 import ProcessingLevelModal from '@/components/Datastream/ProcessingLevelModal.vue'
-import router from '@/router/router'
 import { useDatastreamStore } from '@/store/datastreams'
 import { useSensorStore } from '@/store/sensors'
 import { useObservedPropertyStore } from '@/store/observedProperties'
