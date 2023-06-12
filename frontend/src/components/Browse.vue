@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex fill-height">
-    <v-navigation-drawer v-model="drawer" app width="350" class="sidebar">
+    <v-navigation-drawer v-model="drawer" app width="350">
       <v-row>
         <v-spacer></v-spacer>
         <v-col cols="auto">
@@ -13,14 +13,19 @@
       <v-card-title>Browse Data Collection Sites</v-card-title>
       <v-card-text>
         <div class="d-flex my-2">
-          <v-spacer></v-spacer>
           <v-btn-secondary @click="clearFilters">Clear Filters</v-btn-secondary>
+          <v-spacer></v-spacer>
+          <v-btn-primary @click="filterOrganizations">Search</v-btn-primary>
         </div>
-        <SearchBar
-          :items="organizations"
-          :clear-search="clearSearch"
-          @filtered-items="handleFilteredOrganizations"
-        />
+        <form @submit.prevent="filterOrganizations">
+          <v-text-field
+            placeholder="Filter by Organizations"
+            prepend-inner-icon="mdi-magnify"
+            v-model="searchInput"
+            clearable
+          />
+        </form>
+        <p v-if="!validFilter" style="color: red">No results found</p>
         <div v-for="organization in filteredOrganizations">
           <p>{{ organization }}</p>
         </div>
@@ -54,7 +59,6 @@
 
 <script setup lang="ts">
 import GoogleMap from '@/components/GoogleMap.vue'
-import SearchBar from '@/components/SearchBar.vue'
 import { computed, onMounted, ref } from 'vue'
 import { Ref } from 'vue'
 import { Thing } from '@/types'
@@ -84,40 +88,45 @@ const siteTypes = ref([
   'Wetland',
   'Other',
 ])
-const clearSearch = ref(false)
-const selectedSiteTypes: Ref<any[]> = ref([])
-const filteredOrganizations: Ref<string[]> = ref([])
-const filteredOrganizationsSet = ref(new Set())
+const selectedSiteTypes: Ref<string[]> = ref([])
+const filteredOrganizations = ref(new Set())
+const searchInput = ref('')
+const validFilter = ref(true)
 
 const organizations = computed(() => {
   const allOrgs = new Set()
-
   Object.values(thingStore.things).forEach((thing) => {
     thing.owners.forEach((owner) => {
       if (owner.organization) {
-        allOrgs.add(owner.organization)
+        allOrgs.add(owner.organization.toLowerCase())
       }
     })
   })
-
   return Array.from(allOrgs)
 })
+
+const filterOrganizations = () => {
+  if (!searchInput) {
+    filteredOrganizations.value = new Set([...organizations.value])
+  } else {
+    const lowerCase = searchInput.value.toLowerCase()
+    filteredOrganizations.value = new Set([
+      ...organizations.value.filter((org: any) => org.includes(lowerCase)),
+    ])
+  }
+  validFilter.value = filteredOrganizations.value.size === 0 ? false : true
+}
 
 const filteredThings: any = computed(() => {
   if (typeof thingStore.things !== 'object' || !thingStore.things) return []
   return Object.values(thingStore.things).filter(isThingValid)
 })
 
-function handleFilteredOrganizations(filtered: any) {
-  filteredOrganizations.value = [...filtered]
-  filteredOrganizationsSet.value = new Set([...filtered])
-}
-
 function isThingValid(thing: Thing) {
   const orgValid =
-    filteredOrganizationsSet.value.size === 0 ||
+    filteredOrganizations.value.size === 0 ||
     thing.owners.some((owner) =>
-      filteredOrganizationsSet.value.has(owner.organization)
+      filteredOrganizations.value.has(owner.organization.toLowerCase())
     )
   const siteTypeValid =
     selectedSiteTypes.value.length === 0 ||
@@ -128,20 +137,12 @@ function isThingValid(thing: Thing) {
 
 function clearFilters() {
   selectedSiteTypes.value = []
-  filteredOrganizations.value = []
-  filteredOrganizationsSet.value = new Set()
-  clearSearch.value = !clearSearch.value
+  filteredOrganizations.value = new Set()
+  validFilter.value = true
+  searchInput.value = ''
 }
 
-onMounted(() => {
-  thingStore.fetchThings()
+onMounted(async () => {
+  await thingStore.fetchThings()
 })
 </script>
-
-<style scoped lang="scss">
-.v-card.sidebar {
-  flex-basis: 35rem;
-  height: 100%;
-  overflow: auto;
-}
-</style>
