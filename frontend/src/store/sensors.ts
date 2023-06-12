@@ -5,11 +5,15 @@ export const useSensorStore = defineStore('sensor', {
   state: () => ({ sensors: [] as Sensor[], loaded: false }),
   getters: {},
   actions: {
+    sortSensors() {
+      this.sensors.sort((a, b) => a.name.localeCompare(b.name))
+    },
     async fetchSensors() {
       if (this.sensors.length > 0) return
       try {
         const { data } = await this.$http.get('/sensors')
         this.sensors = data
+        this.sortSensors()
         this.loaded = true
       } catch (error) {
         console.error('Error fetching units from DB', error)
@@ -22,6 +26,7 @@ export const useSensorStore = defineStore('sensor', {
         if (index !== -1) {
           this.sensors[index] = data
         }
+        this.sortSensors()
       } catch (error) {
         console.error('Error updating sensor', error)
       }
@@ -30,6 +35,7 @@ export const useSensorStore = defineStore('sensor', {
       try {
         const { data } = await this.$http.post('/sensors', sensor)
         this.sensors.push(data)
+        this.sortSensors()
         return data
       } catch (error) {
         console.error('Error creating sensor', error)
@@ -38,9 +44,10 @@ export const useSensorStore = defineStore('sensor', {
     async deleteSensor(id: string) {
       try {
         const response = await this.$http.delete(`/sensors/${id}`)
-        if (response.status === 200 || response.status === 204)
+        if (response.status === 200 || response.status === 204) {
           this.sensors = this.sensors.filter((sensor) => sensor.id !== id)
-        else console.error('Error deleting sensor from server', response)
+          this.sortSensors()
+        } else console.error('Error deleting sensor from server', response)
       } catch (error) {
         console.error('Error deleting sensor', error)
       }

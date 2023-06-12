@@ -8,11 +8,15 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
   }),
   getters: {},
   actions: {
+    sortObservedProperties() {
+      this.observedProperties.sort((a, b) => a.name.localeCompare(b.name))
+    },
     async fetchObservedProperties() {
       if (this.observedProperties.length > 0) return
       try {
         const { data } = await this.$http.get('/observed-properties')
         this.observedProperties = data
+        this.sortObservedProperties()
         this.loaded = true
       } catch (error) {
         console.error('Error fetching observed properties from DB', error)
@@ -25,6 +29,7 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
           observedProperty
         )
         this.observedProperties.push(data)
+        this.sortObservedProperties()
         return data
       } catch (error) {
         console.error('Error creating observed property', error)
@@ -42,6 +47,7 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
         if (index !== -1) {
           this.observedProperties[index] = observedProperty
         }
+        this.sortObservedProperties()
       } catch (error) {
         console.error('Error updating observed property', error)
       }
@@ -49,11 +55,12 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
     async deleteObservedProperty(id: string) {
       try {
         const response = await this.$http.delete(`/observed-properties/${id}`)
-        if (response.status === 200 || response.status === 204)
+        if (response.status === 200 || response.status === 204) {
           this.observedProperties = this.observedProperties.filter(
             (op) => op.id !== id
           )
-        else
+          this.sortObservedProperties()
+        } else
           console.error(
             'Error deleting observed property from server',
             response

@@ -9,11 +9,15 @@ export const useUnitStore = defineStore('units', {
     },
   },
   actions: {
+    sortUnits() {
+      this.units.sort((a, b) => a.name.localeCompare(b.name))
+    },
     async fetchUnits() {
       if (this.units.length > 0) return
       try {
         const { data } = await this.$http.get('/units')
         this.units = data
+        this.sortUnits()
         this.loaded = true
       } catch (error) {
         console.error('Error fetching units from DB', error)
@@ -23,6 +27,7 @@ export const useUnitStore = defineStore('units', {
       try {
         const { data } = await this.$http.post('/units', unit)
         this.units.push(data)
+        this.sortUnits()
         return data
       } catch (error) {
         console.error('Error creating unit', error)
@@ -35,6 +40,7 @@ export const useUnitStore = defineStore('units', {
         if (index !== -1) {
           this.units[index] = unit
         }
+        this.sortUnits()
       } catch (error) {
         console.error('Error updating unit', error)
       }
@@ -42,9 +48,10 @@ export const useUnitStore = defineStore('units', {
     async deleteUnit(unitId: string) {
       try {
         const response = await this.$http.delete(`/units/${unitId}`)
-        if (response.status === 200 || response.status === 204)
+        if (response.status === 200 || response.status === 204) {
           this.units = this.units.filter((unit) => unit.id !== unitId)
-        else console.error('Error deleting unit from server', response)
+          this.sortUnits()
+        } else console.error('Error deleting unit from server', response)
       } catch (error) {
         console.error('Error deleting unit', error)
       }
