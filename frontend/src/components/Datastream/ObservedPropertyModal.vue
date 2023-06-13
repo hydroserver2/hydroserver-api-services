@@ -50,8 +50,8 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="blue darken-1" text @click="$emit('close')">Cancel</v-btn>
-      <v-btn color="blue darken-1" text @click="uploadObservedProperty">{{
+      <v-btn-cancel @click="$emit('close')">Cancel</v-btn-cancel>
+      <v-btn @click="uploadObservedProperty">{{
         isEdit ? 'Update' : 'Save'
       }}</v-btn>
     </v-card-actions>

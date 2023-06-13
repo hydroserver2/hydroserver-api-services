@@ -8,13 +8,11 @@
         <h5 class="text-h5">Sensors</h5>
       </v-col>
       <v-col>
-        <v-btn
+        <v-btn-secondary
           variant="elevated"
-          density="comfortable"
-          color="green"
           @click="handleModal('sensorModal', 'sensor')"
           prependIcon="mdi-plus"
-          >Add New</v-btn
+          >Add New</v-btn-secondary
         >
       </v-col>
     </v-row>
@@ -64,13 +62,11 @@
         <h5 class="text-h5">Observed Properties</h5>
       </v-col>
       <v-col>
-        <v-btn
+        <v-btn-secondary
           variant="elevated"
-          density="comfortable"
-          color="green"
           @click="handleModal('opModal', 'op')"
           prependIcon="mdi-plus"
-          >Add New</v-btn
+          >Add New</v-btn-secondary
         >
       </v-col>
     </v-row>
@@ -120,13 +116,11 @@
         <h5 class="text-h5">Processing Levels</h5>
       </v-col>
       <v-col>
-        <v-btn
+        <v-btn-secondary
           variant="elevated"
-          density="comfortable"
-          color="green"
           @click="handleModal('plModal', 'pl')"
           prependIcon="mdi-plus"
-          >Add New</v-btn
+          >Add New</v-btn-secondary
         >
       </v-col>
     </v-row>
@@ -175,13 +169,11 @@
         <h5 class="text-h5">Units</h5>
       </v-col>
       <v-col>
-        <v-btn
+        <v-btn-secondary
           variant="elevated"
-          density="comfortable"
-          color="green"
           @click="handleModal('unitModal', 'unit')"
           prependIcon="mdi-plus"
-          >Add New</v-btn
+          >Add New</v-btn-secondary
         >
       </v-col>
     </v-row>

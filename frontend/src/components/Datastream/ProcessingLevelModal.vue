@@ -36,10 +36,8 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="blue darken-1" text @click="$emit('close')">Cancel</v-btn>
-      <v-btn color="blue darken-1" text @click="uploadProcessingLevel"
-        >Submit</v-btn
-      >
+      <v-btn-cnacel @click="$emit('close')">Cancel</v-btn-cnacel>
+      <v-btn @click="uploadProcessingLevel">Submit</v-btn>
     </v-card-actions>
   </v-card>
 </template>

@@ -30,12 +30,13 @@
       <br />
     </v-card-text>
     <v-card-actions>
-      <v-btn color="red" @click="emit('close')">Cancel</v-btn>
+      <v-spacer></v-spacer>
+      <v-btn-cancel @click="emit('close')">Cancel</v-btn-cancel>
       <v-btn
         v-if="!datastreamsForItem || datastreamsForItem.length <= 0"
-        color="green"
+        color="delete"
         @click="emit('delete')"
-        >Confirm</v-btn
+        >Delete</v-btn
       >
     </v-card-actions>
   </v-card>

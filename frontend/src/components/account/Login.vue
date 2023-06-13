@@ -33,7 +33,6 @@
             class="login-button mr-4"
             :disabled="!valid"
             type="submit"
-            color="primary"
             >Log In</v-btn-primary
           >
         </v-form>

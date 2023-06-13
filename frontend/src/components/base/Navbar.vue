@@ -17,7 +17,7 @@
         :elevation="0"
         :class="path.isActive && path.isActive() ? 'primary' : ''"
         class="ma-1"
-        color="white"
+        color="surface"
         variant="flat"
       >
         {{ path.label }}
@@ -62,14 +62,14 @@
           class="navbar-login-button"
           prepend-icon="mdi-login"
           to="/Login"
-          color="white"
+          color="surface"
           variant="flat"
           >Log In</v-btn
         >
         <v-btn
           prepend-icon="mdi-account-plus-outline"
           to="/SignUp"
-          color="white"
+          color="surface"
           variant="flat"
           >Sign Up</v-btn
         >

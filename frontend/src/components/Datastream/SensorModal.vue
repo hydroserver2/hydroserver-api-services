@@ -79,10 +79,8 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="blue darken-1" text @click="$emit('close')">Cancel</v-btn>
-      <v-btn color="blue darken-1" text @click="uploadSensor">{{
-        isEdit ? 'Update' : 'Save'
-      }}</v-btn>
+      <v-btn-cancel @click="$emit('close')">Cancel</v-btn-cancel>
+      <v-btn @click="uploadSensor">{{ isEdit ? 'Update' : 'Save' }}</v-btn>
     </v-card-actions>
   </v-card>
 </template>

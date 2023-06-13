@@ -4,7 +4,13 @@
       <v-row>
         <v-spacer></v-spacer>
         <v-col cols="auto">
-          <v-btn v-if="drawer" class="toggler" icon @click="drawer = !drawer">
+          <v-btn
+            color="cancel"
+            v-if="drawer"
+            class="toggler"
+            icon
+            @click="drawer = !drawer"
+          >
             <v-icon>mdi-menu-open</v-icon>
           </v-btn>
         </v-col>
@@ -13,7 +19,7 @@
       <v-card-title>Browse Data Collection Sites</v-card-title>
       <v-card-text>
         <div class="d-flex my-2">
-          <v-btn-secondary @click="clearFilters">Clear Filters</v-btn-secondary>
+          <v-btn-cancel @click="clearFilters">Clear Filters</v-btn-cancel>
           <v-spacer></v-spacer>
           <v-btn-primary @click="filterOrganizations">Search</v-btn-primary>
         </div>
@@ -25,7 +31,7 @@
             clearable
           />
         </form>
-        <p v-if="!validFilter" style="color: red">No results found</p>
+        <p v-if="!validFilter" class="text-error">No results found</p>
         <div v-for="organization in filteredOrganizations">
           <p>{{ organization }}</p>
         </div>

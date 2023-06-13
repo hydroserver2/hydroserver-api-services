@@ -5,12 +5,11 @@
 
     <v-row class="pb-2">
       <v-col>
-        <v-btn
+        <v-btn-secondary
+          prependIcon="mdi-plus"
           variant="elevated"
-          density="comfortable"
-          color="green"
           :to="{ name: 'DatastreamForm', params: { id: thing_id } }"
-          >Add New Datastream</v-btn
+          >Add New Datastream</v-btn-secondary
         >
       </v-col>
     </v-row>
@@ -64,15 +63,16 @@
           <strong>ID:</strong> {{ selectedDatastream.id }} <br />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="red" @click="showDeleteModal = false">Cancel</v-btn>
-          <v-btn color="green" @click="deleteDatastream">Confirm</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn-cancel @click="showDeleteModal = false">Cancel</v-btn-cancel>
+          <v-btn color="delete" @click="deleteDatastream">Confirm</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <v-row class="pt-2">
       <v-col>
         <v-btn
-          color="secondary"
+          color="cancel"
           :to="{ name: 'SingleSite', params: { id: thing_id } }"
         >
           <v-icon left>mdi-arrow-left</v-icon>

@@ -16,18 +16,16 @@
         </v-col>
         <v-spacer></v-spacer>
         <v-col cols="auto">
-          <v-btn class="manage-metadata-button" to="Metadata" color="grey"
+          <v-btn class="manage-metadata-button" to="Metadata" color="secondary"
             >Manage Metadata</v-btn
           >
         </v-col>
         <v-col cols="auto">
-          <v-btn
-            color="green"
+          <v-btn-secondary
             variant="elevated"
-            density="comfortable"
             @click="showSiteForm = true"
             prependIcon="mdi-plus"
-            >Register a new site</v-btn
+            >Register a new site</v-btn-secondary
           >
         </v-col>
       </v-row>

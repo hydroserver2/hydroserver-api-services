@@ -1,7 +1,9 @@
 <template>
   <v-container v-if="datastream && loaded">
     <v-row>
-      <h3>{{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page</h3>
+      <h5 class="text-h5 mb-4">
+        {{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page
+      </h5>
     </v-row>
     <v-row v-if="thingStore.things[thingId].is_primary_owner">
       <v-col>
@@ -29,15 +31,14 @@
             item-title="name"
             item-value="id"
             no-data-text="No available sensors"
+            class="pb-1"
           ></v-autocomplete>
-          <v-btn
+          <v-btn-secondary
             v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
-            density="comfortable"
-            color="green"
             @click="showSensorModal = true"
             prependIcon="mdi-plus"
-            >Add New</v-btn
+            >Add New</v-btn-secondary
           >
           <v-dialog
             v-if="thingStore.things[thingId]?.is_primary_owner"
@@ -62,6 +63,7 @@
             item-title="name"
             item-value="id"
             no-data-text="No available properties"
+            class="pb-1"
           ></v-autocomplete>
           <v-dialog
             v-if="thingStore.things[thingId]?.is_primary_owner"
@@ -73,14 +75,12 @@
               @close="showObservedPropertyModal = false"
             ></ObservedPropertyModal>
           </v-dialog>
-          <v-btn
+          <v-btn-secondary
             v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
-            density="comfortable"
-            color="green"
             @click="showObservedPropertyModal = true"
             prependIcon="mdi-plus"
-            >Add New</v-btn
+            >Add New</v-btn-secondary
           >
         </v-col>
         <v-col cols="12" md="3">
@@ -95,15 +95,14 @@
             item-title="name"
             item-value="id"
             no-data-text="No available units"
+            class="pb-1"
           ></v-autocomplete>
-          <v-btn
+          <v-btn-secondary
             v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
-            density="comfortable"
-            color="green"
             @click="showUnitModal = true"
             prependIcon="mdi-plus"
-            >Add New</v-btn
+            >Add New</v-btn-secondary
           >
           <v-dialog
             v-if="thingStore.things[thingId]?.is_primary_owner"
@@ -129,15 +128,14 @@
             item-title="processing_level_code"
             item-value="id"
             no-data-text="No available processing level"
+            class="pb-1"
           ></v-autocomplete>
-          <v-btn
+          <v-btn-secondary
             v-if="thingStore.things[thingId]?.is_primary_owner"
             variant="elevated"
-            density="comfortable"
-            color="green"
             @click="showProcessingLevelModal = true"
             prependIcon="mdi-plus"
-            >Add New</v-btn
+            >Add New</v-btn-secondary
           >
           <v-dialog
             v-if="thingStore.things[thingId]?.is_primary_owner"
@@ -200,9 +198,14 @@
           ></v-text-field>
         </v-col>
       </v-row>
-      <v-btn type="submit" color="green">{{
-        datastreamId ? 'Update' : 'Save'
-      }}</v-btn>
+      <v-row>
+        <v-spacer></v-spacer>
+        <v-col cols="auto">
+          <v-btn type="submit" color="secondary">{{
+            datastreamId ? 'Update' : 'Save'
+          }}</v-btn>
+        </v-col>
+      </v-row>
     </v-form>
   </v-container>
 </template>

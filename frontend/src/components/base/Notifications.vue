@@ -7,7 +7,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="cancel()">{{ dialog.cancelText }}</v-btn>
+        <v-btn-cancel @click="cancel()">{{ dialog.cancelText }}</v-btn-cancel>
         <v-btn v-if="dialog.onSecondaryAction" @click="secondaryAction()">{{
           dialog.secondaryActionText
         }}</v-btn>
@@ -26,7 +26,7 @@
     {{ snackbar.message }}
 
     <template v-slot:actions>
-      <v-btn color="red" variant="text" @click="snackbar.isActive = false">
+      <v-btn color="error" variant="text" @click="snackbar.isActive = false">
         Dismiss
       </v-btn>
     </template>

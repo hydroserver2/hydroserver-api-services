@@ -28,7 +28,7 @@
         </v-dialog>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="showRegisterSiteModal = true" color="green"
+        <v-btn @click="showRegisterSiteModal = true" color="secondary"
           >Edit Site Information</v-btn
         >
         <v-dialog v-model="showRegisterSiteModal" width="80rem">
@@ -75,24 +75,27 @@
               </v-form>
             </v-card-text>
             <v-card-actions>
-              <v-btn color="red darken-1" text @click="showDeleteModal = false"
-                >Cancel</v-btn
+              <v-spacer></v-spacer>
+              <v-btn-cancel @click="showDeleteModal = false"
+                >Cancel</v-btn-cancel
               >
-              <v-btn color="green darken-1" text @click="deleteThing"
-                >Confirm</v-btn
-              >
+              <v-btn color="delete" @click="deleteThing">Delete</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
       </v-col>
       <v-col cols="auto" v-if="!is_owner">
         <v-switch
-          color="green"
+          color="secondary"
           hide-details
           v-if="isAuthenticated && thingStore.things[thingId]"
           v-model="thingStore.things[thingId].follows_thing"
           @change="updateFollow"
-          label="Follow Site"
+          :label="
+            thingStore.things[thingId].follows_thing
+              ? 'You Follow This site'
+              : 'Follow Site'
+          "
         ></v-switch>
       </v-col>
     </v-row>
@@ -129,7 +132,7 @@
       <v-col cols="auto">
         <v-btn
           v-if="thingStore.things[thingId]?.owns_thing"
-          color="grey"
+          color="secondary"
           :to="{
             name: 'SiteDatastreams',
             params: { id: thingStore.things[thingId].id },

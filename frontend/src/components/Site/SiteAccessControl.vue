@@ -54,11 +54,11 @@
                 </v-icon>
               </template>
               <template v-slot:default>
-                <p>
+                <p style="max-width: 35rem">
                   This action will de-elevate your permission level to owner and
                   elevate the chosen user's permission level to primary owner.
+                  Permissions unique to the primary owner are:
                 </p>
-                <p>Permissions unique to the primary owner are:</p>
                 <ul>
                   <li class="v-list-item">Add secondary owners</li>
                   <li class="v-list-item">Remove secondary owners</li>
@@ -95,7 +95,7 @@
                 <strong v-if="owner.is_primary_owner">(Primary)</strong>
                 <div v-else style="text-align: right">
                   <v-btn
-                    color="red"
+                    color="delete"
                     v-if="
                       thingStore.things[thingId]?.is_primary_owner ||
                       owner.email == authStore.user.email
@@ -124,12 +124,15 @@
                 </v-icon>
               </template>
               <template v-slot:default>
-                <p v-if="thingStore.things[props.thingId].is_private">
+                <p
+                  v-if="thingStore.things[props.thingId].is_private"
+                  style="max-width: 25rem"
+                >
                   Setting your site to public will make it visible to all users
                   and guests of the system. They will be able to follow your
                   site and download its data
                 </p>
-                <p v-else>
+                <p v-else style="max-width: 25rem">
                   setting your site to private will make it visible to only you
                   and other owners of your site. Anyone who is currently
                   following your site who is not an owner will be removed as a
@@ -146,7 +149,7 @@
                   ? 'Site is private'
                   : 'Site is public'
               "
-              color="red"
+              color="primary"
               @change="toggleSitePrivacy"
             ></v-switch>
           </v-card-text>
@@ -156,7 +159,7 @@
 
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="green darken-1" text @click="emitClose">Close</v-btn>
+      <v-btn-cancel text @click="emitClose">Close</v-btn-cancel>
     </v-card-actions>
   </v-card>
 </template>

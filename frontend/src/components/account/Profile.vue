@@ -34,7 +34,7 @@
             />
           </v-col>
         </v-row>
-        <v-btn color="primary">CONNECT</v-btn>
+        <v-btn-primary>CONNECT</v-btn-primary>
       </v-col>
     </v-row>
 
@@ -109,10 +109,8 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="green darken-1" text @click="deleteAccountDialog = false"
-          >Cancel</v-btn
-        >
-        <v-btn color="red darken-1" text @click="deleteAccount">Delete</v-btn>
+        <v-btn-cancel @click="deleteAccountDialog = false">Cancel</v-btn-cancel>
+        <v-btn color="delete" text @click="deleteAccount">Delete</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

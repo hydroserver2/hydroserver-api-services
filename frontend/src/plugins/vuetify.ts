@@ -10,17 +10,20 @@ import { VDataTable } from 'vuetify/labs/VDataTable'
 import { md3 } from 'vuetify/blueprints'
 import { VTooltip } from 'v-tooltip'
 
+// Material theme Colors: https://vuetifyjs.com/en/styles/colors/
 const theme: ThemeDefinition = {
   dark: false,
   colors: {
-    background: '#FFFFFF',
-    surface: '#FFFFFF',
-    primary: '#0000FF',
-    secondary: '#03DAC6',
-    error: '#B00020',
-    info: '#2196F3',
-    success: '#4CAF50',
-    warning: '#FB8C00',
+    background: '#FAFAFA', // grey-lighten-5
+    surface: '#FFFFFF', // white
+    primary: '#2196F3', // blue
+    secondary: '#4CAF50', // green
+    cancel: '#757575', // grey-darken-1
+    delete: '#F44336', // red
+    error: '#B71C1C', // red-darken-4
+    info: '#03A9F4', // light-blue
+    success: '#66BB6A', // green-lighten-1
+    warning: '#FFC107', // amber
   },
 }
 
@@ -36,7 +39,7 @@ export default createVuetify({
   aliases: {
     VBtnPrimary: VBtn,
     VBtnSecondary: VBtn,
-    VBtnTertiary: VBtn,
+    VBtnCancel: VBtn,
   },
   components: {
     VDataTable,
@@ -68,9 +71,10 @@ export default createVuetify({
       rounded: true,
       density: 'comfortable',
     },
-    VBtnTertiary: {
+    VBtnCancel: {
+      color: 'cancel',
+      variant: 'text',
       rounded: true,
-      variant: 'plain',
       density: 'comfortable',
     },
   },

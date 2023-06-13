@@ -97,8 +97,8 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn @click="closeDialog">Cancel</v-btn>
-      <v-btn color="primary" @click="uploadThing">Save</v-btn>
+      <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
+      <v-btn @click="uploadThing">Save</v-btn>
     </v-card-actions>
   </v-card>
 </template>
