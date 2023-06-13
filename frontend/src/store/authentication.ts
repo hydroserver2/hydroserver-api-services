@@ -39,27 +39,34 @@ export const useAuthStore = defineStore({
         if (response.status === 401) {
           Notification.toast({
             message: 'Invalid email or password.',
+            type: 'error',
           })
         } else if (response.status >= 500 && response.status < 600) {
           Notification.toast({
             message: 'Server error. Please try again later.',
+            type: 'error',
           })
         } else {
           this.access_token = response.data.access_token
           this.refresh_token = response.data.refresh_token
           this.user = response.data.user
           await router.push({ name: 'Sites' })
-          Notification.toast({ message: 'You have logged in!' })
+          Notification.toast({
+            message: 'You have logged in!',
+            type: 'success',
+          })
         }
       } catch (error: any) {
         if (!error.response) {
           Notification.toast({
             message: 'Network error. Please check your connection.',
+            type: 'error',
           })
         } else {
           this.resetState()
           Notification.toast({
             message: 'Something went wrong',
+            type: 'error',
           })
         }
         console.error('Error Logging in', error)
@@ -70,7 +77,7 @@ export const useAuthStore = defineStore({
     async logout() {
       this.resetState()
       await router.push({ name: 'Home' })
-      Notification.toast({ message: 'You have logged out' })
+      Notification.toast({ message: 'You have logged out', type: 'info' })
     },
     async refreshAccessToken() {
       try {
@@ -91,6 +98,7 @@ export const useAuthStore = defineStore({
         if (response.status === 200) {
           Notification.toast({
             message: 'Account successfully created.',
+            type: 'success',
           })
           await this.login(user.email, user.password)
         }
@@ -98,10 +106,12 @@ export const useAuthStore = defineStore({
         if (!error.response) {
           Notification.toast({
             message: 'Network error. Please check your connection.',
+            type: 'error',
           })
         } else {
           Notification.toast({
             message: 'Something went wrong.',
+            type: 'error',
           })
         }
         console.error('Error creating user', error)
@@ -119,12 +129,16 @@ export const useAuthStore = defineStore({
       try {
         await this.$http.delete('/user')
         await this.logout()
-        Notification.toast({ message: 'Your account has been deleted' })
+        Notification.toast({
+          message: 'Your account has been deleted',
+          type: 'info',
+        })
       } catch (error) {
         console.error('Error deleting account:', error)
         Notification.toast({
           message:
             'Error occurred while deleting your account. Please try again.',
+          type: 'error',
         })
       }
     },

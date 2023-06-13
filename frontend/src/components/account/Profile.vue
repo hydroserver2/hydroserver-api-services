@@ -131,7 +131,7 @@ const deleteInput = ref('')
 
 async function deleteAccount() {
   if (deleteInput.value.toLowerCase() !== 'delete my account and data') {
-    Notification.toast({ message: "input doesn't match" })
+    Notification.toast({ message: "input doesn't match", type: 'error' })
     return
   }
   console.log('deleting account')

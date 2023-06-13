@@ -118,10 +118,12 @@ export const useThingStore = defineStore('things', {
           this.things[thingId] = response.data
           Notification.toast({
             message: `Successfully added secondary owner!`,
+            type: 'success',
           })
         } else {
           Notification.toast({
             message: `${response.data.error}`,
+            type: 'error',
           })
         }
       } catch (error) {
@@ -141,10 +143,12 @@ export const useThingStore = defineStore('things', {
           this.things[thingId] = response.data
           Notification.toast({
             message: `Successfully transferred ownership!`,
+            type: 'success',
           })
         } else {
           Notification.toast({
             message: `${response.data.error}`,
+            type: 'error',
           })
         }
       } catch (error) {
@@ -164,10 +168,12 @@ export const useThingStore = defineStore('things', {
           this.things[thingId] = response.data
           Notification.toast({
             message: `Successfully removed owner`,
+            type: 'success',
           })
         } else {
           Notification.toast({
             message: `${response.data.error}`,
+            type: 'error',
           })
         }
       } catch (error) {
