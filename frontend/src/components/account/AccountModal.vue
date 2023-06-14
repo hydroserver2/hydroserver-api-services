@@ -1,31 +1,33 @@
 <template>
-  <v-dialog v-model="dialog" activator="parent" max-width="600px">
-    <v-card>
-      <v-card-title>Edit Profile </v-card-title>
-      <v-card-text>
+  <v-card>
+    <v-card-title>Edit Profile </v-card-title>
+    <v-card-text>
+      <v-form
+        @submit.prevent="updateUser"
+        ref="myForm"
+        v-model="valid"
+        validate-on="blur"
+      >
         <v-row>
           <v-col cols="12" sm="4">
             <v-text-field
               v-model="user.first_name"
               label="First Name"
-              outlined
-              required
+              :rules="rules.requiredName"
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="4">
             <v-text-field
               v-model="user.middle_name"
               label="Middle Name"
-              outlined
-              required
+              :rules="rules.name"
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="4">
             <v-text-field
               v-model="user.last_name"
               label="Last Name"
-              outlined
-              required
+              :rules="rules.requiredName"
             ></v-text-field>
           </v-col>
         </v-row>
@@ -34,19 +36,13 @@
             <v-text-field
               v-model="user.phone"
               label="Phone Number"
-              outlined
-              required
+              :rules="rules.phoneNumber"
             ></v-text-field>
           </v-col>
         </v-row>
         <v-row>
           <v-col>
-            <v-text-field
-              v-model="user.address"
-              label="Address"
-              outlined
-              required
-            ></v-text-field>
+            <v-text-field v-model="user.address" label="Address"></v-text-field>
           </v-col>
         </v-row>
         <v-row>
@@ -54,8 +50,7 @@
             <v-text-field
               v-model="user.organization"
               label="Organization"
-              outlined
-              required
+              :rules="rules.maxLength(50)"
             >
             </v-text-field>
           </v-col>
@@ -66,34 +61,40 @@
               v-model="user.type"
               label="User Type"
               :items="userTypes"
-              outlined
-              required
+              :rules="rules.required"
             ></v-autocomplete>
           </v-col>
         </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn-cancel @click="dialog = false">Cancel</v-btn-cancel>
-        <v-btn @click="updateUser">Update</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
+          <v-btn type="submit">Update</v-btn>
+        </v-card-actions>
+      </v-form>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { rules } from '@/utils/rules'
+import { reactive, ref, onMounted } from 'vue'
 import { useAuthStore } from '@/store/authentication'
 import { userTypes } from '@/vocabularies'
+import { VForm } from 'vuetify/components'
+
 const authStore = useAuthStore()
+let user = reactive({ ...authStore.user })
+const valid = ref(false)
+const myForm = ref<VForm>()
 
-const emit = defineEmits(['accountUpdated'])
-const dialog = ref(false)
-let user = reactive(authStore.user)
+const emit = defineEmits(['close'])
+const closeDialog = () => emit('close')
 
-async function updateUser() {
+const updateUser = async () => {
+  if (!valid.value) return
   await authStore.updateUser(user)
-  dialog.value = false
-  emit('accountUpdated')
+  emit('close')
 }
+
+onMounted(async () => myForm.value?.validate())
 </script>

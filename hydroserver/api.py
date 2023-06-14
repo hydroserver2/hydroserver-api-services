@@ -210,8 +210,6 @@ def user_to_dict(user):
 class UpdateUserInput(Schema):
     first_name: str = None
     last_name: str = None
-    # email: str = None
-    # password: str = None
     middle_name: str = None
     phone: str = None
     address: str = None
@@ -223,27 +221,20 @@ class UpdateUserInput(Schema):
 def update_user(request, data: UpdateUserInput):
     user = request.authenticated_user
 
-    if data.first_name:
+    if data.first_name is not None:
         user.first_name = data.first_name
-    if data.last_name:
+    if data.last_name is not None:
         user.last_name = data.last_name
-    # I don't think we want this editable
-    # if data.email:
-    #     user.email = data.email
-    #     user.username = data.email
-    # if data.middle_name:
-    user.middle_name = data.middle_name
-    if data.phone:
+    if data.middle_name is not None:
+        user.middle_name = data.middle_name
+    if data.phone is not None:
         user.phone = data.phone
-    if data.address:
+    if data.address is not None:
         user.address = data.address
-    if data.organization:
+    if data.organization is not None:
         user.organization = data.organization
-    if data.type:
+    if data.type is not None:
         user.type = data.type
-    # Probably want a seperate
-    # if data.password:
-    #     user.set_password(data.password)
 
     user.save()
     return JsonResponse(user_to_dict(user))
@@ -672,23 +663,23 @@ def update_sensor(request, sensor_id: str, data: SensorInput):
     if request.authenticated_user != sensor.person:
         return JsonResponse({'detail': 'You are not authorized to update this sensor.'}, status=403)
 
-    if data.name:
+    if data.name is not None:
         sensor.name = data.name
-    if data.description:
+    if data.description is not None:
         sensor.description = data.description
-    if data.manufacturer:
+    if data.manufacturer is not None:
         sensor.manufacturer = data.manufacturer
-    if data.model:
+    if data.model is not None:
         sensor.model = data.model
-    if data.method_type:
+    if data.method_type is not None:
         sensor.method_type = data.method_type
-    if data.method_code:
+    if data.method_code is not None:
         sensor.method_code = data.method_code
-    if data.method_link:
+    if data.method_link is not None:
         sensor.method_link = data.method_link
-    if data.encoding_type:
+    if data.encoding_type is not None:
         sensor.encoding_type = data.encoding_type
-    if data.model_url:
+    if data.model_url is not None:
         sensor.model_url = data.model_url
 
     sensor.save()
@@ -755,15 +746,15 @@ def update_observed_property(request, observed_property_id: str, data: ObservedP
     if request.authenticated_user != observed_property.person:
         return JsonResponse({'detail': 'You are not authorized to update this observed property.'}, status=403)
 
-    if data.name:
+    if data.name is not None:
         observed_property.name = data.name
-    if data.definition:
+    if data.definition is not None:
         observed_property.definition = data.definition
-    if data.description:
+    if data.description is not None:
         observed_property.description = data.description
-    if data.variable_type:
+    if data.variable_type is not None:
         observed_property.variable_type = data.variable_type
-    if data.variable_code:
+    if data.variable_code is not None:
         observed_property.variable_code = data.variable_code
 
     observed_property.save()
@@ -967,62 +958,63 @@ class UpdateDatastreamInput(Schema):
 @transaction.atomic
 def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
     datastream = request.datastream
-    if data.method_id:
+    
+    if data.method_id is not None:
         try:
             datastream.sensor = Sensor.objects.get(id=data.method_id)
         except Sensor.DoesNotExist:
             return JsonResponse({'detail': 'Sensor not found.'}, status=404)
 
-    if data.observed_property_id:
+    if data.observed_property_id is not None:
         try:
             datastream.observed_property = ObservedProperty.objects.get(id=data.observed_property_id)
         except ObservedProperty.DoesNotExist:
             return JsonResponse({'detail': 'Observed Property not found.'}, status=404)
 
-    if data.unit_id:
+    if data.unit_id is not None:
         try:
             datastream.unit = Unit.objects.get(id=data.unit_id)
         except Unit.DoesNotExist:
             return JsonResponse({'detail': 'Unit not found.'}, status=404)
 
-    if data.processing_level_id:
+    if data.processing_level_id is not None:
         try:
             datastream.processing_level = ProcessingLevel.objects.get(id=data.processing_level_id)
         except ProcessingLevel.DoesNotExist:
             return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-    if data.observation_type:
+    if data.observation_type is not None:
         datastream.observation_type = data.observation_type
-    if data.result_type:
+    if data.result_type is not None:
         datastream.result_type = data.result_type
-    if data.status:
+    if data.status is not None:
         datastream.status = data.status
-    if data.sampled_medium:
+    if data.sampled_medium is not None:
         datastream.sampled_medium = data.sampled_medium
-    if data.no_data_value:
+    if data.no_data_value is not None:
         datastream.no_data_value = data.no_data_value
-    if data.aggregation_statistic:
+    if data.aggregation_statistic is not None:
         datastream.aggregation_statistic = data.aggregation_statistic
-    if data.time_aggregation_interval:
+    if data.time_aggregation_interval is not None:
         datastream.time_aggregation_interval = data.time_aggregation_interval
-    if data.time_aggregation_interval_units:
+    if data.time_aggregation_interval_units is not None:
         try:
             datastream.time_aggregation_interval_units = Unit.objects.get(id=data.time_aggregation_interval_units)
         except Unit.DoesNotExist:
             return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
-    if data.phenomenon_start_time:
+    if data.phenomenon_start_time is not None:
         datastream.phenomenon_start_time = data.phenomenon_start_time
-    if data.phenomenon_end_time:
+    if data.phenomenon_end_time is not None:
         datastream.phenomenon_end_time = data.phenomenon_end_time
-    if data.result_begin_time:
+    if data.result_begin_time is not None:
         datastream.result_begin_time = data.result_begin_time
-    if data.result_end_time:
+    if data.result_end_time is not None:
         datastream.result_end_time = data.result_end_time
-    if data.value_count:
+    if data.value_count is not None:
         datastream.value_count = data.value_count
-    if data.intended_time_spacing:
+    if data.intended_time_spacing is not None:
         datastream.intended_time_spacing = data.intended_time_spacing
-    if data.intended_time_spacing_units:
+    if data.intended_time_spacing_units is not None:
         try:
             datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units)
         except Unit.DoesNotExist:
@@ -1122,13 +1114,13 @@ def update_unit(request, unit_id: str, data: UpdateUnitInput):
     if request.authenticated_user != unit.person:
         return JsonResponse({'detail': 'You are not authorized to update this unit.'}, status=403)
 
-    if data.name:
+    if data.name is not None:
         unit.name = data.name
-    if data.symbol:
+    if data.symbol is not None:
         unit.symbol = data.symbol
-    if data.definition:
+    if data.definition is not None:
         unit.definition = data.definition
-    if data.unit_type:
+    if data.unit_type is not None:
         unit.unit_type = data.unit_type
 
     unit.save()
@@ -1189,11 +1181,11 @@ def update_processing_level(request, processing_level_id: str, data: ProcessingL
     if request.authenticated_user != processing_level.person:
         return JsonResponse({'detail': 'You are not authorized to update this processing level.'}, status=403)
 
-    if data.processing_level_code:
+    if data.processing_level_code is not None:
         processing_level.processing_level_code = data.processing_level_code
-    if data.definition:
+    if data.definition is not None:
         processing_level.definition = data.definition
-    if data.explanation:
+    if data.explanation is not None:
         processing_level.explanation = data.explanation
 
     processing_level.save()

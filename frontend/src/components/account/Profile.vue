@@ -59,8 +59,12 @@
       </v-col>
       <v-col>
         <div>
-          <v-icon large>mdi-account-edit-outline</v-icon>
-          <AccountModal />
+          <v-icon large @click="editAccountDialog = true"
+            >mdi-account-edit-outline</v-icon
+          >
+          <v-dialog v-model="editAccountDialog" max-width="40rem">
+            <AccountModal @close="editAccountDialog = false"></AccountModal>
+          </v-dialog>
         </div>
         <div>Edit My Profile</div>
       </v-col>
@@ -127,6 +131,7 @@ const authStore = useAuthStore()
 const thingStore = useThingStore()
 
 const deleteAccountDialog = ref(false)
+const editAccountDialog = ref(false)
 const deleteInput = ref('')
 
 async function deleteAccount() {

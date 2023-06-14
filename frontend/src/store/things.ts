@@ -31,7 +31,6 @@ export const useThingStore = defineStore('things', {
       if (this.loaded) return
       try {
         const { data } = await this.$http.get('/things')
-        console.log('fetched things', data)
         const thingsDictionary = data.reduce(
           (acc: Record<string, Thing>, thing: Thing) => {
             acc[thing.id] = thing
@@ -46,7 +45,6 @@ export const useThingStore = defineStore('things', {
     },
     async fetchThingById(id: string) {
       if (this.things[id]) return
-      console.log('fetching things from API')
       try {
         const { data } = await this.$http.get(`/things/${id}`)
         this.$patch({ things: { ...this.things, [id]: data } })

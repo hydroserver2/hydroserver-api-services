@@ -24,7 +24,7 @@
           <v-text-field
             class="mb-4 password-input"
             label="Password"
-            :rules="rules.password"
+            :rules="rules.required"
             v-model="password"
             type="password"
             name="password"
@@ -51,38 +51,16 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
 import { ref } from 'vue'
+import { rules } from '@/utils/rules'
 
-const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const form = ref(null)
 const valid = ref(false)
-const rules = {
-  password: [
-    (value: string) => {
-      if (value) return true
-
-      return 'Password is required.'
-    },
-  ],
-  email: [
-    (value: string) => {
-      if (value) return true
-
-      return 'Email is required.'
-    },
-    (value: string) => {
-      if (/.+@.+\..+/.test(value)) return true
-
-      return 'Email must be valid.'
-    },
-  ],
-}
 
 const loginSubmit = async () => {
-  if (valid) {
-    await authStore.login(email.value, password.value)
-  }
+  if (!valid) return
+  await useAuthStore().login(email.value, password.value)
 }
 </script>
 
