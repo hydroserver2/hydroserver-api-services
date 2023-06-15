@@ -9,8 +9,8 @@ export const minLength = (length: number) => [
 ]
 
 export const maxLength = (max: number) => [
-  (value: string) =>
-    !value || value.length <= max || `Maximum ${max} characters allowed.`,
+  (value: string | number) =>
+    !value || `${value}`.length <= max || `Maximum ${max} characters allowed.`,
 ]
 
 export const emailFormat = [
@@ -55,6 +55,21 @@ export const passwordMatch = (password: string) => [
   },
 ]
 
+export const urlFormat = [
+  (value: string) => {
+    const pattern = new RegExp(
+      '^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
+      'i'
+    ) // fragment locator
+    return pattern.test(value) || 'URL must be valid.'
+  },
+]
+
 export const rules = {
   minLength,
   maxLength,
@@ -63,6 +78,7 @@ export const rules = {
   passwordMatch,
   required,
   emailFormat,
+  urlFormat,
   phoneNumber,
   nonNumericCharacter,
 
@@ -70,4 +86,6 @@ export const rules = {
   password: [...required, ...minLength(8), ...nonNumericCharacter],
   requiredName: [...required, ...maxLength(30), ...alphanumericAndSpace],
   name: [...maxLength(30), ...alphanumericAndSpace],
+  description: [...maxLength(500), ...required],
+  requiredCode: [...maxLength(50), ...required],
 }

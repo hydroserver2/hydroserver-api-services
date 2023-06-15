@@ -25,81 +25,100 @@
     </v-card-text>
 
     <v-card-text>
-      <v-row>
-        <v-col cols="12" md="6">
-          <h6 class="text-h6 my-4">Site Information</h6>
-          <v-form
-            ref="form"
-            @submit.prevent="uploadThing"
-            enctype="multipart/form-data"
-          >
+      <v-form
+        ref="myForm"
+        v-model="valid"
+        validate-on="blur"
+        @submit.prevent="uploadThing"
+        enctype="multipart/form-data"
+      >
+        <v-row>
+          <v-col cols="12" md="6">
+            <h6 class="text-h6 my-4">Site Information</h6>
             <v-row>
               <v-col cols="12"
                 ><v-text-field
                   label="Site Code"
                   v-model="thing.sampling_feature_code"
+                  :rules="rules.requiredCode"
               /></v-col>
               <v-col cols="12"
-                ><v-text-field label="Site Name" v-model="thing.name"
+                ><v-text-field
+                  label="Site Name"
+                  v-model="thing.name"
+                  :rules="rules.requiredCode"
               /></v-col>
               <v-col cols="12"
                 ><v-textarea
                   label="Site Description"
                   v-model="thing.description"
+                  :rules="thing.description ? rules.description : []"
               /></v-col>
               <v-col cols="12"
                 ><v-autocomplete
                   label="Select Site Type"
                   :items="siteTypes"
                   v-model="thing.site_type"
+                  :rules="rules.required"
                 ></v-autocomplete
               ></v-col>
             </v-row>
-          </v-form>
-        </v-col>
-        <v-col cols="12" md="6">
-          <h6 class="text-h6 my-4">Site Location</h6>
-          <v-row>
-            <v-col cols="12" sm="6">
-              <v-text-field
-                label="Latitude"
-                v-model="thing.latitude"
-                type="number"
-            /></v-col>
-            <v-col cols="12" sm="6"
-              ><v-text-field
-                label="Longitude"
-                v-model="thing.longitude"
-                type="number"
-            /></v-col>
-            <v-col cols="12" sm="6"
-              ><v-text-field
-                label="Elevation"
-                v-model="thing.elevation"
-                type="number"
-            /></v-col>
-            <v-col cols="12" sm="6">
-              <v-text-field label="State" v-model="thing.state" />
-            </v-col>
-            <!--            <v-col cols="12" sm="6">-->
-            <!--              <v-text-field-->
-            <!--                disabled-->
-            <!--                label="Elevation Datum"-->
-            <!--                v-model="thing.elevation_datum"-->
-            <!--              />-->
-            <!--            </v-col>-->
-            <v-col cols="12" sm="6">
-              <v-text-field label="County" v-model="thing.county" />
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
+          </v-col>
+          <v-col cols="12" md="6">
+            <h6 class="text-h6 my-4">Site Location</h6>
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  label="Latitude"
+                  v-model="thing.latitude"
+                  type="number"
+                  :rules="rules.required"
+              /></v-col>
+              <v-col cols="12" sm="6"
+                ><v-text-field
+                  label="Longitude"
+                  v-model="thing.longitude"
+                  type="number"
+                  :rules="rules.required"
+              /></v-col>
+              <v-col cols="12" sm="6"
+                ><v-text-field
+                  label="Elevation"
+                  v-model="thing.elevation"
+                  type="number"
+                  :rules="rules.required"
+              /></v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  label="State"
+                  v-model="thing.state"
+                  :rules="thing.state ? rules.name : []"
+                />
+              </v-col>
+              <!--            <v-col cols="12" sm="6">-->
+              <!--              <v-text-field-->
+              <!--                disabled-->
+              <!--                label="Elevation Datum"-->
+              <!--                v-model="thing.elevation_datum"-->
+              <!--              />-->
+              <!--            </v-col>-->
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  label="County"
+                  v-model="thing.county"
+                  :rules="thing.state ? rules.name : []"
+                />
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
+          <v-btn @click="uploadThing">Save</v-btn>
+        </v-card-actions>
+      </v-form>
     </v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
-      <v-btn @click="uploadThing">Save</v-btn>
-    </v-card-actions>
   </v-card>
 </template>
 
@@ -109,11 +128,15 @@ import GoogleMap from '../GoogleMap.vue'
 import { useThingStore } from '@/store/things'
 import { Thing } from '@/types'
 import { siteTypes } from '@/vocabularies'
+import { VForm } from 'vuetify/components'
+import { rules } from '@/utils/rules'
 
 const thingStore = useThingStore()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close'])
 let loaded = ref(false)
+const valid = ref(false)
+const myForm = ref<VForm>()
 
 const mapOptions = ref({
   center: { lat: 39, lng: -100 },
@@ -155,7 +178,9 @@ function closeDialog() {
   emit('close')
 }
 
-function uploadThing() {
+async function uploadThing() {
+  await myForm.value?.validate()
+  if (!valid.value) return
   if (thing) {
     if (props.thingId) thingStore.updateThing(thing)
     else thingStore.createThing(thing)

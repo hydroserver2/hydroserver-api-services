@@ -96,5 +96,5 @@ const updateUser = async () => {
   emit('close')
 }
 
-onMounted(async () => myForm.value?.validate())
+onMounted(async () => await myForm.value?.validate())
 </script>

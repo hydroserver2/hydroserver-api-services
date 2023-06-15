@@ -17,7 +17,12 @@
       </v-col>
     </v-row>
 
-    <v-form @submit.prevent="uploadDatastream">
+    <v-form
+      @submit.prevent="uploadDatastream"
+      ref="myForm"
+      v-model="valid"
+      validate-on="blur"
+    >
       <v-row>
         <v-col cols="12" md="3">
           <v-autocomplete
@@ -31,6 +36,7 @@
             item-title="name"
             item-value="id"
             no-data-text="No available sensors"
+            :rules="rules.required"
             class="pb-1"
           ></v-autocomplete>
           <v-btn-secondary
@@ -62,6 +68,7 @@
             "
             item-title="name"
             item-value="id"
+            :rules="rules.required"
             no-data-text="No available properties"
             class="pb-1"
           ></v-autocomplete>
@@ -94,6 +101,7 @@
             "
             item-title="name"
             item-value="id"
+            :rules="rules.required"
             no-data-text="No available units"
             class="pb-1"
           ></v-autocomplete>
@@ -127,6 +135,7 @@
             "
             item-title="processing_level_code"
             item-value="id"
+            :rules="rules.required"
             no-data-text="No available processing level"
             class="pb-1"
           ></v-autocomplete>
@@ -155,24 +164,22 @@
           <v-text-field
             v-model="datastream.sampled_medium"
             label="Sampled medium"
-            :rules="[(v:any) => !!v || 'Sampled medium is required']"
-            required
+            :rules="datastream.sampled_medium ? rules.name : []"
           ></v-text-field>
         </v-col>
         <v-col>
           <v-text-field
             v-model="datastream.status"
             label="Status"
-            :rules="[(v:any) => !!v || 'Status is required']"
-            required
+            :rules="datastream.status ? rules.name : []"
           ></v-text-field>
         </v-col>
         <v-col>
           <v-text-field
             v-model="datastream.no_data_value"
             label="No data value"
-            :rules="[(v:any) => !!v || 'No data value is required']"
-            required
+            :rules="datastream.no_data_value ? rules.maxLength(20) : []"
+            type="number"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -181,20 +188,21 @@
           <v-text-field
             v-model="datastream.aggregation_statistic"
             label="Aggregation statistic"
-            :rules="[(v:any) => !!v || 'Aggregation statistic is required']"
-            required
+            :rules="datastream.aggregation_statistic ? rules.name : []"
           ></v-text-field>
         </v-col>
         <v-col>
           <v-text-field
             v-model="datastream.result_type"
             label="Result type"
+            :rules="datastream.result_type ? rules.name : []"
           ></v-text-field>
         </v-col>
         <v-col>
           <v-text-field
             v-model="datastream.observation_type"
             label="Observation type"
+            :rules="datastream.observation_type ? rules.name : []"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -225,6 +233,8 @@ import { useUnitStore } from '@/store/unit'
 import { useProcessingLevelStore } from '@/store/processingLevels'
 import { Datastream } from '@/types'
 import { useThingStore } from '@/store/things'
+import { VForm } from 'vuetify/components'
+import { rules } from '@/utils/rules'
 
 const datastreamStore = useDatastreamStore()
 const sensorStore = useSensorStore()
@@ -243,6 +253,9 @@ const showSensorModal = ref(false)
 const showObservedPropertyModal = ref(false)
 const showUnitModal = ref(false)
 const showProcessingLevelModal = ref(false)
+
+const valid = ref(false)
+const myForm = ref<VForm>()
 
 const datastream = reactive<Datastream>({
   id: '',
@@ -291,6 +304,7 @@ const formattedDatastream = computed(() => {
 
 watch(selectedDatastreamID, async () => {
   await populateForm(selectedDatastreamID.value)
+  await myForm.value?.validate()
 })
 
 async function populateForm(id: string) {
@@ -298,6 +312,8 @@ async function populateForm(id: string) {
 }
 
 async function uploadDatastream() {
+  await myForm.value?.validate()
+  if (!valid.value) return
   if (datastreamId) await datastreamStore.updateDatastream(datastream)
   else await datastreamStore.createDatastream(datastream)
   await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
