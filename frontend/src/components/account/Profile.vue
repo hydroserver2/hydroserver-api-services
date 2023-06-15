@@ -1,80 +1,158 @@
 <template>
   <v-container>
-    <v-row class="text-center">
-      <v-col>
-        <h3 class="text-h3">Profile</h3>
-      </v-col>
-    </v-row>
-
-    <v-row class="text-left" v-if="authStore.user">
-      <v-col>
-        <h3>
-          {{ authStore.user.first_name }}
-          {{ authStore.user.middle_name }}
-          {{ authStore.user.last_name }}
-        </h3>
-        <div>{{ authStore.user.organization }}</div>
-        <div>{{ authStore.user.address }}</div>
-        <div>{{ authStore.user.phone }}</div>
-        <div>{{ authStore.user.email }}</div>
-      </v-col>
-    </v-row>
-
-    <v-row class="justify-center text-center">
+    <v-row v-if="authStore.user">
       <v-col cols="12">
-        <v-row class="justify-center">
-          <v-col class="align-center" cols="auto">
-            <h5 class="text-h5">Connect Account to</h5>
-          </v-col>
-          <v-col cols="auto">
-            <img
-              class="hydroserver-logo"
-              src="@/assets/hydro.png"
-              alt="Hydro"
-            />
+        <v-row>
+          <v-col>
+            <v-card color="surface" elevation="2">
+              <v-row no-gutters>
+                <v-col
+                  cols="12"
+                  md="auto"
+                  class="d-flex align-center justify-center primary"
+                  style="background-color: #2196f3"
+                >
+                  <v-card-title :style="{ color: 'white' }">
+                    <h5 class="text-h5">
+                      {{ authStore.user.first_name }}
+                      {{ authStore.user.middle_name }}
+                      {{ authStore.user.last_name }}
+                    </h5>
+                  </v-card-title>
+                </v-col>
+
+                <v-col cols="auto" class="pl-2 pt-2 pb-2">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td class="pr-4"><strong>Organization</strong></td>
+                        <td>{{ authStore.user.organization }}</td>
+                      </tr>
+                      <tr>
+                        <td class="pr-4"><strong>Address</strong></td>
+                        <td>{{ authStore.user.address }}</td>
+                      </tr>
+                      <tr>
+                        <td class="pr-4"><strong>Phone</strong></td>
+                        <td>{{ authStore.user.phone }}</td>
+                      </tr>
+                      <tr>
+                        <td class="pr-4"><strong>Email</strong></td>
+                        <td>{{ authStore.user.email }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </v-col>
+              </v-row>
+            </v-card>
           </v-col>
         </v-row>
-        <v-btn-primary>CONNECT</v-btn-primary>
+
+        <v-row>
+          <v-col cols="6">
+            <v-card
+              class="d-flex align-center"
+              @click="editAccountDialog = true"
+              color="surface"
+              elevation="2"
+            >
+              <v-card-text class="text--primary">
+                <div class="d-flex justify-content-between">
+                  <span class="text-truncate">Edit My Profile</span>
+                  <v-spacer></v-spacer>
+                  <v-icon color="primary" large
+                    >mdi-account-edit-outline</v-icon
+                  >
+                </div>
+              </v-card-text>
+            </v-card>
+            <v-dialog v-model="editAccountDialog" max-width="40rem">
+              <AccountModal @close="editAccountDialog = false"></AccountModal>
+            </v-dialog>
+          </v-col>
+          <v-col cols="6">
+            <v-card
+              class="d-flex align-center"
+              @click="deleteAccountDialog = true"
+              color="surface"
+              elevation="2"
+            >
+              <v-card-text class="text--primary">
+                <div class="d-flex justify-content-between">
+                  <span class="text-truncate">Delete Account</span>
+                  <v-spacer></v-spacer>
+                  <v-icon color="error" large>mdi-account-remove</v-icon>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-spacer></v-spacer>
+      <v-col cols="12" md="6" class="justify-center text-center">
+        <v-card color="white" elevation="2" @click="$router.push('/Sites')">
+          <v-container style="background-color: #eeeeee">
+            <v-responsive>
+              <img
+                style="max-height: 100%; max-width: 100%; object-fit: contain"
+                class="hydroserver-logo"
+                src="@/assets/CUAHSI.png"
+                alt="Hydro"
+              />
+            </v-responsive>
+          </v-container>
+          <v-card-title class="text-wrap"
+            >Connect Account to HydroShare</v-card-title
+          >
+          <v-card-actions class="justify-center">
+            <v-btn-primary>CONNECT</v-btn-primary>
+          </v-card-actions>
+        </v-card>
       </v-col>
     </v-row>
+
+    <!-- <v-row class="justify-center text-center"> </v-row>
 
     <v-row class="text-center my-5">
       <v-col>
-        <h4>What do you want to do?</h4>
+        <h5 class="text-h5">What do you want to do?</h5>
       </v-col>
-    </v-row>
-
-    <v-row class="text-center">
-      <v-col>
-        <router-link to="/Sites">
-          <v-icon color="black" large>mdi-domain</v-icon>
-        </router-link>
-        <div>Manage My Sites</div>
-      </v-col>
-      <v-col>
-        <router-link to="/Browse">
-          <v-icon color="black" large>mdi-magnify</v-icon>
-        </router-link>
-        <div>Browse Sites</div>
-      </v-col>
-      <v-col>
-        <div>
-          <v-icon large @click="editAccountDialog = true"
-            >mdi-account-edit-outline</v-icon
-          >
-          <v-dialog v-model="editAccountDialog" max-width="40rem">
-            <AccountModal @close="editAccountDialog = false"></AccountModal>
-          </v-dialog>
-        </div>
-        <div>Edit My Profile</div>
-      </v-col>
-      <v-col>
-        <v-icon large @click="deleteAccountDialog = true"
-          >mdi-account-remove</v-icon
+    </v-row> -->
+    <!-- <v-row> -->
+    <!-- <v-col>
+        <v-card
+          class="d-flex align-center"
+          @click="$router.push('/Sites')"
+          color="surface"
+          elevation="2"
         >
-        <div>Delete Account</div>
-      </v-col>
-    </v-row>
+          <v-card-text class="text--primary">
+            <div class="d-flex justify-content-between">
+              <span class="text-truncate">Manage My Sites</span>
+              <v-spacer></v-spacer>
+              <v-icon color="primary" large>mdi-domain</v-icon>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col> -->
+
+    <!-- <v-col>
+        <v-card
+          class="d-flex align-center"
+          @click="$router.push('/Browse')"
+          color="surface"
+          elevation="2"
+        >
+          <v-card-text class="text--primary">
+            <div class="d-flex justify-content-between">
+              <span class="text-truncate">Browse Sites</span>
+              <v-spacer></v-spacer>
+              <v-icon color="primary" large>mdi-magnify</v-icon>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col> -->
+    <!-- </v-row> -->
   </v-container>
 
   <v-dialog v-model="deleteAccountDialog" width="40rem">
@@ -148,10 +226,3 @@ onMounted(async () => {
   await thingStore.fetchThings()
 })
 </script>
-
-<style scoped>
-.hydroserver-logo {
-  height: auto;
-  max-height: 1.5rem;
-}
-</style>
