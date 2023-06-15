@@ -7,12 +7,7 @@
     </v-card-title>
     <v-card-text>
       <v-container>
-        <v-form
-          @submit.prevent="uploadObservedProperty"
-          ref="myForm"
-          v-model="valid"
-          validate-on="blur"
-        >
+        <v-form ref="myForm" v-model="valid" validate-on="blur">
           <v-row>
             <v-col cols="12">
               <v-text-field
@@ -53,7 +48,9 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn-cancel @click="$emit('close')">Cancel</v-btn-cancel>
-            <v-btn type="submit">{{ isEdit ? 'Update' : 'Save' }}</v-btn>
+            <v-btn type="submit" @submit.prevent="uploadObservedProperty">{{
+              isEdit ? 'Update' : 'Save'
+            }}</v-btn>
           </v-card-actions>
         </v-form>
       </v-container>

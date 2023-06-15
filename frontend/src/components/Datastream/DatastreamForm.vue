@@ -17,12 +17,7 @@
       </v-col>
     </v-row>
 
-    <v-form
-      @submit.prevent="uploadDatastream"
-      ref="myForm"
-      v-model="valid"
-      validate-on="blur"
-    >
+    <v-form ref="myForm" v-model="valid" validate-on="blur">
       <v-row>
         <v-col cols="12" md="3">
           <v-autocomplete
@@ -209,9 +204,12 @@
       <v-row>
         <v-spacer></v-spacer>
         <v-col cols="auto">
-          <v-btn type="submit" color="secondary">{{
-            datastreamId ? 'Update' : 'Save'
-          }}</v-btn>
+          <v-btn
+            type="submit"
+            @submit.prevent="uploadDatastream"
+            color="secondary"
+            >{{ datastreamId ? 'Update' : 'Save' }}</v-btn
+          >
         </v-col>
       </v-row>
     </v-form>

@@ -2,12 +2,7 @@
   <v-card>
     <v-card-title>Edit Profile </v-card-title>
     <v-card-text>
-      <v-form
-        @submit.prevent="updateUser"
-        ref="myForm"
-        v-model="valid"
-        validate-on="blur"
-      >
+      <v-form ref="myForm" v-model="valid" validate-on="blur">
         <v-row>
           <v-col cols="12" sm="4">
             <v-text-field
@@ -68,7 +63,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
-          <v-btn type="submit">Update</v-btn>
+          <v-btn type="submit" @submit.prevent="updateUser">Update</v-btn>
         </v-card-actions>
       </v-form>
     </v-card-text>

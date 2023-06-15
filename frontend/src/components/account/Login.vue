@@ -5,12 +5,7 @@
     <v-card class="login-card" width="40rem">
       <v-card-title class="mb-4 login-title">Sign In</v-card-title>
       <v-card-text>
-        <v-form
-          class="login-form"
-          ref="form"
-          @submit.prevent="loginSubmit"
-          v-model="valid"
-        >
+        <v-form class="login-form" ref="form" v-model="valid">
           <v-text-field
             class="mb-4 email-input"
             label="Email"
@@ -33,6 +28,7 @@
             class="login-button mr-4"
             :disabled="!valid"
             type="submit"
+            @submit.prevent="loginSubmit"
             >Log In</v-btn-primary
           >
         </v-form>
