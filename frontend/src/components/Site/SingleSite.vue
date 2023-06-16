@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row v-if="thingStore.things[thingId]">
-      <v-col>
+      <v-col class="single-site-name">
         <h5 class="text-h5">{{ thingStore.things[thingId]?.name }}</h5>
       </v-col>
     </v-row>

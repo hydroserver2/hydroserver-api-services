@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { Loader } from '@googlemaps/js-api-loader'
 import { Thing } from '@/types'
 
@@ -22,7 +22,7 @@ const loader = new Loader({
 })
 let map: google.maps.Map | null = null
 let markers: google.maps.Marker[]
-const mapContainer = ref(null)
+const mapContainer = ref<HTMLElement>()
 let infoWindow: google.maps.InfoWindow | null = null
 
 const clearMarkers = () => {
@@ -131,16 +131,28 @@ async function getGeoData(mapsMouseEvent: any, geocoder: any) {
 }
 
 onMounted(async () => {
-  const google = await loader.load()
-  map = new google.maps.Map(mapContainer.value!, props.mapOptions)
-  if (props.clickable) await addLocationClicking()
-  loadMarkers()
+  let attempts = 0
+  const intervalId = setInterval(async () => {
+    attempts++
+    if (mapContainer.value) {
+      clearInterval(intervalId)
 
-  if (map) {
-    map.addListener('click', () => {
-      if (infoWindow) infoWindow.close()
-    })
-  }
+      const google = await loader.load()
+      map = new google.maps.Map(mapContainer.value, props.mapOptions)
+      if (props.clickable) await addLocationClicking()
+      loadMarkers()
+
+      if (map) {
+        map.addListener('click', () => {
+          if (infoWindow) infoWindow.close()
+        })
+      }
+    } else if (attempts >= 30) {
+      // 30 attempts * 100ms = 3 seconds
+      clearInterval(intervalId)
+      console.error('mapContainer is still not initialized after 3 seconds!')
+    }
+  }, 100) // 100ms interval
 })
 </script>
 

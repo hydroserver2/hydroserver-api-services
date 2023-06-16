@@ -22,6 +22,7 @@
         </v-col>
         <v-col cols="auto">
           <v-btn-secondary
+            class="register-site-btn"
             variant="elevated"
             @click="showSiteForm = true"
             prependIcon="mdi-plus"
@@ -36,7 +37,7 @@
         :items="thingStore.ownedThings"
         hover
         item-value="id"
-        class="elevation-3"
+        class="elevation-3 owned-sites-table"
         @click:row="onRowClick"
       >
       </v-data-table>

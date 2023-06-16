@@ -453,7 +453,7 @@
     thing: 0c04fcdc-3876-429e-8260-14b7baca0231
     person: 3
     owns_thing: true
-    follows_thing: true
+    follows_thing: false
     is_primary_owner: true
 - model: sites.thingassociation
   pk: 2
@@ -461,7 +461,7 @@
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
     person: 3
     owns_thing: true
-    follows_thing: true
+    follows_thing: false
     is_primary_owner: true
 - model: sites.thingassociation
   pk: 3
@@ -469,7 +469,7 @@
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
     person: 2
     owns_thing: true
-    follows_thing: true
+    follows_thing: false
     is_primary_owner: false
 - model: sites.thingassociation
   pk: 4
@@ -485,7 +485,7 @@
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
     person: 2
     owns_thing: true
-    follows_thing: true
+    follows_thing: false
     is_primary_owner: true
 - model: sites.thingassociation
   pk: 6

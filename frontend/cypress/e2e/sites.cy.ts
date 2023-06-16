@@ -1,32 +1,37 @@
 describe('Sites', () => {
-  it('Should pass dummy test', () => {
-    expect(true).to.equal(true)
+  beforeEach(() => {
+    cy.viewport(1500, 1200)
+    cy.visit('/login')
   })
 
-  it('Should redirect to login if not logged in', () => {
+  it('redirects to login if not logged in', () => {
     cy.visit('/sites')
     cy.url().should('include', '/login')
   })
 
-  // Site follower can view sparkline plots
-  // Private site can't be found by non-owner
+  it('renders data', () => {
+    cy.login('paul')
+    cy.url().should('include', '/sites')
+    cy.get('.owned-sites-table')
+      .find('tbody')
+      .find('tr')
+      .should('have.length.greaterThan', 0)
+  })
 
-  // it('Should load the Sites page when logged in', () => {
-  //   cy.intercept({
-  //     method: 'GET',
-  //     url: '/api/session'
-  //   },
-  //   {
-  //     fixture: 'session_logged_in.json'
-  //   });
+  it('opens and closes site form', () => {
+    cy.login('paul')
+    cy.get('.register-site-btn').click()
+    // cy.get('v-dialog').should('be.visible')
+    // cy.get('SiteForm').find('button').contains('Close').click()
+    // cy.get('v-dialog').should('not.be.visible')
+  })
 
-  //   cy.visit('/sites');
-  //   cy.url().should('include', '/sites');
-  // });
-
-  // it('Should load the Sites component successfully', () => {
-  //   cy.url().should('include', '/sites')
-  //   cy.get('h5').contains('My Registered Sites')
-  //   cy.get('v-btn').contains('Register a new site')
-  // })
+  it.only('links navigate to the correct pages', () => {
+    cy.login('john')
+    cy.get('.manage-metadata-button').click()
+    cy.url().should('include', '/Metadata')
+    cy.visit('/sites')
+    cy.get('.owned-sites-table tbody tr').first().click()
+    cy.get('.single-site-name').should('be.visible')
+  })
 })
