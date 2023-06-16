@@ -7,7 +7,12 @@
     </v-card-title>
     <v-card-text>
       <v-container>
-        <v-form ref="myForm" v-model="valid" validate-on="blur">
+        <v-form
+          @submit.prevent="uploadProcessingLevel"
+          ref="myForm"
+          v-model="valid"
+          validate-on="blur"
+        >
           <v-row>
             <v-col cols="12">
               <v-text-field
@@ -34,9 +39,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn-cnacel @click="$emit('close')">Cancel</v-btn-cnacel>
-            <v-btn type="submit" @submit.prevent="uploadProcessingLevel">{{
-              isEdit ? 'Update' : 'Save'
-            }}</v-btn>
+            <v-btn type="submit">{{ isEdit ? 'Update' : 'Save' }}</v-btn>
           </v-card-actions>
         </v-form>
       </v-container>

@@ -875,7 +875,7 @@ def create_datastream(request, thing_id, data: CreateDatastreamInput):
         processing_level=processing_level,
         sampled_medium=data.sampled_medium,
         status=data.status,
-        no_data_value=data.no_data_value,
+        no_data_value=float(data.no_data_value) if data.no_data_value else None,
         aggregation_statistic=data.aggregation_statistic,
         result_type=data.result_type if data.result_type else 'Time Series Coverage',
         observation_type=data.observation_type if data.observation_type else 'OM_Measurement',

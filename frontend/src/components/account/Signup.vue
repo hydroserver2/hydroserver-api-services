@@ -3,7 +3,12 @@
     <v-card width="50rem">
       <v-card-title class="mb-4">Sign Up</v-card-title>
       <v-card-text>
-        <v-form v-model="valid" ref="myForm" validate-on="blur">
+        <v-form
+          @submit.prevent="createUser"
+          v-model="valid"
+          ref="myForm"
+          validate-on="blur"
+        >
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
@@ -92,9 +97,7 @@
             </v-col>
           </v-row>
           <div class="mt-6">
-            <v-btn-primary type="submit" @submit.prevent="createUser"
-              >Create User</v-btn-primary
-            >
+            <v-btn-primary type="submit">Create User</v-btn-primary>
           </div>
         </v-form>
       </v-card-text>

@@ -49,7 +49,6 @@ export const useDatastreamStore = defineStore('datastreams', {
     },
     async updateDatastream(datastream: Datastream) {
       try {
-        console.log('updatedDS', datastream.id)
         const { data } = await this.$http.patch(
           `/datastreams/patch/${datastream.id}`,
           datastream
@@ -67,6 +66,7 @@ export const useDatastreamStore = defineStore('datastreams', {
           `/datastreams/${newDatastream.thing_id}`,
           newDatastream
         )
+        console.log('updatedDS', data)
         if (!this.datastreams[newDatastream.thing_id]) {
           this.datastreams[newDatastream.thing_id] = []
         }

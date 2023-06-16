@@ -2,7 +2,12 @@
   <v-card>
     <v-card-title>Edit Profile </v-card-title>
     <v-card-text>
-      <v-form ref="myForm" v-model="valid" validate-on="blur">
+      <v-form
+        ref="myForm"
+        v-model="valid"
+        validate-on="blur"
+        @submit.prevent="updateUser"
+      >
         <v-row>
           <v-col cols="12" sm="4">
             <v-text-field
@@ -63,7 +68,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
-          <v-btn type="submit" @submit.prevent="updateUser">Update</v-btn>
+          <v-btn type="submit">Update</v-btn>
         </v-card-actions>
       </v-form>
     </v-card-text>
@@ -86,6 +91,7 @@ const emit = defineEmits(['close'])
 const closeDialog = () => emit('close')
 
 const updateUser = async () => {
+  await myForm.value?.validate()
   if (!valid.value) return
   await authStore.updateUser(user)
   emit('close')
