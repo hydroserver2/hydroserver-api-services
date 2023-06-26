@@ -32,22 +32,36 @@
           mdi-delete
         </v-icon>
 
-        <v-icon
-          small
-          color="grey"
-          @click="toggleVisibility(item.raw)"
-          v-if="item.raw.is_visible"
-        >
-          mdi-eye
-        </v-icon>
-        <v-icon
-          small
-          color="grey-lighten-1"
-          @click="toggleVisibility(item.raw)"
-          v-else
-        >
-          mdi-eye-off
-        </v-icon>
+        <v-tooltip bottom :openDelay="500" v-if="item.raw.is_visible">
+          <template v-slot:activator="{ props }">
+            <v-icon
+              small
+              color="grey"
+              v-bind="props"
+              @click="toggleVisibility(item.raw)"
+            >
+              mdi-eye
+            </v-icon>
+          </template>
+          <span
+            >Hide this datastream from guests of your site. Owners will still
+            see it</span
+          >
+        </v-tooltip>
+
+        <v-tooltip bottom :openDelay="500" v-else>
+          <template v-slot:activator="{ props }">
+            <v-icon
+              small
+              color="grey-lighten-1"
+              v-bind="props"
+              @click="toggleVisibility(item.raw)"
+            >
+              mdi-eye-off
+            </v-icon>
+          </template>
+          <span>Make this datastream publicly visible</span>
+        </v-tooltip>
       </template>
     </v-data-table>
     <v-dialog v-if="selectedDatastream" v-model="showDeleteModal" width="40rem">
