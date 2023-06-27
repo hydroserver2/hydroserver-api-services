@@ -202,7 +202,7 @@
           <v-text-field
             v-model="datastream.observation_type"
             label="Observation type"
-            :rules="datastream.observation_type ? rules.name : []"
+            :rules="datastream.observation_type ? rules.maxLength(500) : []"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -318,7 +318,7 @@ async function uploadDatastream() {
   if (!valid.value) return
   if (datastreamId) await datastreamStore.updateDatastream(datastream)
   else await datastreamStore.createDatastream(datastream)
-  await router.push({ name: 'SiteDatastreams', params: { id: thingId } })
+  await router.push({ name: 'SingleSite', params: { id: thingId } })
 }
 
 onMounted(async () => {

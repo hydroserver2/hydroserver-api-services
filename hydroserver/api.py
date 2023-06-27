@@ -809,6 +809,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
     if add_recent_observations:
         since_time = timezone.now() - timedelta(hours=72)
         observations = Observation.objects.filter(datastream=datastream, result_time__gte=since_time).order_by('-result_time')
+        # observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')
         for observation in observations:
             observation_list.append({
                 "id": observation.id,
@@ -902,6 +903,16 @@ def get_datastreams(request):
     return JsonResponse(user_datastreams, safe=False)
 
 
+def get_public_datastreams(thing_id: str):
+    try:
+        thing = Thing.objects.get(pk=thing_id)
+    except Thing.DoesNotExist:
+        return JsonResponse({'detail': 'Site not found.'}, status=404)
+    return JsonResponse([
+        datastream_to_dict(datastream) 
+        for datastream in thing.datastreams.all() if datastream.is_visible], safe=False)
+
+
 @api.get('/datastreams/{thing_id}', auth=jwt_check_user)
 def get_datastreams_for_thing(request, thing_id: str):
     if request.user_if_there_is_one:
@@ -912,19 +923,13 @@ def get_datastreams_for_thing(request, thing_id: str):
                 owns_thing=True,
             )
         except ThingAssociation.DoesNotExist:
-            return JsonResponse([], safe=False)
+            return get_public_datastreams(thing_id=thing_id)
         return JsonResponse([
             datastream_to_dict(datastream, user_association)
             for datastream in user_association.thing.datastreams.all()
         ], safe=False)
     else:
-        try:
-            thing = Thing.objects.get(pk=thing_id)
-        except Thing.DoesNotExist:
-            return JsonResponse({'detail': 'Site not found.'}, status=404)
-        return JsonResponse([
-            datastream_to_dict(datastream) 
-            for datastream in thing.datastreams.all()], safe=False)
+        return get_public_datastreams(thing_id=thing_id)
 
 
 class UpdateDatastreamInput(Schema):

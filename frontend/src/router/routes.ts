@@ -6,7 +6,6 @@ import Signup from '@/components/account/Signup.vue'
 import Login from '@/components/account/Login.vue'
 import SingleSite from '@/components/Site/SingleSite.vue'
 import Browse from '@/components/Browse.vue'
-import SiteDatastreams from '@/components/Datastream/Datastreams.vue'
 import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
@@ -63,12 +62,6 @@ export const routes: RouteRecordRaw[] = [
     beforeEnter: requireAuth,
   },
   { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
-  {
-    path: '/sites/:id/datastreams',
-    name: 'SiteDatastreams',
-    component: SiteDatastreams,
-    beforeEnter: requireThingOwnership,
-  },
   {
     path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',

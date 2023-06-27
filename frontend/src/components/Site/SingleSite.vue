@@ -19,21 +19,21 @@
         <h5 class="text-h5">Site Information</h5>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="showAccessControlModal = true">Access Control</v-btn>
-        <v-dialog v-model="showAccessControlModal" width="60rem">
+        <v-btn @click="dialogs.accessControl = true">Access Control</v-btn>
+        <v-dialog v-model="dialogs.accessControl" width="60rem">
           <SiteAccessControl
-            @close="showAccessControlModal = false"
+            @close="dialogs.accessControl = false"
             :thing-id="thingId"
           ></SiteAccessControl>
         </v-dialog>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="showRegisterSiteModal = true" color="secondary"
+        <v-btn @click="dialogs.registerSite = true" color="secondary"
           >Edit Site Information</v-btn
         >
-        <v-dialog v-model="showRegisterSiteModal" width="80rem">
+        <v-dialog v-model="dialogs.registerSite" width="80rem">
           <SiteForm
-            @close="showRegisterSiteModal = false"
+            @close="dialogs.registerSite = false"
             :thing-id="thingId"
           ></SiteForm>
         </v-dialog>
@@ -42,10 +42,10 @@
         <v-btn
           color="red-darken-3"
           style="margin-left: 1rem"
-          @click="showDeleteModal = true"
+          @click="dialogs.deleteSite = true"
           >Delete Site</v-btn
         >
-        <v-dialog v-model="showDeleteModal" width="40rem">
+        <v-dialog v-model="dialogs.deleteSite" width="40rem">
           <v-card>
             <v-card-title>
               <span class="text-h5">Confirm Deletion</span>
@@ -76,7 +76,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn-cancel @click="showDeleteModal = false"
+              <v-btn-cancel @click="dialogs.deleteSite = false"
                 >Cancel</v-btn-cancel
               >
               <v-btn color="delete" @click="deleteThing">Delete</v-btn>
@@ -129,17 +129,6 @@
       <v-col cols="auto">
         <h5 class="text-h5">Datastreams Available at this Site</h5>
       </v-col>
-      <v-col cols="auto">
-        <v-btn
-          v-if="thingStore.things[thingId]?.owns_thing"
-          color="secondary"
-          :to="{
-            name: 'SiteDatastreams',
-            params: { id: thingStore.things[thingId].id },
-          }"
-          >Manage Datastreams</v-btn
-        >
-      </v-col>
       <v-spacer></v-spacer>
       <v-col cols="auto">
         <img
@@ -155,37 +144,112 @@
         >
       </v-col>
     </v-row>
-    <v-row class="ma-2">
-      <template
-        v-for="datastream in datastreamStore.datastreams[thingId]"
-        :key="datastream.id"
-      >
-        <v-col
-          v-if="datastream.is_visible"
-          md="3"
-          class="pa-3 d-flex flex-column"
+    <v-row class="pb-2" v-if="is_owner">
+      <v-col>
+        <v-btn-secondary
+          prependIcon="mdi-plus"
+          variant="elevated"
+          :to="{ name: 'DatastreamForm', params: { id: thingId } }"
+          >Add New Datastream</v-btn-secondary
         >
-          <v-card class="elevation-5 flex d-flex flex-column" outlined>
-            <v-card-title
-              >{{ datastream.observed_property_name }}
-              <v-icon small class="mr-2">
-                mdi-cloud-download-outline
-              </v-icon></v-card-title
+      </v-col>
+    </v-row>
+    <v-row class="pb-5">
+      <v-data-table
+        class="elevation-3"
+        :headers="headers"
+        :items="visibleDatastreams"
+      >
+        <template v-slot:item.observations="{ item }">
+          <div v-if="item.raw.observations">
+            <LineChart :observations="item.raw.observations" />
+          </div>
+          <div v-else>No data for this datastream</div>
+        </template>
+        <template v-slot:item.last_observation="{ item }">
+          <div v-if="item.raw.most_recent_observation">
+            {{ (item.raw.most_recent_observation as Observation).result_time }}
+          </div>
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <router-link
+            v-if="is_owner"
+            :to="{
+              name: 'DatastreamForm',
+              params: { id: thingId, datastreamId: item.raw.id },
+            }"
+          >
+            <v-icon color="grey" small> mdi-pencil </v-icon>
+          </router-link>
+
+          <v-icon
+            v-if="is_owner"
+            color="grey"
+            small
+            @click="showDeleteDatastreamModal(item.raw)"
+          >
+            mdi-delete
+          </v-icon>
+
+          <v-tooltip bottom :openDelay="500" v-if="item.raw.is_visible">
+            <template v-slot:activator="{ props }" v-if="is_owner">
+              <v-icon
+                small
+                color="grey"
+                v-bind="props"
+                @click="toggleVisibility(item.raw)"
+              >
+                mdi-eye
+              </v-icon>
+            </template>
+            <span
+              >Hide this datastream from guests of your site. Owners will still
+              see it</span
             >
-            <v-card-item v-if="datastream.observations">
-              <div v-for="observation in datastream.observations">
-                {{ observation.result }}----{{ observation.result_time }}
-              </div>
-              {{ datastream.unit_name }}
-              <br />
-              {{
-                (datastream.most_recent_observation as Observation).result_time
-              }}
-            </v-card-item>
-            <v-card-item v-else>No data for this datastream</v-card-item>
-          </v-card>
-        </v-col>
-      </template>
+          </v-tooltip>
+          <v-tooltip bottom :openDelay="500" v-else>
+            <template v-slot:activator="{ props }" v-if="is_owner">
+              <v-icon
+                small
+                color="grey-lighten-1"
+                v-bind="props"
+                @click="toggleVisibility(item.raw)"
+              >
+                mdi-eye-off
+              </v-icon>
+            </template>
+            <span>Make this datastream publicly visible</span>
+          </v-tooltip>
+
+          <v-icon small class="mr-2" color="grey">mdi-download</v-icon>
+        </template>
+      </v-data-table>
+      <v-dialog
+        v-if="selectedDatastream"
+        v-model="dialogs.deleteDatastream"
+        width="40rem"
+      >
+        <v-card>
+          <v-card-title>
+            <span class="text-h5">Confirm Deletion</span>
+          </v-card-title>
+          <v-card-text>
+            Are you sure you want to permanently delete the this datastream and
+            all the observations associated with it?
+            <br />
+            <br />
+            <strong>ID:</strong> {{ selectedDatastream.id }} <br />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn-cancel @click="dialogs.deleteDatastream = false"
+              >Cancel</v-btn-cancel
+            >
+            <v-btn color="delete" @click="deleteDatastream">Confirm</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-row>
   </v-container>
 </template>
@@ -194,29 +258,57 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, reactive, Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import router from '@/router/router'
 import { useDatastreamStore } from '@/store/datastreams'
-import { Observation } from '@/types'
+import { Observation, Datastream } from '@/types'
+import LineChart from '@/components/LineChart.vue'
 
 const authStore = useAuthStore()
 const thingStore = useThingStore()
 const datastreamStore = useDatastreamStore()
 const route = useRoute()
 const thingId = route.params.id.toString()
-const is_owner = computed(
-  () =>
-    isAuthenticated &&
-    thingStore.things[thingId] &&
-    thingStore.things[thingId].owns_thing
-)
+
+const is_owner = computed(() => {
+  if (isAuthenticated && thingStore.things[thingId]) {
+    return thingStore.things[thingId].owns_thing
+  }
+  return false
+})
+
 const thing = computed(() => thingStore.things[thingId] as unknown as string)
-const showRegisterSiteModal = ref(false)
-const showDeleteModal = ref(false)
-const showAccessControlModal = ref(false)
+
+const visibleDatastreams = computed(() => {
+  if (!datastreamStore.datastreams[thingId]) return []
+
+  console.log('Owns thing', is_owner.value)
+  console.log('visibleDatastreams', datastreamStore.datastreams[thingId])
+  return datastreamStore.datastreams[thingId].filter(
+    (datastream) => datastream.is_visible || is_owner.value
+  )
+})
+
+const headers = [
+  { title: 'Unit Name', key: 'unit_name', sortable: true },
+  { title: 'Observations', key: 'observations', sortable: false },
+  { title: 'Last Observation', key: 'last_observation' },
+  { title: 'Sampled Medium', key: 'sampled_medium' },
+  { title: 'Sensor', key: 'method_name' },
+  { title: 'Actions', key: 'actions', sortable: false },
+]
+
+const dialogs: {
+  [key: string]: boolean
+} = reactive({
+  registerSite: false,
+  deleteSite: false,
+  accessControl: false,
+  deleteDatastream: false,
+})
 
 const deleteInput = ref('')
 const thingProperties = computed(() => {
@@ -305,13 +397,33 @@ async function deleteThing() {
   await router.push('/sites')
 }
 
+const selectedDatastream: Ref<Datastream | null> = ref(null)
+
+function showDeleteDatastreamModal(datastream: Datastream) {
+  selectedDatastream.value = datastream
+  dialogs.deleteDatastream = true
+}
+
+async function toggleVisibility(datastream: Datastream) {
+  datastream.is_visible = !datastream.is_visible
+  await datastreamStore.setVisibility(datastream.id, datastream.is_visible)
+}
+
+async function deleteDatastream() {
+  dialogs.deleteDatastream = false
+  if (selectedDatastream.value) {
+    await datastreamStore.deleteDatastream(selectedDatastream.value.id, thingId)
+  }
+}
+
 onMounted(async () => {
   await thingStore.fetchThingById(thingId)
+  console.log('thingId', thingId)
   await datastreamStore.fetchDatastreamsByThingId(thingId)
 })
 
 function switchToAccessControlModal() {
-  showDeleteModal.value = false
-  showAccessControlModal.value = true
+  dialogs.deleteSite = false
+  dialogs.accessControl = true
 }
 </script>
