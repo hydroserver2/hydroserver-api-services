@@ -13,7 +13,7 @@ from ninja.security import HttpBasicAuth
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from ninja.errors import HttpError
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 from hydroloader import HydroLoaderConf, HydroLoaderConfFileTimestamp, HydroLoaderConfFileDatastream, \
@@ -1258,7 +1258,7 @@ class DataSourcePatchBody(HydroLoaderConf):
     '/data-sources',
     url_name='get_data_sources',
     response={
-        200: list[DataSourceGetResponse]
+        200: List[DataSourceGetResponse]
     },
     auth=[BasicAuth(), jwt_auth]
 )
