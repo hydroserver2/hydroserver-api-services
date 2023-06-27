@@ -7,6 +7,7 @@ import Login from '@/components/account/Login.vue'
 import SingleSite from '@/components/Site/SingleSite.vue'
 import Browse from '@/components/Browse.vue'
 import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
+import DataSourceForm from '@/components/DataSource/DataSourceForm.vue';
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
 import { useAuthStore } from '@/store/authentication'
@@ -67,6 +68,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'DatastreamForm',
     component: DatastreamForm,
     beforeEnter: requireThingOwnership,
+  },
+  {
+    path: '/sites/:id/datastreams/:datastreamId/datasource',
+    name: 'DataSourceForm',
+    component: DataSourceForm,
+    beforeEnter: requireThingOwnership
   },
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },

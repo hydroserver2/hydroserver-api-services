@@ -1,0 +1,129 @@
+<template>
+  <v-container>
+    <v-row>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-radio-group
+          v-model="store.timestampType"
+          inline
+          :disabled="store.dataSource != null"
+        >
+          <v-radio
+            label="Column Index"
+            value="index"
+          ></v-radio>
+          <v-radio
+            label="Column Name"
+            value="name"
+          ></v-radio>
+        </v-radio-group>
+      </v-col>
+      <v-col v-if="store.timestampType === 'index'" class="v-col-xs-12 v-col-sm-6">
+        <v-text-field
+          ref="timestampColumnIndex"
+          v-model.number="store.timestampColumn"
+          label="Timestamp Column"
+          type="number"
+          :rules="[
+             (val) => val != null || 'Column index is required.',
+             (val) => +val > 0 || 'Column index must be greater than zero.'
+          ]"
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+      <v-col v-if="store.timestampType === 'name'" class="v-col-xs-12 v-col-sm-6">
+        <v-text-field
+          ref="timestampColumnName"
+          v-model="store.timestampColumn"
+          label="Timestamp Column"
+          :rules="[
+            (val) => val !== '' && val != null || 'Must enter timestamp column name.'
+          ]"
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-radio-group
+          v-model="store.timestampFormat"
+          inline
+          :disabled="store.dataSource != null"
+        >
+          <v-radio
+            label="ISO 8601 Format"
+            value="iso"
+          ></v-radio>
+          <v-radio
+            label="Custom Format"
+            value="custom"
+          ></v-radio>
+        </v-radio-group>
+      </v-col>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-text-field
+          ref="timestampCustomFormat"
+          v-model="store.timestampCustomFormat"
+          label="Timestamp Format"
+          :disabled="store.timestampFormat !== 'custom' || store.dataSource != null"
+          :rules="[
+            (val) => val !== '' && val != null || 'Must enter timestamp format.'
+          ]"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-switch
+          v-model="store.timestampUseTimezoneOffset"
+          label="Append Timezone Offset?"
+          :disabled="store.dataSource != null"
+        ></v-switch>
+      </v-col>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-autocomplete
+          v-model="store.timestampTimezoneOffset"
+          label="Timezone Offset"
+          :disabled="store.timestampUseTimezoneOffset === false || store.dataSource != null"
+          :items="[]"
+        ></v-autocomplete>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useDataSourceFormStore } from '@/store/datasource_form';
+
+const store = useDataSourceFormStore()
+
+const timestampColumnIndex = ref()
+const timestampColumnName = ref()
+const timestampCustomFormat = ref()
+
+async function validate() {
+  let errors = []
+
+  if (store.timestampFormat === 'custom') {
+    errors.push(...(await timestampCustomFormat.value.validate()))
+  }
+
+  if (store.timestampType === 'index') {
+    errors.push(...(await timestampColumnIndex.value.validate()))
+  } else if (store.timestampType === 'name') {
+    errors.push(...(await timestampColumnName.value.validate()))
+  }
+
+  return errors.length === 0
+}
+
+defineExpose({
+  validate
+})
+
+
+</script>
+
+<style scoped>
+
+</style>

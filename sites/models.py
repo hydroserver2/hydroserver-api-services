@@ -98,6 +98,35 @@ class Unit(models.Model):
         return self.name
 
 
+class DataSource(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    path = models.CharField(max_length=255, null=True, blank=True)
+    url = models.CharField(max_length=255, null=True, blank=True)
+    header_row = models.PositiveIntegerField(null=True, blank=True)
+    data_start_row = models.PositiveIntegerField(null=True, blank=True)
+    delimiter = models.CharField(max_length=1, null=True, blank=True)
+    quote_char = models.CharField(max_length=1, null=True, blank=True)
+    interval = models.PositiveIntegerField(null=True, blank=True)
+    interval_units = models.CharField(max_length=255, null=True, blank=True)
+    crontab = models.CharField(max_length=255, null=True, blank=True)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    paused = models.BooleanField()
+    timestamp_column = models.CharField(max_length=255, null=True, blank=True)
+    timestamp_format = models.CharField(max_length=255, null=True, blank=True)
+    timestamp_offset = models.CharField(max_length=255, null=True, blank=True)
+
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    data_source_thru = models.DateTimeField(null=True, blank=True)
+    last_sync_successful = models.BooleanField(null=True, blank=True)
+    last_synced = models.DateTimeField(null=True, blank=True)
+    next_sync = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -129,6 +158,9 @@ class Datastream(models.Model):
     result_end_time = models.DateTimeField(null=True, blank=True)
 
     is_visible = models.BooleanField(default=True)
+
+    data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
+    data_source_column = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.name:

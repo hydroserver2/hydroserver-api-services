@@ -176,6 +176,15 @@
           <router-link
             v-if="is_owner"
             :to="{
+              name: 'DataSourceForm',
+              params: { id: thingId, datastreamId: item.raw.id },
+            }"
+          >
+            <v-icon color="grey" small> mdi-link-variant </v-icon>
+          </router-link>
+          <router-link
+            v-if="is_owner"
+            :to="{
               name: 'DatastreamForm',
               params: { id: thingId, datastreamId: item.raw.id },
             }"

@@ -1,0 +1,116 @@
+<template>
+  <v-container>
+    <v-row>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-text-field
+          ref="scheduleStartTime"
+          v-model="store.scheduleStartTime"
+          label="Start Time"
+          type="datetime-local"
+          clearable
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-text-field
+          ref="scheduleEndTime"
+          v-model="store.scheduleEndTime"
+          label="End Time"
+          type="datetime-local"
+          clearable
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col class="v-col-xs-12 v-col-sm-6">
+        <v-radio-group
+          v-model="store.scheduleType"
+          inline
+          :disabled="store.dataSource != null"
+        >
+          <v-radio
+            label="Interval"
+            value="interval"
+          ></v-radio>
+          <v-radio
+            label="Crontab"
+            value="crontab"
+          ></v-radio>
+        </v-radio-group>
+      </v-col>
+      <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
+        <v-text-field
+          ref="interval"
+          v-model="store.interval"
+          label="Interval"
+          type="number"
+          :rules="[
+             (val) => val != null || 'Interval value is required.',
+             (val) => +val > 0 || 'Interval must be greater than zero.'
+          ]"
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+      <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
+        <v-select
+          v-model="store.intervalUnits"
+          label="Interval Units"
+          :items="intervalUnitValues"
+          variant="outlined" density="comfortable"
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+      <v-col v-if="store.scheduleType === 'crontab'" class="v-col-xs-12 v-col-sm-6">
+        <v-text-field
+          ref="crontab"
+          v-model="store.crontab"
+          label="Crontab"
+          :disabled="store.dataSource != null"
+        />
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useDataSourceFormStore } from '@/store/datasource_form';
+
+const store = useDataSourceFormStore()
+
+const scheduleStartTime = ref()
+const scheduleEndTime = ref()
+const interval = ref()
+const crontab = ref()
+
+const intervalUnitValues = [
+  { value: 'minutes', title: 'Minutes' },
+  { value: 'hours', title: 'Hours' },
+  { value: 'days', title: 'Days' },
+]
+
+async function validate() {
+  let errors = []
+
+  errors.push(...(await scheduleStartTime.value.validate()))
+  errors.push(...(await scheduleEndTime.value.validate()))
+
+  if (store.scheduleType === 'interval') {
+    errors.push(...(await interval.value.validate()))
+  } else if (store.scheduleType === 'crontab') {
+    errors.push(...(await crontab.value.validate()))
+  }
+
+  return errors.length === 0
+}
+
+defineExpose({
+  validate
+})
+
+</script>
+
+<style scoped>
+
+</style>
