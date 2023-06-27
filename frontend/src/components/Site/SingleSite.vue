@@ -222,7 +222,14 @@
             <span>Make this datastream publicly visible</span>
           </v-tooltip>
 
-          <v-icon small class="mr-2" color="grey">mdi-download</v-icon>
+          <v-tooltip bottom :openDelay="500">
+            <template v-slot:activator="{ props }">
+              <v-icon small v-bind="props" class="mr-2" color="grey"
+                >mdi-download</v-icon
+              >
+            </template>
+            <span>Download data as a CSV file</span>
+          </v-tooltip>
         </template>
       </v-data-table>
       <v-dialog
