@@ -19,19 +19,6 @@
       :items="datastreamStore.datastreams[thing_id]"
     >
       <template v-slot:item.actions="{ item }">
-        <router-link
-          :to="{
-            name: 'DatastreamForm',
-            params: { id: thing_id, datastreamId: item.raw.id },
-          }"
-        >
-          <v-icon color="grey" small> mdi-pencil </v-icon>
-        </router-link>
-
-        <v-icon color="grey" small @click="showModal(item.raw)">
-          mdi-delete
-        </v-icon>
-
         <v-icon
           small
           color="grey"
@@ -48,6 +35,55 @@
         >
           mdi-eye-off
         </v-icon>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn
+              color="grey"
+              v-bind="props"
+              icon="mdi-dots-vertical"
+            />
+          </template>
+          <v-list>
+            <v-list-item
+              style="text-decoration: none; color: inherit;"
+              :to="{
+                name: 'DataSourceForm',
+                params: { id: thing_id, datastreamId: item.raw.id }
+              }"
+            >
+              <template v-slot:prepend>
+                <v-icon icon="mdi-link-variant"></v-icon>
+              </template>
+              <v-list-item-title>
+                Link Data Source
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item
+              style="text-decoration: none; color: inherit;"
+              :to="{
+                name: 'DatastreamForm',
+                params: { id: thing_id, datastreamId: item.raw.id },
+              }"
+            >
+              <template v-slot:prepend>
+                <v-icon icon="mdi-pencil"></v-icon>
+              </template>
+              <v-list-item-title>
+                Edit Datastream
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item
+              @click="showModal(item.raw)"
+            >
+              <template v-slot:prepend>
+                <v-icon icon="mdi-delete"></v-icon>
+              </template>
+              <v-list-item-title>
+                Delete Datastream
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
     </v-data-table>
     <v-dialog v-if="selectedDatastream" v-model="showDeleteModal" width="40rem">
@@ -96,7 +132,7 @@ const headers = ref([
   { title: 'Method / Sensor', key: 'method_name' },
   { title: 'Units', key: 'unit_name' },
   { title: 'Processing Level', key: 'processing_level_name' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center' },
 ])
 
 const route = useRoute()
