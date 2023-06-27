@@ -73,7 +73,6 @@ const onToast: Subscription = Notification.toast$.subscribe(
     snackbar.isInfinite = nextToast.isInfinite || INITIAL_SNACKBAR.isInfinite
     snackbar.position = nextToast.position || INITIAL_SNACKBAR.position
     snackbar.type = nextToast.type || INITIAL_SNACKBAR.type
-    console.log('snackbar.type', snackbar.type)
     snackbar.isActive = true
   }
 )

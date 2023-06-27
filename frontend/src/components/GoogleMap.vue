@@ -138,7 +138,26 @@ onMounted(async () => {
       clearInterval(intervalId)
 
       const google = await loader.load()
-      map = new google.maps.Map(mapContainer.value, props.mapOptions)
+
+      const mapOptions = {
+        ...props.mapOptions,
+        styles: [
+          {
+            featureType: 'poi',
+            stylers: [{ visibility: 'off' }],
+          },
+          {
+            featureType: 'transit',
+            stylers: [{ visibility: 'off' }],
+          },
+          {
+            featureType: 'landscape',
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }],
+          },
+        ],
+      }
+      map = new google.maps.Map(mapContainer.value, mapOptions)
       if (props.clickable) await addLocationClicking()
       loadMarkers()
 
