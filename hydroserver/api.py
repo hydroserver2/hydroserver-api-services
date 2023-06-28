@@ -1258,6 +1258,44 @@ class DataSourcePatchBody(HydroLoaderConf):
     next_sync: Optional[datetime]
 
 
+def transform_data_source(data_source):
+    return DataSourceGetResponse(
+        id=data_source.id,
+        name=data_source.name,
+        data_source_thru=data_source.data_source_thru,
+        last_sync_successful=data_source.last_sync_successful,
+        last_synced=data_source.last_synced,
+        next_sync=data_source.next_sync,
+        file_access=HydroLoaderConfFileAccess(
+            path=data_source.path,
+            url=data_source.url,
+            header_row=data_source.header_row,
+            data_start_row=data_source.data_start_row,
+            delimiter=data_source.delimiter,
+            quote_char=data_source.quote_char
+        ),
+        schedule=HydroLoaderConfSchedule(
+            crontab=data_source.crontab,
+            interval=data_source.interval,
+            interval_units=data_source.interval_units,
+            start_time=data_source.start_time,
+            end_time=data_source.end_time,
+            paused=data_source.paused
+        ),
+        file_timestamp=HydroLoaderConfFileTimestamp(
+            column=data_source.timestamp_column,
+            format=data_source.timestamp_format,
+            offset=data_source.timestamp_offset
+        ),
+        datastreams=[
+            HydroLoaderConfFileDatastream(
+                datastream_id=datastream.id,
+                column=datastream.data_source_column
+            ) for datastream in data_source.datastream_set.all()
+        ]
+    )
+
+
 @api.get(
     '/data-sources',
     url_name='get_data_sources',
@@ -1271,42 +1309,24 @@ def get_data_sources(request: HttpRequest):
     data_sources = DataSource.objects.filter(owner=request.authenticated_user)
 
     return [
-        DataSourceGetResponse(
-            id=data_source.id,
-            name=data_source.name,
-            data_source_thru=data_source.data_source_thru,
-            last_sync_successful=data_source.last_sync_successful,
-            last_synced=data_source.last_synced,
-            next_sync=data_source.next_sync,
-            file_access=HydroLoaderConfFileAccess(
-                path=data_source.path,
-                url=data_source.url,
-                header_row=data_source.header_row,
-                data_start_row=data_source.data_start_row,
-                delimiter=data_source.delimiter,
-                quote_char=data_source.quote_char
-            ),
-            schedule=HydroLoaderConfSchedule(
-                crontab=data_source.crontab,
-                interval=data_source.interval,
-                interval_units=data_source.interval_units,
-                start_time=data_source.start_time,
-                end_time=data_source.end_time,
-                paused=data_source.paused
-            ),
-            file_timestamp=HydroLoaderConfFileTimestamp(
-                column=data_source.timestamp_column,
-                format=data_source.timestamp_format,
-                offset=data_source.timestamp_offset
-            ),
-            datastreams=[
-                HydroLoaderConfFileDatastream(
-                    datastream_id=datastream.id,
-                    column=datastream.data_source_column
-                ) for datastream in data_source.datastream_set.all()
-            ]
-        ) for data_source in data_sources
+        transform_data_source(data_source) for data_source in data_sources
     ]
+
+
+@api.get(
+    '/data-sources/{data_source_id}',
+    url_name='get_data_source',
+    response={
+        200: DataSourceGetResponse,
+        404: None
+    },
+    auth=[BasicAuth(), jwt_auth]
+)
+def get_data_source(request: HttpRequest, data_source_id: str):
+
+    data_source = DataSource.objects.get(owner=request.authenticated_user, pk=data_source_id)
+
+    return transform_data_source(data_source)
 
 
 @api.post(
