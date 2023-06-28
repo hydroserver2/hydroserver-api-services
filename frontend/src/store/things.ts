@@ -95,10 +95,10 @@ export const useThingStore = defineStore('things', {
     },
     async deleteThing(thingId: string) {
       try {
-        await this.$http.delete(`/things/${thingId}`)
-        const newThings = { ...this.things }
-        delete newThings[thingId]
-        this.$patch({ things: newThings })
+        const response = await this.$http.delete(`/things/${thingId}`)
+        if (response && response.status == 200) {
+          delete this.things[thingId]
+        }
       } catch (error) {
         console.error('Error deleting thing', error)
       }

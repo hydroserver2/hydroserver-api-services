@@ -34,4 +34,6 @@ describe('Sites', () => {
     cy.get('.owned-sites-table tbody tr').first().click()
     cy.get('.single-site-name').should('be.visible')
   })
+
+  //TODO: Create and Delete a site
 })

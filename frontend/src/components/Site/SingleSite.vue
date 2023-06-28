@@ -408,7 +408,7 @@ async function deleteThing() {
     console.error('Site name does not match.')
     return
   }
-  await thingStore.deleteThing(thingStore.things[thingId].id)
+  await thingStore.deleteThing(thingId)
   await router.push('/sites')
 }
 

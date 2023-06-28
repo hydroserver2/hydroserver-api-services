@@ -618,9 +618,12 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
 @api.delete('/things/{thing_id}')
 @thing_ownership_required
 def delete_thing(request, thing_id: str):
-    request.thing.delete()
-    return {'detail': 'Thing deleted successfully.'}
+    try:
+        request.thing.delete()
+    except Exception as e:
+        return JsonResponse(status=500, detail=str(e))
 
+    return JsonResponse({'detail': 'Site deleted successfully.'}, status=200)
 
 def sensor_to_dict(sensor):
     return {
