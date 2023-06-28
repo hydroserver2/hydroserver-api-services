@@ -35,10 +35,10 @@ export const alphanumeric = [
     'Only alphanumeric characters are allowed.',
 ]
 
-export const alphanumericAndSpace = [
+export const nameRules = [
   (value: string) =>
     !value ||
-    /^[a-z0-9 ]*$/i.test(value) ||
+    /^[a-z0-9 ._'-]*$/i.test(value) ||
     'Only alphanumeric characters and spaces are allowed.',
 ]
 
@@ -74,7 +74,7 @@ export const rules = {
   minLength,
   maxLength,
   alphanumeric,
-  alphanumericAndSpace,
+  nameRules,
   passwordMatch,
   required,
   emailFormat,
@@ -84,8 +84,8 @@ export const rules = {
 
   email: [...required, ...emailFormat],
   password: [...required, ...minLength(8), ...nonNumericCharacter],
-  requiredName: [...required, ...maxLength(30), ...alphanumericAndSpace],
-  name: [...maxLength(30), ...alphanumericAndSpace],
+  requiredName: [...required, ...maxLength(30), ...nameRules],
+  name: [...maxLength(30), ...nameRules],
   description: [...maxLength(500), ...required],
   requiredCode: [...maxLength(50), ...required],
 }
