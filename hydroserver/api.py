@@ -822,18 +822,21 @@ class CreateDatastreamInput(Schema):
 def datastream_to_dict(datastream, association=None, add_recent_observations=True):
     observation_list = []
     most_recent_observation = None
+    is_stale = True
     if add_recent_observations:
-        since_time = timezone.now() - timedelta(hours=72)
-        observations = Observation.objects.filter(datastream=datastream, result_time__gte=since_time).order_by('-result_time')
-        # observations = Observation.objects.filter(datastream=datastream).order_by('-result_time')
-        for observation in observations:
-            observation_list.append({
-                "id": observation.id,
-                "result": observation.result,
-                "result_time": observation.result_time,
-            })
-        if observation_list:
-            most_recent_observation = observation_list[0]
+        if datastream.result_end_time:
+            if datastream.result_end_time > timezone.now() - timedelta(hours=72):
+                is_stale = False
+            since_time = datastream.result_end_time - timedelta(hours=72)
+            observations = Observation.objects.filter(datastream=datastream, result_time__gte=since_time).order_by('-result_time')
+            for observation in observations:
+                observation_list.append({
+                    "id": observation.id,
+                    "result": observation.result,
+                    "result_time": observation.result_time,
+                })
+            if observation_list:
+                most_recent_observation = observation_list[0]
 
     return {
         "id": datastream.pk,
@@ -858,6 +861,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
         "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
         "is_visible": datastream.is_visible,
         "is_primary_owner": association.is_primary_owner if association else False,
+        "is_stale": is_stale,
     }
 
 

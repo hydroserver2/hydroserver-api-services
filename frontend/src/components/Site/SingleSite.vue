@@ -162,9 +162,11 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <LineChart :observations="item.raw.observations" />
+            <LineChart class="pt-2" :observations="item.raw.observations" />
           </div>
           <div v-else>No data for this datastream</div>
+          <!-- <div v-if="item.raw.stale">stale</div>
+          <div v-else>not stale</div> -->
         </template>
         <template v-slot:item.last_observation="{ item }">
           <div v-if="item.raw.most_recent_observation">
