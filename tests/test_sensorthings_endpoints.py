@@ -98,8 +98,8 @@ def test_sensorthings_list_endpoints(django_test_db, auth_headers, base_url, end
         '$expand': 'Observations,Thing/Locations,Sensor,ObservedProperty'
     }, 200),
     ('Datastreams', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('Observations', '6e45fc87-25ab-4e8a-965f-83014c0ad8fd', {}, 200),
-    ('Observations', '6e45fc87-25ab-4e8a-965f-83014c0ad8fd', {'$expand': 'Datastream/Thing'}, 200),
+    ('Observations', '71335328-fd9f-4079-b51d-ddd629545c27', {}, 200),
+    ('Observations', '71335328-fd9f-4079-b51d-ddd629545c27', {'$expand': 'Datastream/Thing'}, 200),
     ('Observations', '00000000-0000-0000-0000-000000000000', {}, 404),
     ('FeaturesOfInterest', '00000000-0000-0000-0000-000000000000', {}, 404),
 ])
