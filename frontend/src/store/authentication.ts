@@ -64,10 +64,17 @@ export const useAuthStore = defineStore({
           })
         } else {
           this.resetState()
-          Notification.toast({
-            message: 'Something went wrong',
-            type: 'error',
-          })
+          if (error.response.status === 401) {
+            Notification.toast({
+              message: 'Invalid email or password.',
+              type: 'error',
+            })
+          } else {
+            Notification.toast({
+              message: 'Something went wrong',
+              type: 'error',
+            })
+          }
         }
         console.error('Error Logging in', error)
       } finally {
@@ -76,7 +83,7 @@ export const useAuthStore = defineStore({
     },
     async logout() {
       this.resetState()
-      await router.push({ name: 'Home' })
+      await router.push({ name: 'Login' })
       Notification.toast({ message: 'You have logged out', type: 'info' })
     },
     async refreshAccessToken() {

@@ -300,9 +300,6 @@ const thing = computed(() => thingStore.things[thingId] as unknown as string)
 
 const visibleDatastreams = computed(() => {
   if (!datastreamStore.datastreams[thingId]) return []
-
-  console.log('Owns thing', is_owner.value)
-  console.log('visibleDatastreams', datastreamStore.datastreams[thingId])
   return datastreamStore.datastreams[thingId].filter(
     (datastream) => datastream.is_visible || is_owner.value
   )
@@ -434,7 +431,6 @@ async function deleteDatastream() {
 
 onMounted(async () => {
   await thingStore.fetchThingById(thingId)
-  console.log('thingId', thingId)
   await datastreamStore.fetchDatastreamsByThingId(thingId)
 })
 

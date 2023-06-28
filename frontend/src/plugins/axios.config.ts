@@ -45,9 +45,8 @@ export default {
         error.config?.url === '/token/refresh'
       ) {
         const authStore = useAuthStore()
-        console.log('Refresh Token has failed. Redirecting to login page...')
+        console.log('Refresh Token has failed. Redirecting to login page')
         await authStore.logout()
-        await router.push('/login')
         return Promise.reject(error)
       }
     }
@@ -69,7 +68,6 @@ export default {
         ) {
           console.log('Refresh Token has failed. Redirecting to login page...')
           authStore.logout()
-          await router.push('/login')
           return Promise.reject(error)
         }
 

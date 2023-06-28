@@ -26,7 +26,7 @@ describe('Sites', () => {
     // cy.get('v-dialog').should('not.be.visible')
   })
 
-  it.only('links navigate to the correct pages', () => {
+  it('links navigate to the correct pages', () => {
     cy.login('john')
     cy.get('.manage-metadata-button').click()
     cy.url().should('include', '/Metadata')
