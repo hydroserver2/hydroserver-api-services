@@ -320,10 +320,12 @@ async function deleteUnit() {
   if (properties.unit) await unitStore.deleteUnit(properties.unit.id)
 }
 
-onMounted(() => {
-  sensorStore.fetchSensors()
-  opStore.fetchObservedProperties()
-  plStore.fetchProcessingLevels()
-  unitStore.fetchUnits()
+onMounted(async () => {
+  await Promise.all([
+    sensorStore.fetchSensors(),
+    opStore.fetchObservedProperties(),
+    plStore.fetchProcessingLevels(),
+    unitStore.fetchUnits(),
+  ])
 })
 </script>

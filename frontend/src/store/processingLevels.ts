@@ -70,8 +70,7 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
         console.error('Error deleting processing level', error)
       }
     },
-    async getProcessingLevelById(id: string) {
-      await this.fetchProcessingLevels()
+    getProcessingLevelById(id: string) {
       const processingLevel = this.processingLevels.find(
         (pl) => pl.id.toString() === id.toString()
       )

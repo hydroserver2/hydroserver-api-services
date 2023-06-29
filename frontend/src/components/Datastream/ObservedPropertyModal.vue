@@ -97,6 +97,6 @@ async function uploadObservedProperty() {
 
 onMounted(async () => {
   await opStore.fetchObservedProperties()
-  if (props.id) Object.assign(observedProperty, await opStore.getById(props.id))
+  if (props.id) Object.assign(observedProperty, opStore.getById(props.id))
 })
 </script>

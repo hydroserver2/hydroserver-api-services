@@ -303,12 +303,12 @@ const formattedDatastream = computed(() => {
 // })
 
 watch(selectedDatastreamID, async () => {
-  await populateForm(selectedDatastreamID.value)
+  populateForm(selectedDatastreamID.value)
   await myForm.value?.validate()
 })
 
-async function populateForm(id: string) {
-  Object.assign(datastream, await datastreamStore.getDatastreamById(id))
+function populateForm(id: string) {
+  Object.assign(datastream, datastreamStore.getDatastreamById(id))
   datastream.thing_id = thingId
 }
 
@@ -322,19 +322,21 @@ async function uploadDatastream() {
 }
 
 onMounted(async () => {
-  // TODO: fetch all at the same time with Promise.all
-  await thingStore.fetchThingById(thingId)
-  await datastreamStore.fetchDatastreams()
-  await sensorStore.fetchSensors()
-  await opStore.fetchObservedProperties()
-  await unitStore.fetchUnits()
-  await plStore.fetchProcessingLevels()
+  // fetch all independent operations in parallel with Promise.all
+  await Promise.all([
+    thingStore.fetchThingById(thingId),
+    datastreamStore.fetchDatastreams(),
+    sensorStore.fetchSensors(),
+    opStore.fetchObservedProperties(),
+    unitStore.fetchUnits(),
+    plStore.fetchProcessingLevels(),
+  ])
 
   if (!thingStore.things[thingId].is_primary_owner) {
     await thingStore.fetchPrimaryOwnerMetadataByThingId(thingId)
   }
 
-  if (datastreamId) await populateForm(datastreamId)
+  if (datastreamId) populateForm(datastreamId)
   loaded.value = true
 })
 </script>

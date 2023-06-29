@@ -88,6 +88,6 @@ async function uploadUnit() {
 
 onMounted(async () => {
   await unitStore.fetchUnits()
-  if (props.id) Object.assign(unit, await unitStore.getUnitById(props.id))
+  if (props.id) Object.assign(unit, unitStore.getUnitById(props.id))
 })
 </script>

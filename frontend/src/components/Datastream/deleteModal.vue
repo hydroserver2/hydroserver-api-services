@@ -77,7 +77,7 @@ const datastreamsForItem = computed(() => {
   }
 })
 
-onMounted(() => {
-  datastreamStore.fetchDatastreams()
+onMounted(async () => {
+  await datastreamStore.fetchDatastreams()
 })
 </script>

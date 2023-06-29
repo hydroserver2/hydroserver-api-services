@@ -136,6 +136,6 @@ async function uploadSensor() {
 
 onMounted(async () => {
   await sensorStore.fetchSensors()
-  if (props.id) Object.assign(sensor, await sensorStore.getSensorById(props.id))
+  if (props.id) Object.assign(sensor, sensorStore.getSensorById(props.id))
 })
 </script>

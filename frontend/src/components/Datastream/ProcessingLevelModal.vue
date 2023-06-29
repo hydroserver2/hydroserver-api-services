@@ -83,9 +83,6 @@ async function uploadProcessingLevel() {
 onMounted(async () => {
   await plStore.fetchProcessingLevels()
   if (props.id)
-    Object.assign(
-      processingLevel,
-      await plStore.getProcessingLevelById(props.id)
-    )
+    Object.assign(processingLevel, plStore.getProcessingLevelById(props.id))
 })
 </script>
