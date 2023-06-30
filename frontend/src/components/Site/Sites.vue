@@ -21,6 +21,11 @@
           >
         </v-col>
         <v-col cols="auto">
+          <v-btn to="data-sources" color="secondary"
+            >Manage Data Sources</v-btn
+          >
+        </v-col>
+        <v-col cols="auto">
           <v-btn-secondary
             class="register-site-btn"
             variant="elevated"

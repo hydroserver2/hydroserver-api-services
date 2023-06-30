@@ -175,34 +175,6 @@
         </template>
 
         <template v-slot:item.actions="{ item }">
-          <router-link
-            v-if="is_owner"
-            :to="{
-              name: 'DataSourceForm',
-              params: { id: thingId, datastreamId: item.raw.id },
-            }"
-          >
-            <v-icon color="grey" small> mdi-link-variant </v-icon>
-          </router-link>
-          <router-link
-            v-if="is_owner"
-            :to="{
-              name: 'DatastreamForm',
-              params: { id: thingId, datastreamId: item.raw.id },
-            }"
-          >
-            <v-icon color="grey" small> mdi-pencil </v-icon>
-          </router-link>
-
-          <v-icon
-            v-if="is_owner"
-            color="grey"
-            small
-            @click="showDeleteDatastreamModal(item.raw)"
-          >
-            mdi-delete
-          </v-icon>
-
           <v-tooltip bottom :openDelay="500" v-if="item.raw.is_visible">
             <template v-slot:activator="{ props }" v-if="is_owner">
               <v-icon
@@ -233,14 +205,44 @@
             <span>Make this datastream publicly visible</span>
           </v-tooltip>
 
-          <v-tooltip bottom :openDelay="500">
+          <v-menu>
             <template v-slot:activator="{ props }">
-              <v-icon small v-bind="props" class="mr-2" color="grey"
-                >mdi-download</v-icon
-              >
+              <v-btn
+                v-bind="props"
+                icon="mdi-dots-vertical"
+              />
             </template>
-            <span>Download data as a CSV file</span>
-          </v-tooltip>
+            <v-list>
+              <v-list-item
+                v-if="is_owner"
+                prepend-icon="mdi-link-variant"
+                title="Link Data Source"
+                :to="{
+                  name: 'DataSourceForm',
+                  params: { id: thingId, datastreamId: item.raw.id },
+                }"
+              />
+              <v-list-item
+                v-if="is_owner"
+                prepend-icon="mdi-pencil"
+                title="Edit Datastream Metadata"
+                :to="{
+                  name: 'DatastreamForm',
+                  params: { id: thingId, datastreamId: item.raw.id },
+                }"
+              />
+              <v-list-item
+                v-if="is_owner"
+                prepend-icon="mdi-delete"
+                title="Delete Datastream"
+                @click="showDeleteDatastreamModal(item.raw)"
+              />
+              <v-list-item
+                prepend-icon="mdi-download"
+                title="Download Data"
+              />
+            </v-list>
+          </v-menu>
         </template>
       </v-data-table>
       <v-dialog

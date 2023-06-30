@@ -1242,6 +1242,8 @@ class DataSourceGetResponse(HydroLoaderConf):
     last_sync_successful: Optional[bool]
     last_synced: Optional[datetime]
     next_sync: Optional[datetime]
+    database_thru_upper: Optional[datetime]
+    database_thru_lower: Optional[datetime]
 
 
 class DataSourcePostBody(HydroLoaderConf):
@@ -1269,6 +1271,14 @@ def transform_data_source(data_source):
         last_sync_successful=data_source.last_sync_successful,
         last_synced=data_source.last_synced,
         next_sync=data_source.next_sync,
+        database_thru_upper=max([
+            datastream.result_end_time for datastream in data_source.datastream_set.all()
+            if datastream.result_end_time is not None
+        ], default=None),
+        database_thru_lower=min([
+            datastream.result_end_time for datastream in data_source.datastream_set.all()
+            if datastream.result_end_time is not None
+        ], default=None),
         file_access=HydroLoaderConfFileAccess(
             path=data_source.path,
             url=data_source.url,

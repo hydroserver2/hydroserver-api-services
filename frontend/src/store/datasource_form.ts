@@ -100,7 +100,7 @@ export const useDataSourceFormStore = defineStore('data-source-store', {
           dataSourceBody
         )
       }
-      if (response?.status === 201) {
+      if (response?.status === 201 || response?.status === 204) {
         return true
       } else {
         console.log(response)
@@ -129,9 +129,9 @@ export const useDataSourceFormStore = defineStore('data-source-store', {
       this.timestampCustomFormat = dataSource ? dataSource['file_timestamp']['format'] : null
       this.timestampTimezoneOffset = dataSource ? dataSource['file_timestamp']['offset'] : null
 
-      let datastreamColumn = ((dataSource || {})['datastreams'] || []).filter(
+      let datastreamColumn = (((dataSource || {})['datastreams'] || []).filter(
         (ds: any) => ds['datastream_id'] === this.datastreamId
-      )[0]
+      )[0] || {}).column
 
       this.datastreamType = this.datastreamId !== null && datastreamColumn !== undefined && typeof datastreamColumn === 'string' ? 'name' : 'index'
       this.datastreamColumn = this.datastreamId !== null && datastreamColumn !== undefined ? datastreamColumn : null
