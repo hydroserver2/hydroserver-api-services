@@ -59,8 +59,8 @@
           v-model="store.localFilePath"
           label="Local File Path"
           :rules="[
-            (val) => val !== '' && val != null || 'Must enter data source path.',
-            (val) => /^\/.*$/.test(val) || 'Invalid data source path.'
+            (val) => val !== '' && val != null || 'Must enter data source path.'
+            // (val) => /^\/.*$/.test(val) || 'Invalid data source path.'
           ]"
           :disabled="store.dataSource != null"
         />
