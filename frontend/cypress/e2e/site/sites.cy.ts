@@ -1,7 +1,6 @@
 describe('Sites', () => {
   beforeEach(() => {
     cy.viewport(1500, 1200)
-    cy.visit('/login')
   })
 
   it('redirects to login if not logged in', () => {
@@ -12,10 +11,7 @@ describe('Sites', () => {
   it('renders data', () => {
     cy.login('paul')
     cy.url().should('include', '/sites')
-    cy.get('.owned-sites-table')
-      .find('tbody')
-      .find('tr')
-      .should('have.length.greaterThan', 0)
+    cy.get('.owned-sites-table tbody tr').should('have.length.greaterThan', 0)
   })
 
   it('opens and closes site form', () => {
@@ -35,5 +31,8 @@ describe('Sites', () => {
     cy.get('.single-site-name').should('be.visible')
   })
 
-  //TODO: Create and Delete a site
+  // it('creates a new site', () => {})
+  // it('notifies user if the server is down', () => {})
+  // it('renders empty content if server returns no results', () => {})
+  // it('shows loading state if server takes awhile', () => {})
 })
