@@ -2,6 +2,7 @@
   <v-parallax
     src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
     height="500"
+    alt="vuetify parallax background image"
   >
     <div
       class="d-flex text-white flex-column align-center text-center fill-height justify-space-between py-16 has-text-shadow"
@@ -136,9 +137,9 @@
       </v-col>
       <v-col class="d-flex justify-center flex-column" cols="12" sm="7">
         <h4 class="text-h4 mb-4">Operational Data for Modeling</h4>
-        <h6 class="text-body-1 mb-2 font-weight-bold">
+        <h5 class="text-body-1 mb-2 font-weight-bold">
           Your data can improve NOAA's water prediction services
-        </h6>
+        </h5>
         <p class="text-body-1 text-medium-emphasis">
           NOAA's National Water Model can assimilate streamflow data from
           operational monitoring sites like yours. Contribute your streamflow
