@@ -95,9 +95,8 @@
             <v-responsive>
               <img
                 style="max-height: 100%; max-width: 100%; object-fit: contain"
-                class="hydroserver-logo"
                 src="@/assets/CUAHSI.png"
-                alt="Hydro"
+                alt="CUAHSI Logo"
               />
             </v-responsive>
           </v-container>

@@ -134,7 +134,7 @@
         <img
           style="max-height: 1.5rem"
           src="@/assets/hydro.png"
-          alt="hydro"
+          alt="hydro share logo"
           class="site-information-image"
         />
       </v-col>
@@ -207,10 +207,7 @@
 
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon="mdi-dots-vertical"
-              />
+              <v-btn v-bind="props" icon="mdi-dots-vertical" />
             </template>
             <v-list>
               <v-list-item
@@ -237,10 +234,7 @@
                 title="Delete Datastream"
                 @click="showDeleteDatastreamModal(item.raw)"
               />
-              <v-list-item
-                prepend-icon="mdi-download"
-                title="Download Data"
-              />
+              <v-list-item prepend-icon="mdi-download" title="Download Data" />
             </v-list>
           </v-menu>
         </template>

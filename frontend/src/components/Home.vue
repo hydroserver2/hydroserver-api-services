@@ -121,8 +121,18 @@
         order="last"
         order-sm="first"
       >
-        <v-img :src="noaaLogo" max-width="12rem" class="fill-width"></v-img>
-        <v-img :src="owpLogo" max-width="18rem" class="fill-width"></v-img>
+        <v-img
+          :src="noaaLogo"
+          max-width="12rem"
+          class="fill-width"
+          alt="NOAA Logo"
+        ></v-img>
+        <v-img
+          :src="owpLogo"
+          max-width="18rem"
+          class="fill-width"
+          alt="OWP Logo"
+        ></v-img>
       </v-col>
       <v-col class="d-flex justify-center flex-column" cols="12" sm="7">
         <h4 class="text-h4 mb-4">Operational Data for Modeling</h4>
@@ -150,7 +160,12 @@
           web services standard SensorThings.
         </p>
         <div>
-          <v-img :src="ogcLogo" max-width="26rem" height="auto"></v-img>
+          <v-img
+            :src="ogcLogo"
+            max-width="26rem"
+            height="auto"
+            alt="OGC Logo"
+          ></v-img>
         </div>
       </v-col>
       <v-col cols="12" sm="6" class="d-flex flex-column align-center gap-2">
@@ -158,6 +173,7 @@
           :src="sensorThingsLogo"
           class="fill-width"
           max-width="35rem"
+          alt="SensorThings Database Schema"
         ></v-img>
         <h4 class="text-h4">SensorThings</h4>
       </v-col>
@@ -167,7 +183,12 @@
   <v-divider> </v-divider>
 
   <v-container class="d-flex flex-column align-center my-8 gap-2">
-    <v-img :src="cirohLogo" class="fill-width" max-width="14rem"></v-img>
+    <v-img
+      :src="cirohLogo"
+      class="fill-width"
+      max-width="14rem"
+      alt="CIROH Logo"
+    ></v-img>
     <p class="text-body-1 text-medium-emphasis text-center">
       This HydroServer instance is supported through the Cooperative Institute
       for Research to Operations in Hydrology (CIROH)
