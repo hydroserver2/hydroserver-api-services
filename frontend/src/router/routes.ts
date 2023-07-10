@@ -1,20 +1,6 @@
-import { RouteRecordRaw } from 'vue-router'
-
-import Home from '@/components/Home.vue'
-import Sites from '@/components/Site/Sites.vue'
-import Signup from '@/components/account/Signup.vue'
-import Login from '@/components/account/Login.vue'
-import SingleSite from '@/components/Site/SingleSite.vue'
-import Browse from '@/components/Browse.vue'
-import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
-import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
-import DataSourceDashboard from '@/components/DataSource/DataSourceDashboard.vue'
-import Profile from '@/components/account/Profile.vue'
-import Metadata from '@/components/Datastream/Metadata.vue'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
-import { RouteLocationNormalized } from 'vue-router'
-import PageNotFound from '@/components/base/PageNotFound.vue'
+import { RouteRecordRaw, RouteLocationNormalized } from 'vue-router'
 
 function requireAuth(
   to: RouteLocationNormalized,
@@ -50,54 +36,66 @@ async function requireThingOwnership(
 }
 
 export const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'Home', component: Home },
+  { path: '/', name: 'Home', component: () => import('@/components/Home.vue') },
   {
     path: '/browse',
     name: 'Browse',
-    component: Browse,
+    component: () => import('@/components/Browse.vue'),
     meta: { hideFooter: true, isFullScreen: true },
   },
   {
     path: '/sites',
     name: 'Sites',
-    component: Sites,
+    component: () => import('@/components/Site/Sites.vue'),
     beforeEnter: requireAuth,
   },
-  { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
+  {
+    path: '/sites/:id',
+    name: 'SingleSite',
+    component: () => import('@/components/Site/SingleSite.vue'),
+  },
   {
     path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',
-    component: DatastreamForm,
+    component: () => import('@/components/Datastream/DatastreamForm.vue'),
     beforeEnter: requireThingOwnership,
   },
   {
     path: '/data-sources',
     name: 'DataSources',
-    component: DataSourceDashboard
+    component: () => import('@/components/DataSource/DataSourceDashboard.vue'),
   },
   {
     path: '/sites/:id/datastreams/:datastreamId/datasource',
     name: 'DataSourceForm',
-    component: DataSourceForm,
-    beforeEnter: requireThingOwnership
+    component: () => import('@/components/DataSource/DataSourceForm.vue'),
+    beforeEnter: requireThingOwnership,
   },
-  { path: '/signup', name: 'Signup', component: Signup },
-  { path: '/login', name: 'Login', component: Login },
+  {
+    path: '/signup',
+    name: 'Signup',
+    component: () => import('@/components/account/Signup.vue'),
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/components/account/Login.vue'),
+  },
   {
     path: '/profile',
     name: 'Profile',
-    component: Profile,
+    component: () => import('@/components/account/Profile.vue'),
     beforeEnter: requireAuth,
   },
   {
     path: '/metadata',
     name: 'Metadata',
-    component: Metadata,
+    component: () => import('@/components/Datastream/Metadata.vue'),
     beforeEnter: requireAuth,
   },
   {
     path: '/:catchAll(.*)*',
     name: 'PageNotFound',
-    component: PageNotFound,
+    component: () => import('@/components/base/PageNotFound.vue'),
   },
 ]
