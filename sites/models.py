@@ -98,6 +98,23 @@ class Unit(models.Model):
         return self.name
 
 
+class DataLoader(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+
+
+class DataLoaderOwner(models.Model):
+    data_loader = ForeignKey(DataLoader, on_delete=models.CASCADE)
+    person = ForeignKey(CustomUser, on_delete=models.CASCADE)
+    is_primary_owner = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.person.first_name} {self.person.last_name} - {self.data_loader.name}"
+
+    class Meta:
+        unique_together = ("data_loader", "person")
+
+
 class DataSource(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -117,14 +134,27 @@ class DataSource(models.Model):
     timestamp_format = models.CharField(max_length=255, null=True, blank=True)
     timestamp_offset = models.CharField(max_length=255, null=True, blank=True)
 
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    data_loader = models.ForeignKey(DataLoader, on_delete=models.SET_NULL, null=True, blank=True)
     data_source_thru = models.DateTimeField(null=True, blank=True)
     last_sync_successful = models.BooleanField(null=True, blank=True)
+    last_sync_message = models.TextField(null=True, blank=True)
     last_synced = models.DateTimeField(null=True, blank=True)
     next_sync = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+
+class DataSourceOwner(models.Model):
+    data_source = ForeignKey(DataSource, on_delete=models.CASCADE)
+    person = ForeignKey(CustomUser, on_delete=models.CASCADE)
+    is_primary_owner = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.person.first_name} {self.person.last_name} - {self.data_source.name}"
+
+    class Meta:
+        unique_together = ("data_source", "person")
 
 
 class Datastream(models.Model):
