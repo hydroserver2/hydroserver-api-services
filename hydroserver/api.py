@@ -22,7 +22,7 @@ from hydrothings.validators import allow_partial
 
 from accounts.models import CustomUser
 from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssociation, Thing, Location, Observation, \
-    ProcessingLevel, DataSource
+    ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner
 
 
 class BasicAuth(HttpBasicAuth):
@@ -1235,11 +1235,142 @@ def delete_processing_level(request, processing_level_id: str):
     return {'detail': 'Processing level deleted successfully.'}
 
 
+class DataLoaderGetResponse(Schema):
+    id: UUID
+    name: str
+
+
+class DataLoaderPostBody(Schema):
+    name: str
+
+
+@allow_partial
+class DataLoaderPatchBody(Schema):
+    name: str
+
+
+@api.get(
+    '/data-loaders',
+    url_name='get_data_loaders',
+    response={
+        200: List[DataLoaderGetResponse]
+    },
+    auth=[BasicAuth(), jwt_auth]
+)
+def get_data_loaders(request: HttpRequest):
+
+    data_loaders = DataLoader.objects.filter(dataloaderowner__person=request.authenticated_user)
+
+    return [
+        {
+            'id': data_loader.id,
+            'name': data_loader.name
+        } for data_loader in data_loaders
+    ]
+
+
+@api.get(
+    '/data-loaders/{data_loader_id}',
+    url_name='get_data_loader',
+    response={
+        200: DataLoaderGetResponse,
+        404: None
+    },
+    auth=[BasicAuth(), jwt_auth]
+)
+def get_data_loader(request: HttpRequest, data_loader_id: str):
+
+    data_loader = DataLoader.objects.get(dataloaderowner__person=request.authenticated_user, pk=data_loader_id)
+
+    return {
+        'id': data_loader.id,
+        'name': data_loader.name
+    }
+
+
+@api.post(
+    '/data-loaders',
+    url_name='create_data_loader',
+    response={
+        201: None
+    },
+    auth=[BasicAuth(), jwt_auth]
+)
+@transaction.atomic
+def post_data_loader(request: HttpRequest, data_loader: DataLoaderPostBody):
+    """"""
+
+    new_data_loader = DataLoader.objects.create(
+        name=data_loader.name,
+    )
+
+    DataLoaderOwner.objects.create(
+        data_loader=new_data_loader,
+        person=request.authenticated_user
+    )
+
+    return None
+
+
+@api.patch(
+    '/data-loaders/{data_loader_id}',
+    url_name='update_data_loader',
+    response={
+        204: None
+    },
+    auth=[BasicAuth(), jwt_auth],
+)
+@transaction.atomic
+def patch_data_loader(request: HttpRequest, data_loader_id: str, data_loader: DataLoaderPatchBody):
+    """"""
+
+    data_loader = data_loader.dict(exclude_unset=True)
+    data_loader_db = DataLoader.objects.filter(
+        pk=data_loader_id,
+        dataloaderowner__person=request.authenticated_user,
+    )[0]
+
+    if 'name' in data_loader:
+        data_loader_db.name = data_loader['name']
+
+    data_loader_db.save()
+
+    return None
+
+
+@api.delete(
+    '/data-loaders/{data_loader_id}',
+    auth=[BasicAuth(), jwt_auth],
+    response={
+        200: None,
+        403: None,
+        404: None
+    },
+)
+def delete_data_loader(request: HttpRequest, data_loader_id: str):
+    try:
+        data_loader = DataLoader.objects.get(id=data_loader_id)
+    except DataLoader.DoesNotExist:
+        return 404, f'Data Loader with ID: {data_loader_id} does not exist.'
+
+    if request.authenticated_user not in [
+        data_loader_owner.person for data_loader_owner
+        in data_loader.dataloaderowner_set.filter(is_primary_owner=True)
+    ]:
+        return 403, 'You do not have permission to delete this data loader.'
+
+    data_loader.delete()
+
+    return 200
+
+
 class DataSourceGetResponse(HydroLoaderConf):
     id: UUID
     name: str
+    data_loader: Optional[DataLoaderGetResponse]
     data_source_thru: Optional[datetime]
     last_sync_successful: Optional[bool]
+    last_sync_message: Optional[str]
     last_synced: Optional[datetime]
     next_sync: Optional[datetime]
     database_thru_upper: Optional[datetime]
@@ -1248,8 +1379,10 @@ class DataSourceGetResponse(HydroLoaderConf):
 
 class DataSourcePostBody(HydroLoaderConf):
     name: str
+    data_loader: Optional[str]
     data_source_thru: Optional[datetime]
     last_sync_successful: Optional[bool]
+    last_sync_message: Optional[str]
     last_synced: Optional[datetime]
     next_sync: Optional[datetime]
 
@@ -1257,8 +1390,10 @@ class DataSourcePostBody(HydroLoaderConf):
 @allow_partial
 class DataSourcePatchBody(HydroLoaderConf):
     name: str
+    data_loader: Optional[str]
     data_source_thru: Optional[datetime]
     last_sync_successful: Optional[bool]
+    last_sync_message: Optional[str]
     last_synced: Optional[datetime]
     next_sync: Optional[datetime]
 
@@ -1269,8 +1404,13 @@ def transform_data_source(data_source):
         name=data_source.name,
         data_source_thru=data_source.data_source_thru,
         last_sync_successful=data_source.last_sync_successful,
+        last_sync_message=data_source.last_sync_message,
         last_synced=data_source.last_synced,
         next_sync=data_source.next_sync,
+        data_loader=DataLoaderGetResponse(
+            id=data_source.data_loader.id,
+            name=data_source.data_loader.name
+        ) if data_source.data_loader else None,
         database_thru_upper=max([
             datastream.result_end_time for datastream in data_source.datastream_set.all()
             if datastream.result_end_time is not None
@@ -1319,7 +1459,7 @@ def transform_data_source(data_source):
 )
 def get_data_sources(request: HttpRequest):
 
-    data_sources = DataSource.objects.filter(owner=request.authenticated_user)
+    data_sources = DataSource.objects.filter(datasourceowner__person=request.authenticated_user)
 
     return [
         transform_data_source(data_source) for data_source in data_sources
@@ -1337,7 +1477,7 @@ def get_data_sources(request: HttpRequest):
 )
 def get_data_source(request: HttpRequest, data_source_id: str):
 
-    data_source = DataSource.objects.get(owner=request.authenticated_user, pk=data_source_id)
+    data_source = DataSource.objects.get(datasourceowner__person=request.authenticated_user, pk=data_source_id)
 
     return transform_data_source(data_source)
 
@@ -1355,8 +1495,8 @@ def post_data_source(request: HttpRequest, data_source: DataSourcePostBody):
     """"""
 
     new_data_source = DataSource.objects.create(
-        owner=request.authenticated_user,
         name=data_source.name,
+        data_loader_id=data_source.data_loader,
         path=data_source.file_access.path,
         url=data_source.file_access.url,
         header_row=data_source.file_access.header_row,
@@ -1374,8 +1514,14 @@ def post_data_source(request: HttpRequest, data_source: DataSourcePostBody):
         timestamp_offset=data_source.file_timestamp.offset,
         data_source_thru=data_source.data_source_thru,
         last_sync_successful=data_source.last_sync_successful,
+        last_sync_message=data_source.last_sync_message,
         last_synced=data_source.last_synced,
         next_sync=data_source.next_sync
+    )
+
+    DataSourceOwner.objects.create(
+        data_source=new_data_source,
+        person=request.authenticated_user
     )
 
     for datastream in data_source.datastreams:
@@ -1401,21 +1547,25 @@ def post_data_source(request: HttpRequest, data_source: DataSourcePostBody):
     auth=[BasicAuth(), jwt_auth],
 )
 @transaction.atomic
-def post_data_source(request: HttpRequest, data_source_id: str, data_source: DataSourcePatchBody):
+def patch_data_source(request: HttpRequest, data_source_id: str, data_source: DataSourcePatchBody):
     """"""
 
     data_source = data_source.dict(exclude_unset=True)
     data_source_db = DataSource.objects.filter(
         pk=data_source_id,
-        owner=request.authenticated_user,
+        datasourceowner__person=request.authenticated_user,
     )[0]
 
     if 'name' in data_source:
         data_source_db.name = data_source['name']
+    if 'data_loader' in data_source:
+        data_source_db.data_loader_id = data_source['data_loader']
     if 'data_source_thru' in data_source:
         data_source_db.data_source_thru = data_source['data_source_thru']
     if 'last_sync_successful' in data_source:
         data_source_db.last_sync_successful = data_source['last_sync_successful']
+    if 'last_sync_message' in data_source:
+        data_source_db.last_sync_message = data_source['last_sync_message']
     if 'last_synced' in data_source:
         data_source_db.last_synced = data_source['last_synced']
     if 'next_sync' in data_source:
@@ -1466,3 +1616,29 @@ def post_data_source(request: HttpRequest, data_source_id: str, data_source: Dat
         datastream_db.data_source = data_source_db
         datastream_db.data_source_column = datastream['column']
         datastream_db.save()
+
+
+@api.delete(
+    '/data-sources/{data_source_id}',
+    auth=[BasicAuth(), jwt_auth],
+    response={
+        200: None,
+        403: None,
+        404: None
+    },
+)
+def delete_data_source(request: HttpRequest, data_source_id: str):
+    try:
+        data_source = DataSource.objects.get(id=data_source_id)
+    except DataSource.DoesNotExist:
+        return 404, f'Data Source with ID: {data_source_id} does not exist.'
+
+    if request.authenticated_user not in [
+        data_source_owner.person for data_source_owner
+        in data_source.datasourceowner_set.filter(is_primary_owner=True)
+    ]:
+        return 403, 'You do not have permission to delete this data source.'
+
+    data_source.delete()
+
+    return 200
