@@ -14,3 +14,7 @@ djangorestframework==3.14
 django-cors-headers==3.14
 djangorestframework-simplejwt==5.2.2
 urllib3==1.26.6
+oauthlib==3.2.2
+starlette
+requests-oauthlib==1.3.1
+Authlib==0.15.5

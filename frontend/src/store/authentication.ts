@@ -3,6 +3,10 @@ import router from '@/router/router'
 import { User } from '@/types'
 import Notification from './notifications'
 import { useResetStore } from '@/store/resetStore'
+import { getQueryString } from '@/utils/api-client'
+import { Subject } from 'rxjs'
+const APP_URL = import.meta.env.VITE_APP_URL || ''
+const LOGIN_URL = import.meta.env.VITE_LOGIN_URL || ''
 
 export const useAuthStore = defineStore({
   id: 'authentication',
@@ -22,6 +26,8 @@ export const useAuthStore = defineStore({
       type: '',
     },
     loggingIn: false,
+    isLoginListenerSet: false,
+    loggedIn$: new Subject<void>(),
   }),
   actions: {
     resetState() {
@@ -146,6 +152,59 @@ export const useAuthStore = defineStore({
           message:
             'Error occurred while deleting your account. Please try again.',
           type: 'error',
+        })
+      }
+    },
+    async oAuthLogin(callback?: () => any) {
+      // TODO: update object for selected service params
+      const params = {
+        response_type: 'token',
+        client_id: 'local_iguide_api',
+        redirect_uri: `${APP_URL}/auth-redirect`,
+        window_close: 'True',
+      }
+
+      window.open(
+        `${LOGIN_URL}?${getQueryString(params)}`,
+        '_blank',
+        'location=1, status=1, scrollbars=1, width=800, height=800'
+      )
+
+      // TODO: we need to make this property non-persisted
+      console.log(this.isLoginListenerSet)
+
+      if (!this.isLoginListenerSet) {
+        this.isLoginListenerSet = true // Prevents registering the listener more than once
+        console.info(`User: listening to login window...`)
+        window.addEventListener('message', async (event: MessageEvent) => {
+          console.log(event)
+          if (
+            event.origin !== APP_URL ||
+            !event.data.hasOwnProperty('accessToken')
+          ) {
+            return
+          }
+
+          if (event.data.accessToken) {
+            console.log(event)
+
+            Notification.toast({
+              message: 'You have logged in!',
+              type: 'success',
+            })
+            // await User.commit((state) => {
+            //   state.isLoggedIn = true
+            //   state.accessToken = event.data.accessToken
+            // })
+            this.loggedIn$.next()
+            this.isLoginListenerSet = false
+            callback?.()
+          } else {
+            Notification.toast({
+              message: 'Failed to Log In',
+              type: 'error',
+            })
+          }
         })
       }
     },

@@ -24,6 +24,7 @@ from accounts.models import CustomUser
 from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssociation, Thing, Location, Observation, \
     ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner
 
+from authlib.integrations.starlette_client import OAuth
 
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
@@ -35,6 +36,10 @@ class BasicAuth(HttpBasicAuth):
 
 api = NinjaAPI()
 
+from starlette.config import Config
+dotenv_file = ".env"
+config = Config(dotenv_file)
+oauth = OAuth(config)
 
 def jwt_auth(request):
     try:
@@ -139,6 +144,35 @@ def get_token(request, data: GetTokenInput):
         }
     else:
         return JsonResponse({'detail': 'Invalid credentials'}, status=401)
+
+
+@api.get('/login')
+async def login(request, window_close: bool = False):
+    redirect_uri = ''
+    if 'X-Forwarded-Proto' in request.headers:
+        redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
+    response = await oauth.orcid.authorize_redirect(request, redirect_uri + f"?window_close={window_close}")
+    return response
+   
+
+# TODO: adapt method and add dependencies
+@api.get('/auth')
+async def auth(request):
+    try:
+        orcid_response = await oauth.orcid.authorize_access_token(request)
+        orcid_response = ORCIDResponse(**orcid_response)
+    except OAuthError as error:
+        return HTMLResponse(f'<h1>{error.error}</h1>')
+    user: User = await create_or_update_user(orcid_response)
+    token = user.access_token
+    if window_close:
+        responseHTML = '<html><head><title>HydroServer Sign In</title></head><body></body><script>res = %value%; window.opener.postMessage(res, "*");window.close();</script></html>'
+        responseHTML = responseHTML.replace(
+            "%value%", json.dumps({'token': token, 'expiresIn': orcid_response.expires_in})
+        )
+        return HTMLResponse(responseHTML)
+
+    return Response(token)
 
 
 class CreateRefreshInput(Schema):
