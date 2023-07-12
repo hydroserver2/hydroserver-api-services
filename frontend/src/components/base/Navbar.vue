@@ -148,6 +148,11 @@ const paths: {
     label: 'Browse Monitoring Sites',
     icon: 'mdi-layers-search',
   },
+  {
+    attrs: { href: 'https://hydroserver2.github.io/docs/' },
+    label: 'Docs',
+    icon: 'mdi-file-document',
+  },
   // {
   //   attrs: { to: '/sites' },
   //   label: 'Visualize Data',
