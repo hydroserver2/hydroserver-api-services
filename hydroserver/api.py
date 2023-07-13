@@ -3,11 +3,15 @@ import uuid
 from functools import wraps
 from datetime import timedelta
 
-from django.utils import timezone
 from django.contrib.auth import authenticate, logout
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse, HttpRequest
+from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from ninja import Schema, NinjaAPI, Query
 from ninja.security import HttpBasicAuth
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -162,6 +166,33 @@ def refresh_token(request, data: CreateRefreshInput):
     except (InvalidToken, TokenError, KeyError, ValueError) as e:
         return JsonResponse({'error': str(e)}, status=401)
 
+
+class PasswordResetInput(Schema):
+    email: str
+
+
+@api.post("/password_reset")
+def password_reset(request, data: PasswordResetInput):
+    data_dict = data.dict()
+    form = PasswordResetForm(data_dict)
+    if form.is_valid():
+        opts = {
+            'use_https': request.is_secure(),
+            'token_generator': default_token_generator,
+            'from_email': None,
+            'email_template_name': 'registration/password_reset_email.html',
+            'request': request,
+        }
+        user = CustomUser.objects.filter(email=data.email).first()
+        if user:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            return JsonResponse({'uid': uid, 'token': token})
+        else:
+            return JsonResponse({'detail': 'User does not exist'}, status=404)
+    else:
+        return JsonResponse({'error': 'An error occurred.'}, status=400)
+    
 
 class CreateUserInput(Schema):
     first_name: str

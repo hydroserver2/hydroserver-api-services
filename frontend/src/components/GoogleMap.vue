@@ -134,7 +134,7 @@ onMounted(async () => {
   let attempts = 0
   const intervalId = setInterval(async () => {
     attempts++
-    if (mapContainer.value) {
+    if (mapContainer && mapContainer.value) {
       clearInterval(intervalId)
 
       const google = await loader.load()
