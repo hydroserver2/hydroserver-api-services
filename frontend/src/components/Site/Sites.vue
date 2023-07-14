@@ -16,16 +16,6 @@
         </v-col>
         <v-spacer></v-spacer>
         <v-col cols="auto">
-          <v-btn class="manage-metadata-button" to="Metadata" color="secondary"
-            >Manage Metadata</v-btn
-          >
-        </v-col>
-        <v-col cols="auto">
-          <v-btn to="data-sources" color="secondary"
-            >Manage Data Sources</v-btn
-          >
-        </v-col>
-        <v-col cols="auto">
           <v-btn-secondary
             class="register-site-btn"
             variant="elevated"

@@ -214,10 +214,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                :to="{
-                  name: 'DataSourceForm',
-                  params: { id: thingId, datastreamId: item.raw.id },
-                }"
+                @click="dialogs.linkDataSource = true"
               />
               <v-list-item
                 v-if="is_owner"
@@ -264,6 +261,11 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-dialog
+        v-model="dialogs.linkDataSource"
+      >
+        <DataSourceForm />
+      </v-dialog>
     </v-row>
   </v-container>
 </template>
@@ -272,6 +274,7 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
+import DataSourceForm from "@/components/DataSource/DataSourceForm.vue";
 import { computed, onMounted, ref, reactive, Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/authentication'
@@ -319,6 +322,7 @@ const dialogs: {
   deleteSite: false,
   accessControl: false,
   deleteDatastream: false,
+  linkDataSource: false
 })
 
 const deleteInput = ref('')
