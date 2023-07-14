@@ -5,7 +5,12 @@
     </template>
 
     <router-link :to="{ path: `/` }" class="logo">
-      <v-img class="mr-4" :src="appLogo" alt="HydroServer home" width="10rem" />
+      <v-img
+        class="mr-4"
+        :src="appLogo"
+        alt="HydroServer home"
+        width="7.5rem"
+      />
     </router-link>
 
     <template v-if="!mdAndDown">
@@ -120,7 +125,7 @@
 import { useAuthStore } from '@/store/authentication'
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
-import appLogo from '@/assets/ciroh.png'
+import appLogo from '@/assets/hydroserver-icon-min.png'
 
 const authStore = useAuthStore()
 const { mdAndDown } = useDisplay()
