@@ -50,6 +50,12 @@
         <router-link to="/signup" class="light-text signup-link"
           >Sign Up</router-link
         >
+        <v-spacer></v-spacer>
+        <router-link
+          to="/password_reset"
+          class="light-text forgot-password-link"
+          >Forgot your password?</router-link
+        >
       </v-card-actions>
     </v-card>
   </v-container>

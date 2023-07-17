@@ -17,6 +17,15 @@ class Thing(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class Photo(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE)
+    url = models.URLField(max_length=2000)
+
+    def __str__(self):
+        return f'Photo for {self.thing.name}'
 
 
 class Location(models.Model):

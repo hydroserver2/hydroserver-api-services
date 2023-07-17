@@ -208,6 +208,23 @@ export const useAuthStore = defineStore({
         })
       }
     },
+    async requestPasswordReset(email: String) {
+      try {
+        const response = await this.$http.post('/password_reset', {
+          email: email,
+        })
+        console.log('PR Response', response)
+        return response.status === 200
+      } catch (error) {
+        console.error('Error requesting password reset:', error)
+        Notification.toast({
+          message:
+            'Error occurred while requesting your password reset email. Please try again.',
+          type: 'error',
+        })
+        return false
+      }
+    },
   },
   getters: {
     isLoggedIn: (state) => {

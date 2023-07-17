@@ -5,27 +5,58 @@
     </template>
 
     <router-link :to="{ path: `/` }" class="logo">
-      <v-img class="mr-4" :src="appLogo" alt="HydroServer home" width="10rem" />
+      <v-img
+        class="mr-4"
+        :src="appLogo"
+        alt="HydroServer home"
+        width="7.5rem"
+      />
     </router-link>
 
     <template v-if="!mdAndDown">
-      <v-btn
+      <div
         v-for="path of paths"
-        :key="path.attrs?.to || path.attrs?.href"
-        v-bind="path.attrs"
-        :id="`navbar-nav-${path.label.replaceAll(/[\/\s]/g, ``)}`"
-        :elevation="0"
-        :class="path.isActive && path.isActive() ? 'primary' : ''"
-        class="ma-1"
-        color="surface"
-        variant="flat"
+        :key="path.name"
       >
-        {{ path.label }}
-        <v-icon v-if="path.isExternal" small class="ml-2" right
-          >mdi-open-in-new</v-icon
+        <v-btn
+          v-if="!path.menu"
+          v-bind="path.attrs"
+          :id="`navbar-nav-${path.label.replaceAll(/[\/\s]/g, ``)}`"
+          :elevation="0"
+          :class="path.isActive && path.isActive() ? 'primary' : ''"
+          class="ma-1"
+          color="surface"
+          variant="flat"
         >
-      </v-btn>
-
+          {{ path.label }}
+        </v-btn>
+        <v-menu
+          v-else
+          :id="`navbar-nav-${path.label.replaceAll(/[\/\s]/g, ``)}`"
+        >
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              :elevation="0"
+              class="ma-1"
+              color="surface"
+              variant="flat"
+            >
+              {{ path.label }}
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item
+              v-for="menuItem of path.menu"
+              v-bind="menuItem.attrs"
+            >
+              <v-list-item-title>
+                {{ menuItem.label }}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
       <v-spacer></v-spacer>
 
       <template v-if="authStore.isLoggedIn">
@@ -84,14 +115,30 @@
     location="right"
   >
     <v-list density="compact" nav>
-      <v-list-item
+      <div
         v-for="path of paths"
-        v-bind="path.attrs"
-        :prepend-icon="path.icon"
-        :title="path.label"
-        :value="path.attrs.to || path.attrs.href"
-        :class="path.isActive && path.isActive() ? 'primary' : ''"
-      ></v-list-item>
+      >
+        <v-list-item
+          v-if="path.attrs"
+          v-bind="path.attrs"
+          :title="path.label"
+          :prepend-icon="path.icon"
+          :value="path.attrs.to || path.attrs.href"
+          :class="path.isActive && path.isActive() ? 'primary' : ''"
+        ></v-list-item>
+        <div
+          v-else
+        >
+          <v-list-item
+            v-for="menuItem of path.menu"
+            v-bind="menuItem.attrs"
+            :title="menuItem.label"
+            :prepend-icon="menuItem.icon"
+            :value="menuItem.attrs.to || menuItem.attrs.href"
+            :class="menuItem.isActive && menuItem.isActive() ? 'primary' : ''"
+          ></v-list-item>
+        </div>
+      </div>
     </v-list>
 
     <v-divider></v-divider>
@@ -120,33 +167,64 @@
 import { useAuthStore } from '@/store/authentication'
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
-import appLogo from '@/assets/ciroh.png'
+import appLogo from '@/assets/hydroserver-icon-min.png'
 
 const authStore = useAuthStore()
 const { mdAndDown } = useDisplay()
 const drawer = ref(false)
 
 const paths: {
-  attrs: { to?: string; href?: string }
+  name: string,
+  attrs?: { to?: string; href?: string }
   label: string
-  icon: string
+  icon?: string
+  menu?: any[]
   isExternal?: boolean
   isActive?: () => boolean
 }[] = [
   {
+    name: 'home',
     attrs: { to: '/' },
     label: 'Home',
     icon: 'mdi-home',
   },
   {
-    attrs: { to: '/sites' },
-    label: 'My Sites',
-    icon: 'mdi-map-marker-multiple',
-  },
-  {
+    name: 'browse',
     attrs: { to: '/browse' },
     label: 'Browse Monitoring Sites',
     icon: 'mdi-layers-search',
+  },
+  {
+    name: 'management',
+    label: 'Data Management',
+    menu: [
+      {
+        attrs: { to: '/sites' },
+        label: 'My Sites',
+        icon: 'mdi-map-marker-multiple'
+      },
+      {
+        attrs: { to: '/Metadata' },
+        label: 'Manage Metadata',
+        icon: 'mdi-database-cog'
+      },
+      {
+        attrs: { to: '/data-sources' },
+        label: 'Manage Data Sources',
+        icon: 'mdi-file-chart'
+      },
+      {
+        attrs: { to: '/data-loaders' },
+        label: 'Manage Data Loaders',
+        icon: 'mdi-file-upload'
+      }
+    ]
+  },
+  {
+    name: 'docs',
+    attrs: { href: 'https://hydroserver2.github.io/docs/' },
+    label: 'Docs',
+    icon: 'mdi-file-document',
   },
   // {
   //   attrs: { to: '/sites' },

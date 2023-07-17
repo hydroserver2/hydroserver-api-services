@@ -11,6 +11,7 @@ import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
 import DataSourceDashboard from '@/components/DataSource/DataSourceDashboard.vue'
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
+import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import { RouteLocationNormalized } from 'vue-router'
@@ -83,6 +84,11 @@ export const routes: RouteRecordRaw[] = [
   },
   { path: '/signup', name: 'Signup', component: Signup },
   { path: '/login', name: 'Login', component: Login },
+  {
+    path: '/password_reset',
+    name: 'PasswordResetRequest',
+    component: PasswordResetRequest,
+  },
   {
     path: '/profile',
     name: 'Profile',

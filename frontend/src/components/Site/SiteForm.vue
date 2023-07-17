@@ -110,6 +110,45 @@
                 />
               </v-col>
             </v-row>
+            <v-row>
+              <v-col>
+                <h6 class="text-h6 mb-4 mt-7">Add Photos</h6>
+                <v-card-text
+                  id="drop-area"
+                  @dragover.prevent
+                  @drop="handleDrop"
+                  class="drop-area text-subtitle-2 text-medium-emphasis d-flex"
+                >
+                  <v-icon class="mr-1">mdi-paperclip</v-icon>
+                  Drag and drop your photos here, or
+                  <span @click="triggerFileInput" class="ml-1 add-link"
+                    >click to upload</span
+                  >
+
+                  <input
+                    type="file"
+                    ref="fileInput"
+                    id="fileInput"
+                    multiple
+                    @change="
+                      previewPhotos(($event.target as HTMLInputElement).files)
+                    "
+                    accept="image/jpeg"
+                    style="display: none"
+                  />
+                </v-card-text>
+                <output v-for="(photo, index) in previewedPhotos" :key="index">
+                  <!-- <img :src="photo" width="200" /> -->
+                  <div class="d-flex justify-end">
+                    {{ photo }}
+                    <!-- <v-btn small @click="removePhoto(index)">Remove</v-btn> -->
+                    <v-icon color="red-darken-1" @click="removePhoto(index)"
+                      >mdi-delete</v-icon
+                    >
+                  </div>
+                </output>
+              </v-col>
+            </v-row>
           </v-col>
         </v-row>
         <v-card-actions>
@@ -130,6 +169,7 @@ import { Thing } from '@/types'
 import { siteTypes } from '@/vocabularies'
 import { VForm } from 'vuetify/components'
 import { rules } from '@/utils/rules'
+import Notification from '@/store/notifications'
 
 const thingStore = useThingStore()
 const props = defineProps({ thingId: String })
@@ -137,6 +177,10 @@ const emit = defineEmits(['close'])
 let loaded = ref(false)
 const valid = ref(false)
 const myForm = ref<VForm>()
+
+const photos = ref<File[]>([])
+const previewedPhotos = ref<string[]>([])
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const mapOptions = ref({
   center: { lat: 39, lng: -100 },
@@ -162,6 +206,52 @@ const thing = reactive<Thing>({
   followers: 0,
   is_private: false, // TODO: I set a default value here so TypeScript doesn't complain about it being missing.
 })
+
+function handleDrop(e: DragEvent) {
+  e.preventDefault()
+  let files = e.dataTransfer?.files
+  if (files) {
+    let filteredFiles = Array.from(files).filter(
+      (file) => file.type === 'image/jpeg'
+    )
+    if (filteredFiles.length > 0) {
+      previewPhotos(filteredFiles)
+    } else {
+      Notification.toast({
+        message: 'only JPEG images are allowed',
+        type: 'error',
+      })
+    }
+    // previewPhotos(files)
+  }
+}
+
+function previewPhotos(files: File[] | FileList | null) {
+  if (files) {
+    Array.from(files).forEach((photo) => {
+      let reader = new FileReader()
+      reader.onload = (e) => {
+        if ((e.target as FileReader).result) {
+          // previewedPhotos.value.push((e.target as FileReader).result as string)
+          previewedPhotos.value.push(photo.name)
+          photos.value.push(photo)
+        }
+      }
+      reader.readAsDataURL(photo)
+    })
+  }
+}
+
+function triggerFileInput() {
+  if (fileInput.value) fileInput.value.click()
+}
+
+function removePhoto(index: number) {
+  console.log('photos', photos.value)
+  console.log('prev', previewedPhotos.value)
+  previewedPhotos.value.splice(index, 1)
+  photos.value.splice(index, 1)
+}
 
 async function populateThing(id: string) {
   await thingStore.fetchThings()
@@ -201,4 +291,14 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.drop-area {
+  border: 2px dashed #ccc;
+}
+
+.add-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+</style>
