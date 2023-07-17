@@ -75,6 +75,7 @@ const dataSourceTimestampForm = ref()
 const dataSourceDatastreamForm = ref()
 
 store.fetchDataSources()
+store.fetchDataLoaders()
 store.datastreamId = route.params.datastreamId?.toString() || null
 
 async function handleSaveChanges() {

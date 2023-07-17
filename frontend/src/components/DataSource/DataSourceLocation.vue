@@ -38,20 +38,26 @@
     </v-row>
     <v-row>
       <v-col>
-        <v-radio-group
-          v-model="store.dataSourceType"
-          inline
-          :disabled="store.dataSource != null"
-        >
-          <v-radio
-            label="Local File"
-            value="local"
-          ></v-radio>
-          <v-radio
-            label="Remote File"
-            value="remote"
-          ></v-radio>
-        </v-radio-group>
+<!--        <v-radio-group-->
+<!--          v-model="store.dataSourceType"-->
+<!--          inline-->
+<!--          :disabled="store.dataSource != null"-->
+<!--        >-->
+<!--          <v-radio-->
+<!--            label="Local File"-->
+<!--            value="local"-->
+<!--          ></v-radio>-->
+<!--          <v-radio-->
+<!--            label="Remote File"-->
+<!--            value="remote"-->
+<!--          ></v-radio>-->
+<!--        </v-radio-group>-->
+        <v-autocomplete
+          v-model="store.dataLoader"
+          label="Data Loader"
+          :items="store.dataLoaders"
+          item-title="name"
+        ></v-autocomplete>
       </v-col>
       <v-col v-if="store.dataSourceType === 'local'">
         <v-text-field

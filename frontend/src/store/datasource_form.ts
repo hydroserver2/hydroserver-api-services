@@ -13,6 +13,7 @@ interface DataSourceForm {
   mode: modeValues
   dataSourceName?: string
   dataSource?: string
+  dataLoader?: string
   dataSourceType: dataSourceTypeValues
   localFilePath?: string
   remoteFileUrl?: string
@@ -33,6 +34,7 @@ interface DataSourceForm {
   datastreamType: columnTypeValues
   datastreamColumn?: string | number
   dataSources: any[]
+  dataLoaders: any[]
 }
 
 
@@ -48,12 +50,17 @@ export const useDataSourceFormStore = defineStore('data-source-store', {
     timestampFormat: 'iso',
     timestampUseTimezoneOffset: false,
     datastreamType: 'index',
-    dataSources: []
+    dataSources: [],
+    dataLoaders: []
   }),
   actions: {
     async fetchDataSources() {
       const dataStreams = await this.$http.get('/data-sources')
       this.dataSources = dataStreams.data
+    },
+    async fetchDataLoaders() {
+      const dataLoaders = await this.$http.get('/data-loaders')
+      this.dataLoaders = dataLoaders.data
     },
     async saveDataSource() {
 
