@@ -114,3 +114,9 @@ export interface ThingMetadata {
   processing_levels: ProcessingLevel[]
   observed_properties: ObservedProperty[]
 }
+
+export interface Photo {
+  id: string
+  thingId: string
+  url: string
+}

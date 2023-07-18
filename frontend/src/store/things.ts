@@ -56,6 +56,7 @@ export const useThingStore = defineStore('things', {
       try {
         const { data } = await this.$http.post(`/things`, newThing)
         this.$patch({ things: { ...this.things, [data.id]: data } })
+        return data
       } catch (error) {
         console.error('Error creating thing', error)
       }

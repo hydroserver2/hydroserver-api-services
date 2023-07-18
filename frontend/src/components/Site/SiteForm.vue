@@ -137,15 +137,34 @@
                     style="display: none"
                   />
                 </v-card-text>
+                <div
+                  v-if="props.thingId && photoStore.photos[props.thingId]"
+                  v-for="photo in photoStore.photos[props.thingId]"
+                  :key="photo.id"
+                  class="d-flex align-items-center mb-2"
+                >
+                  <img
+                    v-if="!photosToDelete.includes(photo.id)"
+                    :src="photo.url"
+                    width="100"
+                  />
+                  <v-icon
+                    v-if="!photosToDelete.includes(photo.id)"
+                    color="red-darken-1"
+                    @click="removeExistingPhoto(photo.id)"
+                    >mdi-delete</v-icon
+                  >
+                </div>
+
                 <output v-for="(photo, index) in previewedPhotos" :key="index">
-                  <!-- <img :src="photo" width="200" /> -->
-                  <div class="d-flex justify-end">
-                    {{ photo }}
-                    <!-- <v-btn small @click="removePhoto(index)">Remove</v-btn> -->
-                    <v-icon color="red-darken-1" @click="removePhoto(index)"
-                      >mdi-delete</v-icon
-                    >
-                  </div>
+                  <!-- <div class="d-flex justify-end"> -->
+                  <img :src="photo" width="100" />
+                  <!-- {{ photo }} -->
+                  <!-- <v-btn small @click="removePhoto(index)">Remove</v-btn> -->
+                  <v-icon color="red-darken-1" @click="removePhoto(index)"
+                    >mdi-delete</v-icon
+                  >
+                  <!-- </div> -->
                 </output>
               </v-col>
             </v-row>
@@ -165,6 +184,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import GoogleMap from '../GoogleMap.vue'
 import { useThingStore } from '@/store/things'
+import { usePhotosStore } from '@/store/photos'
 import { Thing } from '@/types'
 import { siteTypes } from '@/vocabularies'
 import { VForm } from 'vuetify/components'
@@ -172,13 +192,15 @@ import { rules } from '@/utils/rules'
 import Notification from '@/store/notifications'
 
 const thingStore = useThingStore()
+const photoStore = usePhotosStore()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close'])
 let loaded = ref(false)
 const valid = ref(false)
 const myForm = ref<VForm>()
 
-const photos = ref<File[]>([])
+const newPhotos = ref<File[]>([])
+const photosToDelete = ref<string[]>([])
 const previewedPhotos = ref<string[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -232,9 +254,9 @@ function previewPhotos(files: File[] | FileList | null) {
       let reader = new FileReader()
       reader.onload = (e) => {
         if ((e.target as FileReader).result) {
-          // previewedPhotos.value.push((e.target as FileReader).result as string)
-          previewedPhotos.value.push(photo.name)
-          photos.value.push(photo)
+          previewedPhotos.value.push((e.target as FileReader).result as string)
+          // previewedPhotos.value.push(photo.name)
+          newPhotos.value.push(photo)
         }
       }
       reader.readAsDataURL(photo)
@@ -247,10 +269,13 @@ function triggerFileInput() {
 }
 
 function removePhoto(index: number) {
-  console.log('photos', photos.value)
-  console.log('prev', previewedPhotos.value)
   previewedPhotos.value.splice(index, 1)
-  photos.value.splice(index, 1)
+  newPhotos.value.splice(index, 1)
+}
+
+function removeExistingPhoto(photoId: string) {
+  photosToDelete.value.push(photoId)
+  console.log('photosToDelete', photosToDelete.value)
 }
 
 async function populateThing(id: string) {
@@ -272,8 +297,17 @@ async function uploadThing() {
   await myForm.value?.validate()
   if (!valid.value) return
   if (thing) {
-    if (props.thingId) thingStore.updateThing(thing)
-    else thingStore.createThing(thing)
+    if (props.thingId) {
+      await thingStore.updateThing(thing)
+      await photoStore.updatePhotos(
+        props.thingId,
+        newPhotos.value,
+        photosToDelete.value
+      )
+    } else {
+      const newThing = await thingStore.createThing(thing)
+      await photoStore.updatePhotos(newThing.id, newPhotos.value, [])
+    }
   }
   emit('close')
 }
@@ -287,7 +321,10 @@ function onMapLocationClicked(locationData: Thing) {
 }
 
 onMounted(async () => {
-  if (props.thingId) await populateThing(props.thingId)
+  if (props.thingId) {
+    await populateThing(props.thingId)
+    await photoStore.fetchPhotos(props.thingId)
+  }
 })
 </script>
 

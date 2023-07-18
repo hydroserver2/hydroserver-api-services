@@ -3,6 +3,7 @@ import uuid
 from functools import wraps
 from datetime import timedelta
 
+import os
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
@@ -26,8 +27,10 @@ from hydrothings.validators import allow_partial
 
 from accounts.models import CustomUser
 from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssociation, Thing, Location, Observation, \
-    ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner
-
+    ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner, Photo
+import boto3
+from botocore.exceptions import ClientError
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
 
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
@@ -338,6 +341,74 @@ def thing_to_dict(thing, user):
                 "follows_thing": thing_association.follows_thing,
             })
     return thing_dict
+
+
+def photo_to_dict(photo):
+    return {
+        'id': photo.id, 
+        'thingId': photo.thing.id, 
+        'url': photo.url
+        }
+
+@api.post('/photos/{thing_id}', auth=jwt_auth)
+@thing_ownership_required
+def update_thing_photos(request, thing_id):
+    try:
+        s3 = boto3.client('s3', 
+                            region_name='us-east-1', 
+                            aws_access_key_id=AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+        # First delete specified photos if there are any
+        for photo_id in request.POST.getlist('photosToDelete', []):
+            try:
+                photo = Photo.objects.get(id=photo_id)
+                file_name = photo.url.split(f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/")[1]
+                
+                # Delete the photo from S3 bucket
+                try:
+                    s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)
+                except ClientError as e:
+                    print(f"Error deleting {file_name} from S3: {e}")
+                
+                # Delete the photo from the database
+                photo.delete()
+            except Photo.DoesNotExist:
+                print(f"Photo {photo_id} does not exist")
+                continue
+
+        # Add new photos if there are any 
+        photos_list = []
+        for file in request.FILES.getlist('photos'):
+            base, extension = os.path.splitext(file.name)
+            file_name = f"{request.thing.id}/{uuid.uuid4()}{extension}"
+            file_url = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{file_name}"
+
+            # Upload the photo to S3 bucket
+            try:
+                s3.upload_fileobj(file, AWS_STORAGE_BUCKET_NAME, file_name)
+            except ClientError as e:
+                print(f"Error uploading {file_name} to S3: {e}")
+                continue
+
+            # Create a new photo in the database
+            photo = Photo(thing=request.thing, url=file_url)
+            photo.save()
+            photos_list.append(photo_to_dict(photo))
+
+        return JsonResponse([photo_to_dict(photo) for photo in request.thing.photos.all()], 
+                            status=200, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@api.get('/photos/{thing_id}', auth=jwt_auth)
+def get_thing_photos(request, thing_id):
+    try:
+        thing = Thing.objects.get(id=thing_id)
+        return JsonResponse([photo_to_dict(photo) for photo in thing.photos.all()], status=200, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 class ThingInput(Schema):

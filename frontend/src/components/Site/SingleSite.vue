@@ -116,9 +116,9 @@
       <v-col cols="12" md="4">
         <v-carousel hide-delimiters>
           <v-carousel-item
-            v-for="n in 5"
-            :key="n"
-            :src="'https://source.unsplash.com/featured/?nature,landscape' + n"
+            v-for="photo in photoStore.photos[thingId]"
+            :key="photo.id"
+            :src="photo.url"
             cover
           >
           </v-carousel-item>
@@ -261,9 +261,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog
-        v-model="dialogs.linkDataSource"
-      >
+      <v-dialog v-model="dialogs.linkDataSource">
         <DataSourceForm />
       </v-dialog>
     </v-row>
@@ -274,7 +272,7 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import DataSourceForm from "@/components/DataSource/DataSourceForm.vue";
+import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
 import { computed, onMounted, ref, reactive, Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/authentication'
@@ -283,9 +281,11 @@ import router from '@/router/router'
 import { useDatastreamStore } from '@/store/datastreams'
 import { Observation, Datastream } from '@/types'
 import LineChart from '@/components/LineChart.vue'
+import { usePhotosStore } from '@/store/photos'
 
 const authStore = useAuthStore()
 const thingStore = useThingStore()
+const photoStore = usePhotosStore()
 const datastreamStore = useDatastreamStore()
 const route = useRoute()
 const thingId = route.params.id.toString()
@@ -322,7 +322,7 @@ const dialogs: {
   deleteSite: false,
   accessControl: false,
   deleteDatastream: false,
-  linkDataSource: false
+  linkDataSource: false,
 })
 
 const deleteInput = ref('')
@@ -431,13 +431,14 @@ async function deleteDatastream() {
   }
 }
 
-onMounted(async () => {
-  await thingStore.fetchThingById(thingId)
-  await datastreamStore.fetchDatastreamsByThingId(thingId)
-})
-
 function switchToAccessControlModal() {
   dialogs.deleteSite = false
   dialogs.accessControl = true
 }
+
+onMounted(async () => {
+  await thingStore.fetchThingById(thingId)
+  await photoStore.fetchPhotos(thingId)
+  await datastreamStore.fetchDatastreamsByThingId(thingId)
+})
 </script>

@@ -9,6 +9,11 @@ from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+# AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN')
+
 try:
     GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 except UndefinedValueError:
