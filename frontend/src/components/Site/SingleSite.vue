@@ -114,7 +114,14 @@
       </v-col>
 
       <v-col cols="12" md="4">
-        <v-carousel hide-delimiters>
+        <v-carousel
+          hide-delimiters
+          v-if="
+            !photoStore.loading &&
+            photoStore.photos[thingId] &&
+            photoStore.photos[thingId].length > 0
+          "
+        >
           <v-carousel-item
             v-for="photo in photoStore.photos[thingId]"
             :key="photo.id"
@@ -123,6 +130,16 @@
           >
           </v-carousel-item>
         </v-carousel>
+        <div v-else-if="photoStore.loading" class="text-center">
+          <p>
+            Your photos are being uploaded. They will appear once the upload is
+            complete.
+          </p>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
+        </div>
       </v-col>
     </v-row>
     <v-row>

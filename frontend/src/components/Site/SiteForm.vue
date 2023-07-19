@@ -117,7 +117,7 @@
                   id="drop-area"
                   @dragover.prevent
                   @drop="handleDrop"
-                  class="drop-area text-subtitle-2 text-medium-emphasis d-flex"
+                  class="drop-area text-subtitle-2 text-medium-emphasis d-flex mb-6"
                 >
                   <v-icon class="mr-1">mdi-paperclip</v-icon>
                   Drag and drop your photos here, or
@@ -133,39 +133,46 @@
                     @change="
                       previewPhotos(($event.target as HTMLInputElement).files)
                     "
-                    accept="image/jpeg"
+                    accept="image/jpeg, image/png"
                     style="display: none"
                   />
                 </v-card-text>
-                <div
-                  v-if="props.thingId && photoStore.photos[props.thingId]"
-                  v-for="photo in photoStore.photos[props.thingId]"
-                  :key="photo.id"
-                  class="d-flex align-items-center mb-2"
-                >
-                  <img
-                    v-if="!photosToDelete.includes(photo.id)"
-                    :src="photo.url"
-                    width="100"
-                  />
-                  <v-icon
-                    v-if="!photosToDelete.includes(photo.id)"
-                    color="red-darken-1"
-                    @click="removeExistingPhoto(photo.id)"
-                    >mdi-delete</v-icon
-                  >
-                </div>
 
-                <output v-for="(photo, index) in previewedPhotos" :key="index">
-                  <!-- <div class="d-flex justify-end"> -->
-                  <img :src="photo" width="100" />
-                  <!-- {{ photo }} -->
-                  <!-- <v-btn small @click="removePhoto(index)">Remove</v-btn> -->
-                  <v-icon color="red-darken-1" @click="removePhoto(index)"
-                    >mdi-delete</v-icon
+                <div class="photo-container">
+                  <div
+                    v-if="props.thingId && photoStore.photos[props.thingId]"
+                    v-for="photo in photoStore.photos[props.thingId]"
+                    :key="photo.id"
+                    class="photo-wrapper"
                   >
-                  <!-- </div> -->
-                </output>
+                    <img
+                      v-if="!photosToDelete.includes(photo.id)"
+                      :src="photo.url"
+                      class="photo"
+                    />
+                    <v-icon
+                      v-if="!photosToDelete.includes(photo.id)"
+                      color="red-darken-1"
+                      class="delete-icon"
+                      @click="removeExistingPhoto(photo.id)"
+                      >mdi-close-circle</v-icon
+                    >
+                  </div>
+
+                  <div
+                    v-for="(photo, index) in previewedPhotos"
+                    :key="index"
+                    class="photo-wrapper"
+                  >
+                    <img :src="photo" class="photo" />
+                    <v-icon
+                      color="red-darken-1"
+                      class="delete-icon"
+                      @click="removePhoto(index)"
+                      >mdi-close-circle</v-icon
+                    >
+                  </div>
+                </div>
               </v-col>
             </v-row>
           </v-col>
@@ -234,13 +241,13 @@ function handleDrop(e: DragEvent) {
   let files = e.dataTransfer?.files
   if (files) {
     let filteredFiles = Array.from(files).filter(
-      (file) => file.type === 'image/jpeg'
+      (file) => file.type === 'image/jpeg' || file.type === 'image/png'
     )
     if (filteredFiles.length > 0) {
       previewPhotos(filteredFiles)
     } else {
       Notification.toast({
-        message: 'only JPEG images are allowed',
+        message: 'only JPEG and PNG images are allowed',
         type: 'error',
       })
     }
@@ -296,6 +303,8 @@ function closeDialog() {
 async function uploadThing() {
   await myForm.value?.validate()
   if (!valid.value) return
+
+  emit('close')
   if (thing) {
     if (props.thingId) {
       await thingStore.updateThing(thing)
@@ -309,7 +318,6 @@ async function uploadThing() {
       await photoStore.updatePhotos(newThing.id, newPhotos.value, [])
     }
   }
-  emit('close')
 }
 
 function onMapLocationClicked(locationData: Thing) {
@@ -337,5 +345,30 @@ onMounted(async () => {
   color: blue;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.photo-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.photo-wrapper {
+  position: relative;
+  margin-right: 20px;
+  width: 6rem;
+  margin-bottom: 20px;
+}
+
+.photo {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.delete-icon {
+  position: absolute;
+  top: -20px;
+  right: -20px;
 }
 </style>
