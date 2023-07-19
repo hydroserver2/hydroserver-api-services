@@ -313,7 +313,6 @@ function populateForm(id: string) {
 }
 
 async function uploadDatastream() {
-  console.log('Data', datastreamStore.datastreams)
   await myForm.value?.validate()
   if (!valid.value) return
   if (datastreamId) await datastreamStore.updateDatastream(datastream)

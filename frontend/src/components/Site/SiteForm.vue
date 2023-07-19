@@ -282,7 +282,6 @@ function removePhoto(index: number) {
 
 function removeExistingPhoto(photoId: string) {
   photosToDelete.value.push(photoId)
-  console.log('photosToDelete', photosToDelete.value)
 }
 
 async function populateThing(id: string) {

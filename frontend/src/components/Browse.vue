@@ -91,7 +91,7 @@ const organizations = computed(() => {
 })
 
 const filterOrganizations = () => {
-  if (!searchInput) {
+  if (!searchInput || !searchInput.value) {
     filteredOrganizations.value = new Set([...organizations.value])
   } else {
     const lowerCase = searchInput.value.toLowerCase()

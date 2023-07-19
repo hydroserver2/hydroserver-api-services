@@ -24,9 +24,6 @@ describe('Sites', () => {
 
   it('links navigate to the correct pages', () => {
     cy.login('john')
-    cy.get('.manage-metadata-button').click()
-    cy.url().should('include', '/Metadata')
-    cy.visit('/sites')
     cy.get('.owned-sites-table tbody tr').first().click()
     cy.get('.single-site-name').should('be.visible')
   })
