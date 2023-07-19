@@ -2,9 +2,13 @@ import uuid
 
 from django.db.models import ForeignKey
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 from accounts.models import CustomUser
-
+import boto3
+from botocore.exceptions import ClientError
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
 
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -26,6 +30,22 @@ class Photo(models.Model):
 
     def __str__(self):
         return f'Photo for {self.thing.name}'
+        
+
+@receiver(pre_delete, sender=Photo)
+def delete_photo(sender, instance, **kwargs):
+    print("deleting photo")
+    s3 = boto3.client('s3', 
+                        region_name='us-east-1', 
+                        aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    
+    file_name = instance.url.split(f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/")[1]
+
+    try:
+        s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)
+    except ClientError as e:
+        print(f"Error deleting {file_name} from S3: {e}")
 
 
 class Location(models.Model):

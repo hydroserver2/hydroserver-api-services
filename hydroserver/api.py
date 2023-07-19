@@ -363,15 +363,6 @@ def update_thing_photos(request, thing_id):
         for photo_id in request.POST.getlist('photosToDelete', []):
             try:
                 photo = Photo.objects.get(id=photo_id)
-                file_name = photo.url.split(f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/")[1]
-                
-                # Delete the photo from S3 bucket
-                try:
-                    s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)
-                except ClientError as e:
-                    print(f"Error deleting {file_name} from S3: {e}")
-                
-                # Delete the photo from the database
                 photo.delete()
             except Photo.DoesNotExist:
                 print(f"Photo {photo_id} does not exist")
