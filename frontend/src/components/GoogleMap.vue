@@ -31,44 +31,47 @@ const clearMarkers = () => {
   markers = []
 }
 
+function generateMarkerContent(markerData: Thing): string {
+  return `
+      <h6 class="text-h6 pb-1">${markerData.name}</h6>
+      <p class="pb-1"><b>
+        ${markerData.county ? markerData.county : ''}
+        ${markerData.county && markerData.state ? ',' : ''}
+        ${markerData.state ? markerData.state : ''}
+      </b></p>
+      <p class="pb-1">${markerData.description}</p>
+      <p class="pt-1">
+        <a href="/sites/${markerData.id}">View data for this site</a>
+      </p>`
+}
+
+function createMarker(
+  markerData: Thing,
+  map: google.maps.Map | null
+): google.maps.Marker | null {
+  if (!markerData || !map) return null
+  const marker = new google.maps.Marker({
+    position: new google.maps.LatLng(markerData.latitude, markerData.longitude),
+    map: map,
+  })
+
+  const content = generateMarkerContent(markerData)
+
+  marker.addListener('click', (e: any) => {
+    if (infoWindow) infoWindow.close()
+    infoWindow = new google.maps.InfoWindow({ content })
+    infoWindow.open({ anchor: marker, map: map })
+    e.stop()
+  })
+  return marker
+}
+
 function loadMarkers() {
   clearMarkers()
   if (!props.things) return
   markers = props.things
-    .map((markerData: Thing) => {
-      if (!markerData || !map) return null
-      const marker = new google.maps.Marker({
-        position: new google.maps.LatLng(
-          markerData.latitude,
-          markerData.longitude
-        ),
-        map: map,
-      })
-
-      const content = `
-            <h6 class="text-h6 pb-1">${markerData.name}</h6>
-            <p class="pb-1"><b>
-              ${markerData.county ? markerData.county : ''}
-              ${markerData.county && markerData.state ? ',' : ''}
-              ${markerData.state ? markerData.state : ''}
-            </b></p>
-            <p class="pb-1">${markerData.description}</p>
-            <p class="pt-1">
-              <a href="/sites/${markerData.id}">View data for this site</a>
-            </p>`
-
-      marker.addListener('click', (e: any) => {
-        if (infoWindow) infoWindow.close()
-        infoWindow = new google.maps.InfoWindow({ content })
-        infoWindow.open({ anchor: marker, map: map })
-        e.stop()
-      })
-      return marker
-    })
-    .filter(
-      (marker: google.maps.Marker | null): marker is google.maps.Marker =>
-        marker !== null
-    )
+    .map((thing) => createMarker(thing, map))
+    .filter((marker): marker is google.maps.Marker => marker !== null)
 }
 
 async function addLocationClicking() {
