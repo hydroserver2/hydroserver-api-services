@@ -60,14 +60,7 @@ const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
 const valid = ref(false)
 const myForm = ref<VForm>()
-
-const processingLevel = reactive<ProcessingLevel>({
-  id: '',
-  person_id: '',
-  processing_level_code: '',
-  definition: '',
-  explanation: '',
-})
+const processingLevel = reactive<ProcessingLevel>(new ProcessingLevel())
 
 async function uploadProcessingLevel() {
   await myForm.value?.validate()

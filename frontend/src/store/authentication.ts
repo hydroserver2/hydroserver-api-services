@@ -9,18 +9,7 @@ export const useAuthStore = defineStore({
   state: () => ({
     access_token: '',
     refresh_token: '',
-    user: {
-      id: '',
-      email: '',
-      password: '',
-      first_name: '',
-      middle_name: '',
-      last_name: '',
-      phone: '',
-      address: '',
-      organization: '',
-      type: '',
-    },
+    user: new User(),
     loggingIn: false,
   }),
   actions: {

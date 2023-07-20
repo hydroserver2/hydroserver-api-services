@@ -216,7 +216,6 @@ async function deleteAccount() {
     Notification.toast({ message: "input doesn't match", type: 'error' })
     return
   }
-  console.log('deleting account')
   await authStore.deleteAccount()
   deleteAccountDialog.value = false
 }

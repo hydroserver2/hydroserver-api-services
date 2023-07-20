@@ -93,23 +93,12 @@ import { methodTypes } from '@/vocabularies'
 
 const sensorStore = useSensorStore()
 const props = defineProps({ id: String })
-const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
 const valid = ref(false)
 const myForm = ref<VForm>()
+const sensor = reactive<Sensor>(new Sensor())
 
-const sensor = reactive<Sensor>({
-  id: '',
-  name: '',
-  description: '',
-  manufacturer: '',
-  model: '',
-  method_type: 'Instrument Deployment',
-  method_code: '',
-  method_link: '',
-  encoding_type: '',
-  model_url: '',
-})
+const isEdit = computed(() => props.id != null)
 
 const isInstrument = computed(
   () => sensor.method_type === 'Instrument Deployment'

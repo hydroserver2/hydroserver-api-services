@@ -257,28 +257,7 @@ const showProcessingLevelModal = ref(false)
 const valid = ref(false)
 const myForm = ref<VForm>()
 
-const datastream = reactive<Datastream>({
-  id: '',
-  thing_id: thingId,
-  observation_type: '',
-  result_type: '',
-  status: '',
-  sampled_medium: '',
-  no_data_value: -999,
-  aggregation_statistic: '',
-  observations: [],
-  most_recent_observation: '',
-  unit_id: '',
-  unit_name: '',
-  observed_property_id: '',
-  observed_property_name: '',
-  method_id: '',
-  method_name: '',
-  processing_level_id: '',
-  processing_level_name: '',
-  is_visible: true,
-  is_primary_owner: false,
-})
+const datastream = reactive<Datastream>(new Datastream(thingId))
 
 const formattedDatastream = computed(() => {
   return datastreamStore.primaryOwnedDatastreams.map((datastream) => ({

@@ -216,25 +216,7 @@ const mapOptions = ref({
   zoom: 4,
   mapTypeId: 'roadmap',
 })
-const thing = reactive<Thing>({
-  id: '',
-  name: '',
-  description: '',
-  sampling_feature_type: '',
-  sampling_feature_code: '',
-  site_type: '',
-  latitude: null as unknown as number, // TODO: This fixed a typescript error, but I don't know if it's the correct or best solution.
-  longitude: null as unknown as number,
-  elevation: null as unknown as number,
-  state: '',
-  county: '',
-  is_primary_owner: false,
-  owns_thing: false,
-  follows_thing: false,
-  owners: [],
-  followers: 0,
-  is_private: false, // TODO: I set a default value here so TypeScript doesn't complain about it being missing.
-})
+const thing = reactive<Thing>(new Thing())
 
 function handleDrop(e: DragEvent) {
   e.preventDefault()
@@ -251,7 +233,6 @@ function handleDrop(e: DragEvent) {
         type: 'error',
       })
     }
-    // previewPhotos(files)
   }
 }
 
@@ -262,7 +243,6 @@ function previewPhotos(files: File[] | FileList | null) {
       reader.onload = (e) => {
         if ((e.target as FileReader).result) {
           previewedPhotos.value.push((e.target as FileReader).result as string)
-          // previewedPhotos.value.push(photo.name)
           newPhotos.value.push(photo)
         }
       }

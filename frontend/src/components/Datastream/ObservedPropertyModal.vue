@@ -74,15 +74,7 @@ const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
 const valid = ref(false)
 const myForm = ref<VForm>()
-
-const observedProperty = reactive<ObservedProperty>({
-  id: '',
-  name: '',
-  definition: '',
-  description: '',
-  variable_type: '',
-  variable_code: '',
-})
+const observedProperty = reactive<ObservedProperty>(new ObservedProperty())
 
 async function uploadObservedProperty() {
   await myForm.value?.validate()
