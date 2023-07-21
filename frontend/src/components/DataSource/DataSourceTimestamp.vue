@@ -1,11 +1,16 @@
 <template>
   <v-container>
     <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-6">Data Source Timestamp</h6>
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-radio-group
           v-model="store.timestampType"
           inline
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         >
           <v-radio
             label="Column Index"
@@ -27,7 +32,7 @@
              (val) => val != null || 'Column index is required.',
              (val) => +val > 0 || 'Column index must be greater than zero.'
           ]"
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col v-if="store.timestampType === 'name'" class="v-col-xs-12 v-col-sm-6">
@@ -38,7 +43,7 @@
           :rules="[
             (val) => val !== '' && val != null || 'Must enter timestamp column name.'
           ]"
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
     </v-row>
@@ -47,7 +52,7 @@
         <v-radio-group
           v-model="store.timestampFormat"
           inline
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         >
           <v-radio
             label="ISO 8601 Format"
@@ -64,7 +69,7 @@
           ref="timestampCustomFormat"
           v-model="store.timestampCustomFormat"
           label="Timestamp Format"
-          :disabled="store.timestampFormat !== 'custom' || store.dataSource != null"
+          :disabled="Boolean(store.timestampFormat !== 'custom' || (store.datastreamId && store.dataSource != null))"
           :rules="[
             (val) => val !== '' && val != null || 'Must enter timestamp format.'
           ]"
@@ -76,14 +81,14 @@
         <v-switch
           v-model="store.timestampUseTimezoneOffset"
           label="Append Timezone Offset?"
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         ></v-switch>
       </v-col>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-autocomplete
           v-model="store.timestampTimezoneOffset"
           label="Timezone Offset"
-          :disabled="store.timestampUseTimezoneOffset === false || store.dataSource != null"
+          :disabled="Boolean(store.timestampUseTimezoneOffset === false || (store.datastreamId && store.dataSource != null))"
           :items="[]"
         ></v-autocomplete>
       </v-col>

@@ -231,7 +231,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                @click="dialogs.linkDataSource = true"
+                @click="handleLinkDataSource(item.raw.id)"
               />
               <v-list-item
                 v-if="is_owner"
@@ -278,8 +278,14 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="dialogs.linkDataSource">
-        <DataSourceForm />
+      <v-dialog
+        v-model="dataSourceDialogOpen"
+        persistent
+      >
+        <DataSourceForm
+          @close-dialog="dataSourceDialogOpen = false"
+          :datastreamId="dataSourceDatastream"
+        />
       </v-dialog>
     </v-row>
   </v-container>
@@ -338,9 +344,11 @@ const dialogs: {
   registerSite: false,
   deleteSite: false,
   accessControl: false,
-  deleteDatastream: false,
-  linkDataSource: false,
+  deleteDatastream: false
 })
+
+const dataSourceDatastream = ref()
+const dataSourceDialogOpen = ref(false)
 
 const deleteInput = ref('')
 const thingProperties = computed(() => {
@@ -409,6 +417,11 @@ const mapOptions = computed(() => {
       mapTypeId: 'satellite',
     }
 })
+
+function handleLinkDataSource(datastreamId: string) {
+  dataSourceDatastream.value = datastreamId
+  dataSourceDialogOpen.value = true
+}
 
 function updateFollow() {
   if (thingStore.things[thingId]) {

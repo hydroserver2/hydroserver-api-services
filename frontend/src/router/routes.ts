@@ -9,6 +9,8 @@ import Browse from '@/components/Browse.vue'
 import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
 import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
 import DataSourceDashboard from '@/components/DataSource/DataSourceDashboard.vue'
+import DataSourceDetail from '@/components/DataSource/DataSourceDetail.vue'
+import DataLoaderDashboard from '@/components/DataSource/DataLoaderDashboard.vue'
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
 import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
@@ -75,6 +77,16 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-sources',
     name: 'DataSources',
     component: DataSourceDashboard,
+  },
+  {
+    path: '/data-sources/:id',
+    name: 'DataSource',
+    component: DataSourceDetail
+  },
+  {
+    path: '/data-loaders',
+    name: 'DataLoaders',
+    component: DataLoaderDashboard
   },
   {
     path: '/sites/:id/datastreams/:datastreamId/datasource',

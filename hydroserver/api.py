@@ -18,7 +18,7 @@ from ninja.security import HttpBasicAuth
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from ninja.errors import HttpError
-from typing import Optional, List
+from typing import Optional, List, Union
 from datetime import datetime
 from uuid import UUID
 from hydroloader import HydroLoaderConf, HydroLoaderConfFileTimestamp, HydroLoaderConfFileDatastream, \
@@ -1457,9 +1457,19 @@ def delete_data_loader(request: HttpRequest, data_loader_id: str):
     return 200
 
 
+class DataSourceDatastream(Schema):
+    id: UUID
+    name: str
+    description: str
+    result_start_time: Optional[datetime]
+    result_end_time: Optional[datetime]
+    column: Union[int, str]
+
+
 class DataSourceGetResponse(HydroLoaderConf):
     id: UUID
     name: str
+    datastreams: List[DataSourceDatastream]
     data_loader: Optional[DataLoaderGetResponse]
     data_source_thru: Optional[datetime]
     last_sync_successful: Optional[bool]
@@ -1472,7 +1482,7 @@ class DataSourceGetResponse(HydroLoaderConf):
 
 class DataSourcePostBody(HydroLoaderConf):
     name: str
-    data_loader: Optional[str]
+    data_loader: Optional[UUID]
     data_source_thru: Optional[datetime]
     last_sync_successful: Optional[bool]
     last_sync_message: Optional[str]
@@ -1483,7 +1493,7 @@ class DataSourcePostBody(HydroLoaderConf):
 @allow_partial
 class DataSourcePatchBody(HydroLoaderConf):
     name: str
-    data_loader: Optional[str]
+    data_loader: Optional[UUID]
     data_source_thru: Optional[datetime]
     last_sync_successful: Optional[bool]
     last_sync_message: Optional[str]
@@ -1534,8 +1544,12 @@ def transform_data_source(data_source):
             offset=data_source.timestamp_offset
         ),
         datastreams=[
-            HydroLoaderConfFileDatastream(
-                datastream_id=datastream.id,
+            DataSourceDatastream(
+                id=datastream.id,
+                name=datastream.name,
+                description=datastream.description,
+                result_start_time=datastream.result_begin_time,
+                result_end_time=datastream.result_end_time,
                 column=datastream.data_source_column
             ) for datastream in data_source.datastream_set.all()
         ]
@@ -1614,7 +1628,8 @@ def post_data_source(request: HttpRequest, data_source: DataSourcePostBody):
 
     DataSourceOwner.objects.create(
         data_source=new_data_source,
-        person=request.authenticated_user
+        person=request.authenticated_user,
+        is_primary_owner=True
     )
 
     for datastream in data_source.datastreams:
