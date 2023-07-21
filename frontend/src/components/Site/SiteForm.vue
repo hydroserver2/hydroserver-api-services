@@ -6,14 +6,14 @@
     <div v-if="thingId" class="flex-shrink-0" style="height: 20rem">
       <GoogleMap
         v-if="loaded"
-        clickable
+        singleMarkerMode
         @location-clicked="onMapLocationClicked"
         :mapOptions="mapOptions"
         :things="[thing]"
       />
     </div>
     <div v-else class="flex-shrink-0" style="height: 20rem">
-      <GoogleMap clickable @location-clicked="onMapLocationClicked" />
+      <GoogleMap singleMarkerMode @location-clicked="onMapLocationClicked" />
     </div>
     <v-divider></v-divider>
     <v-card-text
