@@ -14,3 +14,4 @@ djangorestframework==3.14
 django-cors-headers==3.14
 djangorestframework-simplejwt==5.2.2
 urllib3==1.26.6
+boto3==1.28.8
