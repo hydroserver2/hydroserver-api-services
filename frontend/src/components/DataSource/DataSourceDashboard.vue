@@ -44,7 +44,7 @@
         <v-chip v-if="item.columns.status === 'bad'" color="red">
           Needs Attention
         </v-chip>
-        <v-chip v-if="item.columns.status === 'stale'" color="yellow">
+        <v-chip v-if="item.columns.status === 'stale'" color="orange">
           Behind Schedule
         </v-chip>
         <v-chip v-if="item.columns.status === 'unknown'" color="gray">

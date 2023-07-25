@@ -1716,7 +1716,7 @@ def patch_data_source(request: HttpRequest, data_source_id: str, data_source: Da
     data_source_db.save()
 
     for datastream in data_source.get('datastreams', []):
-        datastream_db = Datastream.objects.get(pk=datastream['datastream_id'])
+        datastream_db = Datastream.objects.get(pk=datastream['id'])
         request.authenticated_user.thing_associations.get(
             thing=datastream_db.thing,
             owns_thing=True

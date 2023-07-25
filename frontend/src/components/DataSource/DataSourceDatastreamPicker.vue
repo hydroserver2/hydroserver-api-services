@@ -59,12 +59,12 @@ if (store.datastreams.length === 0) {
 
 function handleUpdateColumn(datastreamId: string) {
   if (columnInput.value == null || columnInput.value === '') {
-    store.datastreamColumns = store.datastreamColumns.filter(column => column.datastream_id !== datastreamId)
-  } else if (store.datastreamColumns.map(column => column.datastream_id).includes(datastreamId)) {
+    store.datastreamColumns = store.datastreamColumns.filter(column => column.id !== datastreamId)
+  } else if (store.datastreamColumns.map(column => column.id).includes(datastreamId)) {
     store.datastreamColumns = store.datastreamColumns.map((column) => {
-      if (datastreamId === column.datastream_id) {
+      if (datastreamId === column.id) {
         return {
-          datastream_id: column.datastream_id,
+          id: column.id,
           column: columnInput.value
         }
       } else {
@@ -73,7 +73,7 @@ function handleUpdateColumn(datastreamId: string) {
     })
   } else {
     store.datastreamColumns.push({
-      datastream_id: datastreamId,
+      id: datastreamId,
       column: columnInput.value
     })
   }

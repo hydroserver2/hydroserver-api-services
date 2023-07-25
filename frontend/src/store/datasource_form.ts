@@ -63,7 +63,7 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
     datastreamRows(): any {
       return this.datastreams.map((datastream: any) => {
         return {
-          column: (this.datastreamColumns.filter(column => column.datastream_id === datastream.id)[0] || {}).column,
+          column: (this.datastreamColumns.filter(column => column.id === datastream.id)[0] || {}).column,
           ...datastream
         }
       })
@@ -143,7 +143,7 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
 
       if (this.datastreamId) {
         dataSource = this.dataSources.filter(datasource => {
-          return datasource.datastreams.filter((datastream: any) => this.datastreamId === datastream.datastream_id).length > 0
+          return datasource.datastreams.filter((datastream: any) => this.datastreamId === datastream.id).length > 0
         })[0] || null
       } else if (this.dataSourceId) {
         dataSource = this.dataSources.filter(ds => ds.id === this.dataSourceId)[0] || null
@@ -178,7 +178,7 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
 
       this.datastreamColumns = ((dataSource || {}).datastreams || []).map((datastream: any) => {
         return {
-          datastream_id: datastream.id,
+          id: datastream.id,
           column: datastream.column
         }
       })
