@@ -80,13 +80,13 @@ export const useDataSourceDetailStore = defineStore('data-source-detail-store', 
       ) {
         this.status = 'Pending'
       } else if (
-        databaseThruUpper === databaseThruLower &&
-        databaseThruUpper === dataSourceThru &&
+        databaseThruUpper.valueOf() === databaseThruLower.valueOf() &&
+        databaseThruUpper.valueOf() === dataSourceThru.valueOf() &&
         dataSource['last_sync_successful'] === true &&
         nextSync && nextSync >= now
       ) {
         this.status = 'Up-To-Date'
-      } else if (databaseThruLower == null || databaseThruUpper == null || dataSourceThru == null) {
+      } else if (dataSourceThru == null) {
         this.status = 'Needs Attention'
       } else if (
         databaseThruUpper < dataSourceThru
