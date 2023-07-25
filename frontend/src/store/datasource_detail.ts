@@ -80,8 +80,8 @@ export const useDataSourceDetailStore = defineStore('data-source-detail-store', 
       ) {
         this.status = 'Pending'
       } else if (
-        databaseThruUpper.valueOf() === databaseThruLower.valueOf() &&
-        databaseThruUpper.valueOf() === dataSourceThru.valueOf() &&
+        databaseThruUpper?.valueOf() === databaseThruLower?.valueOf() &&
+        databaseThruUpper?.valueOf() === dataSourceThru?.valueOf() &&
         dataSource['last_sync_successful'] === true &&
         nextSync && nextSync >= now
       ) {
@@ -89,11 +89,11 @@ export const useDataSourceDetailStore = defineStore('data-source-detail-store', 
       } else if (dataSourceThru == null) {
         this.status = 'Needs Attention'
       } else if (
-        databaseThruUpper < dataSourceThru
+        databaseThruUpper && dataSourceThru && databaseThruUpper < dataSourceThru
       ) {
         this.status = 'Needs Attention'
       } else if (
-        databaseThruLower < databaseThruUpper
+        databaseThruLower && databaseThruUpper && databaseThruLower < databaseThruUpper
       ) {
         this.status = 'Needs Attention'
       } else if (dataSource['last_sync_successful'] === false) {

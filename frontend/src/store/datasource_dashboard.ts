@@ -55,8 +55,8 @@ export const useDataSourceDashboardStore = defineStore('data-source-dashboard-st
         ) {
           status = 'pending'
         } else if (
-          databaseThruUpper.valueOf() === databaseThruLower.valueOf() &&
-          databaseThruUpper.valueOf() === dataSourceThru.valueOf() &&
+          databaseThruUpper?.valueOf() === databaseThruLower?.valueOf() &&
+          databaseThruUpper?.valueOf() === dataSourceThru?.valueOf() &&
           dataSource['last_sync_successful'] === true &&
           nextSync && nextSync >= now
         ) {
@@ -65,12 +65,12 @@ export const useDataSourceDashboardStore = defineStore('data-source-dashboard-st
           status = 'bad'
           statusTip = 'Some datastreams from this data source may not be synced with HydroServer.'
         } else if (
-          databaseThruUpper < dataSourceThru
+          databaseThruUpper && dataSourceThru && databaseThruUpper < dataSourceThru
         ) {
           status = 'bad'
           statusTip = 'This data source is not synced with HydroServer.'
         } else if (
-          databaseThruLower < databaseThruUpper
+          databaseThruLower && databaseThruUpper && databaseThruLower < databaseThruUpper
         ) {
           status = 'bad'
           statusTip = 'Some datastreams from this data source are not synced with HydroServer.'
