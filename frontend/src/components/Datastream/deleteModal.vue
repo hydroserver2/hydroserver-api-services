@@ -43,41 +43,26 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Datastream,
-  ObservedProperty,
-  ProcessingLevel,
-  Sensor,
-  Unit,
-} from '@/types'
+import { Datastream } from '@/types'
 import { computed, onMounted } from 'vue'
 import { useDatastreamStore } from '@/store/datastreams'
 
 const datastreamStore = useDatastreamStore()
+const emit = defineEmits(['delete', 'close'])
 const props = defineProps({
   itemName: String,
-  item: {
-    type: Object as () =>
-      | ObservedProperty
-      | Sensor
-      | Unit
-      | ProcessingLevel
-      | null,
-  },
+  itemID: [String, Number],
   parameterName: String,
 })
-const emit = defineEmits(['delete', 'close'])
 
 const datastreamsForItem = computed(() => {
-  if (props.item && props.parameterName) {
+  if (props.itemID && props.parameterName) {
     return datastreamStore.getDatastreamsByParameter(
       props.parameterName as keyof Datastream,
-      props.item.id
+      props.itemID
     )
   }
 })
 
-onMounted(async () => {
-  await datastreamStore.fetchDatastreams()
-})
+onMounted(async () => await datastreamStore.fetchDatastreams())
 </script>

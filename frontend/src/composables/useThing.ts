@@ -21,6 +21,13 @@ export function useThing(thingId: string) {
     return false
   })
 
+  const isPrimaryOwner = computed(() => {
+    if (isAuthenticated && thingStore.things[thingId]) {
+      return thingStore.things[thingId].is_primary_owner
+    }
+    return false
+  })
+
   function switchToAccessControlModal() {
     isDeleteModalOpen.value = false
     isAccessControlModalOpen.value = true
@@ -158,6 +165,7 @@ export function useThing(thingId: string) {
     mapOptions,
     updateFollow,
     is_owner,
+    isPrimaryOwner,
     deleteInput,
     deleteThing,
     thingProperties,

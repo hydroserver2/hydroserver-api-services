@@ -5,7 +5,7 @@
         {{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page
       </h5>
     </v-row>
-    <v-row v-if="thingStore.things[thingId].is_primary_owner">
+    <v-row v-if="isPrimaryOwner">
       <v-col>
         <v-autocomplete
           v-if="!datastreamId"
@@ -29,7 +29,7 @@
             v-model="datastream.method_id"
             label="Select sensor"
             :items="
-              thingStore.things[thingId].is_primary_owner
+              isPrimaryOwner
                 ? sensorStore.sensors
                 : thingStore.POMetadata[thingId].sensors
             "
@@ -39,15 +39,11 @@
             :rules="rules.required"
             class="pb-1"
           ></v-autocomplete>
-          <v-btn-secondary
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            variant="elevated"
-            @click="showSensorModal = true"
-            prependIcon="mdi-plus"
-            >Add New</v-btn-secondary
+          <v-btn-add v-if="isPrimaryOwner" @click="showSensorModal = true"
+            >Add New</v-btn-add
           >
           <v-dialog
-            v-if="thingStore.things[thingId]?.is_primary_owner"
+            v-if="isPrimaryOwner"
             v-model="showSensorModal"
             width="60rem"
           >
@@ -62,7 +58,7 @@
             v-model="datastream.observed_property_id"
             label="Select observed property"
             :items="
-              thingStore.things[thingId].is_primary_owner
+              isPrimaryOwner
                 ? opStore.observedProperties
                 : thingStore.POMetadata[thingId].observed_properties
             "
@@ -72,22 +68,14 @@
             no-data-text="No available properties"
             class="pb-1"
           ></v-autocomplete>
-          <v-dialog
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            v-model="showObservedPropertyModal"
-            width="60rem"
-          >
+          <v-dialog v-if="isPrimaryOwner" v-model="showOPModal" width="60rem">
             <ObservedPropertyModal
               @uploaded="datastream.observed_property_id = $event"
-              @close="showObservedPropertyModal = false"
+              @close="showOPModal = false"
             ></ObservedPropertyModal>
           </v-dialog>
-          <v-btn-secondary
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            variant="elevated"
-            @click="showObservedPropertyModal = true"
-            prependIcon="mdi-plus"
-            >Add New</v-btn-secondary
+          <v-btn-add v-if="isPrimaryOwner" @click="showOPModal = true"
+            >Add New</v-btn-add
           >
         </v-col>
         <v-col cols="12" md="3">
@@ -95,7 +83,7 @@
             v-model="datastream.unit_id"
             label="Select unit"
             :items="
-              thingStore.things[thingId].is_primary_owner
+              isPrimaryOwner
                 ? unitStore.units
                 : thingStore.POMetadata[thingId].units
             "
@@ -105,18 +93,10 @@
             no-data-text="No available units"
             class="pb-1"
           ></v-autocomplete>
-          <v-btn-secondary
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            variant="elevated"
-            @click="showUnitModal = true"
-            prependIcon="mdi-plus"
-            >Add New</v-btn-secondary
+          <v-btn-add v-if="isPrimaryOwner" @click="showUnitModal = true"
+            >Add New</v-btn-add
           >
-          <v-dialog
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            v-model="showUnitModal"
-            width="60rem"
-          >
+          <v-dialog v-if="isPrimaryOwner" v-model="showUnitModal" width="60rem">
             <UnitModal
               @uploaded="datastream.unit_id = $event"
               @close="showUnitModal = false"
@@ -129,7 +109,7 @@
             v-model="datastream.processing_level_id"
             label="Select processing level"
             :items="
-              thingStore.things[thingId].is_primary_owner
+              isPrimaryOwner
                 ? plStore.processingLevels
                 : thingStore.POMetadata[thingId].processing_levels
             "
@@ -139,21 +119,13 @@
             no-data-text="No available processing level"
             class="pb-1"
           ></v-autocomplete>
-          <v-btn-secondary
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            variant="elevated"
-            @click="showProcessingLevelModal = true"
-            prependIcon="mdi-plus"
-            >Add New</v-btn-secondary
+          <v-btn-add v-if="isPrimaryOwner" @click="showPLModal = true"
+            >Add New</v-btn-add
           >
-          <v-dialog
-            v-if="thingStore.things[thingId]?.is_primary_owner"
-            v-model="showProcessingLevelModal"
-            width="60rem"
-          >
+          <v-dialog v-if="isPrimaryOwner" v-model="showPLModal" width="60rem">
             <ProcessingLevelModal
               @uploaded="datastream.processing_level_id = $event"
-              @close="showProcessingLevelModal = false"
+              @close="showPLModal = false"
               >Add New</ProcessingLevelModal
             >
           </v-dialog>
@@ -235,6 +207,13 @@ import { Datastream } from '@/types'
 import { useThingStore } from '@/store/things'
 import { VForm } from 'vuetify/components'
 import { rules } from '@/utils/rules'
+import { useThing } from '@/composables/useThing'
+import {
+  useSensors,
+  useUnits,
+  useProcessingLevels,
+  useObservedProperties,
+} from '@/composables/useMetadata'
 
 const datastreamStore = useDatastreamStore()
 const sensorStore = useSensorStore()
@@ -249,10 +228,11 @@ const datastreamId = route.params.datastreamId?.toString() || ''
 const loaded = ref(false)
 const selectedDatastreamID = ref(datastreamId)
 
-const showSensorModal = ref(false)
-const showObservedPropertyModal = ref(false)
-const showUnitModal = ref(false)
-const showProcessingLevelModal = ref(false)
+const { isPrimaryOwner } = useThing(thingId)
+const { isCreateEditModalOpen: showSensorModal } = useSensors()
+const { isCreateEditModalOpen: showUnitModal } = useUnits()
+const { isCreateEditModalOpen: showPLModal } = useProcessingLevels()
+const { isCreateEditModalOpen: showOPModal } = useObservedProperties()
 
 const valid = ref(false)
 const myForm = ref<VForm>()
@@ -270,7 +250,7 @@ const formattedDatastream = computed(() => {
 
 // const formattedProcessingLevels = computed(() => {
 //   let processingLevels
-//   if (thingStore.things[thingId].is_primary_owner) {
+//   if (isPrimaryOwner.value) {
 //     processingLevels = plStore.processingLevels
 //   } else {
 //     processingLevels = thingStore.POMetadata[thingId].processing_levels
@@ -310,7 +290,7 @@ onMounted(async () => {
     plStore.fetchProcessingLevels(),
   ])
 
-  if (!thingStore.things[thingId].is_primary_owner) {
+  if (!isPrimaryOwner.value) {
     await thingStore.fetchPrimaryOwnerMetadataByThingId(thingId)
   }
 

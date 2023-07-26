@@ -66,7 +66,6 @@ export const useDatastreamStore = defineStore('datastreams', {
           `/datastreams/${newDatastream.thing_id}`,
           newDatastream
         )
-        console.log('updatedDS', data)
         if (!this.datastreams[newDatastream.thing_id]) {
           this.datastreams[newDatastream.thing_id] = []
         }

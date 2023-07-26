@@ -38,7 +38,7 @@
           </v-row>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn-cnacel @click="$emit('close')">Cancel</v-btn-cnacel>
+            <v-btn-cancel @click="$emit('close')">Cancel</v-btn-cancel>
             <v-btn type="submit">{{ isEdit ? 'Update' : 'Save' }}</v-btn>
           </v-card-actions>
         </v-form>

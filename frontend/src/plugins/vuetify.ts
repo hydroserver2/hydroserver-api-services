@@ -40,6 +40,7 @@ export default createVuetify({
     VBtnPrimary: VBtn,
     VBtnSecondary: VBtn,
     VBtnCancel: VBtn,
+    VBtnAdd: VBtn,
   },
   components: {
     VDataTable,
@@ -76,6 +77,13 @@ export default createVuetify({
       variant: 'text',
       rounded: true,
       density: 'comfortable',
+    },
+    VBtnAdd: {
+      color: 'secondary',
+      prependIcon: 'mdi-plus',
+      rounded: true,
+      density: 'comfortable',
+      variant: 'elevated',
     },
   },
   theme: {
