@@ -2,7 +2,7 @@
   <v-card>
     <v-card-title class="text-h5">Access Control</v-card-title>
     <v-card-text>
-      <v-row v-if="thingStore.things[thingId]?.is_primary_owner">
+      <v-row v-if="thing?.is_primary_owner">
         <v-col cols="12" md="6">
           <h6 class="text-h6 my-4">
             Add a secondary owner to this site
@@ -86,10 +86,7 @@
           <h6 class="text-h6 my-4">Current Owners</h6>
           <v-card-text>
             <ul>
-              <li
-                class="v-list-item"
-                v-for="owner in thingStore.things[thingId].owners"
-              >
+              <li class="v-list-item" v-for="owner in thing.owners">
                 {{ owner.firstname }} {{ owner.lastname }} -
                 {{ owner.organization }}
                 <strong v-if="owner.is_primary_owner">(Primary)</strong>
@@ -97,7 +94,7 @@
                   <v-btn
                     color="delete"
                     v-if="
-                      thingStore.things[thingId]?.is_primary_owner ||
+                      thing?.is_primary_owner ||
                       owner.email == authStore.user.email
                     "
                     @click="removeOwner(owner.email)"
@@ -110,7 +107,7 @@
           </v-card-text>
         </v-col>
         <v-col cols="12" md="6">
-          <h6 class="text-h6 my-4" v-if="thingStore.things[props.thingId]">
+          <h6 class="text-h6 my-4" v-if="thing">
             Toggle Site Privacy
             <v-tooltip>
               <template v-slot:activator="{ props }">
@@ -124,10 +121,7 @@
                 </v-icon>
               </template>
               <template v-slot:default>
-                <p
-                  v-if="thingStore.things[props.thingId].is_private"
-                  style="max-width: 25rem"
-                >
+                <p v-if="thing.is_private" style="max-width: 25rem">
                   Setting your site to public will make it visible to all users
                   and guests of the system. They will be able to follow your
                   site and download its data
@@ -141,14 +135,10 @@
               </template>
             </v-tooltip>
           </h6>
-          <v-card-text v-if="thingStore.things[props.thingId]">
+          <v-card-text v-if="thing">
             <v-switch
-              v-model="thingStore.things[props.thingId].is_private"
-              :label="
-                thingStore.things[props.thingId].is_private
-                  ? 'Site is private'
-                  : 'Site is public'
-              "
+              v-model="thing.is_private"
+              :label="thing.is_private ? 'Site is private' : 'Site is public'"
               color="primary"
               @change="toggleSitePrivacy"
             ></v-switch>
@@ -165,51 +155,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useThingStore } from '@/store/things'
 import { useAuthStore } from '@/store/authentication'
+import { useThing } from '@/composables/useThing'
 
+const authStore = useAuthStore()
+const emits = defineEmits(['close'])
 const props = defineProps<{
   thingId: string
 }>()
 
-const emits = defineEmits(['close'])
+const {
+  thing,
+  newOwnerEmail,
+  newPrimaryOwnerEmail,
+  addSecondaryOwner,
+  transferPrimaryOwnership,
+  removeOwner,
+  toggleSitePrivacy,
+} = useThing(props.thingId)
 
-const newOwnerEmail = ref('')
-const newPrimaryOwnerEmail = ref('')
-const thingStore = useThingStore()
-const authStore = useAuthStore()
-
-async function addSecondaryOwner() {
-  if (props.thingId && newOwnerEmail.value)
-    await thingStore.addSecondaryOwner(props.thingId, newOwnerEmail.value)
-}
-
-async function transferPrimaryOwnership() {
-  if (props.thingId && newPrimaryOwnerEmail.value)
-    await thingStore.transferPrimaryOwnership(
-      props.thingId,
-      newPrimaryOwnerEmail.value
-    )
-}
-
-async function removeOwner(email: string) {
-  if (props.thingId && email) await thingStore.removeOwner(props.thingId, email)
-}
-
-async function toggleSitePrivacy() {
-  if (!props.thingId) return
-  await thingStore.updateThingPrivacy(
-    props.thingId,
-    thingStore.things[props.thingId].is_private
-  )
-}
-
-const emitClose = () => {
-  emits('close')
-}
-
-onMounted(async () => {
-  if (props.thingId) await thingStore.fetchThingById(props.thingId)
-})
+const emitClose = () => emits('close')
 </script>

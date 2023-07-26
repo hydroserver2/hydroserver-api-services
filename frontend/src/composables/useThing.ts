@@ -119,11 +119,41 @@ export function useThing(thingId: string) {
     await router.push('/sites')
   }
 
+  const newOwnerEmail = ref('')
+  const newPrimaryOwnerEmail = ref('')
+
+  async function addSecondaryOwner() {
+    if (newOwnerEmail.value)
+      await thingStore.addSecondaryOwner(thingId, newOwnerEmail.value)
+  }
+
+  async function transferPrimaryOwnership() {
+    if (newPrimaryOwnerEmail.value)
+      await thingStore.transferPrimaryOwnership(
+        thingId,
+        newPrimaryOwnerEmail.value
+      )
+  }
+
+  async function removeOwner(email: string) {
+    if (email) await thingStore.removeOwner(thingId, email)
+  }
+
+  async function toggleSitePrivacy() {
+    await thingStore.updateThingPrivacy(thingId, thing.value.is_private)
+  }
+
   onMounted(async () => {
     await thingStore.fetchThingById(thingId)
   })
 
   return {
+    newOwnerEmail,
+    newPrimaryOwnerEmail,
+    addSecondaryOwner,
+    transferPrimaryOwnership,
+    removeOwner,
+    toggleSitePrivacy,
     thing,
     mapOptions,
     updateFollow,
