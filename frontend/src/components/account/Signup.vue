@@ -121,18 +121,7 @@ import { VForm } from 'vuetify/components'
 const valid = ref(false)
 const confirmPassword = ref('')
 const myForm = ref<VForm>()
-const user = reactive<User>({
-  id: '',
-  email: '',
-  password: '',
-  first_name: '',
-  middle_name: '',
-  last_name: '',
-  phone: '',
-  address: '',
-  organization: '',
-  type: '',
-})
+const user = reactive<User>(new User())
 
 async function createUser() {
   if (!valid.value) return

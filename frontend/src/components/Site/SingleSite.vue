@@ -1,15 +1,15 @@
 <template>
   <v-container>
-    <v-row v-if="thingStore.things[thingId]">
+    <v-row v-if="thing">
       <v-col class="single-site-name">
-        <h5 class="text-h5">{{ thingStore.things[thingId]?.name }}</h5>
+        <h5 class="text-h5">{{ thing?.name }}</h5>
       </v-col>
     </v-row>
-    <v-row v-if="thingStore.things[thingId]" style="height: 25rem">
+    <v-row v-if="thing" style="height: 25rem">
       <v-col>
         <GoogleMap
-          :key="thing"
-          :things="[thingStore.things[thingId]]"
+          :key="stringThing"
+          :things="[thing]"
           :mapOptions="mapOptions"
         />
       </v-col>
@@ -19,21 +19,21 @@
         <h5 class="text-h5">Site Information</h5>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="dialogs.accessControl = true">Access Control</v-btn>
-        <v-dialog v-model="dialogs.accessControl" width="60rem">
+        <v-btn @click="isAccessControlModalOpen = true">Access Control</v-btn>
+        <v-dialog v-model="isAccessControlModalOpen" width="60rem">
           <SiteAccessControl
-            @close="dialogs.accessControl = false"
+            @close="isAccessControlModalOpen = false"
             :thing-id="thingId"
           ></SiteAccessControl>
         </v-dialog>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="dialogs.registerSite = true" color="secondary"
+        <v-btn @click="isRegisterModalOpen = true" color="secondary"
           >Edit Site Information</v-btn
         >
-        <v-dialog v-model="dialogs.registerSite" width="80rem">
+        <v-dialog v-model="isRegisterModalOpen" width="80rem">
           <SiteForm
-            @close="dialogs.registerSite = false"
+            @close="isRegisterModalOpen = false"
             :thing-id="thingId"
           ></SiteForm>
         </v-dialog>
@@ -42,10 +42,10 @@
         <v-btn
           color="red-darken-3"
           style="margin-left: 1rem"
-          @click="dialogs.deleteSite = true"
+          @click="isDeleteModalOpen = true"
           >Delete Site</v-btn
         >
-        <v-dialog v-model="dialogs.deleteSite" width="40rem">
+        <v-dialog v-model="isDeleteModalOpen" width="40rem">
           <v-card>
             <v-card-title>
               <span class="text-h5">Confirm Deletion</span>
@@ -61,9 +61,7 @@
               page.
             </v-card-text>
             <v-card-text>
-              Please type the site name (<strong>{{
-                thingStore.things[thingId].name
-              }}</strong
+              Please type the site name (<strong>{{ thing.name }}</strong
               >) to confirm deletion:
               <v-form>
                 <v-text-field
@@ -76,7 +74,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn-cancel @click="dialogs.deleteSite = false"
+              <v-btn-cancel @click="isDeleteModalOpen = false"
                 >Cancel</v-btn-cancel
               >
               <v-btn color="delete" @click="deleteThing">Delete</v-btn>
@@ -88,14 +86,10 @@
         <v-switch
           color="secondary"
           hide-details
-          v-if="isAuthenticated && thingStore.things[thingId]"
-          v-model="thingStore.things[thingId].follows_thing"
+          v-if="isAuthenticated && thing"
+          v-model="thing.follows_thing"
           @change="updateFollow"
-          :label="
-            thingStore.things[thingId].follows_thing
-              ? 'You Follow This site'
-              : 'Follow Site'
-          "
+          :label="thing.follows_thing ? 'You Follow This site' : 'Follow Site'"
         ></v-switch>
       </v-col>
     </v-row>
@@ -246,7 +240,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-delete"
                 title="Delete Datastream"
-                @click="showDeleteDatastreamModal(item.raw)"
+                @click="openDeleteModal(item.raw)"
               />
               <v-list-item prepend-icon="mdi-download" title="Download Data" />
             </v-list>
@@ -255,7 +249,7 @@
       </v-data-table>
       <v-dialog
         v-if="selectedDatastream"
-        v-model="dialogs.deleteDatastream"
+        v-model="isDSDeleteModalOpen"
         width="40rem"
       >
         <v-card>
@@ -271,7 +265,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn-cancel @click="dialogs.deleteDatastream = false"
+            <v-btn-cancel @click="isDSDeleteModalOpen = false"
               >Cancel</v-btn-cancel
             >
             <v-btn color="delete" @click="deleteDatastream">Confirm</v-btn>
@@ -290,38 +284,41 @@ import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
 import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
-import { computed, onMounted, ref, reactive, Ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/store/authentication'
-import { useThingStore } from '@/store/things'
-import router from '@/router/router'
-import { useDatastreamStore } from '@/store/datastreams'
-import { Observation, Datastream } from '@/types'
 import LineChart from '@/components/LineChart.vue'
+import { onMounted, reactive } from 'vue'
+import { useRoute } from 'vue-router'
+import { Observation } from '@/types'
 import { usePhotosStore } from '@/store/photos'
+import { useThing } from '@/composables/useThing'
+import { useAuthentication } from '@/composables/useAuthentication'
+import { useDatastreams } from '@/composables/useDatastreams'
 
-const authStore = useAuthStore()
-const thingStore = useThingStore()
 const photoStore = usePhotosStore()
-const datastreamStore = useDatastreamStore()
-const route = useRoute()
-const thingId = route.params.id.toString()
+const thingId = useRoute().params.id.toString()
 
-const is_owner = computed(() => {
-  if (isAuthenticated && thingStore.things[thingId]) {
-    return thingStore.things[thingId].owns_thing
-  }
-  return false
-})
-
-const thing = computed(() => thingStore.things[thingId] as unknown as string)
-
-const visibleDatastreams = computed(() => {
-  if (!datastreamStore.datastreams[thingId]) return []
-  return datastreamStore.datastreams[thingId].filter(
-    (datastream) => datastream.is_visible || is_owner.value
-  )
-})
+const {
+  thing,
+  stringThing,
+  mapOptions,
+  updateFollow,
+  is_owner,
+  deleteInput,
+  deleteThing,
+  thingProperties,
+  isRegisterModalOpen,
+  isDeleteModalOpen,
+  isAccessControlModalOpen,
+  switchToAccessControlModal,
+} = useThing(thingId)
+const {
+  visibleDatastreams,
+  toggleVisibility,
+  selectedDatastream,
+  openDeleteModal,
+  deleteDatastream,
+  isDeleteModalOpen: isDSDeleteModalOpen,
+} = useDatastreams(thingId)
+const { isAuthenticated } = useAuthentication()
 
 const headers = [
   { title: 'Unit Name', key: 'unit_name', sortable: true },
@@ -335,127 +332,10 @@ const headers = [
 const dialogs: {
   [key: string]: boolean
 } = reactive({
-  registerSite: false,
-  deleteSite: false,
-  accessControl: false,
-  deleteDatastream: false,
   linkDataSource: false,
 })
 
-const deleteInput = ref('')
-const thingProperties = computed(() => {
-  if (!thingStore.things[thingId]) return []
-  const {
-    id,
-    sampling_feature_code,
-    latitude,
-    longitude,
-    elevation,
-    description,
-    sampling_feature_type,
-    site_type,
-    state,
-    county,
-    is_private,
-    owners,
-  } = thingStore.things[thingId]
-
-  return [
-    { icon: 'fas fa-id-badge', label: 'ID', value: id },
-    {
-      icon: 'fas fa-barcode',
-      label: 'Site Code',
-      value: sampling_feature_code,
-    },
-    { icon: 'fas fa-map', label: 'Latitude', value: latitude },
-    { icon: 'fas fa-map', label: 'Longitude', value: longitude },
-    { icon: 'fas fa-mountain', label: 'Elevation', value: elevation },
-    { icon: 'fas fa-file-alt', label: 'Description', value: description },
-    {
-      icon: 'fas fa-map-marker-alt',
-      label: 'Sampling Feature Type',
-      value: sampling_feature_type,
-    },
-    { icon: 'fas fa-map-pin', label: 'Site Type', value: site_type },
-    { icon: 'fas fa-flag-usa', label: 'State', value: state },
-    { icon: 'fas fa-flag-usa', label: 'County', value: county },
-    {
-      icon: is_private ? 'fas fa-lock' : 'fas fa-globe',
-      label: 'Privacy',
-      value: is_private ? 'Private' : 'Public',
-    },
-    {
-      icon: 'fas fa-user',
-      label: 'Site Owners',
-      value: owners
-        .map(
-          (owner) =>
-            `${owner.firstname} ${owner.lastname}: ${owner.organization}`
-        )
-        .join(', '),
-    },
-  ]
-})
-
-const isAuthenticated = computed(() => !!authStore.access_token)
-const mapOptions = computed(() => {
-  if (thingStore.things[thingId])
-    return {
-      center: {
-        lat: thingStore.things[thingId].latitude,
-        lng: thingStore.things[thingId].longitude,
-      },
-      zoom: 16,
-      mapTypeId: 'satellite',
-    }
-})
-
-function updateFollow() {
-  if (thingStore.things[thingId]) {
-    thingStore.updateThingFollowership(thingStore.things[thingId])
-  }
-}
-
-async function deleteThing() {
-  if (!thingStore.things[thingId]) {
-    console.error('Site could not be found.')
-    return
-  }
-  if (deleteInput.value !== thingStore.things[thingId].name) {
-    console.error('Site name does not match.')
-    return
-  }
-  await thingStore.deleteThing(thingId)
-  await router.push('/sites')
-}
-
-const selectedDatastream: Ref<Datastream | null> = ref(null)
-
-function showDeleteDatastreamModal(datastream: Datastream) {
-  selectedDatastream.value = datastream
-  dialogs.deleteDatastream = true
-}
-
-async function toggleVisibility(datastream: Datastream) {
-  datastream.is_visible = !datastream.is_visible
-  await datastreamStore.setVisibility(datastream.id, datastream.is_visible)
-}
-
-async function deleteDatastream() {
-  dialogs.deleteDatastream = false
-  if (selectedDatastream.value) {
-    await datastreamStore.deleteDatastream(selectedDatastream.value.id, thingId)
-  }
-}
-
-function switchToAccessControlModal() {
-  dialogs.deleteSite = false
-  dialogs.accessControl = true
-}
-
 onMounted(async () => {
-  await thingStore.fetchThingById(thingId)
   await photoStore.fetchPhotos(thingId)
-  await datastreamStore.fetchDatastreamsByThingId(thingId)
 })
 </script>
