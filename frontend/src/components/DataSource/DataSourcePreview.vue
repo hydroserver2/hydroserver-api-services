@@ -1,6 +1,14 @@
 <template>
   <v-container class="flex-table-container pt-0">
+    <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-6">Data Source Preview</h6>
+      </v-col>
+    </v-row>
+
+
     <v-data-table
+      v-if="false"
       class="flex-table hide-footer file-previewer"
       :headers="tableHeaders"
       :items="tableItems"
@@ -10,6 +18,12 @@
     >
 
     </v-data-table>
+    <v-card
+      v-else
+      title="Preview Placeholder"
+      flat
+      style="height: 100px"
+    />
   </v-container>
 </template>
 

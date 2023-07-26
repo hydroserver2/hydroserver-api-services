@@ -225,7 +225,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                @click="dialogs.linkDataSource = true"
+                @click="handleLinkDataSource(item.raw.id)"
               />
               <v-list-item
                 v-if="is_owner"
@@ -272,8 +272,11 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="dialogs.linkDataSource">
-        <DataSourceForm />
+      <v-dialog v-model="dataSourceDialogOpen" persistent>
+        <DataSourceForm
+          @close-dialog="dataSourceDialogOpen = false"
+          :datastreamId="dataSourceDatastream"
+        />
       </v-dialog>
     </v-row>
   </v-container>
@@ -285,7 +288,7 @@ import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
 import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
 import LineChart from '@/components/LineChart.vue'
-import { onMounted, reactive } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Observation } from '@/types'
 import { usePhotosStore } from '@/store/photos'
@@ -329,11 +332,13 @@ const headers = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const dialogs: {
-  [key: string]: boolean
-} = reactive({
-  linkDataSource: false,
-})
+const dataSourceDatastream = ref()
+const dataSourceDialogOpen = ref(false)
+
+function handleLinkDataSource(datastreamId: string) {
+  dataSourceDatastream.value = datastreamId
+  dataSourceDialogOpen.value = true
+}
 
 onMounted(async () => {
   await photoStore.fetchPhotos(thingId)

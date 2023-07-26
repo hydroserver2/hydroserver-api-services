@@ -1,6 +1,11 @@
 <template>
   <v-container>
     <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-6">Data Source Schedule</h6>
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-text-field
           ref="scheduleStartTime"
@@ -8,7 +13,7 @@
           label="Start Time"
           type="datetime-local"
           clearable
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col class="v-col-xs-12 v-col-sm-6">
@@ -18,7 +23,7 @@
           label="End Time"
           type="datetime-local"
           clearable
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
     </v-row>
@@ -27,7 +32,7 @@
         <v-radio-group
           v-model="store.scheduleType"
           inline
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         >
           <v-radio
             label="Interval"
@@ -49,7 +54,7 @@
              (val) => val != null || 'Interval value is required.',
              (val) => +val > 0 || 'Interval must be greater than zero.'
           ]"
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
@@ -58,7 +63,7 @@
           label="Interval Units"
           :items="intervalUnitValues"
           variant="outlined" density="comfortable"
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col v-if="store.scheduleType === 'crontab'" class="v-col-xs-12 v-col-sm-6">
@@ -66,7 +71,15 @@
           ref="crontab"
           v-model="store.crontab"
           label="Crontab"
-          :disabled="store.dataSource != null"
+          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-switch
+          v-model="store.paused"
+          label="Pause data loading?"
         />
       </v-col>
     </v-row>
