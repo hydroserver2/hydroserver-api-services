@@ -12,7 +12,6 @@
       </v-col>
     </v-row>
     <v-data-table
-      v-if="sensorStore.sensors.length"
       :headers="sensorHeaders"
       :items="sensorStore.sensors"
       class="elevation-3"
@@ -94,7 +93,7 @@
     >
     <v-dialog v-model="isPLCEModalOpen" width="60rem">
       <ProcessingLevelModal
-        :id="isPLSelected ? String(selectedPL.id) : undefined"
+        :id="isPLSelected ? selectedPL.id : undefined"
         @close="isPLCEModalOpen = false"
       ></ProcessingLevelModal>
     </v-dialog>
@@ -129,7 +128,7 @@
     >
     <v-dialog v-model="isUnitCEModalOpen" width="60rem">
       <UnitModal
-        :id="isUnitSelected ? String(selectedUnit.id) : undefined"
+        :id="isUnitSelected ? selectedUnit.id : undefined"
         @close="isUnitCEModalOpen = false"
       ></UnitModal>
     </v-dialog>

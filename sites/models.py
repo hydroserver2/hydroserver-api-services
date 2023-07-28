@@ -107,6 +107,7 @@ class FeatureOfInterest(models.Model):
 
 
 class ProcessingLevel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
     processing_level_code = models.CharField(max_length=255)
     definition = models.TextField()
@@ -117,6 +118,7 @@ class ProcessingLevel(models.Model):
 
 
 class Unit(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     symbol = models.CharField(max_length=50)
