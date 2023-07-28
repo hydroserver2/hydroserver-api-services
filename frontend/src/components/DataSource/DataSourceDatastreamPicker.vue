@@ -1,7 +1,7 @@
 <template>
   <v-data-table
     :headers="datastreamColumns"
-    :items="[...store.datastreamRows.map((row: any) => { return {...row} })]"
+    :items="[...store.datastreamRows]"
   >
     <template v-slot:item.column="{ item }">
       <v-menu

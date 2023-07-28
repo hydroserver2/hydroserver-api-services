@@ -30,6 +30,7 @@
           type="number"
           :rules="[
              (val) => val != null || 'Column index is required.',
+             (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
              (val) => +val > 0 || 'Column index must be greater than zero.'
           ]"
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
@@ -89,7 +90,7 @@
           v-model="store.timestampTimezoneOffset"
           label="Timezone Offset"
           :disabled="Boolean(store.timestampUseTimezoneOffset === false || (store.datastreamId && store.dataSource != null))"
-          :items="[]"
+          :items="timezoneOffsets"
         ></v-autocomplete>
       </v-col>
     </v-row>
@@ -105,6 +106,12 @@ const store = useDataSourceFormStore()
 const timestampColumnIndex = ref()
 const timestampColumnName = ref()
 const timestampCustomFormat = ref()
+
+const timezoneOffsets = ref([
+  '-1200', '-1100', '-1000', '-0900', '-0800', '-0700', '-0600', '-0500', '-0430', '-0400', '-0330', '-0300', '-0200',
+  '-0100', '+0000', '+0100', '+0200', '+0300', '+0330', '+0400', '+0430', '+0500', '+0530', '+0545', '+0600', '+0630',
+  '+0700', '+0800', '+0845', '+0900', '+0930', '+1000', '+1030', '+1100', '+1130', '+1200', '+1245', '+1300', '+1400'
+])
 
 async function validate() {
   let errors = []
@@ -125,7 +132,6 @@ async function validate() {
 defineExpose({
   validate
 })
-
 
 </script>
 

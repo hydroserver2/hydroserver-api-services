@@ -6,18 +6,36 @@
           <h4 class="text-h4 mb-4">{{ store.name }}</h4>
         </v-col>
         <v-spacer/>
-        <v-col>
-          <v-btn
-            color="secondary"
-            prepend-icon="mdi-pencil"
-            @click="dataSourceFormOpen = true"
-          >Edit Data Source</v-btn>
-        </v-col>
-        <v-col>
-          <v-btn
-            color="red"
-            prepend-icon="mdi-delete"
-          >Delete Data Source</v-btn>
+        <v-col class="text-right">
+          <v-tooltip text="Edit Data Source" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                color="secondary"
+                icon="mdi-pencil"
+                @click="dataSourceFormOpen = true"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip text="Delete Data Source" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                color="delete"
+                icon="mdi-delete"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip text="Refresh" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                color="primary"
+                icon="mdi-refresh"
+                @click="loadDataSource"
+              />
+            </template>
+          </v-tooltip>
         </v-col>
       </v-row>
       <v-spacer/>

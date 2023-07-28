@@ -83,8 +83,9 @@
           type="number"
           clearable
           :rules="[
-            (val) => val == null || val > 0 || 'File header row must be greater than zero.',
-            (val) => val == null || val < store.dataStartRow || 'File header row must be less than the data start row.',
+            (val) => val == null || val === '' || val > 0 || 'File header row must be greater than zero.',
+            (val) => val == null || val === '' || val < store.dataStartRow || 'File header row must be less than the data start row.',
+            (val) => val == null || val === '' || val === parseInt(val, 10) || 'File header row must be an integer.'
           ]"
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
@@ -98,6 +99,7 @@
           :rules="[
             (val) => val > 0 || 'Data start row must be greater than zero.',
             (val) => store.fileHeaderRow == null || val > store.fileHeaderRow || 'Data start row must be greater than the file header row.',
+            (val) => val == null || val === parseInt(val, 10) || 'Data start row must be an integer.'
           ]"
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />

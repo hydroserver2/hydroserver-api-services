@@ -51,7 +51,8 @@
           label="Interval"
           type="number"
           :rules="[
-             (val) => val != null || 'Interval value is required.',
+             (val) => val != null && val !== '' || 'Interval value is required.',
+             (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
              (val) => +val > 0 || 'Interval must be greater than zero.'
           ]"
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
