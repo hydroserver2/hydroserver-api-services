@@ -40,5 +40,8 @@ export const useDataLoaderDashboardStore = defineStore('data-loader-dashboard-st
         return dataLoaders
       }, {})
     },
+    async deleteDataLoader(dataLoaderId: string) {
+      const response = await this.$http.delete(`/data-loaders/${dataLoaderId}`)
+    }
   }
 })
