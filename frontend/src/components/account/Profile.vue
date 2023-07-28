@@ -13,7 +13,7 @@
                   style="background-color: #2196f3"
                 >
                   <v-card-title :style="{ color: 'white' }">
-                    <h5 class="text-h5">
+                    <h5 class="text-h5 user-info">
                       {{ authStore.user.first_name }}
                       {{ authStore.user.middle_name }}
                       {{ authStore.user.last_name }}

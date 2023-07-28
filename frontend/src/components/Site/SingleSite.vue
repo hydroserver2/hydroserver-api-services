@@ -19,8 +19,14 @@
         <h5 class="text-h5">Site Information</h5>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="isAccessControlModalOpen = true">Access Control</v-btn>
-        <v-dialog v-model="isAccessControlModalOpen" width="60rem">
+        <v-btn class="access_control" @click="isAccessControlModalOpen = true"
+          >Access Control</v-btn
+        >
+        <v-dialog
+          class="access_control_dialog"
+          v-model="isAccessControlModalOpen"
+          width="60rem"
+        >
           <SiteAccessControl
             @close="isAccessControlModalOpen = false"
             :thing-id="thingId"

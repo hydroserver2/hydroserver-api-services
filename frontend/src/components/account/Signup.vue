@@ -1,7 +1,7 @@
 <template>
   <v-container class="d-flex align-center justify-center my-8">
     <v-card width="50rem">
-      <v-card-title class="mb-4">Sign Up</v-card-title>
+      <v-card-title class="mb-4 signup-title">Sign Up</v-card-title>
       <v-card-text>
         <v-form
           @submit.prevent="createUser"

@@ -14,10 +14,7 @@
     </router-link>
 
     <template v-if="!mdAndDown">
-      <div
-        v-for="path of paths"
-        :key="path.name"
-      >
+      <div v-for="path of paths" :key="path.name">
         <v-btn
           v-if="!path.menu"
           v-bind="path.attrs"
@@ -46,10 +43,7 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item
-              v-for="menuItem of path.menu"
-              v-bind="menuItem.attrs"
-            >
+            <v-list-item v-for="menuItem of path.menu" v-bind="menuItem.attrs">
               <v-list-item-title>
                 {{ menuItem.label }}
               </v-list-item-title>
@@ -98,6 +92,7 @@
           >Log In</v-btn
         >
         <v-btn
+          class="signup-btn"
           prepend-icon="mdi-account-plus-outline"
           to="/SignUp"
           color="surface"
@@ -115,9 +110,7 @@
     location="right"
   >
     <v-list density="compact" nav>
-      <div
-        v-for="path of paths"
-      >
+      <div v-for="path of paths">
         <v-list-item
           v-if="path.attrs"
           v-bind="path.attrs"
@@ -126,9 +119,7 @@
           :value="path.attrs.to || path.attrs.href"
           :class="path.isActive && path.isActive() ? 'primary' : ''"
         ></v-list-item>
-        <div
-          v-else
-        >
+        <div v-else>
           <v-list-item
             v-for="menuItem of path.menu"
             v-bind="menuItem.attrs"
@@ -174,7 +165,7 @@ const { mdAndDown } = useDisplay()
 const drawer = ref(false)
 
 const paths: {
-  name: string,
+  name: string
   attrs?: { to?: string; href?: string }
   label: string
   icon?: string
@@ -201,24 +192,24 @@ const paths: {
       {
         attrs: { to: '/sites' },
         label: 'My Sites',
-        icon: 'mdi-map-marker-multiple'
+        icon: 'mdi-map-marker-multiple',
       },
       {
         attrs: { to: '/Metadata' },
         label: 'Manage Metadata',
-        icon: 'mdi-database-cog'
+        icon: 'mdi-database-cog',
       },
       {
         attrs: { to: '/data-sources' },
         label: 'Manage Data Sources',
-        icon: 'mdi-file-chart'
+        icon: 'mdi-file-chart',
       },
       {
         attrs: { to: '/data-loaders' },
         label: 'Manage Data Loaders',
-        icon: 'mdi-file-upload'
-      }
-    ]
+        icon: 'mdi-file-upload',
+      },
+    ],
   },
   {
     name: 'docs',
