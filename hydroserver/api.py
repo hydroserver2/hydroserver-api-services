@@ -5,11 +5,12 @@ from datetime import timedelta
 
 import os
 from django.contrib.auth import authenticate, logout
-from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
-from django.db import transaction
+from django.core.mail import EmailMessage
+from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse, HttpRequest
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -25,7 +26,7 @@ from hydroloader import HydroLoaderConf, HydroLoaderConfFileTimestamp, HydroLoad
      HydroLoaderConfSchedule, HydroLoaderConfFileAccess
 from hydrothings.validators import allow_partial
 
-from accounts.models import CustomUser
+from accounts.models import CustomUser, PasswordReset
 from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssociation, Thing, Location, Observation, \
     ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner, Photo
 import boto3
@@ -173,29 +174,52 @@ def refresh_token(request, data: CreateRefreshInput):
 class PasswordResetInput(Schema):
     email: str
 
+@api.post("/test_email")
+def send_test_email(request):
+    mail_subject = 'Test Email'
+    message = render_to_string('test_email.html', {
+        'domain': 'hydroserver.ciroh.org',  
+    })
+
+    email = EmailMessage(mail_subject, message, to=["daniel.slaugh@hotmail.com"])
+    email.send()
+
 
 @api.post("/password_reset")
 def password_reset(request, data: PasswordResetInput):
-    data_dict = data.dict()
-    form = PasswordResetForm(data_dict)
-    if form.is_valid():
-        opts = {
-            'use_https': request.is_secure(),
-            'token_generator': default_token_generator,
-            'from_email': None,
-            'email_template_name': 'registration/password_reset_email.html',
-            'request': request,
-        }
+    try:
         user = CustomUser.objects.filter(email=data.email).first()
         if user:
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            try:
+                password_reset = PasswordReset(user=user)
+                password_reset.save()
+            except IntegrityError:
+                PasswordReset.objects.get(user=user).delete()
+                password_reset = PasswordReset(user=user)
+                password_reset.save()
+
             token = default_token_generator.make_token(user)
-            return JsonResponse({'uid': uid, 'token': token})
+            send_password_reset_email(user, password_reset.id, token)
+            
+            return JsonResponse({'message': 'Password reset email sent.'}, status=200)
         else:
             return JsonResponse({'detail': 'User does not exist'}, status=404)
-    else:
-        return JsonResponse({'error': 'An error occurred.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
     
+
+def send_password_reset_email(user, uid, token):
+    mail_subject = 'Reset your password'
+    message = render_to_string('reset_password_email.html', {
+        'user': user,
+        'domain': 'hydroserver.ciroh.com',  
+        'uid': uid,
+        'token': token,
+    })
+
+    email = EmailMessage(mail_subject, message, to=[user.email])
+    email.send()
+
 
 class CreateUserInput(Schema):
     first_name: str

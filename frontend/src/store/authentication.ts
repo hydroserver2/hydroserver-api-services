@@ -144,7 +144,11 @@ export const useAuthStore = defineStore({
           email: email,
         })
         console.log('PR Response', response)
-        return response.status === 200
+        if (response.status === 200) {
+          //generate SES email
+          return true
+        }
+        return false
       } catch (error) {
         console.error('Error requesting password reset:', error)
         Notification.toast({
@@ -152,6 +156,16 @@ export const useAuthStore = defineStore({
             'Error occurred while requesting your password reset email. Please try again.',
           type: 'error',
         })
+        return false
+      }
+    },
+    async testEmail() {
+      try {
+        const response = await this.$http.post('/test_email')
+        console.log('Test Response', response)
+        return response.status === 200
+      } catch (error) {
+        console.error('Error sending test email:', error)
         return false
       }
     },

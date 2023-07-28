@@ -11,7 +11,7 @@
           v-if="!datastreamId"
           v-model="selectedDatastreamID"
           label="Start from an existing datastream"
-          :items="formattedDatastream"
+          :items="formattedDatastreams"
           item-value="id"
         ></v-autocomplete>
       </v-col>
@@ -239,7 +239,7 @@ const myForm = ref<VForm>()
 
 const datastream = reactive<Datastream>(new Datastream(thingId))
 
-const formattedDatastream = computed(() => {
+const formattedDatastreams = computed(() => {
   return datastreamStore.primaryOwnedDatastreams.map((datastream) => ({
     id: datastream.id,
     title: `Sensor:${datastream.method_name},  Observed Property: ${datastream.observed_property_name},
