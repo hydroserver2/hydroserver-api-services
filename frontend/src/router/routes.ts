@@ -11,6 +11,7 @@ import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
 import DataSourceDashboard from '@/components/DataSource/DataSourceDashboard.vue'
 import DataSourceDetail from '@/components/DataSource/DataSourceDetail.vue'
 import DataLoaderDashboard from '@/components/DataSource/DataLoaderDashboard.vue'
+import HydroLoaderDownload from '@/components/DataSource/HydroLoaderDownload.vue'
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
 import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
@@ -87,6 +88,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-loaders',
     name: 'DataLoaders',
     component: DataLoaderDashboard
+  },
+  {
+    path: '/hydroloader/download',
+    name: 'HydroLoader',
+    component: HydroLoaderDownload
   },
   {
     path: '/sites/:id/datastreams/:datastreamId/datasource',
