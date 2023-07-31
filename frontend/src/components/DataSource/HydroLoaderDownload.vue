@@ -34,9 +34,9 @@
 
 <script setup lang="ts">
 
-let version = 'v0.1.7' // TODO: Add this as an environment variable
-let macosLink = `https://sdl-dist.s3.amazonaws.com/${version}/macos/HydroLoader.dmg`
-let windowsLink = `https://sdl-dist.s3.amazonaws.com/${version}/windows/HydroLoader.zip`
+let version = 'v0.1.11' // TODO: Add this as an environment variable
+let macosLink = `https://sdl-dist.s3.amazonaws.com/${version}/macos/Streaming+Data+Loader.dmg`
+let windowsLink = `https://sdl-dist.s3.amazonaws.com/${version}/windows/Streaming+Data+Loader.zip`
 
 </script>
 
