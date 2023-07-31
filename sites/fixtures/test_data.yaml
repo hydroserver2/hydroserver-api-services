@@ -1,5 +1,5 @@
 - model: accounts.customuser
-  pk: 1
+  pk: 1_000_000_000
   fields:
     email: john@example.com
     username: john@example.com
@@ -16,7 +16,7 @@
     address: "123, OpenAI Street"
     type: "Commercial/Professional"
 - model: accounts.customuser
-  pk: 2
+  pk: 1_000_000_001
   fields:
     email: paul@example.com
     username: paul@example.com
@@ -33,7 +33,7 @@
     organization: "University A"
     type: "University Faculty"
 - model: accounts.customuser
-  pk: 3
+  pk: 1_000_000_002
   fields:
     email: jane@example.com
     username: jane@example.com
@@ -113,7 +113,7 @@
 - model: sites.sensor
   pk: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
   fields:
-    person: 3
+    person: 1_000_000_002
     name: test_sensor_2
     description: A test sensor.
     encoding_type: application/json
@@ -126,7 +126,7 @@
 - model: sites.sensor
   pk: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
   fields:
-    person: 2
+    person: 1_000_000_001
     name: test_sensor_3
     description: A test sensor.
     encoding_type: application/json
@@ -139,7 +139,7 @@
 - model: sites.sensor
   pk: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
   fields:
-    person: 3
+    person: 1_000_000_002
     name: test_sensor_1
     description: A test sensor.
     encoding_type: application/json
@@ -154,7 +154,7 @@
   pk: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
   fields:
     name: test_property_1
-    person: 3
+    person: 1_000_000_002
     definition: http://www.example.com/property1
     description: A test property.
     variable_type: Variable
@@ -163,7 +163,7 @@
   pk: 4c310501-31f3-4954-80b0-2279eb049e39
   fields:
     name: test_property_2
-    person: 3
+    person: 1_000_000_002
     definition: http://www.example.com/property2
     description: A test property.
     variable_type: Variable
@@ -172,55 +172,55 @@
   pk: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
   fields:
     name: test_property_3
-    person: 2
+    person: 1_000_000_001
     definition: http://www.example.com/property3
     description: A test property.
     variable_type: Variable
     variable_code: VARIABLE3
 
 - model: sites.processinglevel
-  pk: 1
+  pk: 7e57d004-2b97-44e7-8f03-713f25415a10
   fields:
-    person: 1
+    person: 1_000_000_000
     processing_level_code: test_processing_level_1
     definition: Processing level 1
     explanation: A processing level
 - model: sites.processinglevel
-  pk: 2
+  pk: 83fdb8ba-5db4-4f31-b1fa-e68478a4be13
   fields:
-    person: 2
+    person: 1_000_000_001
     processing_level_code: test_processing_level_2
     definition: Processing level 2
     explanation: A processing level
 - model: sites.processinglevel
-  pk: 3
+  pk: 3c72a7e0-d7fd-4be4-9663-264e4634b020
   fields:
-    person: 3
+    person: 1_000_000_002
     processing_level_code: test_processing_level_3
     definition: Processing level 3
     explanation: A processing level
 
 - model: sites.unit
-  pk: 1
+  pk: 9f33a7bc-f0ae-4e58-9207-58b8c42f9e86
   fields:
     name: test_unit_1
-    person: 1
+    person: 1_000_000_000
     symbol: T
     definition: http://www.example.com/unit1
     unit_type: Unit
 - model: sites.unit
-  pk: 2
+  pk: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
   fields:
     name: test_unit_2
-    person: 2
+    person: 1_000_000_001
     symbol: T
     definition: http://www.example.com/unit2
     unit_type: Unit
 - model: sites.unit
-  pk: 3
+  pk: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
   fields:
     name: test_unit_3
-    person: 3
+    person: 1_000_000_002
     symbol: T
     definition: http://www.example.com/unit3
     unit_type: Unit
@@ -228,11 +228,11 @@
 - model: sites.datastream
   pk: 376be82c-b3a1-4d96-821b-c7954b931f94
   fields:
-    unit: 3
+    unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
     sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
     observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
-    processing_level: 3
+    processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
     name: test_datastream_4
     description: A test datastream.
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
@@ -242,10 +242,10 @@
     value_count: 0
     no_data_value: -9999.0
     intended_time_spacing: 0.0
-    intended_time_spacing_units: 3
+    intended_time_spacing_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
-    time_aggregation_interval_units: 3
+    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     phenomenon_start_time: 2022-01-01 10:10:10+00:00
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
@@ -253,11 +253,11 @@
 - model: sites.datastream
   pk: 8af17d0e-8fce-4264-93b5-e55aa6a7ca02
   fields:
-    unit: 3
+    unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     thing: 0c04fcdc-3876-429e-8260-14b7baca0231
     sensor: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
     observed_property: 4c310501-31f3-4954-80b0-2279eb049e39
-    processing_level: 3
+    processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
     name: test_datastream_2
     description: A test datastream.
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
@@ -267,10 +267,10 @@
     value_count: 0
     no_data_value: -9999.0
     intended_time_spacing: 0.0
-    intended_time_spacing_units: 3
+    intended_time_spacing_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
-    time_aggregation_interval_units: 3
+    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     phenomenon_start_time: 2022-01-01 10:10:10+00:00
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
@@ -278,11 +278,11 @@
 - model: sites.datastream
   pk: c2f32f37-9e2f-471b-a65c-26420e0e55f4
   fields:
-    unit: 3
+    unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     thing: 0c04fcdc-3876-429e-8260-14b7baca0231
     sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
     observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
-    processing_level: 3
+    processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
     name: test_datastream_1
     description: A test datastream.
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
@@ -292,10 +292,10 @@
     value_count: 0
     no_data_value: -9999.0
     intended_time_spacing: 0.0
-    intended_time_spacing_units: 3
+    intended_time_spacing_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
-    time_aggregation_interval_units: 3
+    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     phenomenon_start_time: 2022-01-01 10:10:10+00:00
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
@@ -303,11 +303,11 @@
 - model: sites.datastream
   pk: ca999458-d644-44b0-b678-09a892fd54ac
   fields:
-    unit: 2
+    unit: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
     sensor: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
     observed_property: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
-    processing_level: 2
+    processing_level: 83fdb8ba-5db4-4f31-b1fa-e68478a4be13
     name: test_datastream_3
     description: A test datastream.
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
@@ -317,10 +317,10 @@
     value_count: 0
     no_data_value: -9999.0
     intended_time_spacing: 0.0
-    intended_time_spacing_units: 2
+    intended_time_spacing_units: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
-    time_aggregation_interval_units: 2
+    time_aggregation_interval_units: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
     phenomenon_start_time: 2022-05-01 10:10:10+00:00
     phenomenon_end_time: 2022-05-04 09:10:10+00:00
     result_begin_time: 2022-05-01 10:10:10+00:00
@@ -1138,50 +1138,50 @@
     valid_end_time: null
 
 - model: sites.thingassociation
-  pk: 1
+  pk: 1_100_000_001
   fields:
     thing: 0c04fcdc-3876-429e-8260-14b7baca0231
-    person: 3
+    person: 1_000_000_002
     owns_thing: true
     follows_thing: false
     is_primary_owner: true
 - model: sites.thingassociation
-  pk: 2
+  pk: 1_100_000_002
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
-    person: 3
+    person: 1_000_000_002
     owns_thing: true
     follows_thing: false
     is_primary_owner: true
 - model: sites.thingassociation
-  pk: 3
+  pk: 1_100_000_003
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
-    person: 2
+    person: 1_000_000_001
     owns_thing: true
     follows_thing: false
     is_primary_owner: false
 - model: sites.thingassociation
-  pk: 4
+  pk: 1_100_000_004
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
-    person: 1
+    person: 1_000_000_000
     owns_thing: false
     follows_thing: true
     is_primary_owner: false
 - model: sites.thingassociation
-  pk: 5
+  pk: 1_100_000_005
   fields:
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
-    person: 2
+    person: 1_000_000_001
     owns_thing: true
     follows_thing: false
     is_primary_owner: true
 - model: sites.thingassociation
-  pk: 6
+  pk: 1_100_000_006
   fields:
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
-    person: 1
+    person: 1_000_000_000
     owns_thing: false
     follows_thing: true
     is_primary_owner: false
