@@ -2,7 +2,7 @@
   <v-container>
     <v-row class="mb-4">
       <v-col cols="auto">
-        <h5 class="text-h5">Download HydroLoader</h5>
+        <h5 class="text-h5">Download Streaming Data Loader</h5>
       </v-col>
     </v-row>
     <v-row>
@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 
-let version = 'v0.1.6' // TODO: Add this as an environment variable
+let version = 'v0.1.7' // TODO: Add this as an environment variable
 let macosLink = `https://sdl-dist.s3.amazonaws.com/${version}/macos/HydroLoader.dmg`
 let windowsLink = `https://sdl-dist.s3.amazonaws.com/${version}/windows/HydroLoader.zip`
 
