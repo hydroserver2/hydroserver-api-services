@@ -4,7 +4,7 @@ import dj_database_url
 from pathlib import Path
 
 from corsheaders.defaults import default_headers
-from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
+from pydantic import BaseSettings, PostgresDsn
 from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
@@ -218,3 +218,17 @@ STAPI_DESCRIPTION = '''
 STAPI_VERSION = '1.1'
 
 FROST_BASE_URL = 'http://localhost:8080/FROST-Server'
+
+# AUTHLIB CLIENTS
+AUTHLIB_OAUTH_CLIENTS = {
+  'orcid': {
+    'client_id': 'APP-9AKK9NPAYMJZSY95',
+    'client_secret': 'e9e8a4b3-9381-41c8-bbc1-d31e1577c5c5',
+    'authorize_url': 'https://sandbox.orcid.org/oauth/authorize',
+    # 'access_token_url': 'https://sandbox.orcid.org/oauth/token',
+    # 'token_endpoint':'https://sandbox.orcid.org/oauth/token',
+    # 'health_url': 'https://sandbox.orcid.org/'
+  }
+}
+
+OUTSIDE_HOST='localhost:8000'

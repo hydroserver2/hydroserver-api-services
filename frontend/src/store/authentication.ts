@@ -6,11 +6,12 @@ import { useResetStore } from '@/store/resetStore'
 import { getQueryString } from '@/utils/api-client'
 import { Subject } from 'rxjs'
 const APP_URL = import.meta.env.VITE_APP_URL || ''
-const LOGIN_URL = import.meta.env.VITE_LOGIN_URL || ''
+const LOGIN_URL = import.meta.env.VITE_APP_LOGIN_URL || ''
 
 export const useAuthStore = defineStore({
   id: 'authentication',
   state: () => ({
+    // PERSISTED
     access_token: '',
     refresh_token: '',
     user: {
@@ -25,6 +26,7 @@ export const useAuthStore = defineStore({
       organization: '',
       type: '',
     },
+    // NOT PERSISTED
     loggingIn: false,
     isLoginListenerSet: false,
     loggedIn$: new Subject<void>(),
@@ -156,22 +158,15 @@ export const useAuthStore = defineStore({
       }
     },
     async oAuthLogin(callback?: () => any) {
-      // TODO: update object for selected service params
       const params = {
-        response_type: 'token',
-        client_id: 'local_iguide_api',
-        redirect_uri: `${APP_URL}/auth-redirect`,
         window_close: 'True',
       }
 
       window.open(
         `${LOGIN_URL}?${getQueryString(params)}`,
-        '_blank',
-        'location=1, status=1, scrollbars=1, width=800, height=800'
+        '_blank'
+        // 'location=1, status=1, scrollbars=1, width=800, height=800'
       )
-
-      // TODO: we need to make this property non-persisted
-      console.log(this.isLoginListenerSet)
 
       if (!this.isLoginListenerSet) {
         this.isLoginListenerSet = true // Prevents registering the listener more than once
@@ -230,5 +225,9 @@ export const useAuthStore = defineStore({
     isLoggedIn: (state) => {
       return !!state.access_token
     },
+  },
+  // TODO: do this for all other stores
+  persist: {
+    paths: ['access_token', 'refresh_token', 'user'],
   },
 })

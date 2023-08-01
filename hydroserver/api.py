@@ -12,23 +12,24 @@ from django.http import JsonResponse, HttpRequest
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from ninja import Schema, NinjaAPI, Query
+from ninja import NinjaAPI
 from ninja.security import HttpBasicAuth
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from ninja.errors import HttpError
-from typing import Optional, List
-from datetime import datetime
-from uuid import UUID
-from hydroloader import HydroLoaderConf, HydroLoaderConfFileTimestamp, HydroLoaderConfFileDatastream, \
+from typing import List
+from hydroloader import HydroLoaderConfFileTimestamp, HydroLoaderConfFileDatastream, \
      HydroLoaderConfSchedule, HydroLoaderConfFileAccess
 from hydrothings.validators import allow_partial
 
 from accounts.models import CustomUser
+from hydroserver.schemas import *
 from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssociation, Thing, Location, Observation, \
     ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner
 
-from authlib.integrations.starlette_client import OAuth
+from starlette.responses import HTMLResponse, Response
+import json
+from hydroserver import oauth
 
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
@@ -37,13 +38,7 @@ class BasicAuth(HttpBasicAuth):
             request.authenticated_user = user
             return user
 
-
 api = NinjaAPI()
-
-from starlette.config import Config
-dotenv_file = ".env"
-config = Config(dotenv_file)
-oauth = OAuth(config)
 
 def jwt_auth(request):
     try:
@@ -129,11 +124,6 @@ def datastream_ownership_required(func):
     return wrapper
 
 
-class GetTokenInput(Schema):
-    email: str
-    password: str
-
-
 @api.post('/token')
 def get_token(request, data: GetTokenInput):
     email = data.email
@@ -151,36 +141,43 @@ def get_token(request, data: GetTokenInput):
 
 
 @api.get('/login')
-async def login(request, window_close: bool = False):
-    redirect_uri = ''
+def login(request, window_close: bool = False):
+    redirect_uri = request.build_absolute_uri('/api/auth')
+
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
-    response = await oauth.orcid.authorize_redirect(request, redirect_uri + f"?window_close={window_close}")
-    return response
-   
 
-# TODO: adapt method and add dependencies
+    return oauth.orcid.authorize_redirect(request, redirect_uri + f"?window_close={window_close}")
+
+
 @api.get('/auth')
-async def auth(request):
+def auth(request, window_close: bool = False):
     try:
-        orcid_response = await oauth.orcid.authorize_access_token(request)
-        orcid_response = ORCIDResponse(**orcid_response)
-    except OAuthError as error:
-        return HTMLResponse(f'<h1>{error.error}</h1>')
-    user: User = await create_or_update_user(orcid_response)
-    token = user.access_token
-    if window_close:
+        # TODO: this request fails because of a CSRF error
+        token = oauth.orcid.authorize_access_token(request)
+        resp = oauth.orcid.get('user', token=token)
+        resp.raise_for_status()
+        profile = resp.json()
+        print(profile)
+    except (KeyError, IndexError, InvalidToken, TokenError) as e:
+        return HTMLResponse(f'<h1>{e.error}</h1>')
+    
+    # TODO: get user token and data using `profile` data
+    user = CustomUser.objects.get(email=profile.email)
+    token = RefreshToken.for_user(user)
+
+    if user and window_close:
         responseHTML = '<html><head><title>HydroServer Sign In</title></head><body></body><script>res = %value%; window.opener.postMessage(res, "*");window.close();</script></html>'
         responseHTML = responseHTML.replace(
-            "%value%", json.dumps({'token': token, 'expiresIn': orcid_response.expires_in})
+            "%value%", json.dumps({
+            'access_token': str(token.access_token),
+            'refresh_token': str(token),
+            'user': user_to_dict(user)
+          })
         )
         return HTMLResponse(responseHTML)
 
     return Response(token)
-
-
-class CreateRefreshInput(Schema):
-    refresh_token: str
 
 
 @api.post("/token/refresh")
@@ -199,10 +196,6 @@ def refresh_token(request, data: CreateRefreshInput):
         return JsonResponse({'error': 'User does not exist'}, status=401)
     except (InvalidToken, TokenError, KeyError, ValueError) as e:
         return JsonResponse({'error': str(e)}, status=401)
-
-
-class PasswordResetInput(Schema):
-    email: str
 
 
 @api.post("/password_reset")
@@ -227,18 +220,6 @@ def password_reset(request, data: PasswordResetInput):
     else:
         return JsonResponse({'error': 'An error occurred.'}, status=400)
     
-
-class CreateUserInput(Schema):
-    first_name: str
-    last_name: str
-    email: str
-    password: str
-    middle_name: str = None
-    phone: str = None
-    address: str = None
-    type: str = None
-    organization: str = None
-
 
 @api.post('/user')
 def create_user(request, data: CreateUserInput):
@@ -287,15 +268,6 @@ def user_to_dict(user):
 # def get_user(request):
 #     return JsonResponse(user_to_dict(request.authenticated_user))
 
-
-class UpdateUserInput(Schema):
-    first_name: str = None
-    last_name: str = None
-    middle_name: str = None
-    phone: str = None
-    address: str = None
-    organization: str = None
-    type: str = None
 
 
 @api.patch('/user', auth=jwt_auth)
@@ -374,19 +346,6 @@ def thing_to_dict(thing, user):
     return thing_dict
 
 
-class ThingInput(Schema):
-    name: str
-    description: str = None
-    sampling_feature_type: str = None
-    sampling_feature_code: str = None
-    site_type: str = None
-    latitude: float
-    longitude: float
-    elevation: float
-    state: str = None
-    county: str = None
-
-
 @api.post('/things', auth=jwt_auth)
 def create_thing(request, data: ThingInput):
     with transaction.atomic():
@@ -426,13 +385,6 @@ def get_thing(request, thing_id: str):
     thing = Thing.objects.get(id=thing_id)
     thing_dict = thing_to_dict(thing, request.user_if_there_is_one)
     return JsonResponse(thing_dict)
-
-
-class UpdateOwnershipInput(Schema):
-    email: str
-    make_owner: bool = False
-    remove_owner: bool = False
-    transfer_primary: bool = False
 
 
 def transfer_properties_ownership(datastream, new_owner, old_owner):
@@ -590,9 +542,6 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
     return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
 
 
-class UpdateThingPrivacy(Schema):
-    is_private: bool
-
 
 @api.patch('/things/{thing_id}/privacy', auth=jwt_auth)
 @thing_ownership_required
@@ -628,19 +577,6 @@ def update_thing_followership(request, thing_id: str):
 
     return JsonResponse(thing_to_dict(thing, request.authenticated_user))
 
-
-class UpdateThingInput(Schema):
-    name: str = None
-    description: str = None
-    sampling_feature_type: str = None
-    sampling_feature_code: str = None
-    site_type: str = None
-    latitude: float = None
-    longitude: float = None
-    elevation: float = None
-    city: str = None
-    state: str = None
-    county: str = None
 
 
 @api.patch('/things/{thing_id}')
@@ -703,18 +639,6 @@ def sensor_to_dict(sensor):
         "encoding_type": sensor.encoding_type,
         "model_url": sensor.model_url,
     }
-
-
-class SensorInput(Schema):
-    name: str = None
-    description: str = None
-    encoding_type: str = None
-    manufacturer: str = None
-    model: str = None
-    model_url: str = None
-    method_type: str = None
-    method_link: str = None
-    method_code: str = None
 
 
 @api.post('/sensors', auth=jwt_auth)
@@ -803,13 +727,6 @@ def get_observed_properties(request):
     return JsonResponse([observed_property_to_dict(op) for op in observed_properties], safe=False)
 
 
-class ObservedPropertyInput(Schema):
-    name: str
-    definition: str
-    description: str
-    variable_type: str = None
-    variable_code: str = None
-
 
 @api.post('/observed-properties', auth=jwt_auth)
 def create_observed_property(request, data: ObservedPropertyInput):
@@ -860,31 +777,6 @@ def delete_observed_property(request, observed_property_id: str):
 
     return {'detail': 'Observed Property deleted successfully.'}
 
-
-class CreateDatastreamInput(Schema):
-    thing_id: str
-    method_id: str
-    observed_property_id: str
-    processing_level_id: str = None
-    unit_id: str = None
-
-    observation_type: str = None
-    result_type: str = None
-    status: str = None
-    sampled_medium: str = None
-    value_count: str = None
-    no_data_value: str = None
-    intended_time_spacing: str = None
-    intended_time_spacing_units: str = None
-
-    aggregation_statistic: str = None
-    time_aggregation_interval: str = None
-    time_aggregation_interval_units: str = None
-
-    phenomenon_start_time: str = None
-    phenomenon_end_time: str = None
-    result_begin_time: str = None
-    result_end_time: str = None
 
 
 def datastream_to_dict(datastream, association=None, add_recent_observations=True):
@@ -1020,31 +912,6 @@ def get_datastreams_for_thing(request, thing_id: str):
         return get_public_datastreams(thing_id=thing_id)
 
 
-class UpdateDatastreamInput(Schema):
-    unit_id: str = None
-    method_id: str = None
-    observed_property_id: str = None
-    processing_level_id: str = None
-
-    observation_type: str = None
-    result_type: str = None
-    status: str = None
-    sampled_medium: str = None
-    value_count: str = None
-    no_data_value: str = None
-    intended_time_spacing: str = None
-    intended_time_spacing_units: str = None
-
-    aggregation_statistic: str = None
-    time_aggregation_interval: str = None
-    time_aggregation_interval_units: str = None
-
-    phenomenon_start_time: str = None
-    phenomenon_end_time: str = None
-    result_begin_time: str = None
-    result_end_time: str = None
-    is_visible: bool = None
-
 
 @api.patch('/datastreams/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
@@ -1175,13 +1042,6 @@ def get_primary_owner_metadata(request, thing_id):
     })
 
 
-class CreateUnitInput(Schema):
-    name: str
-    symbol: str
-    definition: str
-    unit_type: str
-
-
 @api.post('/units', auth=jwt_auth)
 def create_unit(request, data: CreateUnitInput):
     unit = Unit.objects.create(
@@ -1193,12 +1053,6 @@ def create_unit(request, data: CreateUnitInput):
     )
     return JsonResponse(unit_to_dict(unit))
 
-
-class UpdateUnitInput(Schema):
-    name: str
-    symbol: str
-    definition: str
-    unit_type: str
 
 
 @api.patch('/units/{unit_id}', auth=jwt_auth)
@@ -1232,12 +1086,6 @@ def delete_unit(request, unit_id: str):
 
     unit.delete()
     return {'detail': 'Unit deleted successfully.'}
-
-
-class ProcessingLevelInput(Schema):
-    processing_level_code: str
-    definition: str
-    explanation: str
 
 
 def processing_level_to_dict(processing_level):
@@ -1298,20 +1146,6 @@ def delete_processing_level(request, processing_level_id: str):
 
     pl.delete()
     return {'detail': 'Processing level deleted successfully.'}
-
-
-class DataLoaderGetResponse(Schema):
-    id: UUID
-    name: str
-
-
-class DataLoaderPostBody(Schema):
-    name: str
-
-
-@allow_partial
-class DataLoaderPatchBody(Schema):
-    name: str
 
 
 @api.get(
@@ -1427,40 +1261,6 @@ def delete_data_loader(request: HttpRequest, data_loader_id: str):
     data_loader.delete()
 
     return 200
-
-
-class DataSourceGetResponse(HydroLoaderConf):
-    id: UUID
-    name: str
-    data_loader: Optional[DataLoaderGetResponse]
-    data_source_thru: Optional[datetime]
-    last_sync_successful: Optional[bool]
-    last_sync_message: Optional[str]
-    last_synced: Optional[datetime]
-    next_sync: Optional[datetime]
-    database_thru_upper: Optional[datetime]
-    database_thru_lower: Optional[datetime]
-
-
-class DataSourcePostBody(HydroLoaderConf):
-    name: str
-    data_loader: Optional[str]
-    data_source_thru: Optional[datetime]
-    last_sync_successful: Optional[bool]
-    last_sync_message: Optional[str]
-    last_synced: Optional[datetime]
-    next_sync: Optional[datetime]
-
-
-@allow_partial
-class DataSourcePatchBody(HydroLoaderConf):
-    name: str
-    data_loader: Optional[str]
-    data_source_thru: Optional[datetime]
-    last_sync_successful: Optional[bool]
-    last_sync_message: Optional[str]
-    last_synced: Optional[datetime]
-    next_sync: Optional[datetime]
 
 
 def transform_data_source(data_source):
