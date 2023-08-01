@@ -230,5 +230,3 @@ AUTHLIB_OAUTH_CLIENTS = {
     # 'health_url': 'https://sandbox.orcid.org/'
   }
 }
-
-OUTSIDE_HOST='localhost:8000'
