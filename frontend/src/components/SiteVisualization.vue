@@ -33,7 +33,6 @@ const data = observations.value.map((observation) => ({
   date: new Date(observation.result_time),
   value: Number(observation.result),
 }))
-data.sort((a, b) => a.date.getTime() - b.date.getTime())
 
 function drawD3Chart() {
   if (!chart.value) return

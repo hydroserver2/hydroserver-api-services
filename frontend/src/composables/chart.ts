@@ -33,7 +33,6 @@ export function drawChart(
   unitName: string
 ): SVGSVGElement | null {
   data.sort((a, b) => a.date.getTime() - b.date.getTime())
-  console.log('data', data)
 
   // Set dimensions and margins
   const margin = { top: 20, right: 20, bottom: 30, left: 30 }
