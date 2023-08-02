@@ -19,6 +19,7 @@ import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import { RouteLocationNormalized } from 'vue-router'
 import PageNotFound from '@/components/base/PageNotFound.vue'
+import SiteVisualization from '@/components/SiteVisualization.vue'
 
 function requireAuth(
   to: RouteLocationNormalized,
@@ -69,6 +70,11 @@ export const routes: RouteRecordRaw[] = [
   },
   { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
   {
+    path: '/visualization/:id/:datastreamId',
+    name: 'SiteVisualization',
+    component: SiteVisualization,
+  },
+  {
     path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',
     component: DatastreamForm,
@@ -82,17 +88,17 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/data-sources/:id',
     name: 'DataSource',
-    component: DataSourceDetail
+    component: DataSourceDetail,
   },
   {
     path: '/data-loaders',
     name: 'DataLoaders',
-    component: DataLoaderDashboard
+    component: DataLoaderDashboard,
   },
   {
     path: '/hydroloader/download',
     name: 'HydroLoader',
-    component: HydroLoaderDownload
+    component: HydroLoaderDownload,
   },
   {
     path: '/sites/:id/datastreams/:datastreamId/datasource',

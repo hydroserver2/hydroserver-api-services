@@ -179,7 +179,14 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <LineChart class="pt-2" :observations="item.raw.observations" />
+            <router-link
+              :to="{
+                name: 'SiteVisualization',
+                params: { id: thingId, datastreamId: item.raw.id },
+              }"
+            >
+              <LineChart class="pt-2" :observations="item.raw.observations" />
+            </router-link>
           </div>
           <div v-else>No data for this datastream</div>
           <!-- <div v-if="item.raw.stale">stale</div>
