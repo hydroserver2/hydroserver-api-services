@@ -3,7 +3,7 @@
     <v-col cols="10" lg="8">
       <v-card class="elevation-5">
         <h5 class="text-h5 pt-2 text-center">
-          Datastream for {{ thing.name }}
+          Datastream for {{ thing?.name }}
         </h5>
         <div ref="chart"></div>
       </v-card>
@@ -26,19 +26,18 @@ const { datastream, observations } = useDatastream(thingId, datastreamId)
 
 let chart = ref<null | HTMLDivElement>(null)
 
-watchEffect(drawD3Chart)
-
-// Format the data
 const data = observations.value.map((observation) => ({
   date: new Date(observation.result_time),
   value: Number(observation.result),
 }))
 
+watchEffect(drawD3Chart)
+
 function drawD3Chart() {
   if (!chart.value) return
   chart.value.innerHTML = ''
 
-  const svg = drawChart(data, datastream.value.unit_name)
+  const svg = drawChart(data, datastream.value?.unit_name || '')
   if (svg) chart.value.appendChild(svg)
 }
 </script>

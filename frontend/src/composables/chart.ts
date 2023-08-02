@@ -32,13 +32,18 @@ export function drawChart(
   data: ChartData[],
   unitName: string
 ): SVGSVGElement | null {
+  if (!data || data.length === 0) {
+    console.warn('Data array is empty, cannot draw chart')
+    return null
+  }
+
   data.sort((a, b) => a.date.getTime() - b.date.getTime())
 
   // Set dimensions and margins
   const margin = { top: 20, right: 20, bottom: 30, left: 30 }
   const width = 928
   const height = 500
-  const labelWidth = 20
+  const labelWidth = 50
 
   // Create the horizontal and vertical scales
   let x = d3.scaleUtc().range([0, width - margin.right])
