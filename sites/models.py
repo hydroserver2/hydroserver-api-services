@@ -194,8 +194,9 @@ class Datastream(models.Model):
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, related_name='datastreams')
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT)
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True, related_name='unit', db_constraint=False)
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True,
+                                         related_name='processing_level', db_constraint=False)
 
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
@@ -207,11 +208,12 @@ class Datastream(models.Model):
     no_data_value = models.FloatField(max_length=255, null=True, blank=True)
     intended_time_spacing = models.FloatField(max_length=255, null=True, blank=True)
     intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                    related_name='intended_time_spacing')
+                                                    related_name='intended_time_spacing', db_constraint=False)
     aggregation_statistic = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
     time_aggregation_interval = models.FloatField(max_length=255, null=True, blank=True)
     time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                        related_name='time_aggregation_interval')
+                                                        related_name='time_aggregation_interval', db_constraint=False)
+
     # observed_area = models.TextField(null=True)
     phenomenon_start_time = models.DateTimeField(null=True, blank=True)
     phenomenon_end_time = models.DateTimeField(null=True, blank=True)

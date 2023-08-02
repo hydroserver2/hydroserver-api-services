@@ -32,7 +32,7 @@
               name: 'HydroLoader'
             }"
           >
-            Download HydroLoader
+            Download Streaming Data Loader
           </v-btn>
         </v-toolbar>
       </template>
