@@ -143,12 +143,7 @@ export const useAuthStore = defineStore({
         const response = await this.$http.post('/password_reset', {
           email: email,
         })
-        console.log('PR Response', response)
-        if (response.status === 200) {
-          //generate SES email
-          return true
-        }
-        return false
+        return response.status === 200
       } catch (error) {
         console.error('Error requesting password reset:', error)
         Notification.toast({
@@ -159,13 +154,28 @@ export const useAuthStore = defineStore({
         return false
       }
     },
-    async testEmail() {
+    async resetPassword(uid: string, token: string, password: string) {
       try {
-        const response = await this.$http.post('/test_email')
-        console.log('Test Response', response)
-        return response.status === 200
+        const response = await this.$http.post('/reset_password', {
+          uid: uid,
+          token: token,
+          password: password,
+        })
+        console.log('Reset Password Response', response)
+        if (response.status === 200) {
+          Notification.toast({
+            message: 'Successfully reset password!',
+            type: 'success',
+          })
+          await router.push({ name: 'Login' })
+        }
       } catch (error) {
-        console.error('Error sending test email:', error)
+        console.error('Error requesting password reset:', error)
+        Notification.toast({
+          message:
+            'Error occurred while requesting your password reset email. Please try again.',
+          type: 'error',
+        })
         return false
       }
     },

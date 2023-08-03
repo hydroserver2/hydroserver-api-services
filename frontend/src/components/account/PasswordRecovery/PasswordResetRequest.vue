@@ -37,7 +37,6 @@ const email = ref('')
 const resetEmailSent = ref(false)
 
 const submitForm = async () => {
-  // resetEmailSent.value = await useAuthStore().requestPasswordReset(email.value)
-  resetEmailSent.value = await useAuthStore().testEmail()
+  resetEmailSent.value = await useAuthStore().requestPasswordReset(email.value)
 }
 </script>

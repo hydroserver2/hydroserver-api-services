@@ -6,7 +6,7 @@ from datetime import timedelta
 import os
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse, HttpRequest
@@ -171,22 +171,12 @@ def refresh_token(request, data: CreateRefreshInput):
         return JsonResponse({'error': str(e)}, status=401)
 
 
-class PasswordResetInput(Schema):
+class PasswordResetRequestInput(Schema):
     email: str
-
-@api.post("/test_email")
-def send_test_email(request):
-    mail_subject = 'Test Email'
-    message = render_to_string('test_email.html', {
-        'domain': 'hydroserver.ciroh.org',  
-    })
-
-    email = EmailMessage(mail_subject, message, to=["daniel.slaugh@hotmail.com"])
-    email.send()
 
 
 @api.post("/password_reset")
-def password_reset(request, data: PasswordResetInput):
+def password_reset(request, data: PasswordResetRequestInput):
     try:
         user = CustomUser.objects.filter(email=data.email).first()
         if user:
@@ -209,16 +199,48 @@ def password_reset(request, data: PasswordResetInput):
     
 
 def send_password_reset_email(user, uid, token):
-    mail_subject = 'Reset your password'
-    message = render_to_string('reset_password_email.html', {
+    mail_subject = 'Password Reset'
+
+    context = {
         'user': user,
-        'domain': 'hydroserver.ciroh.com',  
         'uid': uid,
         'token': token,
-    })
+        'domain': 'hydroserver.ciroh.org',  
+    }
 
-    email = EmailMessage(mail_subject, message, to=[user.email])
-    email.send()
+    html_message = render_to_string('reset_password_email.html', context)
+
+    send_mail(
+        mail_subject,
+        '', # Don't support plain text emails
+        'HydroServer <admin@hydroserver.ciroh.org>',
+        [user.email],
+        html_message=html_message,
+    )
+
+
+class ResetPasswordInput(Schema):
+    uid: str
+    token: str
+    password: str
+
+@api.post("/reset_password")
+def reset_password(request, data: ResetPasswordInput):
+    try:
+        password_reset = PasswordReset.objects.get(pk=data.uid)
+    except (PasswordReset.DoesNotExist):
+        return JsonResponse({'error': 'Invalid UID'}, status=400)
+        
+    user = password_reset.user
+
+    if not default_token_generator.check_token(user, data.token):
+        return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+    user.set_password(data.password)
+    user.save()
+    password_reset.delete()
+
+    return JsonResponse({'message': 'Password reset successful'}, status=200)
 
 
 class CreateUserInput(Schema):

@@ -15,6 +15,7 @@ import HydroLoaderDownload from '@/components/DataSource/HydroLoaderDownload.vue
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
 import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
+import PasswordReset from '@/components/account/PasswordRecovery/PasswordReset.vue'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import { RouteLocationNormalized } from 'vue-router'
@@ -112,6 +113,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/password_reset',
     name: 'PasswordResetRequest',
     component: PasswordResetRequest,
+  },
+  {
+    path: '/password_reset/:uid/:token',
+    name: 'PasswordReset',
+    component: PasswordReset,
   },
   {
     path: '/profile',
