@@ -1,17 +1,15 @@
-from ninja import Router
 from ninja.security import APIKeyHeader
+from ninja_extra import api_controller
+from ninja_extra.permissions import AllowAny
 from ninja_jwt.authentication import JWTBaseAuthentication
-from ninja_jwt.controller import NinjaJWTDefaultController
-from ninja_extra import NinjaExtraAPI
+from ninja_jwt.controller import TokenVerificationController, TokenObtainPairController
 from django.contrib.auth import get_user_model
 
 
-api = NinjaExtraAPI(
-    version='0.0.1',
-    urls_namespace='jwt-auth'
-)
+@api_controller("/jwt", permissions=[AllowAny], tags=['JWT'])
+class HydroServerJWTController(TokenVerificationController, TokenObtainPairController):
 
-api.register_controllers(NinjaJWTDefaultController)
+    auto_import = False
 
 
 class JWTAuth(APIKeyHeader, JWTBaseAuthentication):

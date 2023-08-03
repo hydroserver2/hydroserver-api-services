@@ -49,6 +49,10 @@ class EnvironmentSettings(BaseSettings):
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
     DEBUG: bool = True
+    OAUTH_ORCID_CLIENT: str = ''
+    OAUTH_ORCID_SECRET: str = ''
+    OAUTH_GOOGLE_CLIENT: str = ''
+    OAUTH_GOOGLE_SECRET: str = ''
 
     class Config:
         env_file = f'{BASE_DIR}/.env'
@@ -227,3 +231,17 @@ STAPI_DESCRIPTION = '''
 STAPI_VERSION = '1.1'
 
 FROST_BASE_URL = 'http://localhost:8080/FROST-Server'
+
+
+AUTHLIB_OAUTH_CLIENTS = {
+    'orcid': {
+        'client_id': env_config.OAUTH_ORCID_CLIENT,
+        'client_secret': env_config.OAUTH_ORCID_SECRET,
+        'server_metadata_url': 'https://sandbox.orcid.org/.well-known/openid-configuration'
+    },
+    'google': {
+        'client_id': env_config.OAUTH_GOOGLE_CLIENT,
+        'client_secret': env_config.OAUTH_GOOGLE_SECRET,
+        'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
+    }
+}
