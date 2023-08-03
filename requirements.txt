@@ -1,5 +1,6 @@
 django==4.1
 django-ninja==0.20.0
+django-ninja-jwt==5.2.5
 django-hydrothings==0.1.7
 hydroloader==0.1.9
 django-vite==2.0.2
@@ -15,4 +16,5 @@ django-cors-headers==3.14
 djangorestframework-simplejwt==5.2.2
 urllib3==1.26.6
 boto3==1.28.8
+botocore==1.31.15
 django-ses==2.5.0

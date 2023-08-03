@@ -106,6 +106,7 @@ INSTALLED_APPS = [
     'sensorthings',
     'rest_framework',
     'ninja',
+    'ninja_extra',
     # 'rest_framework_simplejwt',
     'corsheaders',
 ]
