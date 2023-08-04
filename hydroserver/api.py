@@ -31,7 +31,7 @@ from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssoci
     ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner, Photo
 import boto3
 from botocore.exceptions import ClientError
-from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
@@ -206,6 +206,7 @@ def send_password_reset_email(user, uid, token):
         'uid': uid,
         'token': token,
         'domain': 'hydroserver.ciroh.org',  
+        'proxy_base_url': PROXY_BASE_URL
     }
 
     html_message = render_to_string('reset_password_email.html', context)

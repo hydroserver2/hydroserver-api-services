@@ -144,13 +144,25 @@ export const useAuthStore = defineStore({
           email: email,
         })
         return response.status === 200
-      } catch (error) {
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        } else if (error.response.status === 404) {
+          Notification.toast({
+            message: 'No account was found for the email you specified',
+            type: 'error',
+          })
+        } else {
+          Notification.toast({
+            message:
+              'Error occurred while requesting your password reset email. Please try again.',
+            type: 'error',
+          })
+        }
         console.error('Error requesting password reset:', error)
-        Notification.toast({
-          message:
-            'Error occurred while requesting your password reset email. Please try again.',
-          type: 'error',
-        })
         return false
       }
     },
@@ -169,13 +181,20 @@ export const useAuthStore = defineStore({
           })
           await router.push({ name: 'Login' })
         }
-      } catch (error) {
-        console.error('Error requesting password reset:', error)
-        Notification.toast({
-          message:
-            'Error occurred while requesting your password reset email. Please try again.',
-          type: 'error',
-        })
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        } else {
+          Notification.toast({
+            message:
+              'Error occurred while requesting your password reset email. Please try again.',
+            type: 'error',
+          })
+        }
+        console.error('Error requesting password reset:', error.response.status)
         return false
       }
     },
