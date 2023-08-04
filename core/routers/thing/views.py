@@ -15,7 +15,6 @@ from accounts.models import CustomUser
 from hydroserver import settings
 
 
-
 router = Router(tags=['Things'])
 
 
@@ -213,27 +212,14 @@ def update_thing(
     if 'name' in data_dict:
         thing.name = data_dict['name']
         location.name = 'Location for ' + data_dict['name']
-    if 'description' in data_dict:
-        thing.description = data_dict['description']
-    if 'sampling_feature_type' in data_dict:
-        thing.sampling_feature_type = data_dict['sampling_feature_type']
-    if 'sampling_feature_code' in data_dict:
-        thing.sampling_feature_code = data_dict['sampling_feature_code']
-    if 'site_type' in data_dict:
-        thing.site_type = data_dict['site_type']
 
-    if 'latitude' in data_dict:
-        location.latitude = data['latitude']
-    if 'longitude' in data_dict:
-        location.longitude = data['longitude']
-    if 'elevation' in data_dict:
-        location.elevation = data['elevation']
-    if 'city' in data_dict:
-        location.city = data['city']
-    if 'state' in data_dict:
-        location.state = data['state']
-    if 'county' in data_dict:
-        location.county = data['county']
+    for field in ['description', 'sampling_feature_type', 'sampling_feature_code', 'site_type']:
+        if field in data_dict:
+            setattr(thing, field, data_dict[field])
+
+    for field in ['latitude', 'longitude', 'elevation', 'city', 'state', 'county']:
+        if field in data_dict:
+            setattr(location, field, data_dict[field])
 
     thing.save()
     location.save()
