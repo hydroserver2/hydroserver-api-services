@@ -13,4 +13,4 @@ djangorestframework==3.14
 django-cors-headers==3.14
 djangorestframework-simplejwt==5.2.2
 urllib3==1.26.6
-Authlib==1.2.1
+mozilla-django-oidc

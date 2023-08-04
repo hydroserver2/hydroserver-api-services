@@ -33,8 +33,9 @@ export const useAuthStore = defineStore({
   }),
   actions: {
     resetState() {
-      useResetStore().all()
-      localStorage.clear()
+      // TODO: Bad way to log users out
+      // useResetStore().all()
+      // localStorage.clear()
     },
     async login(email: string, password: string) {
       try {
@@ -90,6 +91,7 @@ export const useAuthStore = defineStore({
       }
     },
     async logout() {
+      // TODO: actually log out users in the backend
       this.resetState()
       await router.push({ name: 'Login' })
       Notification.toast({ message: 'You have logged out', type: 'info' })

@@ -220,13 +220,17 @@ STAPI_VERSION = '1.1'
 FROST_BASE_URL = 'http://localhost:8080/FROST-Server'
 
 # AUTHLIB CLIENTS
+# TODO: move values into env variables
 AUTHLIB_OAUTH_CLIENTS = {
   'orcid': {
     'client_id': 'APP-9AKK9NPAYMJZSY95',
     'client_secret': 'e9e8a4b3-9381-41c8-bbc1-d31e1577c5c5',
     'authorize_url': 'https://sandbox.orcid.org/oauth/authorize',
-    # 'access_token_url': 'https://sandbox.orcid.org/oauth/token',
-    # 'token_endpoint':'https://sandbox.orcid.org/oauth/token',
-    # 'health_url': 'https://sandbox.orcid.org/'
+    'server_metadata_url': 'https://sandbox.orcid.org/.well-known/openid-configuration',
+    'health_url': 'https://sandbox.orcid.org/',
+    'token_endpoint':'https://sandbox.orcid.org/oauth/token',
+    
+    'client_kwargs':{'scope': 'openid email profile'},
+    # 'access_token_url': 'https://sandbox.orcid.org/oauth/token',  # If specified, client will use OAuth 1.0
   }
 }
