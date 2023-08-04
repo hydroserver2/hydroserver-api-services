@@ -21,6 +21,7 @@ import { useThingStore } from '@/store/things'
 import { RouteLocationNormalized } from 'vue-router'
 import PageNotFound from '@/components/base/PageNotFound.vue'
 import SiteVisualization from '@/components/SiteVisualization.vue'
+import Contact from '@/components/Contact.vue'
 
 function requireAuth(
   to: RouteLocationNormalized,
@@ -80,6 +81,11 @@ export const routes: RouteRecordRaw[] = [
     name: 'DatastreamForm',
     component: DatastreamForm,
     beforeEnter: requireThingOwnership,
+  },
+  {
+    path: '/contact',
+    name: 'Contact',
+    component: Contact,
   },
   {
     path: '/data-sources',

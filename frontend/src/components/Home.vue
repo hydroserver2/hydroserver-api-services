@@ -23,7 +23,7 @@
 
   <v-container class="my-8">
     <div class="d-flex flex-column align-center text-center">
-      <h2 class="text-h4 mb-4">Manage your Operation Data</h2>
+      <h2 class="text-h4 mb-4">Manage your Operational Data</h2>
 
       <p class="mb-8 text-body-1 text-medium-emphasis">
         The HydroServer Hydrologic Information System provides services and
@@ -201,7 +201,7 @@
 import noaaLogo from '@/assets/noaa.svg'
 import owpLogo from '@/assets/owp.png'
 import ogcLogo from '@/assets/ogc.svg'
-import cirohLogo from '@/assets/ciroh.png'
+import cirohLogo from '@/assets/CIROH_logo_transparent.png'
 import sensorThingsLogo from '@/assets/sensorThings.png'
 </script>
 

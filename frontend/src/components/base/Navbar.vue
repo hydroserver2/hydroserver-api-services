@@ -217,6 +217,12 @@ const paths: {
     label: 'Docs',
     icon: 'mdi-file-document',
   },
+  {
+    name: 'contact us',
+    attrs: { to: '/contact' },
+    label: 'Contact Us',
+    icon: 'mdi-email',
+  },
   // {
   //   attrs: { to: '/sites' },
   //   label: 'Visualize Data',
