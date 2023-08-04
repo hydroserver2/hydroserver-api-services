@@ -71,6 +71,7 @@
             <v-col cols="12">
               <v-text-field
                 v-model="user.phone"
+                v-maska:[phoneMask]
                 label="Phone (Optional)"
                 :rules="user.phone ? rules.phoneNumber : []"
               ></v-text-field>
@@ -117,11 +118,13 @@ import { useAuthStore } from '@/store/authentication'
 import { User } from '@/types'
 import { userTypes } from '@/vocabularies'
 import { VForm } from 'vuetify/components'
+import { vMaska } from 'maska'
 
 const valid = ref(false)
 const confirmPassword = ref('')
 const myForm = ref<VForm>()
 const user = reactive<User>(new User())
+const phoneMask = { mask: '(###) ###-####' }
 
 async function createUser() {
   if (!valid.value) return

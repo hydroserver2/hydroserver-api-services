@@ -109,49 +109,6 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- <v-row class="justify-center text-center"> </v-row>
-
-    <v-row class="text-center my-5">
-      <v-col>
-        <h5 class="text-h5">What do you want to do?</h5>
-      </v-col>
-    </v-row> -->
-    <!-- <v-row> -->
-    <!-- <v-col>
-        <v-card
-          class="d-flex align-center"
-          @click="$router.push('/Sites')"
-          color="surface"
-          elevation="2"
-        >
-          <v-card-text class="text--primary">
-            <div class="d-flex justify-content-between">
-              <span class="text-truncate">Manage My Sites</span>
-              <v-spacer></v-spacer>
-              <v-icon color="primary" large>mdi-domain</v-icon>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col> -->
-
-    <!-- <v-col>
-        <v-card
-          class="d-flex align-center"
-          @click="$router.push('/Browse')"
-          color="surface"
-          elevation="2"
-        >
-          <v-card-text class="text--primary">
-            <div class="d-flex justify-content-between">
-              <span class="text-truncate">Browse Sites</span>
-              <v-spacer></v-spacer>
-              <v-icon color="primary" large>mdi-magnify</v-icon>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col> -->
-    <!-- </v-row> -->
   </v-container>
 
   <v-dialog v-model="deleteAccountDialog" width="40rem">
