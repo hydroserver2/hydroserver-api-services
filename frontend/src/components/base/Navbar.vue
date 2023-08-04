@@ -19,6 +19,9 @@
           class="ma-1"
           color="surface"
           variant="flat"
+          @click="
+            path.isExternal ? openInNewTab($event, path.attrs?.href) : null
+          "
         >
           {{ path.label }}
         </v-btn>
@@ -206,12 +209,13 @@ const paths: {
       },
     ],
   },
-  {
-    name: 'docs',
-    attrs: { href: 'https://hydroserver2.github.io/docs/' },
-    label: 'Docs',
-    icon: 'mdi-file-document',
-  },
+  // {
+  //   name: 'docs',
+  //   attrs: { href: 'https://hydroserver2.github.io/docs/' },
+  //   label: 'Docs',
+  //   icon: 'mdi-file-document',
+  //   isExternal: true,
+  // },
   {
     name: 'contact us',
     attrs: { to: '/contact' },
@@ -224,6 +228,11 @@ const paths: {
   //   icon: 'mdi-chart-timeline-variant',
   // },
 ]
+
+function openInNewTab(event: MouseEvent, href: string | undefined) {
+  event.preventDefault()
+  if (href) window.open(href, '_blank')
+}
 </script>
 
 <style scoped lang="scss"></style>
