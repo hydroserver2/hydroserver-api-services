@@ -91,6 +91,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-sources',
     name: 'DataSources',
     component: DataSourceDashboard,
+    beforeEnter: requireAuth,
   },
   {
     path: '/data-sources/:id',
@@ -101,6 +102,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-loaders',
     name: 'DataLoaders',
     component: DataLoaderDashboard,
+    beforeEnter: requireAuth,
   },
   {
     path: '/hydroloader/download',

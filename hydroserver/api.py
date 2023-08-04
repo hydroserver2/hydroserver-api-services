@@ -439,7 +439,7 @@ def update_thing_photos(request, thing_id):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-@api.get('/photos/{thing_id}', auth=jwt_auth)
+@api.get('/photos/{thing_id}')
 def get_thing_photos(request, thing_id):
     try:
         thing = Thing.objects.get(id=thing_id)

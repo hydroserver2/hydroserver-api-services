@@ -1,16 +1,11 @@
 <template>
-  <v-app-bar app density="compact" elevation="2">
+  <v-app-bar app elevation="2">
     <template v-if="mdAndDown" v-slot:append>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     </template>
 
     <router-link :to="{ path: `/` }" class="logo">
-      <v-img
-        class="mr-4"
-        :src="appLogo"
-        alt="HydroServer home"
-        width="7.5rem"
-      />
+      <v-img class="mx-4" :src="appLogo" alt="HydroServer home" width="10rem" />
     </router-link>
 
     <template v-if="!mdAndDown">
