@@ -38,6 +38,7 @@
               variant="flat"
             >
               {{ path.label }}
+              <v-icon right small>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <v-list>
