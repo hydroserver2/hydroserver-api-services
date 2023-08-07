@@ -638,7 +638,7 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
     if request.authenticated_user == user and current_user_association.is_primary_owner:
         return JsonResponse({"error": "Primary owner cannot edit their own ownership."}, status=403)
     if not current_user_association.is_primary_owner and user != request.authenticated_user:
-        return JsonResponse({"error": "Only the primary owner can modify other users' ownership."}, status=403)
+        return JsonResponse({"error": "NotPrimaryOwner."}, status=403)
 
     thing_association, created = ThingAssociation.objects.get_or_create(thing=request.thing, person=user)
 
@@ -661,6 +661,8 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
         thing_association.delete()
         return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
     elif data.make_owner:
+        if not created:
+            return JsonResponse({"warning": "Specified user is already an owner of this site"}, status=422)
         thing_association.owns_thing = True
 
     thing_association.follows_thing = False

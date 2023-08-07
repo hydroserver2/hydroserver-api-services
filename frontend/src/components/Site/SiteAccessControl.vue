@@ -57,9 +57,10 @@
               </template>
               <template v-slot:default>
                 <p style="max-width: 35rem">
-                  This action will irreversibly de-elevate your permission level
-                  to owner and elevate the chosen user's permission level to
-                  primary owner. Permissions unique to the primary owner are:
+                  WARNING: This action will irreversibly de-elevate your
+                  permission level to secondary owner and elevate the chosen
+                  user's permission level to primary owner. Permissions unique
+                  to the primary owner are:
                 </p>
                 <ul>
                   <li class="v-list-item">Add secondary owners</li>
@@ -78,7 +79,21 @@
             label="New Primary Owner's Email"
             required
           ></v-text-field>
-          <v-btn color="primary" @click="transferPrimaryOwnership"
+          <v-card-text v-if="showPrimaryOwnerConfirmation" style="color: red"
+            >WARNING: This action cannot be undone. Once you transfer primary
+            ownership, your permissions will be reduced to those of a secondary
+            owner.</v-card-text
+          >
+          <v-btn
+            v-if="showPrimaryOwnerConfirmation"
+            color="primary"
+            @click="transferPrimaryOwnership"
+            >Confirm</v-btn
+          >
+          <v-btn
+            v-else
+            color="primary"
+            @click="showPrimaryOwnerConfirmation = true"
             >Submit</v-btn
           >
         </v-col>
@@ -159,6 +174,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
 import { useThing } from '@/composables/useThing'
+import { ref } from 'vue'
 
 const authStore = useAuthStore()
 const emits = defineEmits(['close'])
@@ -171,6 +187,7 @@ const {
   newOwnerEmail,
   newPrimaryOwnerEmail,
   addSecondaryOwner,
+  showPrimaryOwnerConfirmation,
   transferPrimaryOwnership,
   removeOwner,
   toggleSitePrivacy,

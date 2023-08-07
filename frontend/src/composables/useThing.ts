@@ -128,18 +128,24 @@ export function useThing(thingId: string) {
 
   const newOwnerEmail = ref('')
   const newPrimaryOwnerEmail = ref('')
+  const showPrimaryOwnerConfirmation = ref(false)
 
   async function addSecondaryOwner() {
-    if (newOwnerEmail.value)
+    if (newOwnerEmail.value) {
       await thingStore.addSecondaryOwner(thingId, newOwnerEmail.value)
+      newOwnerEmail.value = ''
+    }
   }
 
   async function transferPrimaryOwnership() {
-    if (newPrimaryOwnerEmail.value)
+    if (newPrimaryOwnerEmail.value) {
       await thingStore.transferPrimaryOwnership(
         thingId,
         newPrimaryOwnerEmail.value
       )
+      newPrimaryOwnerEmail.value = ''
+      showPrimaryOwnerConfirmation.value = false
+    }
   }
 
   async function removeOwner(email: string) {
@@ -158,6 +164,7 @@ export function useThing(thingId: string) {
     newOwnerEmail,
     newPrimaryOwnerEmail,
     addSecondaryOwner,
+    showPrimaryOwnerConfirmation,
     transferPrimaryOwnership,
     removeOwner,
     toggleSitePrivacy,
