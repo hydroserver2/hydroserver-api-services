@@ -104,6 +104,14 @@ export const useAuthStore = defineStore({
             message: 'Network error. Please check your connection.',
             type: 'error',
           })
+        } else if (
+          error.response.status === 400 &&
+          error.response.data.detail === 'EmailAlreadyExists'
+        ) {
+          Notification.toast({
+            message: 'A user with this email already exists.',
+            type: 'error',
+          })
         } else {
           Notification.toast({
             message: 'Something went wrong.',

@@ -271,6 +271,8 @@ def create_user(request, data: CreateUserInput):
             phone=data.phone,
             address=data.address
         )
+    except IntegrityError:
+        raise HttpError(400, 'EmailAlreadyExists')
     except Exception as e:
         raise HttpError(400, str(e))
 
