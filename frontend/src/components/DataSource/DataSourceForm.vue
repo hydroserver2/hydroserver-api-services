@@ -28,6 +28,9 @@
         />
       </v-card-item>
       <v-card-actions>
+        <div class="text-subtitle-2">
+          * indicates a required field.
+        </div>
         <v-spacer></v-spacer>
         <v-btn
           variant="text"
@@ -36,21 +39,21 @@
           Cancel
         </v-btn>
         <v-btn
-          v-if="step > 1"
+          v-if="step !== 4 && step > 1"
           variant="text"
           @click="step--"
         >
           Previous
         </v-btn>
         <v-btn
-          v-if="step < 4"
+          v-if="step !== 4 && step < 3"
           variant="text"
           @click="handleNextPage"
         >
           Next
         </v-btn>
         <v-btn
-          v-if="step === 4"
+          v-if="step === 3 || step === 4"
           variant="text"
           @click="handleSaveChanges"
         >
@@ -74,7 +77,7 @@ import DataSourcePreview from "@/components/DataSource/DataSourcePreview.vue";
 const props = defineProps(['datastreamId', 'dataSourceId'])
 const emit = defineEmits(['closeDialog'])
 
-const step = ref(1)
+const step = ref(props.datastreamId ? 4 : 1)
 const store = useDataSourceFormStore()
 const route = useRoute()
 const router = useRouter()
@@ -105,7 +108,12 @@ if (store.datastreamId) {
 }
 
 async function handleSaveChanges() {
-  let valid = await dataSourceDatastreamForm.value.validate()
+  let valid
+  if (props.datastreamId) {
+    valid = await dataSourceDatastreamForm.value.validate()
+  } else {
+    valid = await dataSourceTimestampForm.value.validate()
+  }
   if (valid === true) {
     let saved = await store.saveDataSource()
     if (saved) {

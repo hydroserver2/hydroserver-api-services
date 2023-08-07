@@ -39,7 +39,9 @@
         <v-text-field
           ref="dataSourceName"
           v-model="store.dataSourceName"
-          label="Data Source Name"
+          label="Data Source Name *"
+          hint="Enter a name you can use to identify this data source."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter data source name.',
             (val) => /^[0-9a-zA-Z ... ]+$/.test(val) || 'Invalid data source name.',
@@ -52,7 +54,9 @@
         <v-autocomplete
           ref="dataLoader"
           v-model="store.dataLoader"
-          label="Data Loader"
+          label="Data Loader *"
+          hint="Select the data loader which will load this data source."
+          persistent-hint
           :items="store.dataLoaders"
           item-title="name"
           item-value="id"
@@ -66,7 +70,9 @@
         <v-text-field
           ref="localFilePath"
           v-model="store.localFilePath"
-          label="Local File Path"
+          label="Local File Path *"
+          hint="Enter the absolute path to the data source file."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter data source path.'
           ]"
@@ -80,6 +86,8 @@
           ref="fileHeaderRow"
           v-model.number="store.fileHeaderRow"
           label="File Header Row"
+          hint="Enter the row that contains file headers, if any."
+          persistent-hint
           type="number"
           clearable
           :rules="[
@@ -94,7 +102,9 @@
         <v-text-field
           ref="dataStartRow"
           v-model.number="store.dataStartRow"
-          label="Data Start Row"
+          label="Data Start Row *"
+          hint="Enter the row that data starts on."
+          persistent-hint
           type="number"
           :rules="[
             (val) => val > 0 || 'Data start row must be greater than zero.',
