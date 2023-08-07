@@ -20,10 +20,12 @@
       <v-card-text>
         <div class="d-flex my-2">
           <v-btn-cancel color="grey" variant="flat" @click="clearFilters"
-            >Clear Filters</v-btn-cancel
+            >Clear</v-btn-cancel
           >
           <v-spacer></v-spacer>
-          <v-btn-primary @click="filterOrganizations">Search</v-btn-primary>
+          <v-btn-primary :disabled="!searchInput" @click="filterOrganizations"
+            >Filter By Org</v-btn-primary
+          >
         </div>
         <form @submit.prevent="filterOrganizations">
           <v-text-field
@@ -106,8 +108,6 @@ const filterOrganizations = () => {
 
 const filteredThings: any = computed(() => {
   if (typeof thingStore.things !== 'object' || !thingStore.things) return []
-  if (!searchInput || !searchInput.value)
-    return Object.values(thingStore.things)
   return Object.values(thingStore.things).filter(isThingValid)
 })
 
