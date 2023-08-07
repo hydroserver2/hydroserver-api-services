@@ -19,6 +19,7 @@ from ninja.security import HttpBasicAuth
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from ninja.errors import HttpError
+from pydantic import conint
 from typing import Optional, List, Union
 from datetime import datetime
 from uuid import UUID
@@ -1512,7 +1513,7 @@ class DataSourceDatastream(Schema):
     description: str
     result_start_time: Optional[datetime]
     result_end_time: Optional[datetime]
-    column: Union[int, str]
+    column: Optional[Union[int, str]]
 
 
 class DataSourceGetResponse(HydroLoaderConf):
@@ -1539,6 +1540,11 @@ class DataSourcePostBody(HydroLoaderConf):
     next_sync: Optional[datetime]
 
 
+class HydroLoaderConfFileDatastreamPatch(Schema):
+    id: UUID
+    column: Optional[Union[conint(gt=0), str]]
+
+
 @allow_partial
 class DataSourcePatchBody(HydroLoaderConf):
     name: str
@@ -1548,6 +1554,7 @@ class DataSourcePatchBody(HydroLoaderConf):
     last_sync_message: Optional[str]
     last_synced: Optional[datetime]
     next_sync: Optional[datetime]
+    datastreams: List[HydroLoaderConfFileDatastreamPatch]
 
 
 def transform_data_source(data_source):

@@ -18,7 +18,7 @@ dependencies:
 
   - pip:
       - django-hydrothings==0.1.5
-      - hydroloader==0.1.9
+      - hydroloader==0.1.10
       - django-vite==2.0.2
       - sqlalchemy-json==0.5.0
       - geojson-pydantic==0.5.0

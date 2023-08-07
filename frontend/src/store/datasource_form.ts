@@ -36,7 +36,7 @@ interface DataSourceForm {
   datastreamColumns: any[]
   dataSources: any[]
   dataLoaders: any[]
-  datastreams: any[]
+  // datastreams: any[]
 }
 
 
@@ -57,18 +57,18 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
     datastreamColumns: [],
     dataSources: [],
     dataLoaders: [],
-    datastreams: []
+    // datastreams: []
   }),
-  getters: {
-    datastreamRows(): any {
-      return this.datastreams.map((datastream: any) => {
-        return {
-          column: (this.datastreamColumns.filter(column => column.id === datastream.id)[0] || {}).column,
-          ...datastream
-        }
-      })
-    }
-  },
+  // getters: {
+  //   datastreamRows(): any {
+  //     return this.datastreams.map((datastream: any) => {
+  //       return {
+  //         column: (this.datastreamColumns.filter(column => column.id === datastream.id)[0] || {}).column,
+  //         ...datastream
+  //       }
+  //     })
+  //   }
+  // },
   actions: {
     async fetchDataSources() {
       const dataStreams = await this.$http.get('/data-sources')
@@ -80,11 +80,13 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
     },
     async fetchDatastreams() {
       const datastreams = await this.$http.get('/datastreams')
-      this.datastreams = datastreams.data
+      // this.datastreams = datastreams.data
     },
     async saveDataSource() {
 
-      let dataSourceBody = {
+      let dataSourceBody
+
+      dataSourceBody = {
         'name': null as string | null | undefined,
         'data_loader': null as string | null,
         'schedule': {} as any,
@@ -108,15 +110,26 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
       dataSourceBody['file_timestamp']['format'] = this.timestampCustomFormat || 'iso'
       dataSourceBody['file_timestamp']['offset'] = this.timestampTimezoneOffset || null
 
-      if (!this.datastreamId) {
-        dataSourceBody['datastreams'] = this.datastreamColumns
-      } else {
-        dataSourceBody['datastreams']?.push(
-          {
-            'column': this.datastreamColumn,
-            'datastream_id': this.datastreamId
-          }
+      // if (!this.datastreamId) {
+      //   dataSourceBody['datastreams'] = this.datastreamColumns
+      // } else {
+      //   dataSourceBody['datastreams']?.push(
+      //     {
+      //       'column': this.datastreamColumn,
+      //       'datastream_id': this.datastreamId
+      //     }
+      //   )
+      // }
+
+      if (this.datastreamId) {
+        dataSourceBody['datastreams'] =  this.datastreamColumns as any[] | undefined
+        dataSourceBody['datastreams'] = dataSourceBody['datastreams']?.filter(
+          datastream => datastream['id'] != this.datastreamId
         )
+        dataSourceBody['datastreams']?.push({
+          'column': this.datastreamColumn || null,
+          'id': this.datastreamId
+        })
       }
 
       console.log('$$$$$')
@@ -182,6 +195,12 @@ export const useDataSourceFormStore = defineStore('data-source-form-store', {
           column: datastream.column
         }
       })
+
+      if (this.datastreamId) {
+        this.datastreamColumn = (this.datastreamColumns.filter(
+          column => column.id === this.datastreamId
+        )[0] || {}).column
+      }
     }
   }
 })

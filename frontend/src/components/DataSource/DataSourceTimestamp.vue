@@ -27,6 +27,8 @@
           ref="timestampColumnIndex"
           v-model.number="store.timestampColumn"
           label="Timestamp Column"
+          hint="Enter the column index that contains timestamps for the datastreams."
+          persistent-hint
           type="number"
           :rules="[
              (val) => val != null || 'Column index is required.',

@@ -11,6 +11,8 @@
           ref="scheduleStartTime"
           v-model="store.scheduleStartTime"
           label="Start Time"
+          hint="Enter an optional start time for loading data. Otherwise, data loading will begin immediately."
+          persistent-hint
           type="datetime-local"
           clearable
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
@@ -21,6 +23,8 @@
           ref="scheduleEndTime"
           v-model="store.scheduleEndTime"
           label="End Time"
+          hint="Enter an optional end time for loading data. Otherwise, data will be loaded indefinitely."
+          persistent-hint
           type="datetime-local"
           clearable
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
@@ -49,6 +53,8 @@
           ref="interval"
           v-model="store.interval"
           label="Interval"
+          hint="Enter the interval data should be loaded on."
+          persistent-hint
           type="number"
           :rules="[
              (val) => val != null && val !== '' || 'Interval value is required.',
@@ -72,6 +78,8 @@
           ref="crontab"
           v-model="store.crontab"
           label="Crontab"
+          hint="Enter a crontab schedule for the data to be loaded on."
+          persistent-hint
           :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
