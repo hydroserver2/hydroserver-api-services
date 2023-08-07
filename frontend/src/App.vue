@@ -32,3 +32,11 @@ const isFullScreen = computed(() => {
   height: 100vh;
 }
 </style>
+
+<style>
+/* Make tooltips easier to read */
+.v-tooltip > .v-overlay__content {
+  background-color: rgba(var(--v-theme-surface-variant), 1) !important;
+  font-size: 1.1em !important;
+}
+</style>

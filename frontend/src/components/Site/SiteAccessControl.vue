@@ -23,8 +23,10 @@
                   permissions:
                 </p>
                 <ul>
-                  <li class="v-list-item">CRUD for site and metadata</li>
-                  <li class="v-list-item">CRUD for site datastreams</li>
+                  <li class="v-list-item">
+                    Create, read, update, delete for all site metadata and
+                    datastreams
+                  </li>
                   <li class="v-list-item">Make site private or public</li>
                   <li class="v-list-item">Remove themselves as owner</li>
                 </ul>
@@ -55,9 +57,9 @@
               </template>
               <template v-slot:default>
                 <p style="max-width: 35rem">
-                  This action will de-elevate your permission level to owner and
-                  elevate the chosen user's permission level to primary owner.
-                  Permissions unique to the primary owner are:
+                  This action will irreversibly de-elevate your permission level
+                  to owner and elevate the chosen user's permission level to
+                  primary owner. Permissions unique to the primary owner are:
                 </p>
                 <ul>
                   <li class="v-list-item">Add secondary owners</li>
