@@ -10,7 +10,6 @@
         <v-radio-group
           v-model="store.timestampType"
           inline
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         >
           <v-radio
             label="Column Index"
@@ -26,7 +25,7 @@
         <v-text-field
           ref="timestampColumnIndex"
           v-model.number="store.timestampColumn"
-          label="Timestamp Column"
+          label="Timestamp Column *"
           hint="Enter the column index that contains timestamps for the datastreams."
           persistent-hint
           type="number"
@@ -35,18 +34,18 @@
              (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
              (val) => +val > 0 || 'Column index must be greater than zero.'
           ]"
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col v-if="store.timestampType === 'name'" class="v-col-xs-12 v-col-sm-6">
         <v-text-field
           ref="timestampColumnName"
           v-model="store.timestampColumn"
-          label="Timestamp Column"
+          label="Timestamp Column *"
+          hint="Enter the column name that contains timestamps for the datastreams."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter timestamp column name.'
           ]"
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
     </v-row>
@@ -55,7 +54,6 @@
         <v-radio-group
           v-model="store.timestampFormat"
           inline
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         >
           <v-radio
             label="ISO 8601 Format"
@@ -71,12 +69,23 @@
         <v-text-field
           ref="timestampCustomFormat"
           v-model="store.timestampCustomFormat"
-          label="Timestamp Format"
-          :disabled="Boolean(store.timestampFormat !== 'custom' || (store.datastreamId && store.dataSource != null))"
+          :label="`Timestamp Format${store.timestampFormat === 'custom' ? ' *' : ''}`"
+          hint="Enter the timestamp format."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter timestamp format.'
           ]"
-        />
+          :disabled="store.timestampFormat === 'iso'"
+        >
+          <template v-slot:append-inner>
+            <v-btn
+              size="lg"
+              color="gray"
+              icon="mdi-help-circle"
+              @click="handleOpenStrftimeHelp"
+            />
+          </template>
+        </v-text-field>
       </v-col>
     </v-row>
     <v-row>
@@ -84,15 +93,16 @@
         <v-switch
           v-model="store.timestampUseTimezoneOffset"
           label="Append Timezone Offset?"
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         ></v-switch>
       </v-col>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-autocomplete
           v-model="store.timestampTimezoneOffset"
-          label="Timezone Offset"
-          :disabled="Boolean(store.timestampUseTimezoneOffset === false || (store.datastreamId && store.dataSource != null))"
+          :label="`Timezone Offset${store.timestampUseTimezoneOffset ? ' *' : ''}`"
+          hint="Enter an optional timezone offset to apply to the timestamp column."
+          persistent-hint
           :items="timezoneOffsets"
+          :disabled="!store.timestampUseTimezoneOffset"
         ></v-autocomplete>
       </v-col>
     </v-row>
@@ -129,6 +139,10 @@ async function validate() {
   }
 
   return errors.length === 0
+}
+
+function handleOpenStrftimeHelp() {
+  window.open('https://devhints.io/strftime', '_blank', 'noreferrer');
 }
 
 defineExpose({

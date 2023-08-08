@@ -2,7 +2,7 @@
   <v-container>
     <v-row class="mb-4">
       <v-col cols="auto">
-        <h5 class="text-h5">My Data Loaders Dashboard</h5>
+        <h5 class="text-h5">Manage Data Loaders</h5>
       </v-col>
     </v-row>
     <v-data-table
