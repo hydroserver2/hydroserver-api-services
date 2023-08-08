@@ -304,6 +304,16 @@
             <br />
             <strong>ID:</strong> {{ selectedDatastream.id }} <br />
           </v-card-text>
+          <v-card-text>
+            Please type <strong> Delete </strong> to confirm deletion:
+            <v-form>
+              <v-text-field
+                v-model="deleteDatastreamInput"
+                solo
+                @keydown.enter.prevent="deleteDatastream"
+              ></v-text-field>
+            </v-form>
+          </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn-cancel @click="isDSDeleteModalOpen = false"
@@ -365,6 +375,7 @@ const {
   openDeleteModal,
   deleteDatastream,
   isDeleteModalOpen: isDSDeleteModalOpen,
+  deleteDatastreamInput,
 } = useDatastreams(thingId)
 // const { isAuthenticated } = useAuthentication()
 
