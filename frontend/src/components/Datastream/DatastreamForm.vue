@@ -163,7 +163,7 @@
           <v-text-field
             v-model="datastream.no_data_value"
             label="No data value"
-            :rules="datastream.no_data_value ? rules.maxLength(20) : []"
+            :rules="datastream.no_data_value ? rules.maxLength(255) : []"
             type="number"
           ></v-text-field>
         </v-col>

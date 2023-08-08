@@ -1,14 +1,13 @@
 <template>
-  <v-container>
-    <v-row v-if="authStore.user">
+  <v-container v-if="authStore.user">
+    <v-row>
       <v-col cols="12">
-        <v-row>
-          <v-col>
+        <v-row class="d-flex justify-center">
+          <v-col md="8">
             <v-card color="surface" elevation="2">
               <v-row no-gutters>
                 <v-col
                   cols="12"
-                  md="auto"
                   class="d-flex align-center justify-center primary"
                   style="background-color: #2196f3"
                 >
@@ -21,7 +20,7 @@
                   </v-card-title>
                 </v-col>
 
-                <v-col cols="auto" class="pl-2 pt-2 pb-2">
+                <v-col cols="8" class="pl-2 pt-2 pb-2">
                   <table>
                     <tbody>
                       <tr>
@@ -48,8 +47,8 @@
           </v-col>
         </v-row>
 
-        <v-row>
-          <v-col cols="6">
+        <v-row class="d-flex justify-center">
+          <v-col md="8">
             <v-card
               class="d-flex align-center"
               @click="editAccountDialog = true"
@@ -58,7 +57,7 @@
             >
               <v-card-text class="text--primary">
                 <div class="d-flex justify-content-between">
-                  <span class="text-truncate">Edit My Profile</span>
+                  <span class="text-truncate mr-4">Edit My Profile</span>
                   <v-spacer></v-spacer>
                   <v-icon color="primary" large
                     >mdi-account-edit-outline</v-icon
@@ -70,7 +69,7 @@
               <AccountModal @close="editAccountDialog = false"></AccountModal>
             </v-dialog>
           </v-col>
-          <v-col cols="6">
+          <v-col md="8">
             <v-card
               class="d-flex align-center"
               @click="deleteAccountDialog = true"
@@ -79,34 +78,38 @@
             >
               <v-card-text class="text--primary">
                 <div class="d-flex justify-content-between">
-                  <span class="text-truncate">Delete Account</span>
+                  <span class="text-truncate mr-4">Delete Account</span>
                   <v-spacer></v-spacer>
                   <v-icon color="error" large>mdi-account-remove</v-icon>
                 </div>
               </v-card-text>
             </v-card>
           </v-col>
+
+          <!-- <v-col md="8">
+            <v-card
+              class="d-flex align-center"
+              @click="$router.push('/Sites')"
+              color="surface"
+              elevation="2"
+            >
+              <v-card-text class="text--primary">
+                <div class="d-flex justify-content-between">
+                  <span class="text-truncate mr-4"
+                    >Connect My HydroShare Account
+                  </span>
+                  <v-spacer></v-spacer>
+                  <img
+                    style="max-height: 1.5rem"
+                    :src="HydroShareIcon"
+                    alt="hydro share logo"
+                    class="site-information-image"
+                  />
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col> -->
         </v-row>
-      </v-col>
-      <v-spacer></v-spacer>
-      <v-col cols="12" md="6" class="justify-center text-center">
-        <v-card color="white" elevation="2" @click="$router.push('/Sites')">
-          <v-container style="background-color: #eeeeee">
-            <v-responsive>
-              <img
-                style="max-height: 100%; max-width: 100%; object-fit: contain"
-                src="@/assets/CUAHSI.png"
-                alt="CUAHSI Logo"
-              />
-            </v-responsive>
-          </v-container>
-          <v-card-title class="text-wrap"
-            >Connect Account to HydroShare</v-card-title
-          >
-          <v-card-actions class="justify-center">
-            <v-btn-primary>CONNECT</v-btn-primary>
-          </v-card-actions>
-        </v-card>
       </v-col>
     </v-row>
   </v-container>
@@ -147,7 +150,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn-cancel @click="deleteAccountDialog = false">Cancel</v-btn-cancel>
+        <v-btn-cancel @click="cancelDeletion">Cancel</v-btn-cancel>
         <v-btn color="delete" text @click="deleteAccount">Delete</v-btn>
       </v-card-actions>
     </v-card>
@@ -160,6 +163,7 @@ import { useAuthStore } from '@/store/authentication'
 import { onMounted, ref } from 'vue'
 import Notification from '@/store/notifications'
 import { useThingStore } from '@/store/things'
+import HydroShareIcon from '@/assets/hydro.png'
 
 const authStore = useAuthStore()
 const thingStore = useThingStore()
@@ -175,6 +179,11 @@ async function deleteAccount() {
   }
   await authStore.deleteAccount()
   deleteAccountDialog.value = false
+}
+
+function cancelDeletion() {
+  deleteAccountDialog.value = false
+  deleteInput.value = ''
 }
 
 onMounted(async () => {

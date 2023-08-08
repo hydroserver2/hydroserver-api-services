@@ -82,7 +82,7 @@
               <v-text-field
                 v-model="user.organization"
                 label="Organization (Optional)"
-                :rules="user.organization ? rules.maxLength(50) : []"
+                :rules="user.organization ? rules.name : []"
                 validate-on="input"
               ></v-text-field>
             </v-col>

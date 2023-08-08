@@ -51,7 +51,7 @@
             <v-text-field
               v-model="user.organization"
               label="Organization"
-              :rules="rules.maxLength(50)"
+              :rules="user.organization ? rules.name : []"
             >
             </v-text-field>
           </v-col>
