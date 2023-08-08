@@ -44,20 +44,13 @@ function drawChart() {
     value: +observation.result, // Result is cast to number here.
   }))
 
-  const x = d3
-    .scaleTime()
-    .domain(d3.extent(data, (d) => d.date) as [Date, Date])
-    .range([0, width])
+  const x = d3.scaleUtc().range([0, width])
+  const y = d3.scaleLinear().range([height, 0])
 
-  svg.append('g').attr('transform', `translate(0,${height})`)
-  // .call(d3.axisBottom(x))
+  // svg.append('g').attr('transform', `translate(0,${height})`)
 
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(data, (d) => +d.value) as number])
-    .range([height, 0])
-
-  // svg.append('g').call(d3.axisLeft(y))
+  x.domain(d3.extent(data, (d) => d.date) as [Date, Date])
+  y.domain(d3.extent(data, (d) => d.value) as [number, number])
 
   // Define the area
   let area = d3

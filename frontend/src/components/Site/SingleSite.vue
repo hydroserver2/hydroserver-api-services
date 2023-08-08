@@ -147,7 +147,7 @@
         <h5 class="text-h5">Datastreams Available at this Site</h5>
       </v-col>
       <v-spacer></v-spacer>
-      <v-col cols="auto">
+      <!-- <v-col cols="auto">
         <img
           style="max-height: 1.5rem"
           src="@/assets/hydro.png"
@@ -159,7 +159,7 @@
         <v-btn color="grey" class="site-information-button"
           >Download Data from HydroShare</v-btn
         >
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row class="pb-2" v-if="is_owner">
       <v-col>
@@ -194,7 +194,17 @@
         </template>
         <template v-slot:item.last_observation="{ item }">
           <div v-if="item.raw.most_recent_observation">
-            {{ (item.raw.most_recent_observation as Observation).result_time }}
+            <v-row>
+              {{
+                formatDate(
+                  (item.raw.most_recent_observation as Observation).result_time
+                )
+              }}
+            </v-row>
+            <v-row>
+              {{ item.raw.unit_name }} -
+              {{ (item.raw.most_recent_observation as Observation).result }}
+            </v-row>
           </div>
         </template>
 
@@ -308,6 +318,7 @@ import { usePhotosStore } from '@/store/photos'
 import { useThing } from '@/composables/useThing'
 import { useAuthentication } from '@/composables/useAuthentication'
 import { useDatastreams } from '@/composables/useDatastreams'
+import { format } from 'date-fns'
 
 const photoStore = usePhotosStore()
 const thingId = useRoute().params.id.toString()
@@ -337,7 +348,7 @@ const {
 const { isAuthenticated } = useAuthentication()
 
 const headers = [
-  { title: 'Unit Name', key: 'unit_name', sortable: true },
+  // { title: 'Unit Name', key: 'unit_name', sortable: true },
   { title: 'Observations', key: 'observations', sortable: false },
   { title: 'Last Observation', key: 'last_observation' },
   { title: 'Sampled Medium', key: 'sampled_medium' },
@@ -351,6 +362,11 @@ const dataSourceDialogOpen = ref(false)
 function handleLinkDataSource(datastreamId: string) {
   dataSourceDatastream.value = datastreamId
   dataSourceDialogOpen.value = true
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  return format(date, 'MMM dd, yyyy HH:mm')
 }
 
 onMounted(async () => {
