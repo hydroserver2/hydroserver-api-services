@@ -2,7 +2,7 @@
   <v-container v-if="datastream && loaded">
     <v-row>
       <h5 class="text-h5 mb-4">
-        {{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page
+        {{ datastreamId ? 'Edit' : 'Create' }} Datastream
       </h5>
     </v-row>
     <v-row v-if="isPrimaryOwner">
@@ -10,7 +10,7 @@
         <v-autocomplete
           v-if="!datastreamId"
           v-model="selectedDatastreamID"
-          label="Start from an existing datastream"
+          label="Use an existing datastream as a template"
           :items="formattedDatastreams"
           item-value="id"
         ></v-autocomplete>

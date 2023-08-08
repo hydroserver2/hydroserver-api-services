@@ -357,7 +357,7 @@ const {
 const { isAuthenticated } = useAuthentication()
 
 const headers = [
-  // { title: 'Unit Name', key: 'unit_name', sortable: true },
+  { title: 'Observed Property', key: 'observed_property_name', sortable: true },
   { title: 'Observations', key: 'observations', sortable: false },
   { title: 'Last Observation', key: 'last_observation' },
   { title: 'Sampled Medium', key: 'sampled_medium' },

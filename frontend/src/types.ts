@@ -76,7 +76,7 @@ export class Datastream {
     this.result_type = ''
     this.status = ''
     this.sampled_medium = ''
-    this.no_data_value = -999
+    this.no_data_value = -9999
     this.aggregation_statistic = ''
     this.observations = []
     this.most_recent_observation = ''
