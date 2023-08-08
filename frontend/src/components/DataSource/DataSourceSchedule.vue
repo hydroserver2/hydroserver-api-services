@@ -15,7 +15,6 @@
           persistent-hint
           type="datetime-local"
           clearable
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col class="v-col-xs-12 v-col-sm-6">
@@ -27,7 +26,6 @@
           persistent-hint
           type="datetime-local"
           clearable
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
     </v-row>
@@ -36,7 +34,6 @@
         <v-radio-group
           v-model="store.scheduleType"
           inline
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         >
           <v-radio
             label="Interval"
@@ -61,7 +58,6 @@
              (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
              (val) => +val > 0 || 'Interval must be greater than zero.'
           ]"
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
@@ -70,7 +66,6 @@
           label="Interval Units"
           :items="intervalUnitValues"
           variant="outlined" density="comfortable"
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
         />
       </v-col>
       <v-col v-if="store.scheduleType === 'crontab'" class="v-col-xs-12 v-col-sm-6">
@@ -80,15 +75,6 @@
           label="Crontab"
           hint="Enter a crontab schedule for the data to be loaded on."
           persistent-hint
-          :disabled="Boolean(store.datastreamId && store.dataSource != null)"
-        />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <v-switch
-          v-model="store.paused"
-          label="Pause data loading?"
         />
       </v-col>
     </v-row>
