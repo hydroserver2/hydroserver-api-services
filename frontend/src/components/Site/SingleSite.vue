@@ -88,7 +88,8 @@
           </v-card>
         </v-dialog>
       </v-col>
-      <v-col cols="auto" v-if="!is_owner">
+      <!-- Jeff said to comment out anything related to following a site August 8, 2023 -->
+      <!-- <v-col cols="auto" v-if="!is_owner">
         <v-switch
           color="secondary"
           hide-details
@@ -97,7 +98,7 @@
           @change="updateFollow"
           :label="thing.follows_thing ? 'You Follow This site' : 'Follow Site'"
         ></v-switch>
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row>
       <v-col cols="12" md="8">
@@ -248,7 +249,13 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                @click="handleLinkDataSource(item.raw.id, item.raw.data_source_id, item.raw.column)"
+                @click="
+                  handleLinkDataSource(
+                    item.raw.id,
+                    item.raw.data_source_id,
+                    item.raw.column
+                  )
+                "
               />
               <v-list-item
                 v-if="is_owner"
@@ -321,14 +328,14 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import SiteLinkDataSourceForm from "@/components/Site/SiteLinkDataSourceForm.vue";
+import SiteLinkDataSourceForm from '@/components/Site/SiteLinkDataSourceForm.vue'
 import LineChart from '@/components/LineChart.vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Observation } from '@/types'
 import { usePhotosStore } from '@/store/photos'
 import { useThing } from '@/composables/useThing'
-import { useAuthentication } from '@/composables/useAuthentication'
+// import { useAuthentication } from '@/composables/useAuthentication'
 import { useDatastreams } from '@/composables/useDatastreams'
 import { format } from 'date-fns'
 
@@ -339,7 +346,7 @@ const {
   thing,
   stringThing,
   mapOptions,
-  updateFollow,
+  // updateFollow,
   is_owner,
   deleteInput,
   deleteThing,
@@ -357,7 +364,7 @@ const {
   deleteDatastream,
   isDeleteModalOpen: isDSDeleteModalOpen,
 } = useDatastreams(thingId)
-const { isAuthenticated } = useAuthentication()
+// const { isAuthenticated } = useAuthentication()
 
 const headers = [
   { title: 'Observed Property', key: 'observed_property_name', sortable: true },
@@ -373,7 +380,11 @@ const linkFormDataSourceId = ref()
 const linkFormColumn = ref()
 const linkDataSourceDialogOpen = ref(false)
 
-function handleLinkDataSource(datastreamId: string, dataSourceId: string, column: string | number) {
+function handleLinkDataSource(
+  datastreamId: string,
+  dataSourceId: string,
+  column: string | number
+) {
   linkFormDatastreamId.value = datastreamId
   linkFormDataSourceId.value = dataSourceId
   linkFormColumn.value = column

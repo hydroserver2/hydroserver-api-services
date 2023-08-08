@@ -14,17 +14,18 @@ export const useThingStore = defineStore('things', {
         (thing) => thing.is_primary_owner
       )
     },
-    ownedThings(): Thing[] {
+    ownedThings(): Thing[] | any {
       return Object.values(this.things).filter((thing) => thing.owns_thing)
     },
-    followedThings(): Thing[] {
-      return Object.values(this.things).filter((thing) => thing.follows_thing)
-    },
-    ownedOrFollowedThings(): Thing[] | any {
-      return Object.values(this.things).filter(
-        (thing) => thing.owns_thing || thing.follows_thing
-      )
-    },
+    // Jeff said to comment out anything related to following a site August 8, 2023
+    // followedThings(): Thing[] | any {
+    //   return Object.values(this.things).filter((thing) => thing.follows_thing)
+    // },
+    // ownedOrFollowedThings(): Thing[] | any {
+    //   return Object.values(this.things).filter(
+    //     (thing) => thing.owns_thing || thing.follows_thing
+    //   )
+    // },
   },
   actions: {
     async fetchThings() {
