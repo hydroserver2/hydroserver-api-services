@@ -30,7 +30,7 @@ const customTimeFormat = (date: Date) => {
 
 export function drawChart(
   data: ChartData[],
-  unitName: string
+  yAxisLabel: string
 ): SVGSVGElement | null {
   if (!data || data.length === 0) {
     console.warn('Data array is empty, cannot draw chart')
@@ -142,11 +142,11 @@ export function drawChart(
     .attr('d', line(data, x))
 
   // Append x-axis label
-  //   plot_g
-  //     .append('text')
-  //     .attr('transform', `translate(${width / 2} ,${height + margin.top + 20})`)
-  //     .style('text-anchor', 'middle')
-  //     .text('Time')
+  plot_g
+    .append('text')
+    .attr('transform', `translate(${width / 2} ,${height + margin.top})`)
+    .style('text-anchor', 'middle')
+    .text('Date/Time')
 
   // Append y-axis label
   plot_g
@@ -156,7 +156,7 @@ export function drawChart(
     .attr('x', 0 - height / 2)
     .attr('dy', '1em')
     .style('text-anchor', 'middle')
-    .text(unitName)
+    .text(yAxisLabel)
 
   const mouse_g = plot_g
     .append('g')

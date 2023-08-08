@@ -17,6 +17,10 @@ import { useRoute } from 'vue-router'
 import { useDatastream } from '@/composables/useDatastream'
 import { useThing } from '@/composables/useThing'
 import { drawChart } from '@/composables/chart'
+import { onMounted } from 'vue'
+import { useUnitStore } from '@/store/unit'
+
+const unitStore = useUnitStore()
 
 const datastreamId = useRoute().params.datastreamId.toString()
 const thingId = useRoute().params.id.toString()
@@ -37,7 +41,19 @@ function drawD3Chart() {
   if (!chart.value) return
   chart.value.innerHTML = ''
 
-  const svg = drawChart(data, datastream.value?.unit_name || '')
+  const unitSymbol = `(${
+    unitStore.getUnitById(datastream.value.unit_id).symbol
+  })`
+
+  const yAxisLabel = datastream.value
+    ? `${datastream.value.observed_property_name} ${unitSymbol} `
+    : ''
+
+  const svg = drawChart(data, yAxisLabel)
   if (svg) chart.value.appendChild(svg)
 }
+
+onMounted(async () => {
+  await unitStore.fetchUnits()
+})
 </script>
