@@ -1010,6 +1010,9 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
         "is_visible": datastream.is_visible,
         "is_primary_owner": association.is_primary_owner if association else False,
         "is_stale": is_stale,
+
+        "data_source_id": datastream.data_source_id,
+        "column": datastream.data_source_column
     }
 
 
@@ -1125,6 +1128,9 @@ class UpdateDatastreamInput(Schema):
     result_end_time: str = None
     is_visible: bool = None
 
+    data_source_id: str = None
+    data_source_column: str = None
+
 
 @api.patch('/datastreams/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
@@ -1194,6 +1200,11 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
             return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
     if data.is_visible is not None:
         datastream.is_visible = data.is_visible
+
+    if hasattr(data, 'data_source_id') is not None:
+        datastream.data_source_id = data.data_source_id
+    if hasattr(data, 'column') is not None:
+        datastream.data_source_column = data.data_source_column
 
     datastream.save()
 
