@@ -248,7 +248,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                @click="handleLinkDataSource(item.raw.id)"
+                @click="handleLinkDataSource(item.raw.id, item.raw.data_source_id, item.raw.column)"
               />
               <v-list-item
                 v-if="is_owner"
@@ -304,10 +304,13 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="dataSourceDialogOpen" persistent>
-        <DataSourceForm
-          @close-dialog="dataSourceDialogOpen = false"
-          :datastreamId="dataSourceDatastream"
+      <v-dialog v-model="linkDataSourceDialogOpen" persistent>
+        <SiteLinkDataSourceForm
+          @close-dialog="handleCloseDataSourceDialog"
+          :thingId="thingId"
+          :datastreamId="linkFormDatastreamId"
+          :dataSourceId="linkFormDataSourceId"
+          :column="linkFormColumn"
         />
       </v-dialog>
     </v-row>
@@ -318,7 +321,7 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
+import SiteLinkDataSourceForm from "@/components/Site/SiteLinkDataSourceForm.vue";
 import LineChart from '@/components/LineChart.vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -365,12 +368,20 @@ const headers = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const dataSourceDatastream = ref()
-const dataSourceDialogOpen = ref(false)
+const linkFormDatastreamId = ref()
+const linkFormDataSourceId = ref()
+const linkFormColumn = ref()
+const linkDataSourceDialogOpen = ref(false)
 
-function handleLinkDataSource(datastreamId: string) {
-  dataSourceDatastream.value = datastreamId
-  dataSourceDialogOpen.value = true
+function handleLinkDataSource(datastreamId: string, dataSourceId: string, column: string | number) {
+  linkFormDatastreamId.value = datastreamId
+  linkFormDataSourceId.value = dataSourceId
+  linkFormColumn.value = column
+  linkDataSourceDialogOpen.value = true
+}
+
+function handleCloseDataSourceDialog() {
+  linkDataSourceDialogOpen.value = false
 }
 
 function formatDate(dateString: string) {
