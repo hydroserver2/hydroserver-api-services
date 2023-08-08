@@ -261,11 +261,20 @@
               />
               <v-list-item
                 v-if="is_owner"
+                prepend-icon="mdi-chart-line"
+                title="View Time Series Plot"
+                :to="{
+                  name: 'SiteVisualization',
+                  params: { id: thingId, datastreamId: item.raw.id },
+                }"
+              />
+              <v-list-item
+                v-if="is_owner"
                 prepend-icon="mdi-delete"
                 title="Delete Datastream"
                 @click="openDeleteModal(item.raw)"
               />
-              <v-list-item prepend-icon="mdi-download" title="Download Data" />
+              <!-- <v-list-item prepend-icon="mdi-download" title="Download Data" /> -->
             </v-list>
           </v-menu>
         </template>
