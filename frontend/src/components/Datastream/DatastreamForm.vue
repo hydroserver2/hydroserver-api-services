@@ -1,9 +1,22 @@
 <template>
   <v-container v-if="datastream && loaded">
     <v-row>
-      <h5 class="text-h5 mb-4">
-        {{ datastreamId ? 'Edit' : 'Create' }} Datastream
-      </h5>
+      <v-col>
+        <h5 class="text-h5">
+          {{ datastreamId ? 'Edit' : 'Create' }} Datastream
+        </h5>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-2">
+          Select the appropriate metadata to describe the the datastream you are
+          adding to the monitoring site. If you want to modify the values
+          available in the drop down menus below, click the “Add New” button or
+          visit the
+          <router-link to="/Metadata"> Manage Metadata page. </router-link>
+        </h6>
+      </v-col>
     </v-row>
     <v-row v-if="isPrimaryOwner">
       <v-col>
@@ -179,6 +192,12 @@
         </v-col>
       </v-row>
       <v-row>
+        <v-col cols="auto">
+          <v-btn-cancel @click="$router.go(-1)">
+            <v-icon>mdi-arrow-left</v-icon>
+            Return to previous page
+          </v-btn-cancel>
+        </v-col>
         <v-spacer></v-spacer>
         <v-col cols="auto">
           <v-btn type="submit" color="secondary">{{
