@@ -38,7 +38,7 @@ export class Thing {
     this.owns_thing = false
     this.follows_thing = false
     this.description = ''
-    this.sampling_feature_type = ''
+    this.sampling_feature_type = 'Site'
     this.state = ''
     this.county = ''
     this.is_primary_owner = false
