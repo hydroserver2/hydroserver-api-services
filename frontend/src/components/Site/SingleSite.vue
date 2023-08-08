@@ -186,12 +186,14 @@
                 params: { id: thingId, datastreamId: item.raw.id },
               }"
             >
-              <LineChart class="pt-2" :observations="item.raw.observations" />
+              <LineChart
+                class="pt-2"
+                :is-stale="item.raw.is_stale"
+                :observations="item.raw.observations"
+              />
             </router-link>
           </div>
           <div v-else>No data for this datastream</div>
-          <!-- <div v-if="item.raw.stale">stale</div>
-          <div v-else>not stale</div> -->
         </template>
         <template v-slot:item.last_observation="{ item }">
           <div v-if="item.raw.most_recent_observation">
@@ -368,7 +370,11 @@ const {
 
 const headers = [
   { title: 'Observed Property', key: 'observed_property_name', sortable: true },
-  { title: 'Observations', key: 'observations', sortable: false },
+  {
+    title: 'Observations (Last 72 Hours)',
+    key: 'observations',
+    sortable: false,
+  },
   { title: 'Last Observation', key: 'last_observation' },
   { title: 'Sampled Medium', key: 'sampled_medium' },
   { title: 'Sensor', key: 'method_name' },

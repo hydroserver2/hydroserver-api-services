@@ -13,6 +13,7 @@ const props = defineProps({
     type: Array as PropType<Observation[]>,
     required: true,
   },
+  isStale: Boolean,
 })
 
 const chart = ref<HTMLDivElement | null>(null)
@@ -25,6 +26,10 @@ function drawChart() {
   if (!chart.value) return
 
   chart.value.innerHTML = ''
+
+  let colors = props.isStale
+    ? { line: '#9E9E9E', fill: '#F5F5F5' } // Grey and grey-lighten-4
+    : { line: '#4CAF50', fill: '#E8F5E9' } // Green and green-lighten-5
 
   const margin = { top: 0, right: 0, bottom: 0, left: 0 },
     width = 250 - margin.left - margin.right,
@@ -69,13 +74,13 @@ function drawChart() {
     .datum(data)
     .attr('class', 'area')
     .attr('d', area)
-    .style('fill', 'lightblue') //Color under the line
+    .style('fill', colors.fill) //Color under the line
 
   svg
     .append('path')
     .datum(data)
     .attr('fill', 'none')
-    .attr('stroke', 'steelblue') // Color the line
+    .attr('stroke', colors.line) // Color the line
     .attr('stroke-width', 2.5)
     .attr(
       'd',

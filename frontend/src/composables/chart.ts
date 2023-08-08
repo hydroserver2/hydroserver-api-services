@@ -137,8 +137,8 @@ export function drawChart(
     .append('path')
     .attr('clip-path', `url(#${clip})`)
     .attr('fill', 'none')
-    .attr('stroke', 'steelblue')
-    .attr('stroke-width', 1.5)
+    .attr('stroke', '#4CAF50') // Material Green
+    .attr('stroke-width', 2)
     .attr('d', line(data, x))
 
   // Append x-axis label
