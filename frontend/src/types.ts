@@ -59,6 +59,7 @@ export class Datastream {
   most_recent_observation: any
   unit_id: string
   unit_name: string
+  unit_symbol: string
   observed_property_id: string
   observed_property_name: string
   method_id: string
@@ -82,6 +83,7 @@ export class Datastream {
     this.most_recent_observation = ''
     this.unit_id = ''
     this.unit_name = ''
+    this.unit_symbol = ''
     this.observed_property_id = ''
     this.observed_property_name = ''
     this.method_id = ''

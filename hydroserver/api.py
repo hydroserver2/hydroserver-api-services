@@ -1004,6 +1004,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
         "processing_level_id": datastream.processing_level.pk if datastream.processing_level else None,
 
         "unit_name": datastream.unit.name if datastream.unit else None,
+        "unit_symbol": datastream.unit.symbol if datastream.unit else None,
         "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
         "method_name": datastream.sensor.name if datastream.sensor else None,
         "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
@@ -1238,6 +1239,15 @@ def unit_to_dict(unit):
 def get_units(request):
     units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
+
+
+# @api.get('/units/{unit_id}')
+# def get_unit_by_id(request, unit_id):
+#     try:
+#         unit = Unit.objects.get(id=unit_id)
+#         return JsonResponse(unit_to_dict(unit), safe=False)
+#     except Unit.DoesNotExist:
+#         return JsonResponse({'detail': 'Unit not found.'}, status=404)
 
 
 @api.get('/things/{thing_id}/metadata', auth=jwt_auth)
