@@ -73,8 +73,8 @@ export class Datastream {
   constructor(thingId: string) {
     this.id = ''
     this.thing_id = thingId
-    this.observation_type = ''
-    this.result_type = ''
+    this.observation_type = 'OM_Measurement'
+    this.result_type = 'Time Series Coverage'
     this.status = ''
     this.sampled_medium = ''
     this.no_data_value = -9999

@@ -121,12 +121,8 @@
           <v-autocomplete
             v-model="datastream.processing_level_id"
             label="Select processing level"
-            :items="
-              isPrimaryOwner
-                ? plStore.processingLevels
-                : thingStore.POMetadata[thingId].processing_levels
-            "
-            item-title="processing_level_code"
+            :items="formattedProcessingLevels"
+            item-title="title"
             item-value="id"
             :rules="rules.required"
             no-data-text="No available processing level"
@@ -159,6 +155,8 @@
             :rules="datastream.status ? rules.name : []"
           ></v-text-field>
         </v-col>
+      </v-row>
+      <v-row>
         <v-col>
           <v-text-field
             v-model="datastream.no_data_value"
@@ -167,27 +165,11 @@
             type="number"
           ></v-text-field>
         </v-col>
-      </v-row>
-      <v-row>
         <v-col>
           <v-text-field
             v-model="datastream.aggregation_statistic"
             label="Aggregation statistic"
             :rules="datastream.aggregation_statistic ? rules.name : []"
-          ></v-text-field>
-        </v-col>
-        <v-col>
-          <v-text-field
-            v-model="datastream.result_type"
-            label="Result type"
-            :rules="datastream.result_type ? rules.name : []"
-          ></v-text-field>
-        </v-col>
-        <v-col>
-          <v-text-field
-            v-model="datastream.observation_type"
-            label="Observation type"
-            :rules="datastream.observation_type ? rules.maxLength(500) : []"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -267,18 +249,18 @@ const formattedDatastreams = computed(() => {
   }))
 })
 
-// const formattedProcessingLevels = computed(() => {
-//   let processingLevels
-//   if (isPrimaryOwner.value) {
-//     processingLevels = plStore.processingLevels
-//   } else {
-//     processingLevels = thingStore.POMetadata[thingId].processing_levels
-//   }
-//   return processingLevels.map((pl) => ({
-//     id: pl.id,
-//     title: `${pl.processing_level_code} : ${pl.definition}`,
-//   }))
-// })
+const formattedProcessingLevels = computed(() => {
+  let processingLevels
+  if (isPrimaryOwner.value) {
+    processingLevels = plStore.processingLevels
+  } else {
+    processingLevels = thingStore.POMetadata[thingId].processing_levels
+  }
+  return processingLevels.map((pl) => ({
+    id: pl.id,
+    title: `${pl.processing_level_code} : ${pl.definition}`,
+  }))
+})
 
 watch(selectedDatastreamID, async () => {
   populateForm(selectedDatastreamID.value)

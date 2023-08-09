@@ -1051,8 +1051,8 @@ def create_datastream(request, thing_id, data: CreateDatastreamInput):
         status=data.status,
         no_data_value=float(data.no_data_value) if data.no_data_value else None,
         aggregation_statistic=data.aggregation_statistic,
-        result_type=data.result_type if data.result_type else 'Time Series Coverage',
-        observation_type=data.observation_type if data.observation_type else 'OM_Measurement',
+        result_type='Time Series Coverage',
+        observation_type='OM_Measurement',
         thing=request.thing,
         sensor=sensor,
     )
@@ -1164,10 +1164,10 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
         except ProcessingLevel.DoesNotExist:
             return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-    if data.observation_type is not None:
-        datastream.observation_type = data.observation_type
-    if data.result_type is not None:
-        datastream.result_type = data.result_type
+    # if data.observation_type is not None:
+    #     datastream.observation_type = data.observation_type
+    # if data.result_type is not None:
+    #     datastream.result_type = data.result_type
     if data.status is not None:
         datastream.status = data.status
     if data.sampled_medium is not None:
