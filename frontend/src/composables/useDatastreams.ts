@@ -13,9 +13,13 @@ export function useDatastreams(thingId: string) {
 
   const visibleDatastreams = computed(() => {
     if (!datastreamStore.datastreams[thingId]) return []
-    return datastreamStore.datastreams[thingId].filter(
-      (datastream) => datastream.is_visible || is_owner.value
-    )
+
+    return datastreamStore.datastreams[thingId]
+      .filter((datastream) => datastream.is_visible || is_owner.value)
+      .map((datastream) => ({
+        ...datastream,
+        chartOpen: false, // Adding a dialog boolean to each datastream so we can open a modal for each
+      }))
   })
 
   async function toggleVisibility(datastream: Datastream) {

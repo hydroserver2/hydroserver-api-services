@@ -180,14 +180,14 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <v-dialog v-model="openChartModal">
+            <v-dialog v-model="item.raw.chartOpen">
               <SiteVisualization
                 :thing-id="thingId"
                 :datastream-id="item.raw.id"
               ></SiteVisualization>
             </v-dialog>
             <LineChart
-              @click="openChartModal = true"
+              @click="item.raw.chartOpen = true"
               class="pt-2"
               :is-stale="item.raw.is_stale"
               :observations="item.raw.observations"
@@ -390,8 +390,6 @@ const headers = [
   { title: 'Sensor', key: 'method_name' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
-
-const openChartModal = ref(false)
 
 const linkFormDatastreamId = ref()
 const linkFormDataSourceId = ref()
