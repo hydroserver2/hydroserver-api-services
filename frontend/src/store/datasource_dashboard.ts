@@ -104,6 +104,11 @@ export const useDataSourceDashboardStore = defineStore('data-source-dashboard-st
         return dataSources
       }, {})
     },
+    async updateDataSourceStatus(dataSourceId: string, paused: boolean) {
+      const body = { schedule: { paused: !paused } }
+      const response = await this.$http.patch(`/data-sources/${dataSourceId}`, body)
+      console.log(response)
+    },
     async deleteDataSource(dataSourceId: string) {
       const response = await this.$http.delete(`/data-sources/${dataSourceId}`)
     }

@@ -53,14 +53,16 @@
       </template>
       <template v-slot:item.actions="{ item }">
         <v-btn
-          disabled
           v-if="item.raw.paused === true"
+          :disabled="updatingDataSourceStatus"
           icon="mdi-play"
+          @click="handleUpdateDataSourceStatus(item.raw.id, item.raw.paused, item.raw)"
         />
         <v-btn
-          disabled
           v-else
+          :disabled="updatingDataSourceStatus"
           icon="mdi-pause"
+          @click="handleUpdateDataSourceStatus(item.raw.id, item.raw.paused, item.raw)"
         />
         <v-menu>
           <template v-slot:activator="{ props }">
@@ -146,6 +148,7 @@ const search = ref()
 const dataSourceFormOpen = ref(false)
 const confirmDeleteOpen = ref(false)
 const deletingDataSource = ref(false)
+const updatingDataSourceStatus = ref(false)
 const dataSourceRowSelected = ref()
 
 store.fetchDataSources()
@@ -158,6 +161,14 @@ function handleAddDataSource() {
 function handleEditDataSource(dataSourceId: string) {
   dataSourceRowSelected.value = dataSourceId
   dataSourceFormOpen.value = true
+}
+
+async function handleUpdateDataSourceStatus(dataSourceId: string, paused: boolean, row: any) {
+  updatingDataSourceStatus.value = true
+  row.paused = !paused
+  await store.updateDataSourceStatus(dataSourceId, paused).then(() => {
+    updatingDataSourceStatus.value = false
+  })
 }
 
 function handleOpenConfirmDelete(dataSourceId: string) {
