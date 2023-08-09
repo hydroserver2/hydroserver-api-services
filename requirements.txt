@@ -1,7 +1,7 @@
 django==4.1
 django-ninja==0.20.0
 django-hydrothings==0.1.7
-hydroloader==0.1.11
+hydroloader==0.1.12
 django-vite==2.0.2
 dj-database-url==1.3.0
 python-decouple==3.7
