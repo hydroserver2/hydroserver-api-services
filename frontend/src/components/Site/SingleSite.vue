@@ -180,18 +180,18 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <router-link
-              :to="{
-                name: 'SiteVisualization',
-                params: { id: thingId, datastreamId: item.raw.id },
-              }"
-            >
-              <LineChart
-                class="pt-2"
-                :is-stale="item.raw.is_stale"
-                :observations="item.raw.observations"
-              />
-            </router-link>
+            <v-dialog v-model="openChartModal">
+              <SiteVisualization
+                :thing-id="thingId"
+                :datastream-id="item.raw.id"
+              ></SiteVisualization>
+            </v-dialog>
+            <LineChart
+              @click="openChartModal = true"
+              class="pt-2"
+              :is-stale="item.raw.is_stale"
+              :observations="item.raw.observations"
+            />
           </div>
           <div v-else>No data for this datastream</div>
         </template>
@@ -214,14 +214,13 @@
         <template v-slot:item.actions="{ item }">
           <v-tooltip bottom :openDelay="500" v-if="item.raw.is_visible">
             <template v-slot:activator="{ props }" v-if="is_owner">
-              <v-icon
+              <v-btn
                 small
                 color="grey"
                 v-bind="props"
+                icon="mdi-eye"
                 @click="toggleVisibility(item.raw)"
-              >
-                mdi-eye
-              </v-icon>
+              />
             </template>
             <span
               >Hide this datastream from guests of your site. Owners will still
@@ -230,14 +229,13 @@
           </v-tooltip>
           <v-tooltip bottom :openDelay="500" v-else>
             <template v-slot:activator="{ props }" v-if="is_owner">
-              <v-icon
+              <v-btn
                 small
                 color="grey-lighten-1"
                 v-bind="props"
+                icon="mdi-eye-off"
                 @click="toggleVisibility(item.raw)"
-              >
-                mdi-eye-off
-              </v-icon>
+              />
             </template>
             <span>Make this datastream publicly visible</span>
           </v-tooltip>
@@ -350,6 +348,7 @@ import { useThing } from '@/composables/useThing'
 // import { useAuthentication } from '@/composables/useAuthentication'
 import { useDatastreams } from '@/composables/useDatastreams'
 import { format } from 'date-fns'
+import SiteVisualization from '../SiteVisualization.vue'
 
 const photoStore = usePhotosStore()
 const thingId = useRoute().params.id.toString()
@@ -391,6 +390,8 @@ const headers = [
   { title: 'Sensor', key: 'method_name' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
+
+const openChartModal = ref(false)
 
 const linkFormDatastreamId = ref()
 const linkFormDataSourceId = ref()
