@@ -20,7 +20,12 @@ def get_sensors(
         request: HttpRequest,
         # params: SensorQueryParams = Query(...)
 ):
-    """"""
+    """
+    Returns a list of sensor records.
+
+    Details for all sensor records owned by an authenticated user will be returned in the response. No records will
+    be returned for unauthenticated requests.
+    """
 
     sensors = Sensor.objects.filter(Q(person=getattr(request, 'authenticated_user', None)))
 
@@ -37,7 +42,12 @@ def create_sensor(
         request: HttpRequest,
         data: SensorPostBody
 ):
-    """"""
+    """
+    Creates a new sensor record.
+
+    The created record will be owned by the authenticated user who made the request. If the sensor record was created
+    successfully, the response will contain details for the created record.
+    """
 
     sensor = Sensor.objects.create(
         person=getattr(request, 'authenticated_user'),
@@ -60,11 +70,16 @@ def create_sensor(
     auth=[BasicAuth(), JWTAuth()],
     response={200: SensorGetResponse, 404: None}
 )
-def get_sensors(
+def get_sensor(
         request: HttpRequest,
         sensor_id: UUID
 ):
-    """"""
+    """
+    Gets a single sensor record.
+
+    Details for a single sensor record identified by the given sensor ID and owned by the authenticated user will be
+    returned in the response.
+    """
 
     sensors = Sensor.objects.filter(Q(person=getattr(request, 'authenticated_user', None))).filter(id=sensor_id)
 
@@ -85,7 +100,12 @@ def update_sensor(
         sensor_id: UUID,
         data: SensorPatchBody
 ):
-    """"""
+    """
+    Updates an existing sensor record.
+
+    The record associated with the given sensor ID must be owned by the authenticated user who made the request. If the
+    sensor record was updated successfully, the response will contain details for the updated record.
+    """
 
     sensor = Sensor.objects.get(id=sensor_id)
 
@@ -112,22 +132,29 @@ def update_sensor(
 @router.delete(
     '/sensors/{sensor_id}',
     auth=[BasicAuth(), JWTAuth()],
-    response={200: None, 404: None, 403: None}
+    response={200: None, 404: None, 403: None, 500: None}
 )
 def delete_sensor(
         request: HttpRequest,
         sensor_id: UUID
 ):
-    """"""
+    """
+    Deletes an existing sensor record.
+
+    The record associated with the given sensor ID must be owned by the authenticated user who made the request.
+    """
+
+    sensor = Sensor.objects.get(id=sensor_id)
+
+    if not sensor:
+        return 404, None
+
+    if sensor.person != getattr(request, 'authenticated_user', None):
+        return 403, None
 
     try:
-        sensor = Sensor.objects.get(id=sensor_id)
-    except Sensor.DoesNotExist:
-        return JsonResponse({'detail': 'Sensor not found.'}, status=404)
+        sensor.delete()
+    except Exception as e:
+        return 500, str(e)
 
-    if request.authenticated_user != sensor.person:
-        return JsonResponse({'detail': 'You are not authorized to delete this sensor.'}, status=403)
-
-    sensor.delete()
-
-    return {'detail': 'Sensor deleted successfully.'}
+    return 200, 'Sensor deleted successfully.'
