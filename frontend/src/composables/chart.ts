@@ -59,7 +59,7 @@ export function drawChart(
     g.call(
       d3
         .axisBottom(x)
-        .ticks(width / 80)
+        .ticks(width / 150)
         .tickSizeOuter(0)
         .tickFormat(customTimeFormat as any)
     )
