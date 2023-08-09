@@ -38,7 +38,6 @@
       </template>
       <template v-slot:item.actions="{ item }">
         <v-btn
-          disabled
           icon="mdi-delete"
           @click="handleOpenConfirmDelete(item.raw.id)"
         />
@@ -60,7 +59,7 @@
         </v-card-text>
         <v-card-text>
           Note: You should uninstall this data loader instance before deleting it here. Deleting this data loader
-                instance will unlink it from all associated data sources.
+          instance will unlink it from all associated data sources.
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>

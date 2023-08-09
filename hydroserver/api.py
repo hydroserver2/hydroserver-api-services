@@ -1472,7 +1472,8 @@ def post_data_loader(request: HttpRequest, data_loader: DataLoaderPostBody):
 
     DataLoaderOwner.objects.create(
         data_loader=new_data_loader,
-        person=request.authenticated_user
+        person=request.authenticated_user,
+        is_primary_owner=True
     )
 
     return None
