@@ -7,7 +7,7 @@
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "vite.png",
+      "src": "favicon-32x32.png",
       "type": "image/png"
     }
   ]
