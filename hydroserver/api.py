@@ -808,7 +808,7 @@ def create_sensor(request, data: SensorInput):
         method_type=data.method_type,
         method_code=data.method_code,
         method_link=data.method_link,
-        encoding_type=data.encoding_type,
+        encoding_type="application/json",
         model_url=data.model_url,
     )
 
@@ -841,8 +841,9 @@ def update_sensor(request, sensor_id: str, data: SensorInput):
         sensor.method_code = data.method_code
     if data.method_link is not None:
         sensor.method_link = data.method_link
-    if data.encoding_type is not None:
-        sensor.encoding_type = data.encoding_type
+    # Should always be JSON
+    # if data.encoding_type is not None:
+    #     sensor.encoding_type = data.encoding_type
     if data.model_url is not None:
         sensor.model_url = data.model_url
 

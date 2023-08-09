@@ -140,7 +140,7 @@ export class Sensor {
     this.method_type = 'Instrument Deployment'
     this.method_code = ''
     this.method_link = ''
-    this.encoding_type = ''
+    this.encoding_type = 'application/json'
     this.model_url = ''
   }
 }
