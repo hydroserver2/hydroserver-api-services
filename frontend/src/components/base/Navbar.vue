@@ -1,16 +1,11 @@
 <template>
-  <v-app-bar app density="compact" elevation="2">
+  <v-app-bar app elevation="2">
     <template v-if="mdAndDown" v-slot:append>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     </template>
 
     <router-link :to="{ path: `/` }" class="logo">
-      <v-img
-        class="mr-4"
-        :src="appLogo"
-        alt="HydroServer home"
-        width="7.5rem"
-      />
+      <v-img class="mx-4" :src="appLogo" alt="HydroServer home" width="10rem" />
     </router-link>
 
     <template v-if="!mdAndDown">
@@ -24,6 +19,9 @@
           class="ma-1"
           color="surface"
           variant="flat"
+          @click="
+            path.isExternal ? openInNewTab($event, path.attrs?.href) : null
+          "
         >
           {{ path.label }}
         </v-btn>
@@ -40,6 +38,7 @@
               variant="flat"
             >
               {{ path.label }}
+              <v-icon right small>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -211,11 +210,18 @@ const paths: {
       },
     ],
   },
+  // {
+  //   name: 'docs',
+  //   attrs: { href: 'https://hydroserver2.github.io/docs/' },
+  //   label: 'Docs',
+  //   icon: 'mdi-file-document',
+  //   isExternal: true,
+  // },
   {
-    name: 'docs',
-    attrs: { href: 'https://hydroserver2.github.io/docs/' },
-    label: 'Docs',
-    icon: 'mdi-file-document',
+    name: 'contact us',
+    attrs: { to: '/contact' },
+    label: 'Contact Us',
+    icon: 'mdi-email',
   },
   // {
   //   attrs: { to: '/sites' },
@@ -223,6 +229,11 @@ const paths: {
   //   icon: 'mdi-chart-timeline-variant',
   // },
 ]
+
+function openInNewTab(event: MouseEvent, href: string | undefined) {
+  event.preventDefault()
+  if (href) window.open(href, '_blank')
+}
 </script>
 
 <style scoped lang="scss"></style>

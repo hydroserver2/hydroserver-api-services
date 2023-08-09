@@ -88,7 +88,8 @@
           </v-card>
         </v-dialog>
       </v-col>
-      <v-col cols="auto" v-if="!is_owner">
+      <!-- Jeff said to comment out anything related to following a site August 8, 2023 -->
+      <!-- <v-col cols="auto" v-if="!is_owner">
         <v-switch
           color="secondary"
           hide-details
@@ -97,7 +98,7 @@
           @change="updateFollow"
           :label="thing.follows_thing ? 'You Follow This site' : 'Follow Site'"
         ></v-switch>
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row>
       <v-col cols="12" md="8">
@@ -147,7 +148,7 @@
         <h5 class="text-h5">Datastreams Available at this Site</h5>
       </v-col>
       <v-spacer></v-spacer>
-      <v-col cols="auto">
+      <!-- <v-col cols="auto">
         <img
           style="max-height: 1.5rem"
           src="@/assets/hydro.png"
@@ -159,7 +160,7 @@
         <v-btn color="grey" class="site-information-button"
           >Download Data from HydroShare</v-btn
         >
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row class="pb-2" v-if="is_owner">
       <v-col>
@@ -179,29 +180,47 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <LineChart class="pt-2" :observations="item.raw.observations" />
+            <v-dialog v-model="item.raw.chartOpen">
+              <SiteVisualization
+                :thing-id="thingId"
+                :datastream-id="item.raw.id"
+              ></SiteVisualization>
+            </v-dialog>
+            <LineChart
+              @click="item.raw.chartOpen = true"
+              class="pt-2"
+              :is-stale="item.raw.is_stale"
+              :observations="item.raw.observations"
+            />
           </div>
           <div v-else>No data for this datastream</div>
-          <!-- <div v-if="item.raw.stale">stale</div>
-          <div v-else>not stale</div> -->
         </template>
         <template v-slot:item.last_observation="{ item }">
           <div v-if="item.raw.most_recent_observation">
-            {{ (item.raw.most_recent_observation as Observation).result_time }}
+            <v-row>
+              {{
+                formatDate(
+                  (item.raw.most_recent_observation as Observation).result_time
+                )
+              }}
+            </v-row>
+            <v-row>
+              {{ item.raw.unit_name }} -
+              {{ (item.raw.most_recent_observation as Observation).result }}
+            </v-row>
           </div>
         </template>
 
         <template v-slot:item.actions="{ item }">
           <v-tooltip bottom :openDelay="500" v-if="item.raw.is_visible">
             <template v-slot:activator="{ props }" v-if="is_owner">
-              <v-icon
+              <v-btn
                 small
                 color="grey"
                 v-bind="props"
+                icon="mdi-eye"
                 @click="toggleVisibility(item.raw)"
-              >
-                mdi-eye
-              </v-icon>
+              />
             </template>
             <span
               >Hide this datastream from guests of your site. Owners will still
@@ -210,14 +229,13 @@
           </v-tooltip>
           <v-tooltip bottom :openDelay="500" v-else>
             <template v-slot:activator="{ props }" v-if="is_owner">
-              <v-icon
+              <v-btn
                 small
                 color="grey-lighten-1"
                 v-bind="props"
+                icon="mdi-eye-off"
                 @click="toggleVisibility(item.raw)"
-              >
-                mdi-eye-off
-              </v-icon>
+              />
             </template>
             <span>Make this datastream publicly visible</span>
           </v-tooltip>
@@ -231,7 +249,13 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                @click="handleLinkDataSource(item.raw.id)"
+                @click="
+                  handleLinkDataSource(
+                    item.raw.id,
+                    item.raw.data_source_id,
+                    item.raw.column
+                  )
+                "
               />
               <v-list-item
                 v-if="is_owner"
@@ -244,11 +268,20 @@
               />
               <v-list-item
                 v-if="is_owner"
+                prepend-icon="mdi-chart-line"
+                title="View Time Series Plot"
+                :to="{
+                  name: 'SiteVisualization',
+                  params: { id: thingId, datastreamId: item.raw.id },
+                }"
+              />
+              <v-list-item
+                v-if="is_owner"
                 prepend-icon="mdi-delete"
                 title="Delete Datastream"
                 @click="openDeleteModal(item.raw)"
               />
-              <v-list-item prepend-icon="mdi-download" title="Download Data" />
+              <!-- <v-list-item prepend-icon="mdi-download" title="Download Data" /> -->
             </v-list>
           </v-menu>
         </template>
@@ -269,6 +302,16 @@
             <br />
             <strong>ID:</strong> {{ selectedDatastream.id }} <br />
           </v-card-text>
+          <v-card-text>
+            Please type <strong> Delete </strong> to confirm deletion:
+            <v-form>
+              <v-text-field
+                v-model="deleteDatastreamInput"
+                solo
+                @keydown.enter.prevent="deleteDatastream"
+              ></v-text-field>
+            </v-form>
+          </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn-cancel @click="isDSDeleteModalOpen = false"
@@ -278,10 +321,13 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="dataSourceDialogOpen" persistent>
-        <DataSourceForm
-          @close-dialog="dataSourceDialogOpen = false"
-          :datastreamId="dataSourceDatastream"
+      <v-dialog v-model="linkDataSourceDialogOpen" persistent>
+        <SiteLinkDataSourceForm
+          @close-dialog="handleCloseDataSourceDialog"
+          :thingId="thingId"
+          :datastreamId="linkFormDatastreamId"
+          :dataSourceId="linkFormDataSourceId"
+          :column="linkFormColumn"
         />
       </v-dialog>
     </v-row>
@@ -292,15 +338,17 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
+import SiteLinkDataSourceForm from '@/components/Site/SiteLinkDataSourceForm.vue'
 import LineChart from '@/components/LineChart.vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Observation } from '@/types'
 import { usePhotosStore } from '@/store/photos'
 import { useThing } from '@/composables/useThing'
-import { useAuthentication } from '@/composables/useAuthentication'
+// import { useAuthentication } from '@/composables/useAuthentication'
 import { useDatastreams } from '@/composables/useDatastreams'
+import { format } from 'date-fns'
+import SiteVisualization from '../SiteVisualization.vue'
 
 const photoStore = usePhotosStore()
 const thingId = useRoute().params.id.toString()
@@ -309,7 +357,7 @@ const {
   thing,
   stringThing,
   mapOptions,
-  updateFollow,
+  // updateFollow,
   is_owner,
   deleteInput,
   deleteThing,
@@ -326,24 +374,46 @@ const {
   openDeleteModal,
   deleteDatastream,
   isDeleteModalOpen: isDSDeleteModalOpen,
+  deleteDatastreamInput,
 } = useDatastreams(thingId)
-const { isAuthenticated } = useAuthentication()
+// const { isAuthenticated } = useAuthentication()
 
 const headers = [
-  { title: 'Unit Name', key: 'unit_name', sortable: true },
-  { title: 'Observations', key: 'observations', sortable: false },
+  { title: 'Observed Property', key: 'observed_property_name', sortable: true },
+  {
+    title: 'Observations (Last 72 Hours)',
+    key: 'observations',
+    sortable: false,
+  },
   { title: 'Last Observation', key: 'last_observation' },
   { title: 'Sampled Medium', key: 'sampled_medium' },
   { title: 'Sensor', key: 'method_name' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const dataSourceDatastream = ref()
-const dataSourceDialogOpen = ref(false)
+const linkFormDatastreamId = ref()
+const linkFormDataSourceId = ref()
+const linkFormColumn = ref()
+const linkDataSourceDialogOpen = ref(false)
 
-function handleLinkDataSource(datastreamId: string) {
-  dataSourceDatastream.value = datastreamId
-  dataSourceDialogOpen.value = true
+function handleLinkDataSource(
+  datastreamId: string,
+  dataSourceId: string,
+  column: string | number
+) {
+  linkFormDatastreamId.value = datastreamId
+  linkFormDataSourceId.value = dataSourceId
+  linkFormColumn.value = column
+  linkDataSourceDialogOpen.value = true
+}
+
+function handleCloseDataSourceDialog() {
+  linkDataSourceDialogOpen.value = false
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  return format(date, 'MMM dd, yyyy HH:mm')
 }
 
 onMounted(async () => {

@@ -62,7 +62,7 @@ export function useThing(thingId: string) {
       longitude,
       elevation,
       description,
-      sampling_feature_type,
+      // sampling_feature_type,
       site_type,
       state,
       county,
@@ -81,11 +81,11 @@ export function useThing(thingId: string) {
       { icon: 'fas fa-map', label: 'Longitude', value: longitude },
       { icon: 'fas fa-mountain', label: 'Elevation', value: elevation },
       { icon: 'fas fa-file-alt', label: 'Description', value: description },
-      {
-        icon: 'fas fa-map-marker-alt',
-        label: 'Sampling Feature Type',
-        value: sampling_feature_type,
-      },
+      // {
+      //   icon: 'fas fa-map-marker-alt',
+      //   label: 'Sampling Feature Type',
+      //   value: sampling_feature_type,
+      // },
       { icon: 'fas fa-map-pin', label: 'Site Type', value: site_type },
       { icon: 'fas fa-flag-usa', label: 'State', value: state },
       { icon: 'fas fa-flag-usa', label: 'County', value: county },
@@ -128,18 +128,24 @@ export function useThing(thingId: string) {
 
   const newOwnerEmail = ref('')
   const newPrimaryOwnerEmail = ref('')
+  const showPrimaryOwnerConfirmation = ref(false)
 
   async function addSecondaryOwner() {
-    if (newOwnerEmail.value)
+    if (newOwnerEmail.value) {
       await thingStore.addSecondaryOwner(thingId, newOwnerEmail.value)
+      newOwnerEmail.value = ''
+    }
   }
 
   async function transferPrimaryOwnership() {
-    if (newPrimaryOwnerEmail.value)
+    if (newPrimaryOwnerEmail.value) {
       await thingStore.transferPrimaryOwnership(
         thingId,
         newPrimaryOwnerEmail.value
       )
+      newPrimaryOwnerEmail.value = ''
+      showPrimaryOwnerConfirmation.value = false
+    }
   }
 
   async function removeOwner(email: string) {
@@ -158,6 +164,7 @@ export function useThing(thingId: string) {
     newOwnerEmail,
     newPrimaryOwnerEmail,
     addSecondaryOwner,
+    showPrimaryOwnerConfirmation,
     transferPrimaryOwnership,
     removeOwner,
     toggleSitePrivacy,

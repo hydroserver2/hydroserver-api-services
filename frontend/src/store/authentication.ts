@@ -104,6 +104,14 @@ export const useAuthStore = defineStore({
             message: 'Network error. Please check your connection.',
             type: 'error',
           })
+        } else if (
+          error.response.status === 400 &&
+          error.response.data.detail === 'EmailAlreadyExists'
+        ) {
+          Notification.toast({
+            message: 'A user with this email already exists.',
+            type: 'error',
+          })
         } else {
           Notification.toast({
             message: 'Something went wrong.',
@@ -143,29 +151,58 @@ export const useAuthStore = defineStore({
         const response = await this.$http.post('/password_reset', {
           email: email,
         })
-        console.log('PR Response', response)
-        if (response.status === 200) {
-          //generate SES email
-          return true
+        return response.status === 200
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        } else if (error.response.status === 404) {
+          Notification.toast({
+            message: 'No account was found for the email you specified',
+            type: 'error',
+          })
+        } else {
+          Notification.toast({
+            message:
+              'Error occurred while requesting your password reset email. Please try again.',
+            type: 'error',
+          })
         }
-        return false
-      } catch (error) {
         console.error('Error requesting password reset:', error)
-        Notification.toast({
-          message:
-            'Error occurred while requesting your password reset email. Please try again.',
-          type: 'error',
-        })
         return false
       }
     },
-    async testEmail() {
+    async resetPassword(uid: string, token: string, password: string) {
       try {
-        const response = await this.$http.post('/test_email')
-        console.log('Test Response', response)
-        return response.status === 200
-      } catch (error) {
-        console.error('Error sending test email:', error)
+        const response = await this.$http.post('/reset_password', {
+          uid: uid,
+          token: token,
+          password: password,
+        })
+        console.log('Reset Password Response', response)
+        if (response.status === 200) {
+          Notification.toast({
+            message: 'Successfully reset password!',
+            type: 'success',
+          })
+          await router.push({ name: 'Login' })
+        }
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        } else {
+          Notification.toast({
+            message:
+              'Error occurred while requesting your password reset email. Please try again.',
+            type: 'error',
+          })
+        }
+        console.error('Error requesting password reset:', error.response.status)
         return false
       }
     },

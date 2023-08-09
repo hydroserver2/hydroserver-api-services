@@ -38,7 +38,7 @@ export class Thing {
     this.owns_thing = false
     this.follows_thing = false
     this.description = ''
-    this.sampling_feature_type = ''
+    this.sampling_feature_type = 'Site'
     this.state = ''
     this.county = ''
     this.is_primary_owner = false
@@ -59,6 +59,7 @@ export class Datastream {
   most_recent_observation: any
   unit_id: string
   unit_name: string
+  unit_symbol: string
   observed_property_id: string
   observed_property_name: string
   method_id: string
@@ -72,16 +73,17 @@ export class Datastream {
   constructor(thingId: string) {
     this.id = ''
     this.thing_id = thingId
-    this.observation_type = ''
-    this.result_type = ''
+    this.observation_type = 'OM_Measurement'
+    this.result_type = 'Time Series Coverage'
     this.status = ''
     this.sampled_medium = ''
-    this.no_data_value = -999
+    this.no_data_value = -9999
     this.aggregation_statistic = ''
     this.observations = []
     this.most_recent_observation = ''
     this.unit_id = ''
     this.unit_name = ''
+    this.unit_symbol = ''
     this.observed_property_id = ''
     this.observed_property_name = ''
     this.method_id = ''
@@ -138,7 +140,7 @@ export class Sensor {
     this.method_type = 'Instrument Deployment'
     this.method_code = ''
     this.method_link = ''
-    this.encoding_type = ''
+    this.encoding_type = 'application/json'
     this.model_url = ''
   }
 }

@@ -6,9 +6,6 @@
           {{ formTitle }}
         </span>
       </v-card-title>
-      <v-card-item v-if="false">
-        <DataSourcePreview/>
-      </v-card-item>
       <v-card-item v-if="store.formReady">
         <DataSourceLocation
           ref="dataSourceLocationForm"
@@ -22,12 +19,14 @@
           ref="dataSourceTimestampForm"
           v-if="step === 3"
         />
-        <DataSourceDatastream
-          ref="dataSourceDatastreamForm"
-          v-if="step === 4"
-        />
+      </v-card-item>
+      <v-card-item v-else>
+        Loading...
       </v-card-item>
       <v-card-actions>
+        <div class="text-subtitle-2">
+          * indicates a required field.
+        </div>
         <v-spacer></v-spacer>
         <v-btn
           variant="text"
@@ -43,14 +42,14 @@
           Previous
         </v-btn>
         <v-btn
-          v-if="step < 4"
+          v-if="step < 3"
           variant="text"
           @click="handleNextPage"
         >
           Next
         </v-btn>
         <v-btn
-          v-if="step === 4"
+          v-if="step === 3"
           variant="text"
           @click="handleSaveChanges"
         >
@@ -68,10 +67,8 @@ import { useRoute, useRouter } from 'vue-router'
 import DataSourceLocation from "@/components/DataSource/DataSourceLocation.vue";
 import DataSourceSchedule from "@/components/DataSource/DataSourceSchedule.vue";
 import DataSourceTimestamp from "@/components/DataSource/DataSourceTimestamp.vue";
-import DataSourceDatastream from "@/components/DataSource/DataSourceDatastream.vue";
-import DataSourcePreview from "@/components/DataSource/DataSourcePreview.vue";
 
-const props = defineProps(['datastreamId', 'dataSourceId'])
+const props = defineProps(['dataSourceId'])
 const emit = defineEmits(['closeDialog'])
 
 const step = ref(1)
@@ -85,27 +82,24 @@ const dataSourceTimestampForm = ref()
 const dataSourceDatastreamForm = ref()
 const formTitle = ref()
 
-store.datastreamId = props.datastreamId || null
 store.dataSourceId = props.dataSourceId || null
 store.formReady = false
 
-store.fetchDataSources().then(() => {
+store.fetchDataSource().then(() => {
   store.fetchDataLoaders().then(() => {
     store.fillForm()
     store.formReady = true
   })
 })
 
-if (store.datastreamId) {
-  formTitle.value = 'Link Data Source'
-} else if (store.dataSourceId) {
+if (store.dataSourceId) {
   formTitle.value = 'Edit Data Source'
 } else {
   formTitle.value = 'Add Data Source'
 }
 
 async function handleSaveChanges() {
-  let valid = await dataSourceDatastreamForm.value.validate()
+  let valid = await dataSourceTimestampForm.value.validate()
   if (valid === true) {
     let saved = await store.saveDataSource()
     if (saved) {

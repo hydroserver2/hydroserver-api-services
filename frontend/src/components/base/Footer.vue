@@ -4,8 +4,8 @@
       <div class="d-flex justify-space-between flex-column flex-md-row gap-3">
         <div>
           <h5 class="text-h5 mb-4">Contact Us</h5>
-          <a class="d-block mb-3" href="#">Contact</a>
-          <div>Learn more about <a href="#">CIROH</a></div>
+          <router-link class="d-block mb-3" to="/contact">Contact</router-link>
+          <div>Learn more about <a href="https://ciroh.ua.edu/">CIROH</a></div>
         </div>
         <div>
           <h5 class="text-h5 mb-4">Policies</h5>
@@ -29,7 +29,11 @@
           </p>
           <p class="mb-3">
             Report a bug
-            <a href="https://github.com/issues" target="_blank">here.</a>
+            <a
+              href="https://github.com/hydroserver2/hydroserver/issues"
+              target="_blank"
+              >here.</a
+            >
           </p>
           <p>
             This is Version {{ version }} of the Hydroserver web application.
@@ -39,10 +43,11 @@
 
       <div class="text-center mt-12">
         <p class="d-inline-block text-body-2">
-          (c) Utah Water Research Laboratory (UWRL). This material is based on
-          work supported by the Cooperative Institute for Research to Operations
-          in Hydrology (CIROH). Funding was awarded to CIROH through the NOAA
-          Cooperative Agreement with the University of Alabama (NA22NWS4320003)
+          &copy; Utah Water Research Laboratory (UWRL). This material is based
+          on work supported by the Cooperative Institute for Research to
+          Operations in Hydrology (CIROH). Funding was awarded to CIROH through
+          the NOAA Cooperative Agreement with the University of Alabama
+          (NA22NWS4320003).
         </p>
       </div>
     </v-container>

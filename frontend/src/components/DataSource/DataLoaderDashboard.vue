@@ -2,7 +2,7 @@
   <v-container>
     <v-row class="mb-4">
       <v-col cols="auto">
-        <h5 class="text-h5">My Data Loaders Dashboard</h5>
+        <h5 class="text-h5">Manage Data Loaders</h5>
       </v-col>
     </v-row>
     <v-data-table
@@ -38,7 +38,6 @@
       </template>
       <template v-slot:item.actions="{ item }">
         <v-btn
-          disabled
           icon="mdi-delete"
           @click="handleOpenConfirmDelete(item.raw.id)"
         />
@@ -60,7 +59,7 @@
         </v-card-text>
         <v-card-text>
           Note: You should uninstall this data loader instance before deleting it here. Deleting this data loader
-                instance will unlink it from all associated data sources.
+          instance will unlink it from all associated data sources.
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>

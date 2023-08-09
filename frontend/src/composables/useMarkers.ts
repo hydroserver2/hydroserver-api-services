@@ -6,17 +6,26 @@ export function useMarkers() {
   let infoWindow: google.maps.InfoWindow | null = null
 
   function generateMarkerContent(markerData: MarkerData): string {
+    const primaryOwner = markerData.owners.find(
+      (owner: any) => owner.is_primary_owner
+    )
+    const primaryOrg =
+      primaryOwner && primaryOwner.organization
+        ? `<p class="pb-1" style='color:green;'>Related Organization: ${primaryOwner.organization}</p>`
+        : ''
+
     return `
-        <h6 class="text-h6 pb-1">${markerData.name}</h6>
-        <p class="pb-1"><b>
-          ${markerData.county ? markerData.county : ''}
-          ${markerData.county && markerData.state ? ',' : ''}
-          ${markerData.state ? markerData.state : ''}
-          </b></p>
-          <p class="pb-1">${markerData.description}</p>
-          <p class="pt-1">
-            <a href="/sites/${markerData.id}">View data for this site</a>
-            </p>`
+      <h6 class="text-h6 pb-1">${markerData.name}</h6>
+      <p class="pb-1" style="font-size: 1.2em;"><b>
+        ${markerData.county ? markerData.county : ''}
+        ${markerData.county && markerData.state ? ',' : ''}
+        ${markerData.state ? markerData.state : ''}
+        </b></p>
+        <p class="pb-1" style="max-width: 25rem;">${markerData.description}</p>
+        ${primaryOrg}
+      <p class="pt-1">
+        <a href="/sites/${markerData.id}">View data for this site</a>
+      </p>`
   }
 
   const createMarker = (

@@ -20,7 +20,7 @@ dependencies:
       - Authlib==1.2.1
       - django-hydrothings==0.1.5
       - django-ninja-jwt==5.2.5
-      - hydroloader==0.1.9
+      - hydroloader==0.1.12
       - django-vite==2.0.2
       - sqlalchemy-json==0.5.0
       - geojson-pydantic==0.5.0

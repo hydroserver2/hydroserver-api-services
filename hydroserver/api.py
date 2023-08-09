@@ -6,7 +6,7 @@ from datetime import timedelta
 import os
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse, HttpRequest
@@ -19,6 +19,7 @@ from ninja.security import HttpBasicAuth
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 from ninja.errors import HttpError
+from pydantic import conint
 from typing import Optional, List, Union
 from datetime import datetime
 from uuid import UUID
@@ -31,7 +32,7 @@ from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssoci
     ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner, Photo
 import boto3
 from botocore.exceptions import ClientError
-from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
@@ -171,22 +172,12 @@ def refresh_token(request, data: CreateRefreshInput):
         return JsonResponse({'error': str(e)}, status=401)
 
 
-class PasswordResetInput(Schema):
+class PasswordResetRequestInput(Schema):
     email: str
-
-@api.post("/test_email")
-def send_test_email(request):
-    mail_subject = 'Test Email'
-    message = render_to_string('test_email.html', {
-        'domain': 'hydroserver.ciroh.org',  
-    })
-
-    email = EmailMessage(mail_subject, message, to=["daniel.slaugh@hotmail.com"])
-    email.send()
 
 
 @api.post("/password_reset")
-def password_reset(request, data: PasswordResetInput):
+def password_reset(request, data: PasswordResetRequestInput):
     try:
         user = CustomUser.objects.filter(email=data.email).first()
         if user:
@@ -209,16 +200,49 @@ def password_reset(request, data: PasswordResetInput):
     
 
 def send_password_reset_email(user, uid, token):
-    mail_subject = 'Reset your password'
-    message = render_to_string('reset_password_email.html', {
+    mail_subject = 'Password Reset'
+
+    context = {
         'user': user,
-        'domain': 'hydroserver.ciroh.com',  
         'uid': uid,
         'token': token,
-    })
+        'domain': 'hydroserver.ciroh.org',  
+        'proxy_base_url': PROXY_BASE_URL
+    }
 
-    email = EmailMessage(mail_subject, message, to=[user.email])
-    email.send()
+    html_message = render_to_string('reset_password_email.html', context)
+
+    send_mail(
+        mail_subject,
+        '', # Don't support plain text emails
+        'HydroServer <admin@hydroserver.ciroh.org>',
+        [user.email],
+        html_message=html_message,
+    )
+
+
+class ResetPasswordInput(Schema):
+    uid: str
+    token: str
+    password: str
+
+@api.post("/reset_password")
+def reset_password(request, data: ResetPasswordInput):
+    try:
+        password_reset = PasswordReset.objects.get(pk=data.uid)
+    except (PasswordReset.DoesNotExist):
+        return JsonResponse({'error': 'Invalid UID'}, status=400)
+        
+    user = password_reset.user
+
+    if not default_token_generator.check_token(user, data.token):
+        return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+    user.set_password(data.password)
+    user.save()
+    password_reset.delete()
+
+    return JsonResponse({'message': 'Password reset successful'}, status=200)
 
 
 class CreateUserInput(Schema):
@@ -248,6 +272,8 @@ def create_user(request, data: CreateUserInput):
             phone=data.phone,
             address=data.address
         )
+    except IntegrityError:
+        raise HttpError(400, 'EmailAlreadyExists')
     except Exception as e:
         raise HttpError(400, str(e))
 
@@ -417,7 +443,7 @@ def update_thing_photos(request, thing_id):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-@api.get('/photos/{thing_id}', auth=jwt_auth)
+@api.get('/photos/{thing_id}')
 def get_thing_photos(request, thing_id):
     try:
         thing = Thing.objects.get(id=thing_id)
@@ -612,7 +638,7 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
     if request.authenticated_user == user and current_user_association.is_primary_owner:
         return JsonResponse({"error": "Primary owner cannot edit their own ownership."}, status=403)
     if not current_user_association.is_primary_owner and user != request.authenticated_user:
-        return JsonResponse({"error": "Only the primary owner can modify other users' ownership."}, status=403)
+        return JsonResponse({"error": "NotPrimaryOwner."}, status=403)
 
     thing_association, created = ThingAssociation.objects.get_or_create(thing=request.thing, person=user)
 
@@ -635,6 +661,8 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
         thing_association.delete()
         return JsonResponse(thing_to_dict(request.thing, request.authenticated_user), status=200)
     elif data.make_owner:
+        if not created:
+            return JsonResponse({"warning": "Specified user is already an owner of this site"}, status=422)
         thing_association.owns_thing = True
 
     thing_association.follows_thing = False
@@ -780,7 +808,7 @@ def create_sensor(request, data: SensorInput):
         method_type=data.method_type,
         method_code=data.method_code,
         method_link=data.method_link,
-        encoding_type=data.encoding_type,
+        encoding_type="application/json",
         model_url=data.model_url,
     )
 
@@ -813,8 +841,9 @@ def update_sensor(request, sensor_id: str, data: SensorInput):
         sensor.method_code = data.method_code
     if data.method_link is not None:
         sensor.method_link = data.method_link
-    if data.encoding_type is not None:
-        sensor.encoding_type = data.encoding_type
+    # Should always be JSON
+    # if data.encoding_type is not None:
+    #     sensor.encoding_type = data.encoding_type
     if data.model_url is not None:
         sensor.model_url = data.model_url
 
@@ -976,12 +1005,16 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
         "processing_level_id": datastream.processing_level.pk if datastream.processing_level else None,
 
         "unit_name": datastream.unit.name if datastream.unit else None,
+        "unit_symbol": datastream.unit.symbol if datastream.unit else None,
         "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
         "method_name": datastream.sensor.name if datastream.sensor else None,
         "processing_level_name": datastream.processing_level.processing_level_code if datastream.processing_level else None,
         "is_visible": datastream.is_visible,
         "is_primary_owner": association.is_primary_owner if association else False,
         "is_stale": is_stale,
+
+        "data_source_id": datastream.data_source_id,
+        "column": datastream.data_source_column
     }
 
 
@@ -1018,8 +1051,8 @@ def create_datastream(request, thing_id, data: CreateDatastreamInput):
         status=data.status,
         no_data_value=float(data.no_data_value) if data.no_data_value else None,
         aggregation_statistic=data.aggregation_statistic,
-        result_type=data.result_type if data.result_type else 'Time Series Coverage',
-        observation_type=data.observation_type if data.observation_type else 'OM_Measurement',
+        result_type='Time Series Coverage',
+        observation_type='OM_Measurement',
         thing=request.thing,
         sensor=sensor,
     )
@@ -1097,6 +1130,9 @@ class UpdateDatastreamInput(Schema):
     result_end_time: str = None
     is_visible: bool = None
 
+    data_source_id: str = None
+    data_source_column: str = None
+
 
 @api.patch('/datastreams/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
@@ -1128,10 +1164,10 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
         except ProcessingLevel.DoesNotExist:
             return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-    if data.observation_type is not None:
-        datastream.observation_type = data.observation_type
-    if data.result_type is not None:
-        datastream.result_type = data.result_type
+    # if data.observation_type is not None:
+    #     datastream.observation_type = data.observation_type
+    # if data.result_type is not None:
+    #     datastream.result_type = data.result_type
     if data.status is not None:
         datastream.status = data.status
     if data.sampled_medium is not None:
@@ -1167,6 +1203,11 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
     if data.is_visible is not None:
         datastream.is_visible = data.is_visible
 
+    if hasattr(data, 'data_source_id') is not None:
+        datastream.data_source_id = data.data_source_id
+    if hasattr(data, 'column') is not None:
+        datastream.data_source_column = data.data_source_column
+
     datastream.save()
 
     return JsonResponse(datastream_to_dict(datastream, request.thing_association))
@@ -1199,6 +1240,15 @@ def unit_to_dict(unit):
 def get_units(request):
     units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
+
+
+# @api.get('/units/{unit_id}')
+# def get_unit_by_id(request, unit_id):
+#     try:
+#         unit = Unit.objects.get(id=unit_id)
+#         return JsonResponse(unit_to_dict(unit), safe=False)
+#     except Unit.DoesNotExist:
+#         return JsonResponse({'detail': 'Unit not found.'}, status=404)
 
 
 @api.get('/things/{thing_id}/metadata', auth=jwt_auth)
@@ -1423,7 +1473,8 @@ def post_data_loader(request: HttpRequest, data_loader: DataLoaderPostBody):
 
     DataLoaderOwner.objects.create(
         data_loader=new_data_loader,
-        person=request.authenticated_user
+        person=request.authenticated_user,
+        is_primary_owner=True
     )
 
     return None
@@ -1487,7 +1538,7 @@ class DataSourceDatastream(Schema):
     description: str
     result_start_time: Optional[datetime]
     result_end_time: Optional[datetime]
-    column: Union[int, str]
+    column: Optional[Union[int, str]]
 
 
 class DataSourceGetResponse(HydroLoaderConf):
@@ -1514,6 +1565,11 @@ class DataSourcePostBody(HydroLoaderConf):
     next_sync: Optional[datetime]
 
 
+class HydroLoaderConfFileDatastreamPatch(Schema):
+    id: UUID
+    column: Optional[Union[conint(gt=0), str]]
+
+
 @allow_partial
 class DataSourcePatchBody(HydroLoaderConf):
     name: str
@@ -1523,6 +1579,7 @@ class DataSourcePatchBody(HydroLoaderConf):
     last_sync_message: Optional[str]
     last_synced: Optional[datetime]
     next_sync: Optional[datetime]
+    datastreams: List[HydroLoaderConfFileDatastreamPatch]
 
 
 def transform_data_source(data_source):

@@ -46,13 +46,6 @@
             </v-col>
             <v-col cols="12">
               <v-text-field
-                v-model="sensor.encoding_type"
-                label="Encoding Type"
-                :rules="rules.required"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12">
-              <v-text-field
                 v-model="sensor.model_url"
                 label="Model URL"
                 :rules="sensor.model_url ? rules.urlFormat : []"

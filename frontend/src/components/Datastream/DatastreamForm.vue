@@ -1,16 +1,29 @@
 <template>
   <v-container v-if="datastream && loaded">
     <v-row>
-      <h5 class="text-h5 mb-4">
-        {{ datastreamId ? 'Edit Datastream' : 'Datastream Setup' }} Page
-      </h5>
+      <v-col>
+        <h5 class="text-h5">
+          {{ datastreamId ? 'Edit' : 'Create' }} Datastream
+        </h5>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-2">
+          Select the appropriate metadata to describe the the datastream you are
+          adding to the monitoring site. If you want to modify the values
+          available in the drop down menus below, click the “Add New” button or
+          visit the
+          <router-link to="/Metadata"> Manage Metadata page. </router-link>
+        </h6>
+      </v-col>
     </v-row>
     <v-row v-if="isPrimaryOwner">
       <v-col>
         <v-autocomplete
           v-if="!datastreamId"
           v-model="selectedDatastreamID"
-          label="Start from an existing datastream"
+          label="Use an existing datastream as a template"
           :items="formattedDatastreams"
           item-value="id"
         ></v-autocomplete>
@@ -108,12 +121,8 @@
           <v-autocomplete
             v-model="datastream.processing_level_id"
             label="Select processing level"
-            :items="
-              isPrimaryOwner
-                ? plStore.processingLevels
-                : thingStore.POMetadata[thingId].processing_levels
-            "
-            item-title="processing_level_code"
+            :items="formattedProcessingLevels"
+            item-title="title"
             item-value="id"
             :rules="rules.required"
             no-data-text="No available processing level"
@@ -146,16 +155,16 @@
             :rules="datastream.status ? rules.name : []"
           ></v-text-field>
         </v-col>
+      </v-row>
+      <v-row>
         <v-col>
           <v-text-field
             v-model="datastream.no_data_value"
             label="No data value"
-            :rules="datastream.no_data_value ? rules.maxLength(20) : []"
+            :rules="datastream.no_data_value ? rules.maxLength(255) : []"
             type="number"
           ></v-text-field>
         </v-col>
-      </v-row>
-      <v-row>
         <v-col>
           <v-text-field
             v-model="datastream.aggregation_statistic"
@@ -163,22 +172,14 @@
             :rules="datastream.aggregation_statistic ? rules.name : []"
           ></v-text-field>
         </v-col>
-        <v-col>
-          <v-text-field
-            v-model="datastream.result_type"
-            label="Result type"
-            :rules="datastream.result_type ? rules.name : []"
-          ></v-text-field>
-        </v-col>
-        <v-col>
-          <v-text-field
-            v-model="datastream.observation_type"
-            label="Observation type"
-            :rules="datastream.observation_type ? rules.maxLength(500) : []"
-          ></v-text-field>
-        </v-col>
       </v-row>
       <v-row>
+        <v-col cols="auto">
+          <v-btn-cancel @click="$router.go(-1)">
+            <v-icon>mdi-arrow-left</v-icon>
+            Return to previous page
+          </v-btn-cancel>
+        </v-col>
         <v-spacer></v-spacer>
         <v-col cols="auto">
           <v-btn type="submit" color="secondary">{{
@@ -248,18 +249,18 @@ const formattedDatastreams = computed(() => {
   }))
 })
 
-// const formattedProcessingLevels = computed(() => {
-//   let processingLevels
-//   if (isPrimaryOwner.value) {
-//     processingLevels = plStore.processingLevels
-//   } else {
-//     processingLevels = thingStore.POMetadata[thingId].processing_levels
-//   }
-//   return processingLevels.map((pl) => ({
-//     id: pl.id,
-//     title: `${pl.processing_level_code} : ${pl.definition}`,
-//   }))
-// })
+const formattedProcessingLevels = computed(() => {
+  let processingLevels
+  if (isPrimaryOwner.value) {
+    processingLevels = plStore.processingLevels
+  } else {
+    processingLevels = thingStore.POMetadata[thingId].processing_levels
+  }
+  return processingLevels.map((pl) => ({
+    id: pl.id,
+    title: `${pl.processing_level_code} : ${pl.definition}`,
+  }))
+})
 
 watch(selectedDatastreamID, async () => {
   populateForm(selectedDatastreamID.value)

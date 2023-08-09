@@ -61,5 +61,13 @@ export const useUnitStore = defineStore('units', {
       if (!unit) throw new Error(`Unit with id ${id} not found`)
       return unit
     },
+    // async fetchUnitById(id: string) {
+    //   try {
+    //     const response = await this.$http.get(`/units/${id}`)
+    //     if (response.status === 200) return response.data as Unit
+    //   } catch (error) {
+    //     console.error('Error deleting fetching unit by id', error)
+    //   }
+    // },
   },
 })

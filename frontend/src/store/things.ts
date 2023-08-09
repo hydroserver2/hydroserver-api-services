@@ -14,17 +14,18 @@ export const useThingStore = defineStore('things', {
         (thing) => thing.is_primary_owner
       )
     },
-    ownedThings(): Thing[] {
+    ownedThings(): Thing[] | any {
       return Object.values(this.things).filter((thing) => thing.owns_thing)
     },
-    followedThings(): Thing[] {
-      return Object.values(this.things).filter((thing) => thing.follows_thing)
-    },
-    ownedOrFollowedThings(): Thing[] | any {
-      return Object.values(this.things).filter(
-        (thing) => thing.owns_thing || thing.follows_thing
-      )
-    },
+    // Jeff said to comment out anything related to following a site August 8, 2023
+    // followedThings(): Thing[] | any {
+    //   return Object.values(this.things).filter((thing) => thing.follows_thing)
+    // },
+    // ownedOrFollowedThings(): Thing[] | any {
+    //   return Object.values(this.things).filter(
+    //     (thing) => thing.owns_thing || thing.follows_thing
+    //   )
+    // },
   },
   actions: {
     async fetchThings() {
@@ -125,7 +126,36 @@ export const useThingStore = defineStore('things', {
             type: 'error',
           })
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        } else if (error.response.status === 404) {
+          Notification.toast({
+            message:
+              'The email entered does not exist in our system. Please check your entry or use a different email.',
+            type: 'error',
+          })
+        } else if (error.response.status == 422) {
+          Notification.toast({
+            message: `Specified user is already an owner of this site`,
+            type: 'info',
+          })
+        } else if (error.response.status == 403) {
+          if (error.response.data.error === 'NotPrimaryOwner')
+            Notification.toast({
+              message: `Only the primary owner can modify other users' ownership`,
+              type: 'error',
+            })
+          else {
+            Notification.toast({
+              message: `Primary owner cannot edit their own ownership. Transfer ownership to another if you no longer wish to be the primary owner`,
+              type: 'error',
+            })
+          }
+        }
         console.error('Error adding secondary owner', error)
       }
     },
@@ -150,7 +180,31 @@ export const useThingStore = defineStore('things', {
             type: 'error',
           })
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        } else if (error.response.status === 404) {
+          Notification.toast({
+            message:
+              'The email entered does not exist in our system. Please check your entry or use a different email.',
+            type: 'error',
+          })
+        } else if (error.response.status == 403) {
+          if (error.response.data.error === 'NotPrimaryOwner')
+            Notification.toast({
+              message: `Only the primary owner can modify other users' ownership`,
+              type: 'error',
+            })
+          else {
+            Notification.toast({
+              message: `The specified email is already the primary owner of this site.`,
+              type: 'error',
+            })
+          }
+        }
         console.error('Error transferring primary ownership', error)
       }
     },

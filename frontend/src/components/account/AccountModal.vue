@@ -35,6 +35,7 @@
           <v-col>
             <v-text-field
               v-model="user.phone"
+              v-maska:[phoneMask]
               label="Phone Number"
               :rules="rules.phoneNumber"
             ></v-text-field>
@@ -50,7 +51,7 @@
             <v-text-field
               v-model="user.organization"
               label="Organization"
-              :rules="rules.maxLength(50)"
+              :rules="user.organization ? rules.name : []"
             >
             </v-text-field>
           </v-col>
@@ -81,7 +82,9 @@ import { reactive, ref, onMounted } from 'vue'
 import { useAuthStore } from '@/store/authentication'
 import { userTypes } from '@/vocabularies'
 import { VForm } from 'vuetify/components'
+import { vMaska } from 'maska'
 
+const phoneMask = { mask: '(###) ###-####' }
 const authStore = useAuthStore()
 let user = reactive({ ...authStore.user })
 const valid = ref(false)
