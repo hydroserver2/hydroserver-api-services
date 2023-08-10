@@ -5,6 +5,13 @@
     <v-card class="login-card" width="40rem">
       <v-card-title class="mb-4 login-title">Sign In</v-card-title>
       <v-card-text>
+        <v-btn-secondary @click="openLogInDialog"
+          ><font-awesome-icon class="mr-2" :icon="['fab', 'orcid']" /><span
+            >Log in using ORCID</span
+          ></v-btn-secondary
+        >
+      </v-card-text>
+      <v-card-text>
         <v-form
           class="login-form"
           ref="form"
@@ -67,6 +74,14 @@ const valid = ref(false)
 const loginSubmit = async () => {
   if (!valid) return
   await useAuthStore().login(email.value, password.value)
+}
+
+const openLogInDialog = async () => {
+  useAuthStore().oAuthLogin(onLoggedIn)
+}
+
+const onLoggedIn = () => {
+  // TODO: update state on log in
 }
 </script>
 

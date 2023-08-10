@@ -7,6 +7,17 @@ import router from './router/router'
 import vuetify from '@/plugins/vuetify'
 import interceptor from '@/plugins/axios.config'
 
+// ==== Font Awesome Icons setuo =====
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+/* add icons to the library */
+import { faOrcid } from '@fortawesome/free-brands-svg-icons'
+library.add(faOrcid)
+
+// ===================================
+
 const app = createApp(App)
 
 app.use(router)
@@ -16,6 +27,6 @@ store.use(({ store }) => {
 })
 app.use(store)
 app.use(vuetify)
-app.mount('#app')
+app.component('font-awesome-icon', FontAwesomeIcon).mount('#app')
 
 export default app

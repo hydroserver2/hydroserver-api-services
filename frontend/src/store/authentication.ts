@@ -3,19 +3,27 @@ import router from '@/router/router'
 import { User } from '@/types'
 import Notification from './notifications'
 import { useResetStore } from '@/store/resetStore'
+import { getQueryString } from '@/utils/api-client'
+import { Subject } from 'rxjs'
+const APP_URL = import.meta.env.VITE_APP_URL || ''
+const LOGIN_URL = import.meta.env.VITE_APP_LOGIN_URL || ''
 
 export const useAuthStore = defineStore({
   id: 'authentication',
   state: () => ({
+    // PERSISTED
     access_token: '',
     refresh_token: '',
     user: new User(),
     loggingIn: false,
+    isLoginListenerSet: false,
+    loggedIn$: new Subject<void>(),
   }),
   actions: {
     resetState() {
-      useResetStore().all()
-      localStorage.clear()
+      // TODO: Bad way to log users out
+      // useResetStore().all()
+      // localStorage.clear()
     },
     async login(email: string, password: string) {
       try {
@@ -71,6 +79,7 @@ export const useAuthStore = defineStore({
       }
     },
     async logout() {
+      // TODO: actually log out users in the backend
       this.resetState()
       await router.push({ name: 'Login' })
       Notification.toast({ message: 'You have logged out', type: 'info' })
@@ -146,6 +155,52 @@ export const useAuthStore = defineStore({
         })
       }
     },
+    async oAuthLogin(callback?: () => any) {
+      const params = {
+        window_close: 'True',
+      }
+
+      window.open(
+        `${LOGIN_URL}?${getQueryString(params)}`,
+        '_blank'
+        // 'location=1, status=1, scrollbars=1, width=800, height=800'
+      )
+
+      if (!this.isLoginListenerSet) {
+        this.isLoginListenerSet = true // Prevents registering the listener more than once
+        console.info(`User: listening to login window...`)
+        window.addEventListener('message', async (event: MessageEvent) => {
+          console.log(event)
+          if (
+            event.origin !== APP_URL ||
+            !event.data.hasOwnProperty('accessToken')
+          ) {
+            return
+          }
+
+          if (event.data.accessToken) {
+            console.log(event)
+
+            Notification.toast({
+              message: 'You have logged in!',
+              type: 'success',
+            })
+            // await User.commit((state) => {
+            //   state.isLoggedIn = true
+            //   state.accessToken = event.data.accessToken
+            // })
+            this.loggedIn$.next()
+            this.isLoginListenerSet = false
+            callback?.()
+          } else {
+            Notification.toast({
+              message: 'Failed to Log In',
+              type: 'error',
+            })
+          }
+        })
+      }
+    },
     async requestPasswordReset(email: String) {
       try {
         const response = await this.$http.post('/password_reset', {
@@ -211,5 +266,9 @@ export const useAuthStore = defineStore({
     isLoggedIn: (state) => {
       return !!state.access_token
     },
+  },
+  // TODO: do this for all other stores
+  persist: {
+    paths: ['access_token', 'refresh_token', 'user'],
   },
 })
