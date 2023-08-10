@@ -33,7 +33,10 @@ import { ref, watch } from 'vue'
 
 const props = defineProps({
   items: Array,
-  label: String,
+  label: {
+    type: String,
+    required: true,
+  },
   modelValue: {
     type: String,
     required: true,
@@ -65,7 +68,7 @@ const cancelCustom = () => {
   isDialogOpen.value = false
 }
 
-const handleDialogClose = (newValue) => {
+const handleDialogClose = (newValue: boolean) => {
   if (!newValue && selectedItem.value === 'Enter custom name') {
     selectedItem.value = previousSelectedItem.value
   }
