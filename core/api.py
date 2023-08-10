@@ -2,8 +2,7 @@ from ninja import NinjaAPI
 from ninja_extra import NinjaExtraAPI
 from core.routers import thing_router, sensor_router
 from core.auth.jwt import HydroServerJWTController
-from core.auth.orcid import router as orcid_router
-from core.auth.google import router as google_router
+from core.auth.oauth import google_router, orcid_router
 
 
 management_api = NinjaAPI(
