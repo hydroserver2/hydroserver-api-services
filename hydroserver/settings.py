@@ -9,6 +9,13 @@ from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+# AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN')
+EMAIL_BACKEND = 'django_ses.SESBackend'
+DEFAULT_FROM_EMAIL = 'admin@hydroserver.ciroh.org'
+
 try:
     GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 except UndefinedValueError:
@@ -42,6 +49,10 @@ class EnvironmentSettings(BaseSettings):
     SSL_REQUIRED: bool = False
     SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
     DEBUG: bool = True
+    OAUTH_ORCID_CLIENT: str = ''
+    OAUTH_ORCID_SECRET: str = ''
+    OAUTH_GOOGLE_CLIENT: str = ''
+    OAUTH_GOOGLE_SECRET: str = ''
 
     class Config:
         env_file = f'{BASE_DIR}/.env'
@@ -92,12 +103,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
+    'accounts.apps.AccountsConfig',
+    'django_ses',
     'django_vite',
     'sensorthings',
     'rest_framework',
     'ninja',
+    'ninja_extra',
     # 'rest_framework_simplejwt',
     'corsheaders',
 ]
@@ -219,18 +232,15 @@ STAPI_VERSION = '1.1'
 
 FROST_BASE_URL = 'http://localhost:8080/FROST-Server'
 
-# AUTHLIB CLIENTS
-# TODO: move values into env variables
 AUTHLIB_OAUTH_CLIENTS = {
-  'orcid': {
-    'client_id': 'APP-9AKK9NPAYMJZSY95',
-    'client_secret': 'e9e8a4b3-9381-41c8-bbc1-d31e1577c5c5',
-    'authorize_url': 'https://sandbox.orcid.org/oauth/authorize',
-    'server_metadata_url': 'https://sandbox.orcid.org/.well-known/openid-configuration',
-    'health_url': 'https://sandbox.orcid.org/',
-    'token_endpoint':'https://sandbox.orcid.org/oauth/token',
-    
-    'client_kwargs':{'scope': 'openid email profile'},
-    # 'access_token_url': 'https://sandbox.orcid.org/oauth/token',  # If specified, client will use OAuth 1.0
-  }
+    'orcid': {
+        'client_id': env_config.OAUTH_ORCID_CLIENT,
+        'client_secret': env_config.OAUTH_ORCID_SECRET,
+        'server_metadata_url': 'https://sandbox.orcid.org/.well-known/openid-configuration'
+    },
+    'google': {
+        'client_id': env_config.OAUTH_GOOGLE_CLIENT,
+        'client_secret': env_config.OAUTH_GOOGLE_SECRET,
+        'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
+    }
 }

@@ -9,13 +9,19 @@ import Browse from '@/components/Browse.vue'
 import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
 import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
 import DataSourceDashboard from '@/components/DataSource/DataSourceDashboard.vue'
+import DataSourceDetail from '@/components/DataSource/DataSourceDetail.vue'
+import DataLoaderDashboard from '@/components/DataSource/DataLoaderDashboard.vue'
+import HydroLoaderDownload from '@/components/DataSource/HydroLoaderDownload.vue'
 import Profile from '@/components/account/Profile.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
 import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
+import PasswordReset from '@/components/account/PasswordRecovery/PasswordReset.vue'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import { RouteLocationNormalized } from 'vue-router'
 import PageNotFound from '@/components/base/PageNotFound.vue'
+import SiteVisualization from '@/components/SiteVisualization.vue'
+import Contact from '@/components/Contact.vue'
 
 function requireAuth(
   to: RouteLocationNormalized,
@@ -66,15 +72,42 @@ export const routes: RouteRecordRaw[] = [
   },
   { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
   {
+    path: '/visualization/:id/:datastreamId',
+    name: 'SiteVisualization',
+    component: SiteVisualization,
+  },
+  {
     path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',
     component: DatastreamForm,
     beforeEnter: requireThingOwnership,
   },
   {
+    path: '/contact',
+    name: 'Contact',
+    component: Contact,
+  },
+  {
     path: '/data-sources',
     name: 'DataSources',
     component: DataSourceDashboard,
+    beforeEnter: requireAuth,
+  },
+  {
+    path: '/data-sources/:id',
+    name: 'DataSource',
+    component: DataSourceDetail,
+  },
+  {
+    path: '/data-loaders',
+    name: 'DataLoaders',
+    component: DataLoaderDashboard,
+    beforeEnter: requireAuth,
+  },
+  {
+    path: '/hydroloader/download',
+    name: 'HydroLoader',
+    component: HydroLoaderDownload,
   },
   {
     path: '/sites/:id/datastreams/:datastreamId/datasource',
@@ -88,6 +121,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/password_reset',
     name: 'PasswordResetRequest',
     component: PasswordResetRequest,
+  },
+  {
+    path: '/password_reset/:uid/:token',
+    name: 'PasswordReset',
+    component: PasswordReset,
   },
   {
     path: '/profile',

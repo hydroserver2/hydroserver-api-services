@@ -6,14 +6,14 @@
     <div v-if="thingId" class="flex-shrink-0" style="height: 20rem">
       <GoogleMap
         v-if="loaded"
-        clickable
+        singleMarkerMode
         @location-clicked="onMapLocationClicked"
         :mapOptions="mapOptions"
         :things="[thing]"
       />
     </div>
     <div v-else class="flex-shrink-0" style="height: 20rem">
-      <GoogleMap clickable @location-clicked="onMapLocationClicked" />
+      <GoogleMap singleMarkerMode @location-clicked="onMapLocationClicked" />
     </div>
     <v-divider></v-divider>
     <v-card-text
@@ -117,7 +117,7 @@
                   id="drop-area"
                   @dragover.prevent
                   @drop="handleDrop"
-                  class="drop-area text-subtitle-2 text-medium-emphasis d-flex"
+                  class="drop-area text-subtitle-2 text-medium-emphasis d-flex mb-6"
                 >
                   <v-icon class="mr-1">mdi-paperclip</v-icon>
                   Drag and drop your photos here, or
@@ -133,20 +133,46 @@
                     @change="
                       previewPhotos(($event.target as HTMLInputElement).files)
                     "
-                    accept="image/jpeg"
+                    accept="image/jpeg, image/png"
                     style="display: none"
                   />
                 </v-card-text>
-                <output v-for="(photo, index) in previewedPhotos" :key="index">
-                  <!-- <img :src="photo" width="200" /> -->
-                  <div class="d-flex justify-end">
-                    {{ photo }}
-                    <!-- <v-btn small @click="removePhoto(index)">Remove</v-btn> -->
-                    <v-icon color="red-darken-1" @click="removePhoto(index)"
-                      >mdi-delete</v-icon
+
+                <div class="photo-container">
+                  <div
+                    v-if="props.thingId && photoStore.photos[props.thingId]"
+                    v-for="photo in photoStore.photos[props.thingId]"
+                    :key="photo.id"
+                    class="photo-wrapper"
+                  >
+                    <img
+                      v-if="!photosToDelete.includes(photo.id)"
+                      :src="photo.url"
+                      class="photo"
+                    />
+                    <v-icon
+                      v-if="!photosToDelete.includes(photo.id)"
+                      color="red-darken-1"
+                      class="delete-icon"
+                      @click="removeExistingPhoto(photo.id)"
+                      >mdi-close-circle</v-icon
                     >
                   </div>
-                </output>
+
+                  <div
+                    v-for="(photo, index) in previewedPhotos"
+                    :key="index"
+                    class="photo-wrapper"
+                  >
+                    <img :src="photo" class="photo" />
+                    <v-icon
+                      color="red-darken-1"
+                      class="delete-icon"
+                      @click="removePhoto(index)"
+                      >mdi-close-circle</v-icon
+                    >
+                  </div>
+                </div>
               </v-col>
             </v-row>
           </v-col>
@@ -165,6 +191,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import GoogleMap from '../GoogleMap.vue'
 import { useThingStore } from '@/store/things'
+import { usePhotosStore } from '@/store/photos'
 import { Thing } from '@/types'
 import { siteTypes } from '@/vocabularies'
 import { VForm } from 'vuetify/components'
@@ -172,13 +199,15 @@ import { rules } from '@/utils/rules'
 import Notification from '@/store/notifications'
 
 const thingStore = useThingStore()
+const photoStore = usePhotosStore()
 const props = defineProps({ thingId: String })
 const emit = defineEmits(['close'])
 let loaded = ref(false)
 const valid = ref(false)
 const myForm = ref<VForm>()
 
-const photos = ref<File[]>([])
+const newPhotos = ref<File[]>([])
+const photosToDelete = ref<string[]>([])
 const previewedPhotos = ref<string[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -187,42 +216,23 @@ const mapOptions = ref({
   zoom: 4,
   mapTypeId: 'roadmap',
 })
-const thing = reactive<Thing>({
-  id: '',
-  name: '',
-  description: '',
-  sampling_feature_type: '',
-  sampling_feature_code: '',
-  site_type: '',
-  latitude: null as unknown as number, // TODO: This fixed a typescript error, but I don't know if it's the correct or best solution.
-  longitude: null as unknown as number,
-  elevation: null as unknown as number,
-  state: '',
-  county: '',
-  is_primary_owner: false,
-  owns_thing: false,
-  follows_thing: false,
-  owners: [],
-  followers: 0,
-  is_private: false, // TODO: I set a default value here so TypeScript doesn't complain about it being missing.
-})
+const thing = reactive<Thing>(new Thing())
 
 function handleDrop(e: DragEvent) {
   e.preventDefault()
   let files = e.dataTransfer?.files
   if (files) {
     let filteredFiles = Array.from(files).filter(
-      (file) => file.type === 'image/jpeg'
+      (file) => file.type === 'image/jpeg' || file.type === 'image/png'
     )
     if (filteredFiles.length > 0) {
       previewPhotos(filteredFiles)
     } else {
       Notification.toast({
-        message: 'only JPEG images are allowed',
+        message: 'only JPEG and PNG images are allowed',
         type: 'error',
       })
     }
-    // previewPhotos(files)
   }
 }
 
@@ -232,9 +242,8 @@ function previewPhotos(files: File[] | FileList | null) {
       let reader = new FileReader()
       reader.onload = (e) => {
         if ((e.target as FileReader).result) {
-          // previewedPhotos.value.push((e.target as FileReader).result as string)
-          previewedPhotos.value.push(photo.name)
-          photos.value.push(photo)
+          previewedPhotos.value.push((e.target as FileReader).result as string)
+          newPhotos.value.push(photo)
         }
       }
       reader.readAsDataURL(photo)
@@ -247,10 +256,12 @@ function triggerFileInput() {
 }
 
 function removePhoto(index: number) {
-  console.log('photos', photos.value)
-  console.log('prev', previewedPhotos.value)
   previewedPhotos.value.splice(index, 1)
-  photos.value.splice(index, 1)
+  newPhotos.value.splice(index, 1)
+}
+
+function removeExistingPhoto(photoId: string) {
+  photosToDelete.value.push(photoId)
 }
 
 async function populateThing(id: string) {
@@ -271,11 +282,21 @@ function closeDialog() {
 async function uploadThing() {
   await myForm.value?.validate()
   if (!valid.value) return
-  if (thing) {
-    if (props.thingId) thingStore.updateThing(thing)
-    else thingStore.createThing(thing)
-  }
+
   emit('close')
+  if (thing) {
+    if (props.thingId) {
+      await thingStore.updateThing(thing)
+      await photoStore.updatePhotos(
+        props.thingId,
+        newPhotos.value,
+        photosToDelete.value
+      )
+    } else {
+      const newThing = await thingStore.createThing(thing)
+      await photoStore.updatePhotos(newThing.id, newPhotos.value, [])
+    }
+  }
 }
 
 function onMapLocationClicked(locationData: Thing) {
@@ -287,7 +308,10 @@ function onMapLocationClicked(locationData: Thing) {
 }
 
 onMounted(async () => {
-  if (props.thingId) await populateThing(props.thingId)
+  if (props.thingId) {
+    await populateThing(props.thingId)
+    await photoStore.fetchPhotos(props.thingId)
+  }
 })
 </script>
 
@@ -300,5 +324,30 @@ onMounted(async () => {
   color: blue;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.photo-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.photo-wrapper {
+  position: relative;
+  margin-right: 20px;
+  width: 6rem;
+  margin-bottom: 20px;
+}
+
+.photo {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.delete-icon {
+  position: absolute;
+  top: -20px;
+  right: -20px;
 }
 </style>

@@ -20,11 +20,12 @@ export const emailFormat = [
 export const phoneNumber = [
   (value: string) => {
     if (!value) return true
-    if (value.length === 9 || value.length === 10) {
-      if (/^[0-9]*$/.test(value)) return true
-      return 'Phone number can only contain numbers.'
+    const numericValue = value.replace(/\D/g, '')
+    if (numericValue.length == 10) {
+      if (/^[\d\+\-\(\)\s]*$/.test(value)) return true
+      return 'Phone number can only contain digits, plus sign, parentheses, hyphens, and spaces.'
     }
-    return 'Phone number must contain exactly 9 or 10 digits.'
+    return 'Phone number must contain 10 digits.'
   },
 ]
 
@@ -84,8 +85,8 @@ export const rules = {
 
   email: [...required, ...emailFormat],
   password: [...required, ...minLength(8), ...nonNumericCharacter],
-  requiredName: [...required, ...maxLength(30), ...nameRules],
-  name: [...maxLength(30), ...nameRules],
-  description: [...maxLength(500), ...required],
-  requiredCode: [...maxLength(50), ...required],
+  requiredName: [...required, ...maxLength(200)],
+  name: [...maxLength(200)],
+  description: [...maxLength(1000), ...required],
+  requiredCode: [...maxLength(200), ...required],
 }

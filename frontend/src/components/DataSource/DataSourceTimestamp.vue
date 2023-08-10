@@ -1,11 +1,15 @@
 <template>
   <v-container>
     <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-6">Data Source Timestamp</h6>
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-radio-group
           v-model="store.timestampType"
           inline
-          :disabled="store.dataSource != null"
         >
           <v-radio
             label="Column Index"
@@ -21,24 +25,27 @@
         <v-text-field
           ref="timestampColumnIndex"
           v-model.number="store.timestampColumn"
-          label="Timestamp Column"
+          label="Timestamp Column *"
+          hint="Enter the column index that contains timestamps for the datastreams."
+          persistent-hint
           type="number"
           :rules="[
              (val) => val != null || 'Column index is required.',
+             (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
              (val) => +val > 0 || 'Column index must be greater than zero.'
           ]"
-          :disabled="store.dataSource != null"
         />
       </v-col>
       <v-col v-if="store.timestampType === 'name'" class="v-col-xs-12 v-col-sm-6">
         <v-text-field
           ref="timestampColumnName"
           v-model="store.timestampColumn"
-          label="Timestamp Column"
+          label="Timestamp Column *"
+          hint="Enter the column name that contains timestamps for the datastreams."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter timestamp column name.'
           ]"
-          :disabled="store.dataSource != null"
         />
       </v-col>
     </v-row>
@@ -47,7 +54,6 @@
         <v-radio-group
           v-model="store.timestampFormat"
           inline
-          :disabled="store.dataSource != null"
         >
           <v-radio
             label="ISO 8601 Format"
@@ -63,12 +69,23 @@
         <v-text-field
           ref="timestampCustomFormat"
           v-model="store.timestampCustomFormat"
-          label="Timestamp Format"
-          :disabled="store.timestampFormat !== 'custom' || store.dataSource != null"
+          :label="`Timestamp Format${store.timestampFormat === 'custom' ? ' *' : ''}`"
+          hint="Enter the timestamp format."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter timestamp format.'
           ]"
-        />
+          :disabled="store.timestampFormat === 'iso'"
+        >
+          <template v-slot:append-inner>
+            <v-btn
+              size="lg"
+              color="gray"
+              icon="mdi-help-circle"
+              @click="handleOpenStrftimeHelp"
+            />
+          </template>
+        </v-text-field>
       </v-col>
     </v-row>
     <v-row>
@@ -76,15 +93,16 @@
         <v-switch
           v-model="store.timestampUseTimezoneOffset"
           label="Append Timezone Offset?"
-          :disabled="store.dataSource != null"
         ></v-switch>
       </v-col>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-autocomplete
           v-model="store.timestampTimezoneOffset"
-          label="Timezone Offset"
-          :disabled="store.timestampUseTimezoneOffset === false || store.dataSource != null"
-          :items="[]"
+          :label="`Timezone Offset${store.timestampUseTimezoneOffset ? ' *' : ''}`"
+          hint="Enter an optional timezone offset to apply to the timestamp column."
+          persistent-hint
+          :items="timezoneOffsets"
+          :disabled="!store.timestampUseTimezoneOffset"
         ></v-autocomplete>
       </v-col>
     </v-row>
@@ -100,6 +118,12 @@ const store = useDataSourceFormStore()
 const timestampColumnIndex = ref()
 const timestampColumnName = ref()
 const timestampCustomFormat = ref()
+
+const timezoneOffsets = ref([
+  '-1200', '-1100', '-1000', '-0900', '-0800', '-0700', '-0600', '-0500', '-0430', '-0400', '-0330', '-0300', '-0200',
+  '-0100', '+0000', '+0100', '+0200', '+0300', '+0330', '+0400', '+0430', '+0500', '+0530', '+0545', '+0600', '+0630',
+  '+0700', '+0800', '+0845', '+0900', '+0930', '+1000', '+1030', '+1100', '+1130', '+1200', '+1245', '+1300', '+1400'
+])
 
 async function validate() {
   let errors = []
@@ -117,10 +141,13 @@ async function validate() {
   return errors.length === 0
 }
 
+function handleOpenStrftimeHelp() {
+  window.open('https://devhints.io/strftime', '_blank', 'noreferrer');
+}
+
 defineExpose({
   validate
 })
-
 
 </script>
 

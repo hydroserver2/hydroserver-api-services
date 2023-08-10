@@ -17,10 +17,13 @@ dependencies:
   - django-cors-headers==3.14
 
   - pip:
+      - Authlib==1.2.1
       - django-hydrothings==0.1.5
-      - hydroloader==0.1.7
+      - django-ninja-jwt==5.2.5
+      - hydroloader==0.1.12
       - django-vite==2.0.2
       - sqlalchemy-json==0.5.0
       - geojson-pydantic==0.5.0
       - djangorestframework-simplejwt==4.4.0
-
+      - boto3==1.28.8
+      - django-ses==3.5.0

@@ -2,84 +2,60 @@
   <v-container>
     <v-row>
       <v-col>
-        <v-radio-group
-          v-model="store.mode"
-          inline
-        >
-          <v-radio
-            label="New Data Source"
-            value="create"
-          ></v-radio>
-          <v-radio
-            label="Existing Data Source"
-            value="edit"
-          ></v-radio>
-        </v-radio-group>
+        <h6 class="text-h6 mb-6">Data Source File Configuration</h6>
       </v-col>
-      <v-col v-if="store.mode === 'create'">
+    </v-row>
+    <v-row>
+      <v-col>
         <v-text-field
           ref="dataSourceName"
           v-model="store.dataSourceName"
-          label="Data Source Name"
+          label="Data Source Name *"
+          hint="Enter a name you can use to identify this data source."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter data source name.',
             (val) => /^[0-9a-zA-Z ... ]+$/.test(val) || 'Invalid data source name.',
           ]"
         ></v-text-field>
       </v-col>
-      <v-col v-if="store.mode === 'edit'">
+      <v-col>
         <v-autocomplete
-          v-model="store.dataSource"
-          label="Data Source"
-          :items="store.dataSources"
+          ref="dataLoader"
+          v-model="store.dataLoader"
+          label="Data Loader *"
+          hint="Select the data loader which will load this data source."
+          persistent-hint
+          :items="store.dataLoaders"
           item-title="name"
+          item-value="id"
+          :rules="[
+            (val) => !!val || 'Must select a data loader.'
+          ]"
         ></v-autocomplete>
       </v-col>
     </v-row>
     <v-row>
       <v-col>
-<!--        <v-radio-group-->
-<!--          v-model="store.dataSourceType"-->
-<!--          inline-->
-<!--          :disabled="store.dataSource != null"-->
-<!--        >-->
-<!--          <v-radio-->
-<!--            label="Local File"-->
-<!--            value="local"-->
-<!--          ></v-radio>-->
-<!--          <v-radio-->
-<!--            label="Remote File"-->
-<!--            value="remote"-->
-<!--          ></v-radio>-->
-<!--        </v-radio-group>-->
-        <v-autocomplete
-          v-model="store.dataLoader"
-          label="Data Loader"
-          :items="store.dataLoaders"
-          item-title="name"
-        ></v-autocomplete>
-      </v-col>
-      <v-col v-if="store.dataSourceType === 'local'">
         <v-text-field
           ref="localFilePath"
           v-model="store.localFilePath"
-          label="Local File Path"
+          label="Local File Path *"
+          hint="Enter the absolute path to the data source file."
+          persistent-hint
           :rules="[
             (val) => val !== '' && val != null || 'Must enter data source path.'
-            // (val) => /^\/.*$/.test(val) || 'Invalid data source path.'
           ]"
-          :disabled="store.dataSource != null"
         />
       </v-col>
-      <v-col v-if="store.dataSourceType === 'remote'">
-        <v-text-field
-          ref="remoteFileUrl"
-          v-model="store.remoteFileUrl"
-          label="Remote File URL"
-          :rules="[
-            (val) => val !== '' && val != null || 'Must enter data source URL.'
-          ]"
-          :disabled="store.dataSource != null"
+      <v-col>
+        <v-select
+          v-model="store.fileDelimiter"
+          label="File Delimiter *"
+          hint="Select the type of delimiter used for this data file."
+          persistent-hint
+          :items="intervalUnitValues"
+          variant="outlined" density="comfortable"
         />
       </v-col>
     </v-row>
@@ -89,26 +65,30 @@
           ref="fileHeaderRow"
           v-model.number="store.fileHeaderRow"
           label="File Header Row"
+          hint="Enter the row that contains file headers, if any."
+          persistent-hint
           type="number"
           clearable
           :rules="[
-            (val) => val == null || val > 0 || 'File header row must be greater than zero.',
-            (val) => val == null || val < store.dataStartRow || 'File header row must be less than the data start row.',
+            (val) => val == null || val === '' || val > 0 || 'File header row must be greater than zero.',
+            (val) => val == null || val === '' || val < store.dataStartRow || 'File header row must be less than the data start row.',
+            (val) => val == null || val === '' || val === parseInt(val, 10) || 'File header row must be an integer.'
           ]"
-          :disabled="store.dataSource != null"
         />
       </v-col>
       <v-col>
         <v-text-field
           ref="dataStartRow"
           v-model.number="store.dataStartRow"
-          label="Data Start Row"
+          label="Data Start Row *"
+          hint="Enter the row that data starts on."
+          persistent-hint
           type="number"
           :rules="[
             (val) => val > 0 || 'Data start row must be greater than zero.',
             (val) => store.fileHeaderRow == null || val > store.fileHeaderRow || 'Data start row must be greater than the file header row.',
+            (val) => val == null || val === parseInt(val, 10) || 'Data start row must be an integer.'
           ]"
-          :disabled="store.dataSource != null"
         />
       </v-col>
     </v-row>
@@ -122,12 +102,19 @@ import { useDataSourceFormStore } from '@/store/datasource_form';
 const store = useDataSourceFormStore()
 
 const dataSourceName = ref()
+const dataSource = ref()
+const dataLoader = ref()
 const localFilePath = ref()
-const remoteFileUrl = ref()
 const fileHeaderRow = ref()
 const dataStartRow = ref()
 
-// let i = await store.fetchDataSources()
+const intervalUnitValues = [
+  { value: ',', title: 'Comma' },
+  { value: '|', title: 'Pipe' },
+  { value: '\\t', title: 'Tab' },
+  { value: ';', title: 'Semicolon'},
+  { value: ' ', title: 'Space'}
+]
 
 watch(
   () => store.fileHeaderRow,
@@ -138,35 +125,12 @@ watch(
   }
 )
 
-watch(
-  () => store.dataSource,
-  () => {
-    store.loadDataSource()
-  }
-)
-
-watch(
-  () => store.mode,
-  () => {
-    if (store.mode === 'create') {
-      store.dataSource = undefined
-    }
-  }
-)
-
 async function validate() {
   let errors = []
 
-  if (store.mode === 'create') {
-    errors.push(...(await dataSourceName.value.validate()))
-  }
-
-  if (store.dataSourceType === 'local') {
-    errors.push(...(await localFilePath.value.validate()))
-  } else if (store.dataSourceType === 'remote') {
-    errors.push(...(await remoteFileUrl.value.validate()))
-  }
-
+  errors.push(...(await dataSourceName.value.validate()))
+  errors.push(...(await localFilePath.value.validate()))
+  errors.push(...(await dataLoader.value.validate()))
   errors.push(...(await fileHeaderRow.value.validate()))
   errors.push(...(await dataStartRow.value.validate()))
 

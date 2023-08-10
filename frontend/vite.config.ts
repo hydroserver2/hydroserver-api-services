@@ -10,7 +10,7 @@ export default defineConfig({
     vuetify({ styles: { configFile: 'src/assets/css/variables.scss' } }),
   ],
   resolve: {
-    extensions: ['.js', '.json', '.vue', '.less', '.scss'],
+    extensions: ['.js', '.json', '.vue', '.less', '.scss', '.ts'],
     alias: {
       '@': resolve(__dirname, 'src'),
     },

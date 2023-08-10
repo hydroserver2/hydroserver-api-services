@@ -65,15 +65,7 @@ const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
 const valid = ref(false)
 const myForm = ref<VForm>()
-
-const unit = reactive<Unit>({
-  id: '',
-  person_id: '',
-  name: '',
-  symbol: '',
-  definition: '',
-  unit_type: '',
-})
+const unit = reactive<Unit>(new Unit())
 
 async function uploadUnit() {
   await myForm.value?.validate()

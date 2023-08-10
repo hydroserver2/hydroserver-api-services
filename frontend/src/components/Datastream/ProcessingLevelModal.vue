@@ -38,7 +38,7 @@
           </v-row>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn-cnacel @click="$emit('close')">Cancel</v-btn-cnacel>
+            <v-btn-cancel @click="$emit('close')">Cancel</v-btn-cancel>
             <v-btn type="submit">{{ isEdit ? 'Update' : 'Save' }}</v-btn>
           </v-card-actions>
         </v-form>
@@ -60,14 +60,7 @@ const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
 const valid = ref(false)
 const myForm = ref<VForm>()
-
-const processingLevel = reactive<ProcessingLevel>({
-  id: '',
-  person_id: '',
-  processing_level_code: '',
-  definition: '',
-  explanation: '',
-})
+const processingLevel = reactive<ProcessingLevel>(new ProcessingLevel())
 
 async function uploadProcessingLevel() {
   await myForm.value?.validate()

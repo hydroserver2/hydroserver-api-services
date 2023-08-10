@@ -19,9 +19,13 @@
       <v-card-title>Browse Data Collection Sites</v-card-title>
       <v-card-text>
         <div class="d-flex my-2">
-          <v-btn-cancel @click="clearFilters">Clear Filters</v-btn-cancel>
+          <v-btn-cancel color="grey" variant="flat" @click="clearFilters"
+            >Clear</v-btn-cancel
+          >
           <v-spacer></v-spacer>
-          <v-btn-primary @click="filterOrganizations">Search</v-btn-primary>
+          <v-btn-primary :disabled="!searchInput" @click="filterOrganizations"
+            >Filter By Org</v-btn-primary
+          >
         </div>
         <form @submit.prevent="filterOrganizations">
           <v-text-field
@@ -91,7 +95,7 @@ const organizations = computed(() => {
 })
 
 const filterOrganizations = () => {
-  if (!searchInput) {
+  if (!searchInput || !searchInput.value) {
     filteredOrganizations.value = new Set([...organizations.value])
   } else {
     const lowerCase = searchInput.value.toLowerCase()
@@ -111,7 +115,9 @@ function isThingValid(thing: Thing) {
   const orgValid =
     filteredOrganizations.value.size === 0 ||
     thing.owners.some((owner) =>
-      filteredOrganizations.value.has(owner.organization.toLowerCase())
+      owner.organization
+        ? filteredOrganizations.value.has(owner.organization.toLowerCase())
+        : false
     )
   const siteTypeValid =
     selectedSiteTypes.value.length === 0 ||

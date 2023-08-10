@@ -1,15 +1,15 @@
 <template>
   <v-container>
-    <v-row v-if="thingStore.things[thingId]">
+    <v-row v-if="thing">
       <v-col class="single-site-name">
-        <h5 class="text-h5">{{ thingStore.things[thingId]?.name }}</h5>
+        <h5 class="text-h5">{{ thing?.name }}</h5>
       </v-col>
     </v-row>
-    <v-row v-if="thingStore.things[thingId]" style="height: 25rem">
+    <v-row v-if="thing" style="height: 25rem">
       <v-col>
         <GoogleMap
-          :key="thing"
-          :things="[thingStore.things[thingId]]"
+          :key="stringThing"
+          :things="[thing]"
           :mapOptions="mapOptions"
         />
       </v-col>
@@ -19,21 +19,27 @@
         <h5 class="text-h5">Site Information</h5>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="dialogs.accessControl = true">Access Control</v-btn>
-        <v-dialog v-model="dialogs.accessControl" width="60rem">
+        <v-btn class="access_control" @click="isAccessControlModalOpen = true"
+          >Access Control</v-btn
+        >
+        <v-dialog
+          class="access_control_dialog"
+          v-model="isAccessControlModalOpen"
+          width="60rem"
+        >
           <SiteAccessControl
-            @close="dialogs.accessControl = false"
+            @close="isAccessControlModalOpen = false"
             :thing-id="thingId"
           ></SiteAccessControl>
         </v-dialog>
       </v-col>
       <v-col cols="auto" v-if="is_owner">
-        <v-btn @click="dialogs.registerSite = true" color="secondary"
+        <v-btn @click="isRegisterModalOpen = true" color="secondary"
           >Edit Site Information</v-btn
         >
-        <v-dialog v-model="dialogs.registerSite" width="80rem">
+        <v-dialog v-model="isRegisterModalOpen" width="80rem">
           <SiteForm
-            @close="dialogs.registerSite = false"
+            @close="isRegisterModalOpen = false"
             :thing-id="thingId"
           ></SiteForm>
         </v-dialog>
@@ -42,10 +48,10 @@
         <v-btn
           color="red-darken-3"
           style="margin-left: 1rem"
-          @click="dialogs.deleteSite = true"
+          @click="isDeleteModalOpen = true"
           >Delete Site</v-btn
         >
-        <v-dialog v-model="dialogs.deleteSite" width="40rem">
+        <v-dialog v-model="isDeleteModalOpen" width="40rem">
           <v-card>
             <v-card-title>
               <span class="text-h5">Confirm Deletion</span>
@@ -61,9 +67,7 @@
               page.
             </v-card-text>
             <v-card-text>
-              Please type the site name (<strong>{{
-                thingStore.things[thingId].name
-              }}</strong
+              Please type the site name (<strong>{{ thing.name }}</strong
               >) to confirm deletion:
               <v-form>
                 <v-text-field
@@ -76,7 +80,7 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn-cancel @click="dialogs.deleteSite = false"
+              <v-btn-cancel @click="isDeleteModalOpen = false"
                 >Cancel</v-btn-cancel
               >
               <v-btn color="delete" @click="deleteThing">Delete</v-btn>
@@ -84,20 +88,17 @@
           </v-card>
         </v-dialog>
       </v-col>
-      <v-col cols="auto" v-if="!is_owner">
+      <!-- Jeff said to comment out anything related to following a site August 8, 2023 -->
+      <!-- <v-col cols="auto" v-if="!is_owner">
         <v-switch
           color="secondary"
           hide-details
-          v-if="isAuthenticated && thingStore.things[thingId]"
-          v-model="thingStore.things[thingId].follows_thing"
+          v-if="isAuthenticated && thing"
+          v-model="thing.follows_thing"
           @change="updateFollow"
-          :label="
-            thingStore.things[thingId].follows_thing
-              ? 'You Follow This site'
-              : 'Follow Site'
-          "
+          :label="thing.follows_thing ? 'You Follow This site' : 'Follow Site'"
         ></v-switch>
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row>
       <v-col cols="12" md="8">
@@ -114,15 +115,32 @@
       </v-col>
 
       <v-col cols="12" md="4">
-        <v-carousel hide-delimiters>
+        <v-carousel
+          hide-delimiters
+          v-if="
+            !photoStore.loading &&
+            photoStore.photos[thingId] &&
+            photoStore.photos[thingId].length > 0
+          "
+        >
           <v-carousel-item
-            v-for="n in 5"
-            :key="n"
-            :src="'https://source.unsplash.com/featured/?nature,landscape' + n"
+            v-for="photo in photoStore.photos[thingId]"
+            :key="photo.id"
+            :src="photo.url"
             cover
           >
           </v-carousel-item>
         </v-carousel>
+        <div v-else-if="photoStore.loading" class="text-center">
+          <p>
+            Your photos are being uploaded. They will appear once the upload is
+            complete.
+          </p>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
+        </div>
       </v-col>
     </v-row>
     <v-row>
@@ -130,7 +148,7 @@
         <h5 class="text-h5">Datastreams Available at this Site</h5>
       </v-col>
       <v-spacer></v-spacer>
-      <v-col cols="auto">
+      <!-- <v-col cols="auto">
         <img
           style="max-height: 1.5rem"
           src="@/assets/hydro.png"
@@ -142,7 +160,7 @@
         <v-btn color="grey" class="site-information-button"
           >Download Data from HydroShare</v-btn
         >
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row class="pb-2" v-if="is_owner">
       <v-col>
@@ -162,29 +180,47 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <LineChart class="pt-2" :observations="item.raw.observations" />
+            <v-dialog v-model="item.raw.chartOpen">
+              <SiteVisualization
+                :thing-id="thingId"
+                :datastream-id="item.raw.id"
+              ></SiteVisualization>
+            </v-dialog>
+            <LineChart
+              @click="item.raw.chartOpen = true"
+              class="pt-2"
+              :is-stale="item.raw.is_stale"
+              :observations="item.raw.observations"
+            />
           </div>
           <div v-else>No data for this datastream</div>
-          <!-- <div v-if="item.raw.stale">stale</div>
-          <div v-else>not stale</div> -->
         </template>
         <template v-slot:item.last_observation="{ item }">
           <div v-if="item.raw.most_recent_observation">
-            {{ (item.raw.most_recent_observation as Observation).result_time }}
+            <v-row>
+              {{
+                formatDate(
+                  (item.raw.most_recent_observation as Observation).result_time
+                )
+              }}
+            </v-row>
+            <v-row>
+              {{ item.raw.unit_name }} -
+              {{ (item.raw.most_recent_observation as Observation).result }}
+            </v-row>
           </div>
         </template>
 
         <template v-slot:item.actions="{ item }">
           <v-tooltip bottom :openDelay="500" v-if="item.raw.is_visible">
             <template v-slot:activator="{ props }" v-if="is_owner">
-              <v-icon
+              <v-btn
                 small
                 color="grey"
                 v-bind="props"
+                icon="mdi-eye"
                 @click="toggleVisibility(item.raw)"
-              >
-                mdi-eye
-              </v-icon>
+              />
             </template>
             <span
               >Hide this datastream from guests of your site. Owners will still
@@ -193,14 +229,13 @@
           </v-tooltip>
           <v-tooltip bottom :openDelay="500" v-else>
             <template v-slot:activator="{ props }" v-if="is_owner">
-              <v-icon
+              <v-btn
                 small
                 color="grey-lighten-1"
                 v-bind="props"
+                icon="mdi-eye-off"
                 @click="toggleVisibility(item.raw)"
-              >
-                mdi-eye-off
-              </v-icon>
+              />
             </template>
             <span>Make this datastream publicly visible</span>
           </v-tooltip>
@@ -214,7 +249,13 @@
                 v-if="is_owner"
                 prepend-icon="mdi-link-variant"
                 title="Link Data Source"
-                @click="dialogs.linkDataSource = true"
+                @click="
+                  handleLinkDataSource(
+                    item.raw.id,
+                    item.raw.data_source_id,
+                    item.raw.column
+                  )
+                "
               />
               <v-list-item
                 v-if="is_owner"
@@ -227,18 +268,27 @@
               />
               <v-list-item
                 v-if="is_owner"
+                prepend-icon="mdi-chart-line"
+                title="View Time Series Plot"
+                :to="{
+                  name: 'SiteVisualization',
+                  params: { id: thingId, datastreamId: item.raw.id },
+                }"
+              />
+              <v-list-item
+                v-if="is_owner"
                 prepend-icon="mdi-delete"
                 title="Delete Datastream"
-                @click="showDeleteDatastreamModal(item.raw)"
+                @click="openDeleteModal(item.raw)"
               />
-              <v-list-item prepend-icon="mdi-download" title="Download Data" />
+              <!-- <v-list-item prepend-icon="mdi-download" title="Download Data" /> -->
             </v-list>
           </v-menu>
         </template>
       </v-data-table>
       <v-dialog
         v-if="selectedDatastream"
-        v-model="dialogs.deleteDatastream"
+        v-model="isDSDeleteModalOpen"
         width="40rem"
       >
         <v-card>
@@ -252,19 +302,33 @@
             <br />
             <strong>ID:</strong> {{ selectedDatastream.id }} <br />
           </v-card-text>
+          <v-card-text>
+            Please type <strong> Delete </strong> to confirm deletion:
+            <v-form>
+              <v-text-field
+                v-model="deleteDatastreamInput"
+                solo
+                @keydown.enter.prevent="deleteDatastream"
+              ></v-text-field>
+            </v-form>
+          </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn-cancel @click="dialogs.deleteDatastream = false"
+            <v-btn-cancel @click="isDSDeleteModalOpen = false"
               >Cancel</v-btn-cancel
             >
             <v-btn color="delete" @click="deleteDatastream">Confirm</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog
-        v-model="dialogs.linkDataSource"
-      >
-        <DataSourceForm />
+      <v-dialog v-model="linkDataSourceDialogOpen" persistent>
+        <SiteLinkDataSourceForm
+          @close-dialog="handleCloseDataSourceDialog"
+          :thingId="thingId"
+          :datastreamId="linkFormDatastreamId"
+          :dataSourceId="linkFormDataSourceId"
+          :column="linkFormColumn"
+        />
       </v-dialog>
     </v-row>
   </v-container>
@@ -274,170 +338,85 @@
 import GoogleMap from '@/components/GoogleMap.vue'
 import SiteAccessControl from '@/components/Site/SiteAccessControl.vue'
 import SiteForm from '@/components/Site/SiteForm.vue'
-import DataSourceForm from "@/components/DataSource/DataSourceForm.vue";
-import { computed, onMounted, ref, reactive, Ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/store/authentication'
-import { useThingStore } from '@/store/things'
-import router from '@/router/router'
-import { useDatastreamStore } from '@/store/datastreams'
-import { Observation, Datastream } from '@/types'
+import SiteLinkDataSourceForm from '@/components/Site/SiteLinkDataSourceForm.vue'
 import LineChart from '@/components/LineChart.vue'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { Observation } from '@/types'
+import { usePhotosStore } from '@/store/photos'
+import { useThing } from '@/composables/useThing'
+// import { useAuthentication } from '@/composables/useAuthentication'
+import { useDatastreams } from '@/composables/useDatastreams'
+import { format } from 'date-fns'
+import SiteVisualization from '../SiteVisualization.vue'
 
-const authStore = useAuthStore()
-const thingStore = useThingStore()
-const datastreamStore = useDatastreamStore()
-const route = useRoute()
-const thingId = route.params.id.toString()
+const photoStore = usePhotosStore()
+const thingId = useRoute().params.id.toString()
 
-const is_owner = computed(() => {
-  if (isAuthenticated && thingStore.things[thingId]) {
-    return thingStore.things[thingId].owns_thing
-  }
-  return false
-})
-
-const thing = computed(() => thingStore.things[thingId] as unknown as string)
-
-const visibleDatastreams = computed(() => {
-  if (!datastreamStore.datastreams[thingId]) return []
-  return datastreamStore.datastreams[thingId].filter(
-    (datastream) => datastream.is_visible || is_owner.value
-  )
-})
+const {
+  thing,
+  stringThing,
+  mapOptions,
+  // updateFollow,
+  is_owner,
+  deleteInput,
+  deleteThing,
+  thingProperties,
+  isRegisterModalOpen,
+  isDeleteModalOpen,
+  isAccessControlModalOpen,
+  switchToAccessControlModal,
+} = useThing(thingId)
+const {
+  visibleDatastreams,
+  toggleVisibility,
+  selectedDatastream,
+  openDeleteModal,
+  deleteDatastream,
+  isDeleteModalOpen: isDSDeleteModalOpen,
+  deleteDatastreamInput,
+} = useDatastreams(thingId)
+// const { isAuthenticated } = useAuthentication()
 
 const headers = [
-  { title: 'Unit Name', key: 'unit_name', sortable: true },
-  { title: 'Observations', key: 'observations', sortable: false },
+  { title: 'Observed Property', key: 'observed_property_name', sortable: true },
+  {
+    title: 'Observations (Last 72 Hours)',
+    key: 'observations',
+    sortable: false,
+  },
   { title: 'Last Observation', key: 'last_observation' },
   { title: 'Sampled Medium', key: 'sampled_medium' },
   { title: 'Sensor', key: 'method_name' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const dialogs: {
-  [key: string]: boolean
-} = reactive({
-  registerSite: false,
-  deleteSite: false,
-  accessControl: false,
-  deleteDatastream: false,
-  linkDataSource: false
-})
+const linkFormDatastreamId = ref()
+const linkFormDataSourceId = ref()
+const linkFormColumn = ref()
+const linkDataSourceDialogOpen = ref(false)
 
-const deleteInput = ref('')
-const thingProperties = computed(() => {
-  if (!thingStore.things[thingId]) return []
-  const {
-    id,
-    sampling_feature_code,
-    latitude,
-    longitude,
-    elevation,
-    description,
-    sampling_feature_type,
-    site_type,
-    state,
-    county,
-    is_private,
-    owners,
-  } = thingStore.things[thingId]
-
-  return [
-    { icon: 'fas fa-id-badge', label: 'ID', value: id },
-    {
-      icon: 'fas fa-barcode',
-      label: 'Site Code',
-      value: sampling_feature_code,
-    },
-    { icon: 'fas fa-map', label: 'Latitude', value: latitude },
-    { icon: 'fas fa-map', label: 'Longitude', value: longitude },
-    { icon: 'fas fa-mountain', label: 'Elevation', value: elevation },
-    { icon: 'fas fa-file-alt', label: 'Description', value: description },
-    {
-      icon: 'fas fa-map-marker-alt',
-      label: 'Sampling Feature Type',
-      value: sampling_feature_type,
-    },
-    { icon: 'fas fa-map-pin', label: 'Site Type', value: site_type },
-    { icon: 'fas fa-flag-usa', label: 'State', value: state },
-    { icon: 'fas fa-flag-usa', label: 'County', value: county },
-    {
-      icon: is_private ? 'fas fa-lock' : 'fas fa-globe',
-      label: 'Privacy',
-      value: is_private ? 'Private' : 'Public',
-    },
-    {
-      icon: 'fas fa-user',
-      label: 'Site Owners',
-      value: owners
-        .map(
-          (owner) =>
-            `${owner.firstname} ${owner.lastname}: ${owner.organization}`
-        )
-        .join(', '),
-    },
-  ]
-})
-
-const isAuthenticated = computed(() => !!authStore.access_token)
-const mapOptions = computed(() => {
-  if (thingStore.things[thingId])
-    return {
-      center: {
-        lat: thingStore.things[thingId].latitude,
-        lng: thingStore.things[thingId].longitude,
-      },
-      zoom: 16,
-      mapTypeId: 'satellite',
-    }
-})
-
-function updateFollow() {
-  if (thingStore.things[thingId]) {
-    thingStore.updateThingFollowership(thingStore.things[thingId])
-  }
+function handleLinkDataSource(
+  datastreamId: string,
+  dataSourceId: string,
+  column: string | number
+) {
+  linkFormDatastreamId.value = datastreamId
+  linkFormDataSourceId.value = dataSourceId
+  linkFormColumn.value = column
+  linkDataSourceDialogOpen.value = true
 }
 
-async function deleteThing() {
-  if (!thingStore.things[thingId]) {
-    console.error('Site could not be found.')
-    return
-  }
-  if (deleteInput.value !== thingStore.things[thingId].name) {
-    console.error('Site name does not match.')
-    return
-  }
-  await thingStore.deleteThing(thingId)
-  await router.push('/sites')
+function handleCloseDataSourceDialog() {
+  linkDataSourceDialogOpen.value = false
 }
 
-const selectedDatastream: Ref<Datastream | null> = ref(null)
-
-function showDeleteDatastreamModal(datastream: Datastream) {
-  selectedDatastream.value = datastream
-  dialogs.deleteDatastream = true
-}
-
-async function toggleVisibility(datastream: Datastream) {
-  datastream.is_visible = !datastream.is_visible
-  await datastreamStore.setVisibility(datastream.id, datastream.is_visible)
-}
-
-async function deleteDatastream() {
-  dialogs.deleteDatastream = false
-  if (selectedDatastream.value) {
-    await datastreamStore.deleteDatastream(selectedDatastream.value.id, thingId)
-  }
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  return format(date, 'MMM dd, yyyy HH:mm')
 }
 
 onMounted(async () => {
-  await thingStore.fetchThingById(thingId)
-  await datastreamStore.fetchDatastreamsByThingId(thingId)
+  await photoStore.fetchPhotos(thingId)
 })
-
-function switchToAccessControlModal() {
-  dialogs.deleteSite = false
-  dialogs.accessControl = true
-}
 </script>

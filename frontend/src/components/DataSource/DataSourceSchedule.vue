@@ -1,14 +1,20 @@
 <template>
   <v-container>
     <v-row>
+      <v-col>
+        <h6 class="text-h6 mb-6">Data Source Schedule</h6>
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col class="v-col-xs-12 v-col-sm-6">
         <v-text-field
           ref="scheduleStartTime"
           v-model="store.scheduleStartTime"
           label="Start Time"
+          hint="Enter an optional start time for loading data. Otherwise, data loading will begin immediately."
+          persistent-hint
           type="datetime-local"
           clearable
-          :disabled="store.dataSource != null"
         />
       </v-col>
       <v-col class="v-col-xs-12 v-col-sm-6">
@@ -16,9 +22,10 @@
           ref="scheduleEndTime"
           v-model="store.scheduleEndTime"
           label="End Time"
+          hint="Enter an optional end time for loading data. Otherwise, data will be loaded indefinitely."
+          persistent-hint
           type="datetime-local"
           clearable
-          :disabled="store.dataSource != null"
         />
       </v-col>
     </v-row>
@@ -27,7 +34,6 @@
         <v-radio-group
           v-model="store.scheduleType"
           inline
-          :disabled="store.dataSource != null"
         >
           <v-radio
             label="Interval"
@@ -44,12 +50,14 @@
           ref="interval"
           v-model="store.interval"
           label="Interval"
+          hint="Enter the interval data should be loaded on."
+          persistent-hint
           type="number"
           :rules="[
-             (val) => val != null || 'Interval value is required.',
+             (val) => val != null && val !== '' || 'Interval value is required.',
+             (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
              (val) => +val > 0 || 'Interval must be greater than zero.'
           ]"
-          :disabled="store.dataSource != null"
         />
       </v-col>
       <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
@@ -58,7 +66,6 @@
           label="Interval Units"
           :items="intervalUnitValues"
           variant="outlined" density="comfortable"
-          :disabled="store.dataSource != null"
         />
       </v-col>
       <v-col v-if="store.scheduleType === 'crontab'" class="v-col-xs-12 v-col-sm-6">
@@ -66,7 +73,8 @@
           ref="crontab"
           v-model="store.crontab"
           label="Crontab"
-          :disabled="store.dataSource != null"
+          hint="Enter a crontab schedule for the data to be loaded on."
+          persistent-hint
         />
       </v-col>
     </v-row>

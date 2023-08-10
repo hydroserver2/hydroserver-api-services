@@ -2,12 +2,11 @@
   <v-container>
     <v-card flat>
       <v-card-title>
-        <span class="text-h5">Link Data Source</span>
+        <span class="text-h5">
+          {{ formTitle }}
+        </span>
       </v-card-title>
-      <v-card-item>
-        <DataSourcePreview v-if="false"/>
-      </v-card-item>
-      <v-card-item>
+      <v-card-item v-if="store.formReady">
         <DataSourceLocation
           ref="dataSourceLocationForm"
           v-if="step === 1"
@@ -20,13 +19,21 @@
           ref="dataSourceTimestampForm"
           v-if="step === 3"
         />
-        <DataSourceDatastream
-          ref="dataSourceDatastreamForm"
-          v-if="step === 4"
-        />
+      </v-card-item>
+      <v-card-item v-else>
+        Loading...
       </v-card-item>
       <v-card-actions>
+        <div class="text-subtitle-2">
+          * indicates a required field.
+        </div>
         <v-spacer></v-spacer>
+        <v-btn
+          variant="text"
+          @click="handleCancel"
+        >
+          Cancel
+        </v-btn>
         <v-btn
           v-if="step > 1"
           variant="text"
@@ -35,14 +42,14 @@
           Previous
         </v-btn>
         <v-btn
-          v-if="step < 4"
+          v-if="step < 3"
           variant="text"
           @click="handleNextPage"
         >
           Next
         </v-btn>
         <v-btn
-          v-if="step === 4"
+          v-if="step === 3"
           variant="text"
           @click="handleSaveChanges"
         >
@@ -60,9 +67,9 @@ import { useRoute, useRouter } from 'vue-router'
 import DataSourceLocation from "@/components/DataSource/DataSourceLocation.vue";
 import DataSourceSchedule from "@/components/DataSource/DataSourceSchedule.vue";
 import DataSourceTimestamp from "@/components/DataSource/DataSourceTimestamp.vue";
-import DataSourceDatastream from "@/components/DataSource/DataSourceDatastream.vue";
-import DataSourcePreview from "@/components/DataSource/DataSourcePreview.vue";
 
+const props = defineProps(['dataSourceId'])
+const emit = defineEmits(['closeDialog'])
 
 const step = ref(1)
 const store = useDataSourceFormStore()
@@ -73,17 +80,30 @@ const dataSourceLocationForm = ref()
 const dataSourceScheduleForm = ref()
 const dataSourceTimestampForm = ref()
 const dataSourceDatastreamForm = ref()
+const formTitle = ref()
 
-store.fetchDataSources()
-store.fetchDataLoaders()
-store.datastreamId = route.params.datastreamId?.toString() || null
+store.dataSourceId = props.dataSourceId || null
+store.formReady = false
+
+store.fetchDataSource().then(() => {
+  store.fetchDataLoaders().then(() => {
+    store.fillForm()
+    store.formReady = true
+  })
+})
+
+if (store.dataSourceId) {
+  formTitle.value = 'Edit Data Source'
+} else {
+  formTitle.value = 'Add Data Source'
+}
 
 async function handleSaveChanges() {
-  let valid = await dataSourceDatastreamForm.value.validate()
+  let valid = await dataSourceTimestampForm.value.validate()
   if (valid === true) {
     let saved = await store.saveDataSource()
     if (saved) {
-      router.back()
+      emit('closeDialog')
     } else {
       alert('Encountered an unexpected error while saving this data source.')
     }
@@ -112,6 +132,10 @@ async function handleNextPage() {
       step.value++
     }
   }
+}
+
+function handleCancel() {
+  emit('closeDialog')
 }
 
 </script>

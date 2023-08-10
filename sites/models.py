@@ -2,9 +2,13 @@ import uuid
 
 from django.db.models import ForeignKey
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 from accounts.models import CustomUser
-
+import boto3
+from botocore.exceptions import ClientError
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
 
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -26,6 +30,22 @@ class Photo(models.Model):
 
     def __str__(self):
         return f'Photo for {self.thing.name}'
+        
+
+@receiver(pre_delete, sender=Photo)
+def delete_photo(sender, instance, **kwargs):
+    print("deleting photo")
+    s3 = boto3.client('s3', 
+                        region_name='us-east-1', 
+                        aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    
+    file_name = instance.url.split(f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/")[1]
+
+    try:
+        s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)
+    except ClientError as e:
+        print(f"Error deleting {file_name} from S3: {e}")
 
 
 class Location(models.Model):
@@ -87,6 +107,7 @@ class FeatureOfInterest(models.Model):
 
 
 class ProcessingLevel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
     processing_level_code = models.CharField(max_length=255)
     definition = models.TextField()
@@ -97,6 +118,7 @@ class ProcessingLevel(models.Model):
 
 
 class Unit(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     symbol = models.CharField(max_length=50)
@@ -172,8 +194,9 @@ class Datastream(models.Model):
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, related_name='datastreams')
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT)
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True, related_name='unit', db_constraint=False)
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True,
+                                         related_name='processing_level', db_constraint=False)
 
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
@@ -185,11 +208,12 @@ class Datastream(models.Model):
     no_data_value = models.FloatField(max_length=255, null=True, blank=True)
     intended_time_spacing = models.FloatField(max_length=255, null=True, blank=True)
     intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                    related_name='intended_time_spacing')
+                                                    related_name='intended_time_spacing', db_constraint=False)
     aggregation_statistic = models.CharField(max_length=255, null=True, blank=True)  # CV Table?
     time_aggregation_interval = models.FloatField(max_length=255, null=True, blank=True)
     time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                        related_name='time_aggregation_interval')
+                                                        related_name='time_aggregation_interval', db_constraint=False)
+
     # observed_area = models.TextField(null=True)
     phenomenon_start_time = models.DateTimeField(null=True, blank=True)
     phenomenon_end_time = models.DateTimeField(null=True, blank=True)
@@ -225,7 +249,7 @@ class Observation(models.Model):
         managed = False
 
     def __str__(self):
-        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name}"
+        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name} - {self.result_time} -- {self.result}"
         if hasattr(self.phenomenon_time, 'strftime'):
             name += f" - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
         return name

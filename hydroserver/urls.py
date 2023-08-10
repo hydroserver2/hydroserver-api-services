@@ -6,10 +6,16 @@ from django.urls import path, include, re_path
 from hydroserver.api.api import api
 from hydroserver.views import index
 
+from core.api import management_api, auth_api
+from accounts.api import user_api
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('sensorthings/', include('sensorthings.urls')),
     path('api/', api.urls),
+    path('api2/data/', management_api.urls),
+    path('api2/auth/', auth_api.urls),
+    path('api2/user/', user_api.urls),
     re_path('.*', index),
 ]
 
