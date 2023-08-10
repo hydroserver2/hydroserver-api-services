@@ -39,6 +39,7 @@
       <v-row>
         <v-col cols="12" md="3">
           <v-autocomplete
+            :key="datastream.method_id"
             v-model="datastream.method_id"
             label="Select sensor"
             :items="
@@ -48,8 +49,8 @@
             "
             item-title="name"
             item-value="id"
-            no-data-text="No available sensors"
             :rules="rules.required"
+            no-data-text="No available sensors"
             class="pb-1"
           ></v-autocomplete>
           <v-btn-add v-if="isPrimaryOwner" @click="showSensorModal = true"
@@ -141,19 +142,29 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col>
-          <v-text-field
+        <v-col cols="4">
+          <CustomSelect
+            :key="datastream.sampled_medium"
+            :items="mediumTypes"
             v-model="datastream.sampled_medium"
-            label="Sampled medium"
-            :rules="datastream.sampled_medium ? rules.name : []"
-          ></v-text-field>
+            label="Medium"
+          />
         </v-col>
-        <v-col>
-          <v-text-field
+        <v-col cols="4">
+          <CustomSelect
+            :key="datastream.status"
+            :items="statusTypes"
             v-model="datastream.status"
             label="Status"
-            :rules="datastream.status ? rules.name : []"
-          ></v-text-field>
+          />
+        </v-col>
+        <v-col cols="4">
+          <CustomSelect
+            :key="datastream.aggregation_statistic"
+            :items="aggregationTypes"
+            v-model="datastream.aggregation_statistic"
+            label="Aggregation Statistic"
+          />
         </v-col>
       </v-row>
       <v-row>
@@ -163,13 +174,6 @@
             label="No data value"
             :rules="datastream.no_data_value ? rules.maxLength(255) : []"
             type="number"
-          ></v-text-field>
-        </v-col>
-        <v-col>
-          <v-text-field
-            v-model="datastream.aggregation_statistic"
-            label="Aggregation statistic"
-            :rules="datastream.aggregation_statistic ? rules.name : []"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -209,12 +213,14 @@ import { useThingStore } from '@/store/things'
 import { VForm } from 'vuetify/components'
 import { rules } from '@/utils/rules'
 import { useThing } from '@/composables/useThing'
+import { mediumTypes, aggregationTypes, statusTypes } from '@/vocabularies'
 import {
   useSensors,
   useUnits,
   useProcessingLevels,
   useObservedProperties,
 } from '@/composables/useMetadata'
+import CustomSelect from '@/components/CustomSelect'
 
 const datastreamStore = useDatastreamStore()
 const sensorStore = useSensorStore()

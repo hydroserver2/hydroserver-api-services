@@ -44,3 +44,57 @@ export const methodTypes = [
   'Specimen Analysis',
   'Unknown',
 ]
+
+export const mediumTypes = [
+  'Enter custom name',
+  'Air',
+  'Equipment',
+  'Gas',
+  'Habitat',
+  'Ice',
+  'Liquid aqueous',
+  'Liquid organic',
+  'Mineral',
+  'Not applicable',
+  'Organism',
+  'Other',
+  'Particulate',
+  'Regolith',
+  'Rock',
+  'Sediment',
+  'Snow',
+  'Soil',
+  'Tissue',
+  'Unknown',
+  'Vegetation',
+]
+
+export const statusTypes = [
+  'Enter custom name',
+  'Complete',
+  'Ongoing',
+  'Planned',
+  'Unknown',
+]
+
+export const aggregationTypes = [
+  'Enter custom name',
+  'Average',
+  'Best easy systematic estimator',
+  'Categorical',
+  'Confidence Interval',
+  'Constant over interval',
+  'Continuous',
+  'Cumulative',
+  'Incremental',
+  'Maximum',
+  'Median',
+  'Minimum',
+  'Mode',
+  'Sporadic',
+  'Standard deviation',
+  'Standard error of mean',
+  'Standard error of the mean',
+  'Unknown',
+  'Variance',
+]
