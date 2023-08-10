@@ -220,7 +220,7 @@ import {
   useProcessingLevels,
   useObservedProperties,
 } from '@/composables/useMetadata'
-import CustomSelect from '@/components/CustomSelect'
+import CustomSelect from '@/components/CustomSelect.vue'
 
 const datastreamStore = useDatastreamStore()
 const sensorStore = useSensorStore()
