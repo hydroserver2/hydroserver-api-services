@@ -46,7 +46,6 @@ export const methodTypes = [
 ]
 
 export const mediumTypes = [
-  'Enter custom name',
   'Air',
   'Equipment',
   'Gas',
@@ -69,16 +68,9 @@ export const mediumTypes = [
   'Vegetation',
 ]
 
-export const statusTypes = [
-  'Enter custom name',
-  'Complete',
-  'Ongoing',
-  'Planned',
-  'Unknown',
-]
+export const statusTypes = ['Complete', 'Ongoing', 'Planned', 'Unknown']
 
 export const aggregationTypes = [
-  'Enter custom name',
   'Average',
   'Best easy systematic estimator',
   'Categorical',

@@ -143,24 +143,21 @@
       </v-row>
       <v-row>
         <v-col cols="4">
-          <CustomSelect
-            :key="datastream.sampled_medium"
+          <v-combobox
             :items="mediumTypes"
             v-model="datastream.sampled_medium"
             label="Medium"
           />
         </v-col>
         <v-col cols="4">
-          <CustomSelect
-            :key="datastream.status"
+          <v-combobox
             :items="statusTypes"
             v-model="datastream.status"
             label="Status"
           />
         </v-col>
         <v-col cols="4">
-          <CustomSelect
-            :key="datastream.aggregation_statistic"
+          <v-combobox
             :items="aggregationTypes"
             v-model="datastream.aggregation_statistic"
             label="Aggregation Statistic"
@@ -220,7 +217,6 @@ import {
   useProcessingLevels,
   useObservedProperties,
 } from '@/composables/useMetadata'
-import CustomSelect from '@/components/CustomSelect.vue'
 
 const datastreamStore = useDatastreamStore()
 const sensorStore = useSensorStore()
