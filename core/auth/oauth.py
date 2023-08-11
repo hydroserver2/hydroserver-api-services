@@ -18,9 +18,38 @@ oauth.register(
 orcid_router = Router(tags=['ORCID'])
 
 
+def oauth_response(user):
+    """"""
+
+    jwt_token = RefreshToken.for_user(user)
+
+    response_html = '<html><head><title>HydroServer Sign In</title></head><body></body><script>res = %value%; ' + \
+                    'window.opener.postMessage(res, "*");window.close();</script></html>'
+
+    response_html = response_html.replace(
+        "%value%", json.dumps({
+            'access_token': str(getattr(jwt_token, 'access_token', '')),
+            'refresh_token': str(jwt_token),
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'middle_name': user.middle_name,
+                'last_name': user.last_name,
+                'phone': user.phone,
+                'address': user.address,
+                'organization': user.organization,
+                'type': user.type
+            }
+        })
+    )
+
+    return HttpResponse(response_html)
+
+
 @orcid_router.get('/login')
 def orcid_login(request):
-    redirect_uri = request.build_absolute_uri('/auth/orcid/auth')
+    redirect_uri = request.build_absolute_uri('/api2/auth/orcid/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
@@ -30,9 +59,24 @@ def orcid_login(request):
 
 @orcid_router.get('/auth')
 def orcid_auth(request):
-    token = oauth.orcid.authorize_access_token(request)
 
-    print(token)
+    token = oauth.orcid.authorize_access_token(request)
+    user_id = token.get('userinfo', {}).get('sub')
+
+    # try:
+    #     user = CustomUser.objects.get(orcid=user_id)
+    # except CustomUser.DoesNotExist:
+    #     user = CustomUser.objects.create(
+    #         username=user_id,
+    #         orcid=user_id,
+    #         password='',
+    #         first_name=token.get('userinfo', {}).get('given_name'),
+    #         last_name=token.get('userinfo', {}).get('family_name'),
+    #     )
+    #
+    # return oauth_response(user)
+
+    return None
 
 
 oauth.register(
@@ -71,27 +115,4 @@ def google_auth(request):
             last_name=token.get('userinfo', {}).get('family_name'),
         )
 
-    jwt_token = RefreshToken.for_user(user)
-
-    response_html = '<html><head><title>HydroServer Sign In</title></head><body></body><script>res = %value%; ' + \
-                    'window.opener.postMessage(res, "*");window.close();</script></html>'
-
-    response_html = response_html.replace(
-        "%value%", json.dumps({
-            'access_token': str(getattr(jwt_token, 'access_token', '')),
-            'refresh_token': str(jwt_token),
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'first_name': user.first_name,
-                'middle_name': user.middle_name,
-                'last_name': user.last_name,
-                'phone': user.phone,
-                'address': user.address,
-                'organization': user.organization,
-                'type': user.type
-            }
-        })
-    )
-
-    return HttpResponse(response_html)
+    return oauth_response(user)
