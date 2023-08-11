@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import router from '@/router/router'
 import { User } from '@/types'
+import { Subject } from 'rxjs'
 import Notification from './notifications'
 import { useResetStore } from '@/store/resetStore'
 
@@ -11,6 +12,8 @@ export const useAuthStore = defineStore({
     refresh_token: '',
     user: new User(),
     loggingIn: false,
+    isLoginListenerSet: false,
+    loggedIn$: new Subject<void>(),
   }),
   actions: {
     resetState() {
@@ -206,6 +209,66 @@ export const useAuthStore = defineStore({
         return false
       }
     },
+
+
+
+    async OAuthLogin(backend: string, callback?: () => any) {
+      let OAuthUrl: string = ''
+
+      if (backend === 'google') {
+        OAuthUrl = '/api2/auth/google/login'
+      } else if (backend === 'orcid') {
+        OAuthUrl = '/api2/auth/orcid/login'
+      }
+
+      window.open(
+        OAuthUrl,
+        '_blank'
+      )
+
+      if (!this.isLoginListenerSet) {
+        this.isLoginListenerSet = true // Prevents registering the listener more than once
+        console.info(`User: listening to login window...`)
+        window.addEventListener('message', async (event: MessageEvent) => {
+          console.log(event)
+          if (
+            // event.origin !== APP_URL ||
+            !event.data.hasOwnProperty('access_token')
+          ) {
+            return
+          }
+
+          if (event.data.access_token) {
+            console.log(event)
+
+            this.access_token = event.data.access_token
+            this.refresh_token = event.data.refresh_token
+            this.user = event.data.user
+            await router.push({ name: 'Sites' })
+
+            Notification.toast({
+              message: 'You have logged in!',
+              type: 'success',
+            })
+            // await User.commit((state) => {
+            //   state.isLoggedIn = true
+            //   state.accessToken = event.data.accessToken
+            // })
+            this.loggedIn$.next()
+            this.isLoginListenerSet = false
+            callback?.()
+          } else {
+            Notification.toast({
+              message: 'Failed to Log In',
+              type: 'error',
+            })
+          }
+        })
+      }
+    },
+
+
+
   },
   getters: {
     isLoggedIn: (state) => {

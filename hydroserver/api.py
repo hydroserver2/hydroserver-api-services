@@ -34,6 +34,7 @@ import boto3
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 
+
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password):
         user = authenticate(username=username, password=password)
