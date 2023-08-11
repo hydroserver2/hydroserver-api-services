@@ -20,7 +20,7 @@ router = Router(tags=['Things'])
 
 @router.get(
     '/things',
-    auth=[JWTAuth()],
+    auth=JWTAuth(),
     response={200: List[ThingGetResponse]}
 )
 def get_things(

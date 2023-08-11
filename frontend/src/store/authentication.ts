@@ -6,7 +6,8 @@ import { useResetStore } from '@/store/resetStore'
 import { getQueryString } from '@/utils/api-client'
 import { Subject } from 'rxjs'
 const APP_URL = import.meta.env.VITE_APP_URL || ''
-const LOGIN_URL = import.meta.env.VITE_APP_LOGIN_URL || ''
+const ORCID_LOGIN_URL = import.meta.env.VITE_APP_ORCID_LOGIN_URL || ''
+const GOOGLE_LOGIN_URL = import.meta.env.VITE_APP_GOOGLE_LOGIN_URL || ''
 
 export const useAuthStore = defineStore({
   id: 'authentication',
@@ -155,13 +156,21 @@ export const useAuthStore = defineStore({
         })
       }
     },
-    async oAuthLogin(callback?: () => any) {
+    async oAuthLogin(backend: string, callback?: () => any) {
       const params = {
         window_close: 'True',
       }
 
+      let OAuthUrl: string
+
+      if (backend === 'google') {
+        OAuthUrl = '/api2/auth/google/login'
+      } else if (backend === 'orcid') {
+        OAuthUrl = '/api2/auth/orcid/login'
+      }
+
       window.open(
-        `${LOGIN_URL}?${getQueryString(params)}`,
+        `${OAuthUrl}?${getQueryString(params)}`,
         '_blank'
         // 'location=1, status=1, scrollbars=1, width=800, height=800'
       )
@@ -173,13 +182,18 @@ export const useAuthStore = defineStore({
           console.log(event)
           if (
             event.origin !== APP_URL ||
-            !event.data.hasOwnProperty('accessToken')
+            !event.data.hasOwnProperty('access_token')
           ) {
             return
           }
 
-          if (event.data.accessToken) {
+          if (event.data.access_token) {
             console.log(event)
+
+            this.access_token = event.data.access_token
+            this.refresh_token = event.data.refresh_token
+            this.user = event.data.user
+            await router.push({ name: 'Sites' })
 
             Notification.toast({
               message: 'You have logged in!',

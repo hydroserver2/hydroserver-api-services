@@ -5,7 +5,17 @@
     <v-card class="login-card" width="40rem">
       <v-card-title class="mb-4 login-title">Sign In</v-card-title>
       <v-card-text>
-        <v-btn-secondary @click="openLogInDialog"
+        <v-btn
+          @click="openLogInDialog('google')"
+          variant="flat"
+          color="secondary"
+          prepend-icon="mdi-google"
+        >
+          Log in using Google
+        </v-btn>
+      </v-card-text>
+      <v-card-text>
+        <v-btn-secondary @click="openLogInDialog('orcid')"
           ><font-awesome-icon class="mr-2" :icon="['fab', 'orcid']" /><span
             >Log in using ORCID</span
           ></v-btn-secondary
@@ -76,8 +86,8 @@ const loginSubmit = async () => {
   await useAuthStore().login(email.value, password.value)
 }
 
-const openLogInDialog = async () => {
-  useAuthStore().oAuthLogin(onLoggedIn)
+const openLogInDialog = async (backend: string) => {
+  useAuthStore().oAuthLogin(backend, onLoggedIn)
 }
 
 const onLoggedIn = () => {
