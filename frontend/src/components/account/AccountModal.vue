@@ -60,7 +60,7 @@
           <v-col>
             <v-autocomplete
               v-model="user.type"
-              label="User Type"
+              label="User Type *"
               :items="userTypes"
               :rules="rules.required"
             ></v-autocomplete>

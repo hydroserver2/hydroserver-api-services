@@ -41,7 +41,7 @@
           <v-autocomplete
             :key="datastream.method_id"
             v-model="datastream.method_id"
-            label="Select sensor"
+            label="Select sensor *"
             :items="
               isPrimaryOwner
                 ? sensorStore.sensors
@@ -70,7 +70,7 @@
         <v-col cols="12" md="3">
           <v-autocomplete
             v-model="datastream.observed_property_id"
-            label="Select observed property"
+            label="Select observed property *"
             :items="
               isPrimaryOwner
                 ? opStore.observedProperties
@@ -95,7 +95,7 @@
         <v-col cols="12" md="3">
           <v-autocomplete
             v-model="datastream.unit_id"
-            label="Select unit"
+            label="Select unit *"
             :items="
               isPrimaryOwner
                 ? unitStore.units
@@ -121,7 +121,7 @@
         <v-col cols="12" md="3">
           <v-autocomplete
             v-model="datastream.processing_level_id"
-            label="Select processing level"
+            label="Select processing level *"
             :items="formattedProcessingLevels"
             item-title="title"
             item-value="id"

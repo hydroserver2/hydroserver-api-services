@@ -13,7 +13,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="user.first_name"
-                label="First Name"
+                label="First Name *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>
@@ -27,7 +27,7 @@
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="user.last_name"
-                label="Last Name"
+                label="Last Name *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>
@@ -36,7 +36,7 @@
             <v-col cols="12">
               <v-text-field
                 v-model="user.email"
-                label="Email (This will be your login username)"
+                label="Email (This will be your login username) *"
                 :rules="rules.email"
               ></v-text-field>
             </v-col>
@@ -46,7 +46,7 @@
               <v-text-field
                 type="password"
                 v-model="user.password"
-                label="Password"
+                label="Password *"
                 :rules="rules.password"
               ></v-text-field>
             </v-col>
@@ -54,7 +54,7 @@
               <v-text-field
                 type="password"
                 v-model="confirmPassword"
-                label="Confirm Password"
+                label="Confirm Password *"
                 :rules="rules.passwordMatch(user.password)"
               ></v-text-field>
             </v-col>
@@ -63,7 +63,7 @@
             <v-col cols="12">
               <v-text-field
                 v-model="user.address"
-                label="Address (Optional)"
+                label="Address"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -72,7 +72,7 @@
               <v-text-field
                 v-model="user.phone"
                 v-maska:[phoneMask]
-                label="Phone (Optional)"
+                label="Phone"
                 :rules="user.phone ? rules.phoneNumber : []"
               ></v-text-field>
             </v-col>
@@ -81,7 +81,7 @@
             <v-col cols="12">
               <v-text-field
                 v-model="user.organization"
-                label="Organization (Optional)"
+                label="Organization"
                 :rules="user.organization ? rules.name : []"
                 validate-on="input"
               ></v-text-field>
@@ -91,7 +91,7 @@
             <v-col>
               <v-autocomplete
                 v-model="user.type"
-                label="User Type"
+                label="User Type *"
                 :items="userTypes"
                 :rules="rules.required"
               ></v-autocomplete>

@@ -119,11 +119,11 @@ class ProcessingLevel(models.Model):
 
 class Unit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-    symbol = models.CharField(max_length=50)
+    symbol = models.CharField(max_length=255)
     definition = models.TextField()
-    unit_type = models.CharField(max_length=100)
+    unit_type = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name

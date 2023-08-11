@@ -17,21 +17,21 @@
             <v-col cols="12">
               <v-text-field
                 v-model="processingLevel.processing_level_code"
-                label="Processing Level Code"
+                label="Processing Level Code *"
                 :rules="rules.requiredCode"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-textarea
                 v-model="processingLevel.definition"
-                label="Definition"
+                label="Definition *"
                 :rules="rules.description"
               ></v-textarea>
             </v-col>
             <v-col cols="12">
               <v-textarea
                 v-model="processingLevel.explanation"
-                label="Explanation"
+                label="Explanation *"
                 :rules="rules.description"
               ></v-textarea>
             </v-col>

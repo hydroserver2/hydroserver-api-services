@@ -13,7 +13,7 @@
         >
           <v-text-field
             class="mb-4 email-input"
-            label="Email"
+            label="Email *"
             autofocus
             v-model="email"
             :rules="rules.email"
@@ -23,7 +23,7 @@
           ></v-text-field>
           <v-text-field
             class="mb-4 password-input"
-            label="Password"
+            label="Password *"
             :rules="rules.required"
             v-model="password"
             type="password"

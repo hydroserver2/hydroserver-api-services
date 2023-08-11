@@ -16,31 +16,35 @@
               <v-select
                 v-model="sensor.method_type"
                 :items="methodTypes"
-                label="Method Type"
+                label="Method Type *"
                 :rules="rules.required"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="6" v-if="!isInstrument">
-              <v-text-field v-model="sensor.name" label="Name"></v-text-field>
+              <v-text-field
+                v-model="sensor.name"
+                label="Name *"
+                :rules="rules.requiredName"
+              ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="sensor.description"
                 label="Description"
-                :rules="rules.description"
+                :rules="rules.maxLength(1000)"
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" v-if="isInstrument">
               <v-text-field
                 v-model="sensor.manufacturer"
-                label="Manufacturer"
+                label="Manufacturer *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" v-if="isInstrument">
               <v-text-field
                 v-model="sensor.model"
-                label="Model"
+                label="Model *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>
@@ -61,7 +65,7 @@
               <v-text-field
                 v-model="sensor.method_code"
                 label="Method Code"
-                :rules="rules.requiredCode"
+                :rules="rules.name"
               ></v-text-field>
             </v-col>
           </v-row>

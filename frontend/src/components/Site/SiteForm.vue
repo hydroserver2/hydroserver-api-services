@@ -38,13 +38,13 @@
             <v-row>
               <v-col cols="12"
                 ><v-text-field
-                  label="Site Code"
+                  label="Site Code *"
                   v-model="thing.sampling_feature_code"
                   :rules="rules.requiredCode"
               /></v-col>
               <v-col cols="12"
                 ><v-text-field
-                  label="Site Name"
+                  label="Site Name *"
                   v-model="thing.name"
                   :rules="rules.requiredCode"
               /></v-col>
@@ -56,7 +56,7 @@
               /></v-col>
               <v-col cols="12"
                 ><v-autocomplete
-                  label="Select Site Type"
+                  label="Select Site Type *"
                   :items="siteTypes"
                   v-model="thing.site_type"
                   :rules="rules.required"
@@ -69,21 +69,21 @@
             <v-row>
               <v-col cols="12" sm="6">
                 <v-text-field
-                  label="Latitude"
+                  label="Latitude *"
                   v-model="thing.latitude"
                   type="number"
                   :rules="rules.required"
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
-                  label="Longitude"
+                  label="Longitude *"
                   v-model="thing.longitude"
                   type="number"
                   :rules="rules.required"
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
-                  label="Elevation"
+                  label="Elevation *"
                   v-model="thing.elevation"
                   type="number"
                   :rules="rules.required"

@@ -15,28 +15,28 @@
             <v-col cols="12">
               <v-text-field
                 v-model="unit.name"
-                label="Name"
+                label="Name *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="unit.symbol"
-                label="Symbol"
+                label="Symbol *"
                 :rules="rules.required"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="unit.definition"
-                label="Definition"
+                label="Definition *"
                 :rules="rules.description"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="unit.unit_type"
-                label="Unit Type"
+                label="Unit Type *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>

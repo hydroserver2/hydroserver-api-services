@@ -17,21 +17,21 @@
             <v-col cols="12">
               <v-text-field
                 v-model="observedProperty.name"
-                label="Name"
+                label="Name *"
                 :rules="rules.requiredName"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="observedProperty.definition"
-                label="Definition"
+                label="Definition *"
                 :rules="rules.description"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="observedProperty.description"
-                label="Description"
+                label="Description *"
                 :rules="rules.description"
               ></v-text-field>
             </v-col>
@@ -39,14 +39,14 @@
               <v-text-field
                 v-model="observedProperty.variable_type"
                 label="Variable Type"
-                :rules="rules.requiredName"
+                :rules="rules.name"
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="observedProperty.variable_code"
                 label="Variable Code"
-                :rules="rules.requiredCode"
+                :rules="rules.name"
               ></v-text-field>
             </v-col>
           </v-row>

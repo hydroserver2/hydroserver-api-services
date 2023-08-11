@@ -1173,7 +1173,7 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
     if data.sampled_medium is not None:
         datastream.sampled_medium = data.sampled_medium
     if data.no_data_value is not None:
-        datastream.no_data_value = data.no_data_value
+        datastream.no_data_value = float(data.no_data_value) if data.no_data_value else None
     if data.aggregation_statistic is not None:
         datastream.aggregation_statistic = data.aggregation_statistic
     if data.time_aggregation_interval is not None:
