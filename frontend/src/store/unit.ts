@@ -7,6 +7,9 @@ export const useUnitStore = defineStore('units', {
     ownedUnits(): Unit[] {
       return this.units.filter((u) => u.person_id != null)
     },
+    unownedUnits(): Unit[] {
+      return this.units.filter((u) => u.person_id == null)
+    },
   },
   actions: {
     sortUnits() {

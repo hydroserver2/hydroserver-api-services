@@ -14,6 +14,18 @@
           validate-on="blur"
         >
           <v-row>
+            <v-col>
+              <v-autocomplete
+                v-if="!isEdit"
+                v-model="selectedId"
+                label="Load a template processing level"
+                :items="formattedProcessingLevels"
+                item-value="id"
+                item-title="title"
+              ></v-autocomplete>
+            </v-col>
+          </v-row>
+          <v-row>
             <v-col cols="12">
               <v-text-field
                 v-model="processingLevel.processing_level_code"
@@ -49,33 +61,31 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { VForm } from 'vuetify/components'
 import { rules } from '@/utils/rules'
-import { ProcessingLevel } from '@/types'
 import { useProcessingLevelStore } from '@/store/processingLevels'
+import { useProcessingLevels } from '@/composables/useMetadata'
 
 const plStore = useProcessingLevelStore()
 const props = defineProps({ id: String })
-const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
-const valid = ref(false)
-const myForm = ref<VForm>()
-const processingLevel = reactive<ProcessingLevel>(new ProcessingLevel())
+
+const {
+  isEdit,
+  selectedId,
+  formattedProcessingLevels,
+  myForm,
+  valid,
+  selectedEntity: processingLevel,
+} = useProcessingLevels(props.id)
 
 async function uploadProcessingLevel() {
   await myForm.value?.validate()
   if (!valid.value) return
-  if (isEdit.value) await plStore.updateProcessingLevel(processingLevel)
+  if (isEdit.value) await plStore.updateProcessingLevel(processingLevel.value)
   else {
-    const newPl = await plStore.createProcessingLevel(processingLevel)
+    const newPl = await plStore.createProcessingLevel(processingLevel.value)
     emit('uploaded', newPl.id)
   }
   emit('close')
 }
-
-onMounted(async () => {
-  await plStore.fetchProcessingLevels()
-  if (props.id)
-    Object.assign(processingLevel, plStore.getProcessingLevelById(props.id))
-})
 </script>
