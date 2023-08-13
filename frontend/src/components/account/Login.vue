@@ -4,6 +4,18 @@
   >
     <v-card class="login-card" width="40rem">
       <v-card-title class="mb-4 login-title">Sign In</v-card-title>
+
+      <v-card-text>
+        <v-btn
+          @click="openLogInDialog('google')"
+          variant="flat"
+          color="secondary"
+          prepend-icon="mdi-google"
+        >
+          Log in using Google
+        </v-btn>
+      </v-card-text>
+
       <v-card-text>
         <v-form
           class="login-form"
@@ -67,6 +79,14 @@ const valid = ref(false)
 const loginSubmit = async () => {
   if (!valid) return
   await useAuthStore().login(email.value, password.value)
+}
+
+const openLogInDialog = async (backend: string) => {
+  await useAuthStore().OAuthLogin(backend, onLoggedIn)
+}
+
+const onLoggedIn = () => {
+  // TODO: update state on log in
 }
 </script>
 
