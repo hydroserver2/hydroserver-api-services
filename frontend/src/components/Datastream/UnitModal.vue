@@ -77,7 +77,6 @@ const emit = defineEmits(['uploaded', 'close'])
 const {
   isEdit,
   selectedId,
-  formattedProcessingLevels,
   myForm,
   valid,
   selectedEntity: unit,
