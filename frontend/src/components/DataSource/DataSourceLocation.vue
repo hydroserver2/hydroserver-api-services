@@ -71,9 +71,9 @@
           type="number"
           clearable
           :rules="[
-            (val: string) => val == null || val === '' || val > 0 || 'File header row must be greater than zero.',
-            (val: string) => val == null || val === '' || val < store.dataStartRow || 'File header row must be less than the data start row.',
-            (val: string) => val == null || val === '' || val === parseInt(val, 10) || 'File header row must be an integer.'
+            (val: number) => val == null || val > 0 || 'File header row must be greater than zero.',
+            (val: number) => val == null || val < store.dataStartRow || 'File header row must be less than the data start row.',
+            (val: number) => val == null || val === Math.floor(val) || 'File header row must be an integer.'
           ]"
         />
       </v-col>
