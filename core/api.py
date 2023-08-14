@@ -14,12 +14,13 @@ management_api = NinjaAPI(
 management_api.add_router(prefix='', router=thing_router)
 management_api.add_router(prefix='', router=sensor_router)
 
-auth_api = NinjaExtraAPI(
+auth_api = NinjaAPI(
     title='HydroServer Authentication API',
     version='0.0.1',
-    urls_namespace='auth'
+    urls_namespace='auth',
+    csrf=True
 )
 
-auth_api.register_controllers(HydroServerJWTController)
+# auth_api.register_controllers(HydroServerJWTController)
 auth_api.add_router(prefix='orcid', router=orcid_router)
 auth_api.add_router(prefix='google', router=google_router)

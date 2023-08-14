@@ -1,6 +1,7 @@
 import json
+from typing import Optional
 from ninja import Router
-from ninja_jwt.tokens import RefreshToken
+from django.contrib.auth import login
 from django.http import HttpResponse
 from authlib.integrations.django_client import OAuth
 from accounts.models import CustomUser
@@ -18,33 +19,35 @@ oauth.register(
 orcid_router = Router(tags=['ORCID'])
 
 
-def oauth_response(user):
+def oauth_response(
+        user: Optional[CustomUser] = None,
+        user_info: Optional[dict] = None,
+        finish_account_setup: Optional[bool] = False):
     """"""
 
-    jwt_token = RefreshToken.for_user(user)
+    if not user_info:
+        user_info = {}
 
     response_html = '<html><head><title>HydroServer Sign In</title></head><body></body><script>res = %value%; ' + \
                     'window.opener.postMessage(res, "*");window.close();</script></html>'
 
     response_html = response_html.replace(
         "%value%", json.dumps({
-            'access_token': str(getattr(jwt_token, 'access_token', '')),
-            'refresh_token': str(jwt_token),
+            'finish_account_setup': finish_account_setup,
             'user': {
-                'id': user.id,
-                'email': user.email,
-                'first_name': user.first_name,
-                'middle_name': user.middle_name,
-                'last_name': user.last_name,
-                'phone': user.phone,
-                'address': user.address,
-                'organization': user.organization,
-                'type': user.type
+                'email': getattr(user, 'email', user_info.get('email')),
+                'first_name': getattr(user, 'first_name', user_info.get('first_name')),
+                'middle_name': getattr(user, 'middle_name', None),
+                'last_name': getattr(user, 'last_name', user_info.get('last_name')),
+                'phone': getattr(user, 'phone', None),
+                'address': getattr(user, 'address', None),
+                'organization': getattr(user, 'organization', None),
+                'type': getattr(user, 'type', None),
             }
         })
     )
 
-    return HttpResponse(response_html)
+    return response_html
 
 
 @orcid_router.get('/login')
@@ -106,13 +109,21 @@ def google_auth(request):
 
     try:
         user = CustomUser.objects.get(email=user_email)
-    except CustomUser.DoesNotExist:
-        user = CustomUser.objects.create(
-            username=user_email,
-            email=user_email,
-            password='',
-            first_name=token.get('userinfo', {}).get('given_name'),
-            last_name=token.get('userinfo', {}).get('family_name'),
+        login(request, user)
+
+        response = oauth_response(
+            finish_account_setup=False,
+            user=user
         )
 
-    return oauth_response(user)
+    except CustomUser.DoesNotExist:
+        response = oauth_response(
+            finish_account_setup=True,
+            user_info={
+                'email': user_email,
+                'first_name': token.get('userinfo', {}).get('given_name'),
+                'last_name': token.get('userinfo', {}).get('family_name')
+            }
+        )
+
+    return HttpResponse(response)
