@@ -66,20 +66,25 @@ def orcid_auth(request):
     token = oauth.orcid.authorize_access_token(request)
     user_id = token.get('userinfo', {}).get('sub')
 
-    # try:
-    #     user = CustomUser.objects.get(orcid=user_id)
-    # except CustomUser.DoesNotExist:
-    #     user = CustomUser.objects.create(
-    #         username=user_id,
-    #         orcid=user_id,
-    #         password='',
-    #         first_name=token.get('userinfo', {}).get('given_name'),
-    #         last_name=token.get('userinfo', {}).get('family_name'),
-    #     )
-    #
-    # return oauth_response(user)
+    try:
+        user = CustomUser.objects.get(orcid=user_id)
+        login(request, user)
 
-    return None
+        response = oauth_response(
+            finish_account_setup=False,
+            user=user
+        )
+
+    except CustomUser.DoesNotExist:
+        response = oauth_response(
+            finish_account_setup=True,
+            user_info={
+                'first_name': token.get('userinfo', {}).get('given_name'),
+                'last_name': token.get('userinfo', {}).get('family_name')
+            }
+        )
+
+    return HttpResponse(response)
 
 
 oauth.register(

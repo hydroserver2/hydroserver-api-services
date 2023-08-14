@@ -14,16 +14,16 @@
           Log in using Google
         </v-btn>
       </v-card-text>
-<!--      <v-card-text>-->
-<!--        <v-btn-->
-<!--          @click="openLogInDialog('orcid')"-->
-<!--          variant="flat"-->
-<!--          color="secondary"-->
-<!--          prepend-icon="mdi-orcid"-->
-<!--        >-->
-<!--          Log in using ORCID-->
-<!--        </v-btn>-->
-<!--      </v-card-text>-->
+      <v-card-text>
+        <v-btn
+          @click="openLogInDialog('orcid')"
+          variant="flat"
+          color="secondary"
+          prepend-icon="mdi-orcid"
+        >
+          Log in using ORCID
+        </v-btn>
+      </v-card-text>
       <v-card-text>
         <v-form
           class="login-form"
