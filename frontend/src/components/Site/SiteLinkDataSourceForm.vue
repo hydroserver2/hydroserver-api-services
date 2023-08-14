@@ -36,9 +36,13 @@
               v-model="store.selectedColumn"
               label="Datastream Column *"
               hint="Enter the column name/index containing values for this datastream."
-              :type="(store.selectedDataSource.file_access || {}).header_row === 0 ? 'number' : 'text'"
+              :type="
+                (store.selectedDataSource.file_access || {}).header_row === 0
+                  ? 'number'
+                  : 'text'
+              "
               :rules="[
-                (val) => !!val || 'Must enter the column containing the datastream.'
+                (val: string) => !!val || 'Must enter the column containing the datastream.'
               ]"
               persistent-hint
             />
@@ -47,27 +51,14 @@
       </v-card-item>
       <v-card-item v-else>
         <v-row>
-          <v-col>
-            LOADING...
-          </v-col>
+          <v-col> LOADING... </v-col>
         </v-row>
       </v-card-item>
       <v-card-actions>
-        <div class="text-subtitle-2">
-          * indicates a required field.
-        </div>
+        <div class="text-subtitle-2">* indicates a required field.</div>
         <v-spacer></v-spacer>
-        <v-btn
-          variant="text"
-          @click="handleCancel"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          variant="text"
-          :disabled="!store.savable"
-          @click="handleSave"
-        >
+        <v-btn variant="text" @click="handleCancel"> Cancel </v-btn>
+        <v-btn variant="text" :disabled="!store.savable" @click="handleSave">
           Save
         </v-btn>
       </v-card-actions>
@@ -76,8 +67,8 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue";
-import {useSiteLinkDataSourceFormStore} from "@/store/datasource_link";
+import { ref } from 'vue'
+import { useSiteLinkDataSourceFormStore } from '@/store/datasource_link'
 
 const props = defineProps(['thingId', 'datastreamId', 'dataSourceId', 'column'])
 const emit = defineEmits(['closeDialog'])
@@ -89,14 +80,18 @@ store.formLoaded = false
 
 store.fetchDatastreams(props.thingId, props.datastreamId).then((datastream) => {
   store.fillForm(
-    props.datastreamId, datastream.data_source_id, datastream.column
+    props.datastreamId,
+    datastream.data_source_id,
+    datastream.column
   )
   store.fetchDataSources().then(() => {
     store.formLoaded = true
   })
 })
 
-let formTitle = props.dataSourceId ? 'Edit Linked Data Source' : 'Link Data Source'
+let formTitle = props.dataSourceId
+  ? 'Edit Linked Data Source'
+  : 'Link Data Source'
 
 function handleUpdateDataSource() {
   if (store.selectedDataSource === (store.linkedDataSource || {}).name) {
@@ -124,9 +119,6 @@ async function handleSave() {
 function handleCancel() {
   emit('closeDialog')
 }
-
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

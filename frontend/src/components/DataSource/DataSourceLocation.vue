@@ -14,8 +14,8 @@
           hint="Enter a name you can use to identify this data source."
           persistent-hint
           :rules="[
-            (val) => val !== '' && val != null || 'Must enter data source name.',
-            (val) => /^[0-9a-zA-Z ... ]+$/.test(val) || 'Invalid data source name.',
+            (val: string) => val !== '' && val != null || 'Must enter data source name.',
+            (val: string) => /^[0-9a-zA-Z ... ]+$/.test(val) || 'Invalid data source name.',
           ]"
         ></v-text-field>
       </v-col>
@@ -30,7 +30,7 @@
           item-title="name"
           item-value="id"
           :rules="[
-            (val) => !!val || 'Must select a data loader.'
+            (val: string) => !!val || 'Must select a data loader.'
           ]"
         ></v-autocomplete>
       </v-col>
@@ -44,7 +44,7 @@
           hint="Enter the absolute path to the data source file."
           persistent-hint
           :rules="[
-            (val) => val !== '' && val != null || 'Must enter data source path.'
+            (val: string) => val !== '' && val != null || 'Must enter data source path.'
           ]"
         />
       </v-col>
@@ -55,7 +55,8 @@
           hint="Select the type of delimiter used for this data file."
           persistent-hint
           :items="intervalUnitValues"
-          variant="outlined" density="comfortable"
+          variant="outlined"
+          density="comfortable"
         />
       </v-col>
     </v-row>
@@ -70,9 +71,9 @@
           type="number"
           clearable
           :rules="[
-            (val) => val == null || val === '' || val > 0 || 'File header row must be greater than zero.',
-            (val) => val == null || val === '' || val < store.dataStartRow || 'File header row must be less than the data start row.',
-            (val) => val == null || val === '' || val === parseInt(val, 10) || 'File header row must be an integer.'
+            (val: string) => val == null || val === '' || val > 0 || 'File header row must be greater than zero.',
+            (val: string) => val == null || val === '' || val < store.dataStartRow || 'File header row must be less than the data start row.',
+            (val: string) => val == null || val === '' || val === parseInt(val, 10) || 'File header row must be an integer.'
           ]"
         />
       </v-col>
@@ -85,9 +86,9 @@
           persistent-hint
           type="number"
           :rules="[
-            (val) => val > 0 || 'Data start row must be greater than zero.',
-            (val) => store.fileHeaderRow == null || val > store.fileHeaderRow || 'Data start row must be greater than the file header row.',
-            (val) => val == null || val === parseInt(val, 10) || 'Data start row must be an integer.'
+            (val: string) => val > 0 || 'Data start row must be greater than zero.',
+            (val: string) => store.fileHeaderRow == null || val > store.fileHeaderRow || 'Data start row must be greater than the file header row.',
+            (val: string) => val == null || val === parseInt(val, 10) || 'Data start row must be an integer.'
           ]"
         />
       </v-col>
@@ -96,8 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useDataSourceFormStore } from '@/store/datasource_form';
+import { ref, watch } from 'vue'
+import { useDataSourceFormStore } from '@/store/datasource_form'
 
 const store = useDataSourceFormStore()
 
@@ -112,14 +113,17 @@ const intervalUnitValues = [
   { value: ',', title: 'Comma' },
   { value: '|', title: 'Pipe' },
   { value: '\\t', title: 'Tab' },
-  { value: ';', title: 'Semicolon'},
-  { value: ' ', title: 'Space'}
+  { value: ';', title: 'Semicolon' },
+  { value: ' ', title: 'Space' },
 ]
 
 watch(
   () => store.fileHeaderRow,
   () => {
-    if (store.fileHeaderRow !== undefined && store.fileHeaderRow >= store.dataStartRow) {
+    if (
+      store.fileHeaderRow !== undefined &&
+      store.fileHeaderRow >= store.dataStartRow
+    ) {
       store.dataStartRow = store.fileHeaderRow + 1
     }
   }
@@ -138,11 +142,8 @@ async function validate() {
 }
 
 defineExpose({
-  validate
+  validate,
 })
-
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
