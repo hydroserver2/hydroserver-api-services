@@ -88,7 +88,7 @@
           :rules="[
             (val: number) => val > 0 || 'Data start row must be greater than zero.',
             (val: number) => store.fileHeaderRow == null || val > store.fileHeaderRow || 'Data start row must be greater than the file header row.',
-            (val: number) => val == null || val === parseInt(val, 10) || 'Data start row must be an integer.'
+            (val: number) => val == null || Number.isInteger(val) || 'Data start row must be an integer.'
           ]"
         />
       </v-col>
