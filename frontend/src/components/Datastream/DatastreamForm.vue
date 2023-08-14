@@ -73,7 +73,7 @@
             label="Select observed property *"
             :items="
               isPrimaryOwner
-                ? opStore.observedProperties
+                ? opStore.ownedOP
                 : thingStore.POMetadata[thingId].observed_properties
             "
             item-title="name"

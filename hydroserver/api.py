@@ -868,27 +868,28 @@ def delete_sensor(request, sensor_id: str):
     return {'detail': 'Sensor deleted successfully.'}
 
 
-def observed_property_to_dict(observed_property):
+def observed_property_to_dict(op):
     return {
-        "id": observed_property.pk,
-        "name": observed_property.name,
-        "definition": observed_property.definition,
-        "description": observed_property.description,
-        "variable_type": observed_property.variable_type,
-        "variable_code": observed_property.variable_code,
+        "id": op.pk,
+        "name": op.name,
+        "person_id": op.person.pk if op.person else None,
+        "definition": op.definition,
+        "description": op.description,
+        "variable_type": op.variable_type,
+        "variable_code": op.variable_code,
     }
 
 
 @api.get('/observed-properties', auth=jwt_auth)
 def get_observed_properties(request):
-    observed_properties = ObservedProperty.objects.filter(Q(person=request.authenticated_user))
+    observed_properties = ObservedProperty.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([observed_property_to_dict(op) for op in observed_properties], safe=False)
 
 
 class ObservedPropertyInput(Schema):
     name: str
     definition: str
-    description: str
+    description: str = None
     variable_type: str = None
     variable_code: str = None
 

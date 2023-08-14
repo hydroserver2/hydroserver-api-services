@@ -90,9 +90,9 @@ class ObservedProperty(models.Model):
     name = models.CharField(max_length=255)
     person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     definition = models.TextField()
-    description = models.TextField()
-    variable_type = models.CharField(max_length=50, blank=True, null=True)
-    variable_code = models.CharField(max_length=50, blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
+    variable_type = models.CharField(max_length=500, blank=True, null=True)
+    variable_code = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.name

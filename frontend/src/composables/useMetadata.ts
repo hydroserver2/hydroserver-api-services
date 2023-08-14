@@ -128,7 +128,7 @@ export function useObservedProperties(id: string | null = null) {
     () => new ObservedProperty(),
     'fetchObservedProperties',
     'deleteObservedProperty',
-    'getObservedPropertyById',
+    'getById',
     id
   )
 }
