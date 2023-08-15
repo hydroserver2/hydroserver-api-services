@@ -74,8 +74,8 @@ export const useAuthStore = defineStore({
       }
     },
     async logout() {
-      this.resetState()
       await router.push({ name: 'Login' })
+      this.resetState()
       Notification.toast({ message: 'You have logged out', type: 'info' })
     },
     async refreshAccessToken() {
@@ -210,8 +210,6 @@ export const useAuthStore = defineStore({
       }
     },
 
-
-
     async OAuthLogin(backend: string, callback?: () => any) {
       let OAuthUrl: string = ''
 
@@ -221,10 +219,7 @@ export const useAuthStore = defineStore({
         OAuthUrl = '/api2/auth/orcid/login'
       }
 
-      window.open(
-        OAuthUrl,
-        '_blank'
-      )
+      window.open(OAuthUrl, '_blank')
 
       if (!this.isLoginListenerSet) {
         this.isLoginListenerSet = true // Prevents registering the listener more than once
@@ -266,9 +261,6 @@ export const useAuthStore = defineStore({
         })
       }
     },
-
-
-
   },
   getters: {
     isLoggedIn: (state) => {
