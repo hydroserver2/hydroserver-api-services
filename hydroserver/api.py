@@ -362,6 +362,8 @@ def thing_to_dict(thing, user):
         "sampling_feature_code": thing.sampling_feature_code,
         "site_type": thing.site_type,
         "is_private": thing.is_private,
+        "include_data_disclaimer": thing.include_data_disclaimer,
+        "data_disclaimer": thing.data_disclaimer,
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
@@ -459,6 +461,8 @@ class ThingInput(Schema):
     sampling_feature_type: str = None
     sampling_feature_code: str = None
     site_type: str = None
+    include_data_disclaimer: bool = False
+    data_disclaimer: str = None
     latitude: float
     longitude: float
     elevation: float
@@ -473,7 +477,9 @@ def create_thing(request, data: ThingInput):
                                          description=data.description,
                                          sampling_feature_type=data.sampling_feature_type,
                                          sampling_feature_code=data.sampling_feature_code,
-                                         site_type=data.site_type)
+                                         site_type=data.site_type, 
+                                         include_data_disclaimer=data.include_data_disclaimer, 
+                                         data_disclaimer=data.data_disclaimer if data.include_data_disclaimer else None)
 
         Location.objects.create(name='Location for ' + new_thing.name,
                                 description='location',
@@ -716,6 +722,8 @@ class UpdateThingInput(Schema):
     sampling_feature_type: str = None
     sampling_feature_code: str = None
     site_type: str = None
+    include_data_disclaimer: bool = False
+    data_disclaimer: str = None
     latitude: float = None
     longitude: float = None
     elevation: float = None
@@ -741,6 +749,10 @@ def update_thing(request, thing_id: str, data: UpdateThingInput):
         thing.sampling_feature_code = data.sampling_feature_code
     if data.site_type is not None:
         thing.site_type = data.site_type
+    if data.include_data_disclaimer is not None:
+        thing.include_data_disclaimer = data.include_data_disclaimer
+    if data.data_disclaimer is not None:
+        thing.data_disclaimer = data.data_disclaimer
 
     if data.latitude is not None:
         location.latitude = data.latitude

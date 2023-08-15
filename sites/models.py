@@ -18,6 +18,8 @@ class Thing(models.Model):
     sampling_feature_code = models.CharField(max_length=200, null=True, blank=True)
     site_type = models.CharField(max_length=200, null=True, blank=True)  # CV Table?
     is_private = models.BooleanField(default=False)
+    include_data_disclaimer = models.BooleanField(default=False)
+    data_disclaimer = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name

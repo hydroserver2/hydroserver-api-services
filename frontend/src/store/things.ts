@@ -58,7 +58,13 @@ export const useThingStore = defineStore('things', {
         const { data } = await this.$http.post(`/things`, newThing)
         this.$patch({ things: { ...this.things, [data.id]: data } })
         return data
-      } catch (error) {
+      } catch (error: any) {
+        if (!error.response) {
+          Notification.toast({
+            message: 'Network error. Please check your connection.',
+            type: 'error',
+          })
+        }
         console.error('Error creating thing', error)
       }
     },

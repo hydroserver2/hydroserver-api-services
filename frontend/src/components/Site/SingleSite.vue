@@ -331,6 +331,11 @@
         />
       </v-dialog>
     </v-row>
+    <v-row v-if="thing.include_data_disclaimer" class="pt-2 pb-8">
+      <h6 class="text-h6" style="color: #b71c1c">
+        {{ thing.data_disclaimer }}
+      </h6>
+    </v-row>
   </v-container>
 </template>
 

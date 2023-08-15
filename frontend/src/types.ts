@@ -24,6 +24,8 @@ export class Thing {
   county: string
   is_primary_owner: boolean
   followers: number
+  data_disclaimer: string
+  include_data_disclaimer: boolean
 
   constructor() {
     this.id = ''
@@ -43,6 +45,8 @@ export class Thing {
     this.county = ''
     this.is_primary_owner = false
     this.followers = 0
+    this.data_disclaimer = ''
+    this.include_data_disclaimer = false
   }
 }
 
