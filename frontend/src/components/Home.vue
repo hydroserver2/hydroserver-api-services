@@ -137,9 +137,9 @@
       </v-col>
       <v-col class="d-flex justify-center flex-column" cols="12" sm="7">
         <h4 class="text-h4 mb-4">Operational Data for Modeling</h4>
-        <h5 class="text-body-1 mb-2 font-weight-bold">
+        <p class="text-body-1 mb-2 font-weight-bold">
           Your data can improve NOAA's water prediction services
-        </h5>
+        </p>
         <p class="text-body-1 text-medium-emphasis">
           NOAA's National Water Model can assimilate streamflow data from
           operational monitoring sites like yours. Contribute your streamflow
