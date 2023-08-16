@@ -53,7 +53,12 @@
       <v-spacer></v-spacer>
 
       <template v-if="authStore.isLoggedIn">
-        <v-btn elevation="2" rounded class="account-logout-button">
+        <v-btn
+          elevation="2"
+          rounded
+          class="account-logout-button"
+          aria-label="Account Actions"
+        >
           <v-icon>mdi-account-circle</v-icon>
           <v-icon>mdi-menu-down</v-icon>
 
