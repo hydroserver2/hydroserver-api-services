@@ -11,7 +11,7 @@
             icon
             @click="drawer = !drawer"
           >
-            <v-icon>mdi-menu-open</v-icon>
+            <v-icon>{{ mdiMenuOpen }}</v-icon>
           </v-btn>
         </v-col>
       </v-row>
@@ -30,7 +30,7 @@
         <form @submit.prevent="filterOrganizations">
           <v-text-field
             placeholder="Filter by Organizations"
-            prepend-inner-icon="mdi-magnify"
+            :prepend-inner-icon="mdiMagnify"
             v-model="searchInput"
             clearable
           />
@@ -74,6 +74,7 @@ import { Ref } from 'vue'
 import { Thing } from '@/types'
 import { useThingStore } from '@/store/things'
 import { siteTypes } from '@/vocabularies'
+import { mdiMenuOpen, mdiMagnify } from '@/utils/mdi-icons'
 
 const drawer = ref(true)
 const thingStore = useThingStore()

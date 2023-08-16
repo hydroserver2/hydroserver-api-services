@@ -1,27 +1,8 @@
 import { RouteRecordRaw } from 'vue-router'
-
 import Home from '@/components/Home.vue'
-import Sites from '@/components/Site/Sites.vue'
-import Signup from '@/components/account/Signup.vue'
-import Login from '@/components/account/Login.vue'
-import SingleSite from '@/components/Site/SingleSite.vue'
-import Browse from '@/components/Browse.vue'
-import DatastreamForm from '@/components/Datastream/DatastreamForm.vue'
-import DataSourceForm from '@/components/DataSource/DataSourceForm.vue'
-import DataSourceDashboard from '@/components/DataSource/DataSourceDashboard.vue'
-import DataSourceDetail from '@/components/DataSource/DataSourceDetail.vue'
-import DataLoaderDashboard from '@/components/DataSource/DataLoaderDashboard.vue'
-import HydroLoaderDownload from '@/components/DataSource/HydroLoaderDownload.vue'
-import Profile from '@/components/account/Profile.vue'
-import Metadata from '@/components/Datastream/Metadata.vue'
-import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
-import PasswordReset from '@/components/account/PasswordRecovery/PasswordReset.vue'
 import { useAuthStore } from '@/store/authentication'
 import { useThingStore } from '@/store/things'
 import { RouteLocationNormalized } from 'vue-router'
-import PageNotFound from '@/components/base/PageNotFound.vue'
-import SiteVisualization from '@/components/SiteVisualization.vue'
-import Contact from '@/components/Contact.vue'
 
 function requireAuth(
   to: RouteLocationNormalized,
@@ -61,87 +42,101 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/browse',
     name: 'Browse',
-    component: Browse,
+    component: () => import('@/components/Browse.vue'),
     meta: { hideFooter: true, isFullScreen: true },
   },
   {
     path: '/sites',
     name: 'Sites',
-    component: Sites,
+    component: () => import('@/components/Site/Sites.vue'),
     beforeEnter: requireAuth,
   },
-  { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
+  {
+    path: '/sites/:id',
+    name: 'SingleSite',
+    component: () => import('@/components/Site/SingleSite.vue'),
+  },
   {
     path: '/visualization/:id/:datastreamId',
     name: 'SiteVisualization',
-    component: SiteVisualization,
+    component: () => import('@/components/SiteVisualization.vue'),
   },
   {
     path: '/sites/:id/datastreams/form/:datastreamId?',
     name: 'DatastreamForm',
-    component: DatastreamForm,
+    component: () => import('@/components/Datastream/DatastreamForm.vue'),
     beforeEnter: requireThingOwnership,
   },
   {
     path: '/contact',
     name: 'Contact',
-    component: Contact,
+    component: () => import('@/components/Contact.vue'),
   },
   {
     path: '/data-sources',
     name: 'DataSources',
-    component: DataSourceDashboard,
+    component: () => import('@/components/DataSource/DataSourceDashboard.vue'),
     beforeEnter: requireAuth,
   },
   {
     path: '/data-sources/:id',
     name: 'DataSource',
-    component: DataSourceDetail,
+    component: () => import('@/components/DataSource/DataSourceDetail.vue'),
   },
   {
     path: '/data-loaders',
     name: 'DataLoaders',
-    component: DataLoaderDashboard,
+    component: () => import('@/components/DataSource/DataLoaderDashboard.vue'),
     beforeEnter: requireAuth,
   },
   {
     path: '/hydroloader/download',
     name: 'HydroLoader',
-    component: HydroLoaderDownload,
+    component: () => import('@/components/DataSource/HydroLoaderDownload.vue'),
   },
   {
     path: '/sites/:id/datastreams/:datastreamId/datasource',
     name: 'DataSourceForm',
-    component: DataSourceForm,
+    component: () => import('@/components/DataSource/DataSourceForm.vue'),
     beforeEnter: requireThingOwnership,
   },
-  { path: '/signup', name: 'Signup', component: Signup },
-  { path: '/login', name: 'Login', component: Login },
+  {
+    path: '/signup',
+    name: 'Signup',
+    component: () => import('@/components/account/Signup.vue'),
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/components/account/Login.vue'),
+  },
   {
     path: '/password_reset',
     name: 'PasswordResetRequest',
-    component: PasswordResetRequest,
+    component: () =>
+      import('@/components/account/PasswordRecovery/PasswordResetRequest.vue'),
   },
   {
     path: '/password_reset/:uid/:token',
     name: 'PasswordReset',
-    component: PasswordReset,
+    component: () =>
+      import('@/components/account/PasswordRecovery/PasswordReset.vue'),
   },
   {
     path: '/profile',
     name: 'Profile',
-    component: Profile,
+    component: () => import('@/components/account/Profile.vue'),
     beforeEnter: requireAuth,
   },
   {
     path: '/metadata',
     name: 'Metadata',
-    component: Metadata,
+    component: () => import('@/components/Datastream/Metadata.vue'),
     beforeEnter: requireAuth,
   },
   {
     path: '/:catchAll(.*)*',
     name: 'PageNotFound',
-    component: PageNotFound,
+    component: () => import('@/components/base/PageNotFound.vue'),
   },
 ]
