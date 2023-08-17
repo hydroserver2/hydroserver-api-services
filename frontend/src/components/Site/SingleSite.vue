@@ -205,8 +205,10 @@
               }}
             </v-row>
             <v-row>
-              {{ item.raw.unit_name }} -
-              {{ (item.raw.most_recent_observation as Observation).result }}
+              {{
+                (item.raw.most_recent_observation as Observation).result
+              }}&nbsp;
+              {{ item.raw.unit_name }}
             </v-row>
           </div>
         </template>
