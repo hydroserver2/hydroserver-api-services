@@ -9,13 +9,13 @@
     </v-row>
     <v-row>
       <v-col>
-        <h6 class="text-h6 mb-2">
+        <p class="mb-2">
           Select the appropriate metadata to describe the the datastream you are
           adding to the monitoring site. If you want to modify the values
           available in the drop down menus below, click the “Add New” button or
           visit the
           <router-link to="/Metadata"> Manage Metadata page. </router-link>
-        </h6>
+        </p>
       </v-col>
     </v-row>
     <v-row v-if="isPrimaryOwner">
@@ -144,11 +144,11 @@
 
       <v-row>
         <v-col>
-          <h6 class="text-h6 mt-2">
+          <p class="mt-2">
             For the following items, select an option or type your own. Note:
             the default selections won't be available if there is custom text in
-            the field
-          </h6>
+            the field.
+          </p>
         </v-col>
       </v-row>
       <v-row>
