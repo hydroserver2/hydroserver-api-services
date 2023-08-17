@@ -38,7 +38,7 @@ export const useAuthStore = defineStore({
             message: 'Server error. Please try again later.',
             type: 'error',
           })
-        } else {
+        } else if (response.status === 200) {
           this.access_token = response.data.access_token
           this.refresh_token = response.data.refresh_token
           this.user = response.data.user
@@ -76,7 +76,6 @@ export const useAuthStore = defineStore({
     async logout() {
       await router.push({ name: 'Login' })
       this.resetState()
-      Notification.toast({ message: 'You have logged out', type: 'info' })
     },
     async refreshAccessToken() {
       try {

@@ -77,7 +77,7 @@
 
               <v-divider></v-divider>
 
-              <v-list-item id="navbar-logout" @click="authStore.logout">
+              <v-list-item id="navbar-logout" @click="logout">
                 <template v-slot:prepend><v-icon>mdi-logout</v-icon></template>
                 <v-list-item-title>Log Out</v-list-item-title>
               </v-list-item>
@@ -143,7 +143,7 @@
         <v-list-item to="/profile" prepend-icon="mdi-account-circle"
           >Profile</v-list-item
         >
-        <v-list-item prepend-icon="mdi-logout" @click.prevent="authStore.logout"
+        <v-list-item prepend-icon="mdi-logout" @click.prevent="logout"
           >Logout</v-list-item
         >
       </template>
@@ -163,6 +163,7 @@ import { useAuthStore } from '@/store/authentication'
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import appLogo from '@/assets/hydroserver-icon-min.png'
+import Notification from '@/store/notifications'
 
 const authStore = useAuthStore()
 const { smAndDown } = useDisplay()
@@ -235,6 +236,10 @@ const paths: {
   // },
 ]
 
+function logout() {
+  authStore.logout()
+  Notification.toast({ message: 'You have logged out', type: 'info' })
+}
 function openInNewTab(event: MouseEvent, href: string | undefined) {
   event.preventDefault()
   if (href) window.open(href, '_blank')
