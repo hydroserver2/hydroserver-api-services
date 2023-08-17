@@ -8298,3 +8298,1651 @@
     person: null
     symbol: cm^3/g
     unit_type: Specific volume
+- model: sites.unit
+  pk: 95174a34-e744-417d-8461-a05e356b2461
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-35; http://qudt.org/vocab/unit#FootUSSurvey; http://www.unidata.ucar.edu/software/udunits/
+    name: Foot, US Survey
+    person: null
+    symbol: ft_us
+    unit_type: Length
+- model: sites.unit
+  pk: 1d285b2e-e8cc-40ff-bdca-e63b677be58f
+  fields:
+    definition: http://qudt.org/vocab/unit#MileUSStatute; http://unitsofmeasure.org/ucum.html#para-35
+    name: Mile, US Survey
+    person: null
+    symbol: mi_us
+    unit_type: Length
+- model: sites.unit
+  pk: a72e425c-b48e-4a24-ba4d-a2176bc60c76
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-35; http://www.unidata.ucar.edu/software/udunits/
+    name: Yard, US Survey
+    person: null
+    symbol: yd_us
+    unit_type: Length
+- model: sites.unit
+  pk: a3627c97-35ac-4c2f-a5ce-e553107ce9da
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMeterPerKilogram
+    name: Cubic Meter per Kilogram
+    person: null
+    symbol: m^3/kg
+    unit_type: Specific volume
+- model: sites.unit
+  pk: 20f9b9ac-6646-45b2-bcfb-9bec1a44f90c
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Milliliter per Gram
+    person: null
+    symbol: ml/g
+    unit_type: Specific volume
+# - model: sites.unit
+#   pk: c10b3032-d86e-4c26-a48a-1f11aa9cf470
+#   fields:
+#     definition:
+#     name: Per Mil versus Pee Dee Belemnite
+#     person: null
+#     symbol: ‰PDB
+#     unit_type: Stable isotope delta
+# - model: sites.unit
+#   pk: b63796d2-6ffb-42e2-a5bb-16cd2e98c4a8
+#   fields:
+#     definition:
+#     name: Per Mil versus Standard Mean Ocean Water
+#     person: null
+#     symbol: ‰SMOW
+#     unit_type: Stable isotope delta
+# - model: sites.unit
+#   pk: 2937a38b-7182-4598-9a5a-4e28e58a113d
+#   fields:
+#     definition:
+#     name: Per Mil versusVienna Canyon Diablo Troilite
+#     person: null
+#     symbol: ‰VCDT
+#     unit_type: Stable isotope delta
+# - model: sites.unit
+#   pk: cc02f961-2359-41a6-a428-94932c10e5ba
+#   fields:
+#     definition:
+#     name: Per Mil versus Vienna Pee Dee Belemnite
+#     person: null
+#     symbol: ‰VPDB
+#     unit_type: Stable isotope delta
+# - model: sites.unit
+#   pk: 817e8312-d639-4055-a285-7a4e601e4cbd
+#   fields:
+#     definition:
+#     name: Per Mil versus Vienna Standard Mean Ocean Water
+#     person: null
+#     symbol: ‰VSMOW
+#     unit_type: Stable isotope delta
+- model: sites.unit
+  pk: c65fc59f-ccf4-4678-99e0-f09426a35538
+  fields:
+    definition: http://environment.data.gov.au/def/unit/PerTrillion_PDB
+    name: Per Trillion versus Pee Dee Belemnite
+    person: null
+    symbol: pptPDB
+    unit_type: Stable isotope delta
+- model: sites.unit
+  pk: fc00c782-ad11-485f-9436-52ee6c62a882
+  fields:
+    definition: http://environment.data.gov.au/def/unit/PerTrillion_SMOW
+    name: Per Trillion versus Standard Mean Ocean Water
+    person: null
+    symbol: pptSMOW
+    unit_type: Stable isotope delta
+- model: sites.unit
+  pk: b0f12db7-8211-417b-bda8-ba18e8e1cea6
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicKilometerPerSecondSquared
+    name: Cubic Kilometer per Second Squared
+    person: null
+    symbol: km^3/s^2
+    unit_type: Standard gravitational parameter
+- model: sites.unit
+  pk: e2aa1a39-c1f0-4444-a393-0d36acfd2a64
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMeterPerSecondSquared
+    name: Cubic Meter per Second Squared
+    person: null
+    symbol: m^3/s^2
+    unit_type: Standard gravitational parameter
+- model: sites.unit
+  pk: 4064695a-120b-44e8-9b5d-ab0fb5da25ce
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeCelsius; http://unitsofmeasure.org/ucum.html#para-30; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Degree Celsius
+    person: null
+    symbol: degC; Cel
+    unit_type: Temperature
+- model: sites.unit
+  pk: ba162d37-4c39-4a19-8a72-43cf15926c86
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeCentigrade
+    name: Degree Centigrade
+    person: null
+    symbol: DegC
+    unit_type: Temperature
+- model: sites.unit
+  pk: 8b84aa0d-4aee-40e1-839f-ebbdfa7c6702
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeFahrenheit; http://unitsofmeasure.org/ucum.html#para-43; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Degree Fahrenheit
+    person: null
+    symbol: degF
+    unit_type: Temperature
+- model: sites.unit
+  pk: d3c0b501-3ab5-4c68-ad36-a41785e8d545
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeRankine
+    name: Degree Rankine
+    person: null
+    symbol: degR
+    unit_type: Temperature
+- model: sites.unit
+  pk: 0c6fa293-57f9-4887-8b12-24a8d9c1e71f
+  fields:
+    definition: http://qudt.org/vocab/unit#Kelvin; http://unitsofmeasure.org/ucum.html#para-28; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-base.xml
+    name: Kelvin
+    person: null
+    symbol: K
+    unit_type: Temperature
+# - model: sites.unit
+#   pk: 110894f3-76d7-4fb0-afa7-0643707712ab
+#   fields:
+#     definition: http://qudt.org/vocab/unit#PlanckTemperature
+#     name: Planck Temperature
+#     person: null
+#     symbol:
+#     unit_type: Temperature
+- model: sites.unit
+  pk: 6de0af82-3141-4c8e-8312-629e366ee159
+  fields:
+    definition: http://qudt.org/vocab/unit#MoleDegreeCelsius
+    name: Mole Degree Celsius
+    person: null
+    symbol: mol-degC
+    unit_type: Temperature count
+- model: sites.unit
+  pk: da0a12a0-69e8-4ca3-b47a-f6d0d8a3c5c1
+  fields:
+    definition: http://qudt.org/vocab/unit#MoleKelvin
+    name: Mole Kelvin
+    person: null
+    symbol: mol-K
+    unit_type: Temperature count
+- model: sites.unit
+  pk: 51153df0-389a-44d6-a9f3-f02a40acefb2
+  fields:
+    definition: http://qudt.org/vocab/unit#KelvinPerTesla
+    name: Kelvin per Tesla
+    person: null
+    symbol: K T^-1
+    unit_type: Temperature per magnetic flux density
+- model: sites.unit
+  pk: 42391932-61ec-47bc-8469-1aa4f461e9a7
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeFahrenheitPerHour
+    name: Degree Fahrenheit per Hour
+    person: null
+    symbol: degF / h
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: 0cb1b247-ffb2-4db6-8a20-3e166d1a50e4
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeFahrenheitPerMinute
+    name: Degree Fahrenheit per Minute
+    person: null
+    symbol: degF / m
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: b9334164-a408-4361-99d8-1da3763682c8
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeFahrenheitPerSecond
+    name: Degree Fahrenheit per Second
+    person: null
+    symbol: degF / s
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: afd57910-69f1-4f4e-ad3d-8d5647503007
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeRankinePerHour
+    name: Degree Rankine per Hour
+    person: null
+    symbol: degR / h
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: 9214cb9e-1c5e-404b-acb6-6d71f53dfd49
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeRankinePerMinute
+    name: Degree Rankine per Minute
+    person: null
+    symbol: degR / m
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: bfeab4ec-b79a-4e97-a8cf-c200f9b5a02a
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeRankinePerSecond
+    name: Degree Rankine per Second
+    person: null
+    symbol: degR / s
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: 9488fee2-b2fd-480a-9be4-b294863f01d3
+  fields:
+    definition: http://qudt.org/vocab/unit#KelvinPerHour
+    name: Kelvin per Hour
+    person: null
+    symbol: K / h
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: 11493128-40c2-4050-a701-6b90dbf46bdf
+  fields:
+    definition: http://qudt.org/vocab/unit#KelvinPerMinute
+    name: Kelvin per Minute
+    person: null
+    symbol: K / m
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: df0443d1-5930-4dd6-bf1a-0b4714b1e4c2
+  fields:
+    definition: http://qudt.org/vocab/unit#KelvinPerSecond
+    name: Kelvin per Second
+    person: null
+    symbol: K / s
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: 74ded382-b03e-4426-b9bd-763d978d2978
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeCelsiusPerHour
+    name: Degree Celsius per Hour
+    person: null
+    symbol: degC / hr
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: bf6eee19-047c-43b7-a33f-4a79f499c369
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeCelsiusPerMinute
+    name: Degree Celsius per Minute
+    person: null
+    symbol: degC / m
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: 4cf9beee-a107-4a4b-b6a0-a780d0be8a56
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeCelsiusPerSecond
+    name: Degree Celsius per Second
+    person: null
+    symbol: degC / s
+    unit_type: Temperature per time
+- model: sites.unit
+  pk: b2ce486e-4188-496b-b403-4b659164131a
+  fields:
+    definition: http://qudt.org/vocab/unit#BtuFootPerSquareFootHourDegreeFahrenheit
+    name: Btu Foot per Square Foot Hour Degree Fahrenheit
+    person: null
+    symbol: Btu-ft/(hr-ft^2-degF)
+    unit_type: Thermal conductivity
+- model: sites.unit
+  pk: e0000be7-61fa-41c4-98c2-799b15890c12
+  fields:
+    definition: http://qudt.org/vocab/unit#BtuInchPerSquareFootHourDegreeFahrenheit
+    name: Btu Inch per Square Foot Hour Degree Fahrenheit
+    person: null
+    symbol: Btu-in/(hr-ft^2-degF)
+    unit_type: Thermal conductivity
+- model: sites.unit
+  pk: ba3893b5-4355-4a62-b271-60026a270e13
+  fields:
+    definition: http://qudt.org/vocab/unit#BtuInchPerSquareFootSecondDegreeFahrenheit
+    name: Btu Inch per Square Foot Second Degree Fahrenheit
+    person: null
+    symbol: Btu-in/(ft^2-s-degF)
+    unit_type: Thermal conductivity
+- model: sites.unit
+  pk: 665dc20e-b35c-4d41-a6a0-2a39647a1479
+  fields:
+    definition: http://qudt.org/vocab/unit#KilocaloriePerCentimeterSecondDegreeCelsius
+    name: Calorie per Centimeter Second Degree Celsius
+    person: null
+    symbol: cal/(cm-s-degC)
+    unit_type: Thermal conductivity
+- model: sites.unit
+  pk: 9ade9a2b-23c1-45d0-ada8-942c4110088a
+  fields:
+    definition: http://qudt.org/vocab/unit#WattPerMeterKelvin
+    name: Watt per Meter Kelvin
+    person: null
+    symbol: W/(m*K)
+    unit_type: Thermal conductivity
+- model: sites.unit
+  pk: 806c7dea-5a6f-4486-8bd2-02779ea455d7
+  fields:
+    definition: http://qudt.org/vocab/unit#Clo
+    name: Clo
+    person: null
+    symbol: clo
+    unit_type: Thermal insulance
+- model: sites.unit
+  pk: c783c031-07a0-47c9-828d-bb79bde60a80
+  fields:
+    definition: http://qudt.org/vocab/unit#SquareFootHourDegreeFahrenheitPerBtu
+    name: Square Foot Hour Degree Fahrenheit per Btu
+    person: null
+    symbol: (degF-hr-ft^2)/Btu
+    unit_type: Thermal insulance
+- model: sites.unit
+  pk: 7c79323c-8e0e-4afa-bd54-0927423c465a
+  fields:
+    definition: http://qudt.org/vocab/unit#SquareMeterKelvinPerWatt
+    name: Square Meter Kelvin per Watt
+    person: null
+    symbol: (K^2)m/W
+    unit_type: Thermal insulance
+- model: sites.unit
+  pk: 4d109507-a062-4898-80ef-85e716758717
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeFahrenheitHourPerBtu
+    name: Degree Fahrenheit Hour per Btu
+    person: null
+    symbol: degF-hr/Btu
+    unit_type: Thermal resistance
+- model: sites.unit
+  pk: 3f6ffd20-2465-468d-a155-36da66a8cee8
+  fields:
+    definition: http://qudt.org/vocab/unit#KelvinPerWatt
+    name: Kelvin per Watt
+    person: null
+    symbol: K/W
+    unit_type: Thermal resistance
+- model: sites.unit
+  pk: 061a2d4a-286c-415f-a2d0-fc2c21b82599
+  fields:
+    definition: http://qudt.org/vocab/unit#MeterKelvinPerWatt
+    name: Meter Kelvin per Watt
+    person: null
+    symbol: K-m/W
+    unit_type: Thermal resistivity
+- model: sites.unit
+  pk: b63b7b57-9ac5-4af1-97e9-3897d969d166
+  fields:
+    definition: http://qudt.org/vocab/unit#NewtonPerKilogram
+    name: Newton per Kilogram
+    person: null
+    symbol: N/kg
+    unit_type: Thrust to mass ratio
+- model: sites.unit
+  pk: 9f92bc82-d7de-4910-b072-c008213fd878
+  fields:
+    definition: http://qudt.org/vocab/unit#PoundForcePerPound
+    name: Pound Force per Pound
+    person: null
+    symbol: lbf/lb
+    unit_type: Thrust to mass ratio
+- model: sites.unit
+  pk: eec2c1c0-9564-4a67-930b-d78dbc8015d5
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Common Year
+    person: null
+    symbol: yr
+    unit_type: Time
+- model: sites.unit
+  pk: 24122627-2a7a-46d5-ac14-0bf5cd983697
+  fields:
+    definition: http://qudt.org/vocab/unit#Day; http://qwwebservices.usgs.gov/service-domains.html
+    name: Day
+    person: null
+    symbol: d
+    unit_type: Time
+# - model: sites.unit
+#   pk: 6090afb9-19ac-43a0-8a21-46ced869e36a
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Eon
+#     person: null
+#     symbol:
+#     unit_type: Time
+# - model: sites.unit
+#   pk: e135657f-af02-4bfc-b917-a4db6155f697
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Fortnight
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: 58597b67-4a1b-4ce3-9ca1-a8b7b93fb540
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31
+    name: Gregorian Month
+    person: null
+    symbol: mo_g
+    unit_type: Time
+- model: sites.unit
+  pk: 7ba30a56-822b-4a91-a6cc-2c20d9382c96
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Gregorian Year
+    person: null
+    symbol: a_g
+    unit_type: Time
+- model: sites.unit
+  pk: 0904d22a-5ae5-413e-b43a-47dd0a83958b
+  fields:
+    definition: http://qudt.org/vocab/unit#Hour; http://unitsofmeasure.org/ucum.html#para-31
+    name: Hour
+    person: null
+    symbol: hr
+    unit_type: Time
+# - model: sites.unit
+#   pk: bc926268-97d6-48ed-80bc-1e3410e99061
+#   fields:
+#     definition: http://www.unidata.ucar.edu/software/udunits/
+#     name: Jiffy
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: dd8827f3-a422-412e-b3b6-bb37fea37a69
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31
+    name: Julian Month
+    person: null
+    symbol: mo_j
+    unit_type: Time
+- model: sites.unit
+  pk: c375f430-4d70-4751-bb95-0212e2ddafdf
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Julian Year
+    person: null
+    symbol: a_j
+    unit_type: Time
+- model: sites.unit
+  pk: de3cfeb5-74fe-4ff0-907b-b1df3225b57e
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Leap Year
+    person: null
+    symbol: leap yr
+    unit_type: Time
+# - model: sites.unit
+#   pk: c4019527-87e5-4d8f-bb7d-fefa50c1e871
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Lunar Month
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: 2aeb5083-362a-4a7d-bd89-b46f9f036a60
+  fields:
+    definition: http://qudt.org/vocab/unit#MicroSecond
+    name: Microsecond
+    person: null
+    symbol: microsec
+    unit_type: Time
+- model: sites.unit
+  pk: ee524c90-2de5-49e7-a74c-994948769dad
+  fields:
+    definition: http://qudt.org/vocab/unit#MilliSecond
+    name: Millisecond
+    person: null
+    symbol: ms
+    unit_type: Time
+- model: sites.unit
+  pk: b05a2bc8-a349-4d33-a761-9cfe9eb65c0a
+  fields:
+    definition: http://qudt.org/vocab/unit#MinuteTime; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://www.unidata.ucar.edu/software/udunits/; http://unitsofmeasure.org/ucum.html#para-31; http://qwwebservices.usgs.gov/service-domains.html
+    name: Minute
+    person: null
+    symbol: min
+    unit_type: Time
+- model: sites.unit
+  pk: e36b7a44-63b6-402f-990a-b9b129d17182
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://www.unidata.ucar.edu/software/udunits/; http://unitsofmeasure.org/ucum.html#para-31
+    name: Month
+    person: null
+    symbol: mo
+    unit_type: Time
+# - model: sites.unit
+#   pk: cdad1cf9-340b-422a-9878-46286ccf26eb
+#   fields:
+#     definition: http://qudt.org/vocab/unit#PlanckTime
+#     name: Planck Time
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: 69a25ff1-e0c2-42d2-808d-a9902b9ee82e
+  fields:
+    definition: http://qudt.org/vocab/unit#SecondTime; http://unitsofmeasure.org/ucum.html#para-28; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-base.xml; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Second
+    person: null
+    symbol: s
+    unit_type: Time
+- model: sites.unit
+  pk: 0a19543e-4ce9-4871-a303-0f20343879d9
+  fields:
+    definition: http://qudt.org/vocab/unit#Shake; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Shake
+    person: null
+    symbol: Sh
+    unit_type: Time
+- model: sites.unit
+  pk: d77467b3-154c-4666-8f4c-db3bb77abda1
+  fields:
+    definition: http://qudt.org/vocab/unit#DaySidereal; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Sidereal Day
+    person: null
+    symbol: d
+    unit_type: Time
+- model: sites.unit
+  pk: ed975025-03ec-48fa-be6d-950571ac73a1
+  fields:
+    definition: http://qudt.org/vocab/unit#HourSidereal; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Sidereal Hour
+    person: null
+    symbol: hr
+    unit_type: Time
+- model: sites.unit
+  pk: 87ccd14b-f629-4a97-8457-4319c84bc83e
+  fields:
+    definition: http://qudt.org/vocab/unit#MinuteSidereal; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Sidereal Minute
+    person: null
+    symbol: min
+    unit_type: Time
+# - model: sites.unit
+#   pk: ab40fb72-7891-4339-85a1-1266226668a0
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Sidereal Month
+#     person: null
+#     symbol:
+#     unit_type: Time
+# - model: sites.unit
+#   pk: 6d1e1fe0-1bef-4e24-b765-13f4d20e9ab1
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Sidereal Second
+#     person: null
+#     symbol:
+#     unit_type: Time
+# - model: sites.unit
+#   pk: e5c23b69-bfd7-4900-b619-f92ed1d3a7d7
+#   fields:
+#     definition: http://qudt.org/vocab/unit#YearSidereal; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Sidereal Year
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: 1c7792f1-4041-46d7-a3fd-e84394556ac4
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-45
+    name: Svedberg Unit
+    person: null
+    symbol: S
+    unit_type: Time
+- model: sites.unit
+  pk: 9de307b4-6fdb-427d-997d-a77cbd182e14
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31
+    name: Synodal Month
+    person: null
+    symbol: mo_s
+    unit_type: Time
+# - model: sites.unit
+#   pk: d25cba12-6123-43c7-a568-d2118f7d9f59
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Tropical Month
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: ca13f029-40cf-4e0e-8b4f-b156f5221661
+  fields:
+    definition: http://qudt.org/vocab/unit#YearTropical; http://unitsofmeasure.org/ucum.html#para-31; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Tropical Year
+    person: null
+    symbol: a_t
+    unit_type: Time
+- model: sites.unit
+  pk: a5526ccd-3dee-4ca5-a2f1-9d7e8f98c763
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://www.unidata.ucar.edu/software/udunits/
+    name: Week
+    person: null
+    symbol: week; wk
+    unit_type: Time
+# - model: sites.unit
+#   pk: e09189c7-8c9e-4768-afcc-15c5dec28f18
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Work Month
+#     person: null
+#     symbol:
+#     unit_type: Time
+# - model: sites.unit
+#   pk: 2ca605eb-d073-48f9-9c4d-041e856aacee
+#   fields:
+#     definition: https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+#     name: Work Year
+#     person: null
+#     symbol:
+#     unit_type: Time
+- model: sites.unit
+  pk: 48a2d3c3-fac2-4906-9c9a-b78c55054e92
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-31
+    name: Year
+    person: null
+    symbol: a
+    unit_type: Time
+- model: sites.unit
+  pk: edac439b-dbe7-46ed-adcd-a69dbeedebc9
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Year Day (Julian)
+    person: null
+    symbol: yyddd
+    unit_type: Time
+- model: sites.unit
+  pk: 0d3073fe-d0e4-431b-b02b-504d88f6ddfd
+  fields:
+    definition: http://qudt.org/vocab/unit#SecondTimeSquared
+    name: Second Squared
+    person: null
+    symbol: s^2
+    unit_type: Time squared
+- model: sites.unit
+  pk: ba6555ab-74d1-40ab-9a41-37d87b37a4bd
+  fields:
+    definition: http://qudt.org/vocab/unit#DyneCentimeter
+    name: Dyne Centimeter
+    person: null
+    symbol: dyn-cm
+    unit_type: Torque
+- model: sites.unit
+  pk: 6996e944-cab4-4612-9149-7d06c44e5166
+  fields:
+    definition: http://qudt.org/vocab/unit#KilogramForceMeter
+    name: Kilogram Force Meter
+    person: null
+    symbol: kgf-m
+    unit_type: Torque
+- model: sites.unit
+  pk: e710729e-8f40-47c5-b065-5ea93e6317e4
+  fields:
+    definition: http://qudt.org/vocab/unit#NewtonMeter
+    name: Newton Meter
+    person: null
+    symbol: N-m
+    unit_type: Torque
+- model: sites.unit
+  pk: af25c064-7665-4091-8a64-b0a20822a91c
+  fields:
+    definition: http://qudt.org/vocab/unit#OunceForceInch
+    name: Ounce Force Inch
+    person: null
+    symbol: ozf-in
+    unit_type: Torque
+- model: sites.unit
+  pk: 45e262b9-a8a0-44ea-95c6-4a5f2ff602ad
+  fields:
+    definition: http://qudt.org/vocab/unit#PoundForceFoot
+    name: Pound Force Foot
+    person: null
+    symbol: lbf-ft
+    unit_type: Torque
+- model: sites.unit
+  pk: 9c94b897-b44a-40e0-b965-e2e9defcb64e
+  fields:
+    definition: http://qudt.org/vocab/unit#PoundForceInch
+    name: Pound Force Inch
+    person: null
+    symbol: lbf-in
+    unit_type: Torque
+- model: sites.unit
+  pk: 6485f785-1b90-4f81-a1da-bda8430a99fb
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Attenuation Unit
+    person: null
+    symbol: AU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: f2c1b904-5e0e-4e91-8316-c1ce21ba9dd7
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Backscatter Unit
+    person: null
+    symbol: BU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 88d4f656-1123-4136-b7c1-a75b20e0eb02
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Formazin Attenuation Unit
+    person: null
+    symbol: FAU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 39f1f551-67d0-4561-8c3e-0e848575f82b
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Formazin Backscatter Unit
+    person: null
+    symbol: FBU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 4c04bccc-7252-4f82-99bc-6ecdf2b576dc
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Formazin Nephelometric Multibeam Unit
+    person: null
+    symbol: FNMU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: e0f5e1ec-91c1-4f81-9a12-0b861a412308
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Formazin Nephelometric Ratio Unit
+    person: null
+    symbol: FNRU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 06d30307-5c50-405e-abdf-a19a031c086a
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Formazin Nephelometric Unit
+    person: null
+    symbol: FNU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 85980cc3-84de-4470-9c59-024afbfd8c26
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Jackson Candle Unit
+    person: null
+    symbol: JCU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 5d1a32d9-d253-4f56-867c-380c31428ed1
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Jackson Turbidity Unit
+    person: null
+    symbol: JTU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 2607f1c4-3330-46c3-80fd-7c6cde583f3d
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Nephelometric Turbidity Multibeam Unit
+    person: null
+    symbol: NTMU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 74fc5209-fdfc-4788-8cef-d90e975d0f52
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Nephelometric Turbidity Ratio Unit
+    person: null
+    symbol: NTRU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 20afd203-916e-4284-8f98-9f200ac84f0a
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Nephelometric Turbidity Unit
+    person: null
+    symbol: NTU
+    unit_type: Turbidity
+- model: sites.unit
+  pk: 5a1b30db-585e-4b06-9393-48083da6dc5f
+  fields:
+    definition: http://qudt.org/vocab/unit#AcreFoot; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml; http://qwwebservices.usgs.gov/service-domains.html
+    name: Acre Foot
+    person: null
+    symbol: ac-ft
+    unit_type: Volume
+- model: sites.unit
+  pk: fdcc66db-e2c0-4ba8-b6d9-3e7e15682f49
+  fields:
+    definition: http://qudt.org/vocab/unit#Barrel; http://unitsofmeasure.org/ucum.html#para-37; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Barrel
+    person: null
+    symbol: bbl_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 54bf52b3-a11f-4b8b-8980-71ee5da8fa2f
+  fields:
+    definition: http://qudt.org/vocab/unit#BoardFoot; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Board Foot
+    person: null
+    symbol: bf_i
+    unit_type: Volume
+- model: sites.unit
+  pk: 2800b6f8-15f6-4a5e-a8da-ee07ced3d3d9
+  fields:
+    definition: http://qudt.org/vocab/unit#Bushel; http://unitsofmeasure.org/ucum.html#para-37; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Bushel
+    person: null
+    symbol: bu_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 4a141f30-70d0-4c7d-a06f-b0598e01a8c0
+  fields:
+    definition: http://qudt.org/vocab/unit#Cord; http://unitsofmeasure.org/ucum.html#para-37
+    name: Cord
+    person: null
+    symbol: cr_i
+    unit_type: Volume
+- model: sites.unit
+  pk: efda017e-782e-448a-8983-83c93b5dfbe0
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicCentimeter
+    name: Cubic Centimeter
+    person: null
+    symbol: cm^3
+    unit_type: Volume
+# - model: sites.unit
+#   pk: 4dcdfe78-db3c-48a7-8e65-e84ee841ecb2
+#   fields:
+#     definition:
+#     name: Cubic Decameter
+#     person: null
+#     symbol: dam^3
+#     unit_type: Volume
+- model: sites.unit
+  pk: b150054c-0a66-420c-b2e1-c8db233b3838
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicFoot
+    name: Cubic Foot
+    person: null
+    symbol: cfs; cft_i
+    unit_type: Volume
+- model: sites.unit
+  pk: ae6aaa9a-3ba3-4880-a5de-c30707482aa4
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Cubic Foot per Second Days
+    person: null
+    symbol: cfs-d
+    unit_type: Volume
+- model: sites.unit
+  pk: 7f0cdd17-338e-417a-be25-67b05d2b6680
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Cubic Hecto Meter
+    person: null
+    symbol: (hm)^3
+    unit_type: Volume
+- model: sites.unit
+  pk: 403075bd-562f-408d-b688-23de5c946520
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicInch
+    name: Cubic Inch
+    person: null
+    symbol: in^3; cin_i
+    unit_type: Volume
+- model: sites.unit
+  pk: db88036b-ce8e-42b8-9b0d-03c042c6e375
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMeter
+    name: Cubic Meter
+    person: null
+    symbol: m^3
+    unit_type: Volume
+# - model: sites.unit
+#   pk: 23780482-2ec7-41d0-b6b8-ec3b37920d5c
+#   fields:
+#     definition:
+#     name: Cubic Meter per Second Days
+#     person: null
+#     symbol: cms d
+#     unit_type: Volume
+- model: sites.unit
+  pk: bd3813bd-3875-4fad-baf5-94ebb1d10582
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMile
+    name: Cubic Mile
+    person: null
+    symbol: mi^3
+    unit_type: Volume
+- model: sites.unit
+  pk: cbc265fc-aaba-4a2f-a1af-3c4881cfa263
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMillimeter
+    name: Cubic Millimeter
+    person: null
+    symbol: mm^3
+    unit_type: Volume
+- model: sites.unit
+  pk: 34473bfb-e81b-4ee0-860b-1f96be29b1a1
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicYard
+    name: Cubic Yard
+    person: null
+    symbol: yd^3; cyd_i
+    unit_type: Volume
+# - model: sites.unit
+#   pk: 5286ca85-7903-4adc-8047-9f16db1e7214
+#   fields:
+#     definition: http://www.unidata.ucar.edu/software/udunits/
+#     name: Cup, British
+#     person: null
+#     symbol:
+#     unit_type: Volume
+- model: sites.unit
+  pk: 446fe84d-a405-4f99-9b0a-e45041ba91e2
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Cup, Metric
+    person: null
+    symbol: cup_m
+    unit_type: Volume
+- model: sites.unit
+  pk: 73c0bd40-01d9-44b8-a1f0-5c8f2ec9b18f
+  fields:
+    definition: http://qudt.org/vocab/unit#LiquidCupUS; http://www.unidata.ucar.edu/software/udunits/
+    name: Cup, US
+    person: null
+    symbol: cup_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 51bf7bfc-bb97-4a38-a80c-3d405c1d1ed7
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-44
+    name: Drop
+    person: null
+    symbol: drp
+    unit_type: Volume
+- model: sites.unit
+  pk: 007669d0-0344-42f0-bf54-1a3817e64e7f
+  fields:
+    definition: http://qudt.org/vocab/unit#DryGallonUS; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Dry Gallon, US
+    person: null
+    symbol: dry_gal
+    unit_type: Volume
+- model: sites.unit
+  pk: fb608f3d-081c-4533-a848-72782093a4aa
+  fields:
+    definition: http://qudt.org/vocab/unit#DryPintUS; http://unitsofmeasure.org/ucum.html#para-37; http://www.unidata.ucar.edu/software/udunits/
+    name: Dry Pint, US
+    person: null
+    symbol: dpt_us
+    unit_type: Volume
+- model: sites.unit
+  pk: d6e80660-5e4f-4127-a980-34119d2b0dc5
+  fields:
+    definition: http://qudt.org/vocab/unit#DryQuartUS; http://unitsofmeasure.org/ucum.html#para-37; http://www.unidata.ucar.edu/software/udunits/
+    name: Dry Quart, US
+    person: null
+    symbol: dqt_us
+    unit_type: Volume
+# - model: sites.unit
+#   pk: 6ceb17ad-b438-4f33-944c-94a202040666
+#   fields:
+#     definition: http://www.unidata.ucar.edu/software/udunits/
+#     name: Firkin
+#     person: null
+#     symbol:
+#     unit_type: Volume
+- model: sites.unit
+  pk: e90ee818-0146-47c5-9149-06cb974cc22e
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-38
+    name: Fluid Dram, British
+    person: null
+    symbol: fdr_br
+    unit_type: Volume
+- model: sites.unit
+  pk: 07060178-ae28-4b5c-bbbf-8f41c08818d3
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Fluid Dram, US
+    person: null
+    symbol: fdr_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 169a660a-aee9-4b0f-bee3-480a0927534d
+  fields:
+    definition: http://qudt.org/vocab/unit#OunceImperial; http://unitsofmeasure.org/ucum.html#para-38; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Fluid Ounce, British
+    person: null
+    symbol: foz_br
+    unit_type: Volume
+- model: sites.unit
+  pk: af04b920-2df6-4d40-955d-7a3a44c1db39
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Fluid Ounce, Metric
+    person: null
+    symbol: foz_m
+    unit_type: Volume
+- model: sites.unit
+  pk: d99139c4-04cd-4fa6-a30f-ab0e12cbbc2d
+  fields:
+    definition: http://qudt.org/vocab/unit#LiquidOunceUS; http://www.unidata.ucar.edu/software/udunits/; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Fluid Ounce, US
+    person: null
+    symbol: foz_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 5494c2ac-02aa-45b2-a255-9a2b5967ba0a
+  fields:
+    definition: http://qudt.org/vocab/unit#GallonImperial; http://unitsofmeasure.org/ucum.html#para-38; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Gallon, British
+    person: null
+    symbol: gal_br
+    unit_type: Volume
+- model: sites.unit
+  pk: e98b78a7-6d94-42de-939e-64f08c63bf96
+  fields:
+    definition: http://qudt.org/vocab/unit#GallonUS; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml; http://unitsofmeasure.org/ucum.html#para-37
+    name: Gallon, US
+    person: null
+    symbol: gal_us
+    unit_type: Volume
+- model: sites.unit
+  pk: c04b2ab4-35c6-4268-990a-e4b1c76fca93
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-38; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Gill, British
+    person: null
+    symbol: gil_br
+    unit_type: Volume
+- model: sites.unit
+  pk: 0f89036f-9ecd-4da3-acf9-4f85caad3d20
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Gill, US
+    person: null
+    symbol: gil_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 505beb4f-5d9c-4e7d-a5b2-bf4ac8d480fd
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Hectare Meter
+    person: null
+    symbol: hec m
+    unit_type: Volume
+- model: sites.unit
+  pk: 20bb0d80-a959-4f0b-a8ca-500db27cd68e
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Historical Winchter Gallon
+    person: null
+    symbol: gal_wi
+    unit_type: Volume
+- model: sites.unit
+  pk: 99040608-a843-456a-8afb-4ee6d947e96e
+  fields:
+    definition: http://qudt.org/vocab/unit#Liter; http://www.unidata.ucar.edu/software/udunits/; http://unitsofmeasure.org/ucum.html#para-31; http://qwwebservices.usgs.gov/service-domains.html
+    name: Liter
+    person: null
+    symbol: L
+    unit_type: Volume
+- model: sites.unit
+  pk: 7fe1dfcd-58c3-45c7-8808-355c4a8f341e
+  fields:
+    definition: http://environment.data.gov.au/def/unit/Megalitre
+    name: Megaliter
+    person: null
+    symbol: Ml
+    unit_type: Volume
+- model: sites.unit
+  pk: 1eb9c4d0-e61c-464b-9fc1-0545eb0223d1
+  fields:
+    definition: http://environment.data.gov.au/def/unit/Millilitre
+    name: Milliliter
+    person: null
+    symbol: mL
+    unit_type: Volume
+- model: sites.unit
+  pk: da383b56-3e67-4088-a868-d120bab7b2a1
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Million Cubic Foot
+    person: null
+    symbol: 10^6 ft^3Mft3
+    unit_type: Volume
+- model: sites.unit
+  pk: 42af91d4-9b28-408e-b8e8-037dd7c203b0
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Million Gallon
+    person: null
+    symbol: Mgal
+    unit_type: Volume
+- model: sites.unit
+  pk: c7887424-0514-40ca-807b-1af908e6ef9d
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-38
+    name: Minim, British
+    person: null
+    symbol: min_br
+    unit_type: Volume
+- model: sites.unit
+  pk: 022a054a-416c-4496-9a94-60034b115354
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Minim, US
+    person: null
+    symbol: min_us
+    unit_type: Volume
+- model: sites.unit
+  pk: d62f054f-b248-4c00-840b-3e43f73be343
+  fields:
+    definition: http://qudt.org/vocab/unit#Peck; http://unitsofmeasure.org/ucum.html#para-37; http://www.unidata.ucar.edu/software/udunits/
+    name: Peck
+    person: null
+    symbol: pk_us
+    unit_type: Volume
+- model: sites.unit
+  pk: a974a389-a03f-4baa-8380-22a832d91a4c
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-38
+    name: Peck, British
+    person: null
+    symbol: pk_br
+    unit_type: Volume
+- model: sites.unit
+  pk: 67a1832a-6a56-4722-8c16-1b786547389d
+  fields:
+    definition: http://qudt.org/vocab/unit#PintImperial; http://unitsofmeasure.org/ucum.html#para-38; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Pint, British
+    person: null
+    symbol: pt_br
+    unit_type: Volume
+- model: sites.unit
+  pk: f549df7c-7d1b-4c75-9a0e-012294c66185
+  fields:
+    definition: http://qudt.org/vocab/unit#LiquidPintUS; http://unitsofmeasure.org/ucum.html#para-37; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://www.unidata.ucar.edu/software/udunits/
+    name: Pint, US
+    person: null
+    symbol: pt_us
+    unit_type: Volume
+# - model: sites.unit
+#   pk: 323323c7-39f8-4a64-a367-d417b982f14e
+#   fields:
+#     definition: http://qudt.org/vocab/unit#PlanckVolume
+#     name: Planck Volume
+#     person: null
+#     symbol:
+#     unit_type: Volume
+- model: sites.unit
+  pk: aed2a04f-c875-4084-9ab3-8e003537d1e6
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-38; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Quart, British
+    person: null
+    symbol: qt_br
+    unit_type: Volume
+- model: sites.unit
+  pk: f3bcb6d4-3a5b-4908-86be-41f2d4c985aa
+  fields:
+    definition: http://qudt.org/vocab/unit#LiquidQuartUS; http://unitsofmeasure.org/ucum.html#para-37; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml
+    name: Quart, US
+    person: null
+    symbol: qt_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 29cb6b99-3114-4e76-9515-5189ebd0c826
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Queen Anne's Wine Gallon
+    person: null
+    symbol: gal_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 0a33e3a6-bcf7-4b09-814f-80422cce21d3
+  fields:
+    definition: http://qudt.org/vocab/unit#RegisterTon; http://www.unidata.ucar.edu/software/udunits/
+    name: Register Ton
+    person: null
+    symbol: RT
+    unit_type: Volume
+- model: sites.unit
+  pk: f33aba16-1bd3-4740-9b46-89a966984268
+  fields:
+    definition: http://qudt.org/vocab/unit#Stere; http://unitsofmeasure.org/ucum.html#para-47; http://www.unidata.ucar.edu/software/udunits/
+    name: Stere
+    person: null
+    symbol: st
+    unit_type: Volume
+- model: sites.unit
+  pk: 4352bba8-1cdf-4c10-a0e4-0e4aa6e73c6d
+  fields:
+    definition: http://qudt.org/vocab/unit#Tablespoon; http://unitsofmeasure.org/ucum.html#para-37; http://www.unidata.ucar.edu/software/udunits/
+    name: Tablespoon
+    person: null
+    symbol: tbsp; tbs, tbs_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 6d277172-7f05-4ba9-b23b-3cdec237c1c8
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Tablespoon, Metric
+    person: null
+    symbol: tbs_m
+    unit_type: Volume
+- model: sites.unit
+  pk: 085fadbf-a713-4716-8b9a-7428f8783934
+  fields:
+    definition: http://qudt.org/vocab/unit#Teaspoon; http://unitsofmeasure.org/ucum.html#para-37; http://www.unidata.ucar.edu/software/udunits/
+    name: Teaspoon
+    person: null
+    symbol: tsp; tsp_us
+    unit_type: Volume
+- model: sites.unit
+  pk: 93a70f5a-d5c3-4c33-94ab-9080c552617d
+  fields:
+    definition: http://unitsofmeasure.org/ucum.html#para-37
+    name: Teaspoon, Metric
+    person: null
+    symbol: tsp_m
+    unit_type: Volume
+- model: sites.unit
+  pk: 4a5359c0-2807-4549-b62f-f4b1a1cdfaec
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Thousand Acre Foot
+    person: null
+    symbol: 10^3 ac ft; Kac-ft
+    unit_type: Volume
+- model: sites.unit
+  pk: da19e497-1d2b-498b-9990-655491909915
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Thousand Gallon
+    person: null
+    symbol: 10^3 gal
+    unit_type: Volume
+- model: sites.unit
+  pk: 714fa24e-0dd7-4df5-a72c-31157a5a7ffa
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMeterPerKelvin
+    name: Cubic Meter per Kelvin
+    person: null
+    symbol: m^3/K
+    unit_type: Volume thermal expansion
+# - model: sites.unit
+#   pk: 1eecbf38-5d8b-44e3-8506-a11ee85bce35
+#   fields:
+#     definition:
+#     name: Acre Foot per Day
+#     person: null
+#     symbol: ac ft/d
+#     unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 35385d3d-da57-4fee-94e3-38b55f126978
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Acre Foot per Half Month
+    person: null
+    symbol: ac ft/0.5 mo
+    unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: 4c22fee8-9187-41c2-a456-48d392d4287b
+#   fields:
+#     definition:
+#     name: Acre Foot per Hour
+#     person: null
+#     symbol: ac ft/hr
+#     unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: fc38745d-5ef5-4e76-ad24-12811872b62d
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Acre Foot per Month
+    person: null
+    symbol: ac ft/mo
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 83f0aa27-fb19-456f-a77e-d4ca563973fe
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Acre Foot per Year
+    person: null
+    symbol: ac ft/yr
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 1e64ccd5-7404-4a83-814b-816ffeb29137
+  fields:
+    definition: https://en.wikipedia.org/wiki/Miner's_inch
+    name: Arizona Miner's Inch
+    person: null
+    symbol: Az Miner Inch
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: e2e6145a-977c-487c-ad54-e89660f04b3a
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Cubic Centimeter per Second
+    person: null
+    symbol: cm^3/sec
+    unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: 2bc86ec8-7c00-4050-afae-7c02bad5c44b
+#   fields:
+#     definition:
+#     name: Cubic Decameter per Hour
+#     person: null
+#     symbol: dam^3/h
+#     unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: 6eabf73b-ba64-4cbc-8069-77c5201aaf8a
+#   fields:
+#     definition:
+#     name: Cubic Decameter per Minute
+#     person: null
+#     symbol: dam^3/min
+#     unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: ff9917e8-9a59-466d-a598-3c0b846c18dd
+#   fields:
+#     definition:
+#     name: Cubic Decameter per Second
+#     person: null
+#     symbol: dam^3/s
+#     unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 09c0bf40-c6af-448a-9473-7b8301107990
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicFootPerMinute
+    name: Cubic Foot per Minute
+    person: null
+    symbol: ft^3/min
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 318d0f2c-3f25-4e4b-8769-668751f70062
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicFootPerSecond; http://qwwebservices.usgs.gov/service-domains.html
+    name: Cubic Foot per Second
+    person: null
+    symbol: ft^3/s
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: dc8f1a1d-4c6f-462b-b3d1-f6e0b668f484
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicInchPerMinute
+    name: Cubic Inch per Minute
+    person: null
+    symbol: in^3/min
+    unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: ce27cea8-d72a-4802-b84b-6a26223bef55
+#   fields:
+#     definition:
+#     name: Cubic Inch per Second
+#     person: null
+#     symbol: in^3/s
+#     unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 394c7ae8-c999-42a9-8d0a-d23bc009a2ed
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Cubic Meter per Day
+    person: null
+    symbol: m^3/d
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 425202f9-e92e-4d14-acd6-cba9bb90bf65
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMeterPerHour
+    name: Cubic Meter per Hour
+    person: null
+    symbol: m^3/h
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 8d8d6dba-9a84-40c7-a518-4ad8ddf1bc98
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Cubic Meter per Minute
+    person: null
+    symbol: m^3/min
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 585d2611-418f-46a1-bda8-ce5803f0fe72
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicMeterPerSecond
+    name: Cubic Meter per Second
+    person: null
+    symbol: m^3/s
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 6211366e-128c-4b54-b873-96f9bd114f37
+  fields:
+    definition: http://qudt.org/vocab/unit#CubicYardPerMinute
+    name: Cubic Yard per Minute
+    person: null
+    symbol: yd^3/min
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 41d6cc7a-6785-46b8-b371-4b0e66c1a6e9
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Drops per Minute
+    person: null
+    symbol: drops/min
+    unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: e7f61b1d-6f85-4bc9-a602-a586799a370e
+#   fields:
+#     definition:
+#     name: Gallon British per Second
+#     person: null
+#     symbol: gps
+#     unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 6493a752-e08a-442d-b11c-40b806ea2af5
+  fields:
+    definition: http://qudt.org/vocab/unit#GallonUSPerDay; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gallon US per Day
+    person: null
+    symbol: gpd
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 6c632814-1fcb-4f6e-b5ea-3b770ab18792
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gallon US per Hour
+    person: null
+    symbol: gph
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 0772ca94-638c-4726-803b-0edaa822534d
+  fields:
+    definition: http://qudt.org/vocab/unit#GallonUSPerMinute; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Gallon US per Minute
+    person: null
+    symbol: gpm
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 7c39bd8b-d318-4e40-8131-2ece4d5f646c
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gallon US per Month
+    person: null
+    symbol: gpm
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 983f4181-28d5-4cc5-8ad1-7b1e80d1326e
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gallon US per Second
+    person: null
+    symbol: gps
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 2202edae-c3c5-47eb-9981-26c59490ec25
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gallon US per Year
+    person: null
+    symbol: gpy
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 0e577435-cf37-451e-8c46-62d6aea55a2c
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Liter per Day
+    person: null
+    symbol: L/d
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 35af72b4-2ab4-46da-95f0-62ea25edeb9a
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Liter per Hour
+    person: null
+    symbol: L/hr
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: ef6131e3-baed-4c44-ba5f-1fec3a6f1fbb
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Liter per Minute
+    person: null
+    symbol: L/min
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 4805a87e-3af4-4f86-8d13-d96ac547add5
+  fields:
+    definition: http://environment.data.gov.au/def/unit/LitrePerSecond; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Liter per Second
+    person: null
+    symbol: L/s
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 79803a1f-d5d3-4119-baa0-89de5190b90f
+  fields:
+    definition: http://environment.data.gov.au/def/unit/MegalitrePerMonth
+    name: Megaliter per Calendar Month
+    person: null
+    symbol: Ml/mo_c
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 9ab98877-7cab-45a8-87e4-006ef204d286
+  fields:
+    definition: http://environment.data.gov.au/def/unit/MegalitrePerDay
+    name: Megaliter per Day
+    person: null
+    symbol: Ml/d
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: d6cf6578-07b2-4917-93f3-db1f647d39a1
+  fields:
+    definition: http://environment.data.gov.au/def/unit/MegalitrePerWeek
+    name: Megaliter per Week
+    person: null
+    symbol: Ml/wk
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 17cf8b3a-f293-4995-a7d4-7c87dfc6a26e
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Million Gallon US per Day
+    person: null
+    symbol: MGD
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: e54b67b6-3e7c-4d68-9ed3-63fd15e44cf1
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Million Gallon US per Month
+    person: null
+    symbol: MGM
+    unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 227449ad-ce5f-4c90-8d5d-57bc0cec67c9
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Million Gallon US per Year
+    person: null
+    symbol: MGY
+    unit_type: Volumetric flow rate
+# - model: sites.unit
+#   pk: 91f87409-3ce3-4cac-97c9-ccc7efe00e49
+#   fields:
+#     definition: http://www.unidata.ucar.edu/software/udunits/
+#     name: Sverdrup
+#     person: null
+#     symbol:
+#     unit_type: Volumetric flow rate
+- model: sites.unit
+  pk: 23daa865-31d8-44ef-a51f-56e89851dac9
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gallon per Day per Square Foot
+    person: null
+    symbol: gpd/ft^2
+    unit_type: Volumetric flux
+- model: sites.unit
+  pk: e8c43473-b31d-497a-88b7-b549dfdd1fb3
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Milliliter per Square Centimeter per Day
+    person: null
+    symbol: ml/cm^2 d
+    unit_type: Volumetric flux
+- model: sites.unit
+  pk: 2a34c40d-49eb-4db7-a38f-2d3d399d842a
+  fields:
+    definition: http://qudt.org/vocab/unit#JoulePerCubicMeterKelvin
+    name: Joule per Cubic Meter Kelvin
+    person: null
+    symbol: J/(m^3 K)
+    unit_type: Volumetric heat capacity
+- model: sites.unit
+  pk: 86fc2999-26ed-4997-b35b-72ef2462b46c
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Gram per Cubic Meter per Hour
+    person: null
+    symbol: g/m^3 hr
+    unit_type: Volumetric productivity
+# - model: sites.unit
+#   pk: ef17f688-93ef-4679-a39e-f938438704bf
+#   fields:
+#     definition:
+#     name: Kilogram per Cubic Meter per Second
+#     person: null
+#     symbol: kg/m^3 s
+#     unit_type: Volumetric productivity
+- model: sites.unit
+  pk: ccb2517c-f7cf-4d05-b479-1dede53c4061
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Milligram per Cubic Meter per Day
+    person: null
+    symbol: mg/m^3 d
+    unit_type: Volumetric productivity
+- model: sites.unit
+  pk: ad0f508f-de5d-4d56-a837-63e62084e3a6
+  fields:
+    definition: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048
+    name: Milligram per Cubic Meter per Hour
+    person: null
+    symbol: mg/m^3 hr
+    unit_type: Volumetric productivity
+# - model: sites.unit
+#   pk: 61aeea06-0e75-4ffe-8a84-8169a40468f3
+#   fields:
+#     definition:
+#     name: Newton per Second
+#     person: null
+#     symbol: N/s
+#     unit_type: Yank
