@@ -1,6 +1,6 @@
 <template>
   <v-app-bar app elevation="2">
-    <template v-if="mdAndDown" v-slot:append>
+    <template v-if="smAndDown" v-slot:append>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     </template>
 
@@ -8,7 +8,7 @@
       <v-img class="mx-4" :src="appLogo" alt="HydroServer home" width="10rem" />
     </router-link>
 
-    <template v-if="!mdAndDown">
+    <template v-if="!smAndDown">
       <div v-for="path of paths" :key="path.name">
         <v-btn
           v-if="!path.menu"
@@ -108,7 +108,7 @@
   </v-app-bar>
 
   <v-navigation-drawer
-    v-if="mdAndDown"
+    v-if="smAndDown"
     temporary
     v-model="drawer"
     location="right"
@@ -165,7 +165,7 @@ import { useDisplay } from 'vuetify/lib/framework.mjs'
 import appLogo from '@/assets/hydroserver-icon-min.png'
 
 const authStore = useAuthStore()
-const { mdAndDown } = useDisplay()
+const { smAndDown } = useDisplay()
 const drawer = ref(false)
 
 const paths: {
@@ -177,12 +177,12 @@ const paths: {
   isExternal?: boolean
   isActive?: () => boolean
 }[] = [
-  {
-    name: 'home',
-    attrs: { to: '/' },
-    label: 'Home',
-    icon: 'mdi-home',
-  },
+  // {
+  //   name: 'home',
+  //   attrs: { to: '/' },
+  //   label: 'Home',
+  //   icon: 'mdi-home',
+  // },
   {
     name: 'browse',
     attrs: { to: '/browse' },
