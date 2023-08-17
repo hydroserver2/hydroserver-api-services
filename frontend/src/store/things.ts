@@ -141,7 +141,7 @@ export const useThingStore = defineStore('things', {
         } else if (error.response.status === 404) {
           Notification.toast({
             message:
-              'The email entered does not exist in our system. Please check your entry or use a different email.',
+              'Email address does not have a valid user account. Please input the email for a valid user.',
             type: 'error',
           })
         } else if (error.response.status == 422) {
@@ -195,7 +195,7 @@ export const useThingStore = defineStore('things', {
         } else if (error.response.status === 404) {
           Notification.toast({
             message:
-              'The email entered does not exist in our system. Please check your entry or use a different email.',
+              'Email address does not have a valid user account. Please input the email for a valid user.',
             type: 'error',
           })
         } else if (error.response.status == 403) {
