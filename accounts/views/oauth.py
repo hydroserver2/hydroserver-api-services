@@ -1,12 +1,14 @@
 import json
 from typing import Optional
 from ninja import Router
-from django.contrib.auth import login
 from django.http import HttpResponse
+from django.contrib.auth import get_user_model
 from authlib.integrations.django_client import OAuth
-from accounts.models import CustomUser
+from accounts.utils import update_account_to_verified
 from hydroserver import settings
 
+
+user_model = get_user_model()
 
 oauth = OAuth()
 
@@ -16,11 +18,11 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'}
 )
 
-orcid_router = Router(tags=['ORCID'])
+orcid_router = Router(tags=['ORCID OAuth 2.0'])
 
 
 def oauth_response(
-        user: Optional[CustomUser] = None,
+        user: Optional[user_model] = None,
         user_info: Optional[dict] = None,
         finish_account_setup: Optional[bool] = False):
     """"""
@@ -52,7 +54,7 @@ def oauth_response(
 
 @orcid_router.get('/login')
 def orcid_login(request):
-    redirect_uri = request.build_absolute_uri('/api2/auth/orcid/auth')
+    redirect_uri = request.build_absolute_uri('/api2/account/orcid/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
@@ -67,24 +69,15 @@ def orcid_auth(request):
     user_id = token.get('userinfo', {}).get('sub')
 
     try:
-        user = CustomUser.objects.get(orcid=user_id)
-        login(request, user)
+        user = user_model.objects.get(orcid=user_id)
 
-        response = oauth_response(
-            finish_account_setup=False,
-            user=user
+    except user_model.DoesNotExist:
+        user = user_model.objects.create_user(
+            first_name=token.get('userinfo', {}).get('given_name'),
+            last_name=token.get('userinfo', {}).get('family_name'),
         )
 
-    except CustomUser.DoesNotExist:
-        response = oauth_response(
-            finish_account_setup=True,
-            user_info={
-                'first_name': token.get('userinfo', {}).get('given_name'),
-                'last_name': token.get('userinfo', {}).get('family_name')
-            }
-        )
-
-    return HttpResponse(response)
+    return HttpResponse(oauth_response(user=user))
 
 
 oauth.register(
@@ -93,12 +86,12 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'}
 )
 
-google_router = Router(tags=['Google'])
+google_router = Router(tags=['Google OAuth 2.0'])
 
 
 @google_router.get('/login')
 def google_login(request):
-    redirect_uri = request.build_absolute_uri('/api2/auth/google/auth')
+    redirect_uri = request.build_absolute_uri('/api2/account/google/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
@@ -113,22 +106,15 @@ def google_auth(request):
     user_email = token.get('userinfo', {}).get('email')
 
     try:
-        user = CustomUser.objects.get(email=user_email)
-        login(request, user)
+        user = user_model.objects.get(email=user_email)
 
-        response = oauth_response(
-            finish_account_setup=False,
-            user=user
+    except user_model.DoesNotExist:
+        user = user_model.objects.create_user(
+            email=user_email,
+            first_name=token.get('userinfo', {}).get('given_name'),
+            last_name=token.get('userinfo', {}).get('family_name')
         )
 
-    except CustomUser.DoesNotExist:
-        response = oauth_response(
-            finish_account_setup=True,
-            user_info={
-                'email': user_email,
-                'first_name': token.get('userinfo', {}).get('given_name'),
-                'last_name': token.get('userinfo', {}).get('family_name')
-            }
-        )
+        user = update_account_to_verified(user)
 
-    return HttpResponse(response)
+    return HttpResponse(oauth_response(user=user))

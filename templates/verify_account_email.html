@@ -1,0 +1,13 @@
+<p>Hi {{ name }},</p>
+
+<p>
+    Thank you for creating an account with HydroServer. Before you continue, we need to verify the email you provided
+    belongs to you. To activate your account and start using HydroServer, please click the link below.
+</p>
+
+<a href="{{proxy_base_url}}/api2/account/activate?uid={{ uid }}&token={{ token }}"
+  >Verify Email</a
+>
+
+<p>Thanks,</p>
+<p>The HydroServer Team</p>

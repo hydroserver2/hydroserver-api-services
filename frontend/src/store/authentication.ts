@@ -24,28 +24,41 @@ export const useAuthStore = defineStore({
       try {
         this.loggingIn = true
         this.resetState()
-        const response = await this.$http.post('/token', {
+        const tokenResponse = await this.$http.post('/account/jwt/pair', {
           email: email,
           password: password,
         })
-        if (response.status === 401) {
+        if (tokenResponse.status === 200) {
+          this.access_token = tokenResponse.data.access
+          this.refresh_token = tokenResponse.data.refresh
+          const userResponse = await this.$http.get('/account/user')
+          if (userResponse.status === 200) {
+            this.user = userResponse.data
+            await router.push({ name: 'Sites' })
+            Notification.toast({
+              message: 'You have logged in!',
+              type: 'success',
+            })
+          } else if (userResponse.status === 401) {
+            Notification.toast({
+              message: 'Invalid email or password.',
+              type: 'error',
+            })
+          } else {
+            Notification.toast({
+              message: 'Server error. Please try again later.',
+              type: 'error',
+            })
+          }
+        } else if (tokenResponse.status === 401) {
           Notification.toast({
             message: 'Invalid email or password.',
             type: 'error',
           })
-        } else if (response.status >= 500 && response.status < 600) {
+        } else {
           Notification.toast({
             message: 'Server error. Please try again later.',
             type: 'error',
-          })
-        } else {
-          this.access_token = response.data.access_token
-          this.refresh_token = response.data.refresh_token
-          this.user = response.data.user
-          await router.push({ name: 'Sites' })
-          Notification.toast({
-            message: 'You have logged in!',
-            type: 'success',
           })
         }
       } catch (error: any) {
@@ -93,7 +106,7 @@ export const useAuthStore = defineStore({
     },
     async createUser(user: User) {
       try {
-        const response = await this.$http.post('/user', user)
+        const response = await this.$http.post('/account/user', user)
         if (response.status === 200) {
           Notification.toast({
             message: 'Account successfully created.',
@@ -216,9 +229,9 @@ export const useAuthStore = defineStore({
       let OAuthUrl: string = ''
 
       if (backend === 'google') {
-        OAuthUrl = '/api2/auth/google/login'
+        OAuthUrl = '/api2/account/google/login'
       } else if (backend === 'orcid') {
-        OAuthUrl = '/api2/auth/orcid/login'
+        OAuthUrl = '/api2/account/orcid/login'
       }
 
       window.open(
