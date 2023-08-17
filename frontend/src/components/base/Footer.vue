@@ -5,7 +5,10 @@
         <div>
           <h5 class="text-h5 mb-4">Contact Us</h5>
           <router-link class="d-block mb-3" to="/contact">Contact</router-link>
-          <div>Learn more about <a href="https://ciroh.ua.edu/">CIROH</a></div>
+          <div>
+            Learn more about
+            <a href="https://ciroh.ua.edu/" target="_blank">CIROH</a>
+          </div>
         </div>
         <div>
           <h5 class="text-h5 mb-4">Policies</h5>
@@ -25,7 +28,11 @@
           <h5 class="text-h5 mb-4">Open Source</h5>
           <p class="mb-3">
             HydroServer is open Source. Find us on
-            <a href="https://github.com/hydroserver2/hydroserver">GitHub.</a>
+            <a
+              href="https://github.com/hydroserver2/hydroserver"
+              target="_blank"
+              >GitHub.</a
+            >
           </p>
           <p class="mb-3">
             Report a bug

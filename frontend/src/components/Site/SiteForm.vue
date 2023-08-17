@@ -101,7 +101,7 @@
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
-                  label="Elevation *"
+                  label="Elevation (m) *"
                   v-model="thing.elevation"
                   type="number"
                   :rules="rules.required"
