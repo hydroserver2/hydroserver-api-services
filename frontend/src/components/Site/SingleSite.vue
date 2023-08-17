@@ -180,10 +180,11 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <v-dialog v-model="item.raw.chartOpen">
+            <v-dialog v-model="item.raw.chartOpen" width="80rem">
               <SiteVisualization
                 :thing-id="thingId"
                 :datastream-id="item.raw.id"
+                @close="item.raw.chartOpen = false"
               ></SiteVisualization>
             </v-dialog>
             <LineChart
@@ -272,10 +273,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-chart-line"
                 title="View Time Series Plot"
-                :to="{
-                  name: 'SiteVisualization',
-                  params: { id: thingId, datastreamId: item.raw.id },
-                }"
+                @click="item.raw.chartOpen = true"
               />
               <v-list-item
                 v-if="is_owner"

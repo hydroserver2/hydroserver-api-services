@@ -1,6 +1,17 @@
 <template>
   <v-card class="elevation-5">
-    <h5 class="text-h5 pt-2 text-center">Datastream for {{ thing?.name }}</h5>
+    <v-row>
+      <v-col>
+        <h5 class="text-h5 pt-2 text-center">
+          Datastream for {{ thing?.name }}
+        </h5>
+      </v-col>
+      <v-col cols="auto">
+        <v-btn class="pt-2 pr-2" icon @click="$emit('close')">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
     <div ref="chart"></div>
   </v-card>
 </template>
@@ -21,6 +32,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const emit = defineEmits(['close'])
 
 const { thing } = useThing(props.thingId)
 const { datastream, observations } = useDatastream(
