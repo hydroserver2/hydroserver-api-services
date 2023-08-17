@@ -164,7 +164,7 @@ export class ObservedProperty {
     this.person_id = ''
     this.definition = ''
     this.description = ''
-    this.variable_type = ''
+    this.variable_type = 'Hydrology'
     this.variable_code = ''
   }
 }

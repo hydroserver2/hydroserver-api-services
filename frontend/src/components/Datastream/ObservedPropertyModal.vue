@@ -48,11 +48,12 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6">
-              <v-text-field
+              <v-combobox
+                :items="OPVariableTypes"
                 v-model="observedProperty.variable_type"
                 label="Variable Type"
                 :rules="rules.maxLength(500)"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="12" sm="6">
               <v-text-field
@@ -78,6 +79,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useObservedPropertyStore } from '@/store/observedProperties'
 import { rules } from '@/utils/rules'
 import { useObservedProperties } from '@/composables/useMetadata'
+import { OPVariableTypes } from '@/vocabularies'
 
 const opStore = useObservedPropertyStore()
 const props = defineProps({ id: String })
