@@ -91,6 +91,7 @@
                   v-model="thing.latitude"
                   type="number"
                   :rules="rules.required"
+                  validate-on="input"
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
@@ -98,6 +99,7 @@
                   v-model="thing.longitude"
                   type="number"
                   :rules="rules.required"
+                  validate-on="input"
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
@@ -105,6 +107,7 @@
                   v-model="thing.elevation"
                   type="number"
                   :rules="rules.required"
+                  validate-on="input"
               /></v-col>
               <v-col cols="12" sm="6">
                 <v-text-field
@@ -295,7 +298,6 @@ function removeExistingPhoto(photoId: string) {
 async function populateThing(id: string) {
   await thingStore.fetchThings()
   Object.assign(thing, thingStore.things[id])
-  console.log('disclaimer', thing.include_data_disclaimer)
   mapOptions.value = {
     center: { lat: thing.latitude, lng: thing.longitude },
     zoom: 10,
