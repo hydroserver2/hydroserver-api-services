@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 from ninja import Router
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
@@ -21,30 +20,32 @@ oauth.register(
 orcid_router = Router(tags=['ORCID OAuth 2.0'])
 
 
-def oauth_response(
-        user: Optional[user_model] = None,
-        user_info: Optional[dict] = None,
-        finish_account_setup: Optional[bool] = False):
-    """"""
+def oauth_response(user: user_model):
+    """
+    The oauth_response function is used to return a response to the HydroServer client application.
+    The response contains information about the user that has just signed in, and it is sent back
+    to the client app using postMessage(). The message contains a JSON object with all the
+    user's information.
 
-    if not user_info:
-        user_info = {}
+    :param user: user_model: Pass the user object to the function
+    :return: The user's information in json format
+    """
 
     response_html = '<html><head><title>HydroServer Sign In</title></head><body></body><script>res = %value%; ' + \
                     'window.opener.postMessage(res, "*");window.close();</script></html>'
 
     response_html = response_html.replace(
         "%value%", json.dumps({
-            'finish_account_setup': finish_account_setup,
             'user': {
-                'email': getattr(user, 'email', user_info.get('email')),
-                'first_name': getattr(user, 'first_name', user_info.get('first_name')),
-                'middle_name': getattr(user, 'middle_name', None),
-                'last_name': getattr(user, 'last_name', user_info.get('last_name')),
-                'phone': getattr(user, 'phone', None),
-                'address': getattr(user, 'address', None),
-                'organization': getattr(user, 'organization', None),
-                'type': getattr(user, 'type', None),
+                'email': user.email,
+                'first_name': user.first_name,
+                'middle_name': user.middle_name,
+                'last_name': user.last_name,
+                'phone': user.phone,
+                'address': user.address,
+                'organization': user.organization,
+                'type': user.type,
+                'is_verified': user.is_verified
             }
         })
     )
@@ -54,7 +55,7 @@ def oauth_response(
 
 @orcid_router.get('/login')
 def orcid_login(request):
-    redirect_uri = request.build_absolute_uri('/api2/account/orcid/auth')
+    redirect_uri = request.build_absolute_uri('/api/account/orcid/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
@@ -91,7 +92,7 @@ google_router = Router(tags=['Google OAuth 2.0'])
 
 @google_router.get('/login')
 def google_login(request):
-    redirect_uri = request.build_absolute_uri('/api2/account/google/auth')
+    redirect_uri = request.build_absolute_uri('/api/account/google/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')

@@ -12,6 +12,7 @@ export const useAuthStore = defineStore({
     refresh_token: '',
     user: new User(),
     loggingIn: false,
+    sendingVerificationEmail: false,
     isLoginListenerSet: false,
     loggedIn$: new Subject<void>(),
   }),
@@ -93,11 +94,11 @@ export const useAuthStore = defineStore({
     },
     async refreshAccessToken() {
       try {
-        const { data } = await this.$http.post('/token/refresh', {
-          refresh_token: this.refresh_token,
+        const { data } = await this.$http.post('/account/jwt/refresh', {
+          refresh: this.refresh_token,
         })
-        this.access_token = data.access_token
-        this.refresh_token = data.refresh_token
+        this.access_token = data.access
+        this.refresh_token = data.refresh
         console.log('Access token refreshed')
       } catch (error) {
         console.error('Error refreshing access token:', error)
@@ -137,9 +138,45 @@ export const useAuthStore = defineStore({
         console.error('Error creating user', error)
       }
     },
+    async sendVerificationEmail() {
+      if (this.sendingVerificationEmail === true) { return }
+      this.sendingVerificationEmail = true
+      const response = await this.$http.post('/account/send-verification-email')
+      this.sendingVerificationEmail = false
+      if (response.status === 200) {
+        Notification.toast({
+          message: 'Verification email sent successfully.',
+          type: 'info',
+        })
+      } else {
+        Notification.toast({
+          message: 'Failed to send verification email.',
+          type: 'error',
+        })
+      }
+    },
+    async activateAccount(uid: string, token: string) {
+      const response = await this.$http.post('account/activate', {
+        uid: uid,
+        token: token
+      })
+      if (response.status === 200 && response.data.is_verified) {
+        this.user = response.data
+        Notification.toast({
+          message: 'Your HydroServer account has been activated.',
+          type: 'success',
+        })
+      } else {
+        Notification.toast({
+          message: 'Account activation failed. Token incorrect or expired.',
+          type: 'error',
+        })
+      }
+      await router.push({ name: 'Sites' })
+    },
     async updateUser(user: User) {
       try {
-        const { data } = await this.$http.patch('/user', user)
+        const { data } = await this.$http.patch('/account/user', user)
         // things.organizations could be affected for many things so just invalidate cache
         useResetStore().things()
         this.user = data
@@ -147,7 +184,7 @@ export const useAuthStore = defineStore({
     },
     async deleteAccount() {
       try {
-        await this.$http.delete('/user')
+        await this.$http.delete('/account/user')
         await this.logout()
         Notification.toast({
           message: 'Your account has been deleted',
@@ -164,7 +201,7 @@ export const useAuthStore = defineStore({
     },
     async requestPasswordReset(email: String) {
       try {
-        const response = await this.$http.post('/password_reset', {
+        const response = await this.$http.post('/account/password-reset', {
           email: email,
         })
         return response.status === 200
@@ -192,7 +229,7 @@ export const useAuthStore = defineStore({
     },
     async resetPassword(uid: string, token: string, password: string) {
       try {
-        const response = await this.$http.post('/reset_password', {
+        const response = await this.$http.post('/account/reset-password', {
           uid: uid,
           token: token,
           password: password,
@@ -229,9 +266,9 @@ export const useAuthStore = defineStore({
       let OAuthUrl: string = ''
 
       if (backend === 'google') {
-        OAuthUrl = '/api2/account/google/login'
+        OAuthUrl = '/api/account/google/login'
       } else if (backend === 'orcid') {
-        OAuthUrl = '/api2/account/orcid/login'
+        OAuthUrl = '/api/account/orcid/login'
       }
 
       window.open(
@@ -279,13 +316,13 @@ export const useAuthStore = defineStore({
         })
       }
     },
-
-
-
   },
   getters: {
     isLoggedIn: (state) => {
       return !!state.access_token
     },
+    isVerified: (state) => {
+      return state.user.is_verified
+    }
   },
 })

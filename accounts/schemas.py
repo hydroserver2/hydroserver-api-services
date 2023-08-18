@@ -26,13 +26,10 @@ class UserPatchBody(UserFields):
     pass
 
 
-class UserVerificationPostBody(Schema):
+class VerifyAccountPostBody(Schema):
     uid: str
+    token: str
 
     @validator('uid')
     def decode_uid(cls, v: str):
         return base64.b64decode(v).decode('utf-8')
-
-
-class UserVerificationConfirmationParams(UserVerificationPostBody):
-    token: str

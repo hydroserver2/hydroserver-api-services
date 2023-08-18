@@ -6,7 +6,7 @@ from ninja.files import UploadedFile
 from django.http import HttpRequest
 from django.db import transaction
 from botocore.exceptions import ClientError
-from core.auth import BasicAuth, JWTAuth
+from accounts.auth import BasicAuth, JWTAuth
 from core.routers.thing.schemas import *
 from core.routers.thing.utils import transfer_sensor_ownership, build_things_query, query_things, photo_to_dict, \
      transfer_properties_ownership, transfer_processing_level_ownership, transfer_unit_ownership

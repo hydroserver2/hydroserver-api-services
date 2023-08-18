@@ -13,6 +13,8 @@ import DataSourceDetail from '@/components/DataSource/DataSourceDetail.vue'
 import DataLoaderDashboard from '@/components/DataSource/DataLoaderDashboard.vue'
 import HydroLoaderDownload from '@/components/DataSource/HydroLoaderDownload.vue'
 import Profile from '@/components/account/Profile.vue'
+import VerifyEmail from '@/components/account/VerifyEmail.vue'
+import ActivateAccount from '@/components/account/ActivateAccount.vue'
 import Metadata from '@/components/Datastream/Metadata.vue'
 import PasswordResetRequest from '@/components/account/PasswordRecovery/PasswordResetRequest.vue'
 import PasswordReset from '@/components/account/PasswordRecovery/PasswordReset.vue'
@@ -33,6 +35,17 @@ function requireAuth(
   else next()
 }
 
+function requireVerifiedAuth(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: (to?: string | object) => void
+) {
+  const authStore = useAuthStore()
+  if (!authStore.isLoggedIn) next({ name: 'Login' })
+  else if (!authStore.isVerified) next({ name: 'VerifyEmail'})
+  else next()
+}
+
 async function requireThingOwnership(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
@@ -42,6 +55,11 @@ async function requireThingOwnership(
   const thingStore = useThingStore()
   if (!authStore.isLoggedIn) {
     next({ name: 'Login' })
+    return
+  }
+
+  if (!authStore.isVerified) {
+    next({ name: 'VerifyEmail'})
     return
   }
 
@@ -68,7 +86,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/sites',
     name: 'Sites',
     component: Sites,
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   { path: '/sites/:id', name: 'SingleSite', component: SingleSite },
   {
@@ -91,7 +109,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-sources',
     name: 'DataSources',
     component: DataSourceDashboard,
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/data-sources/:id',
@@ -102,7 +120,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-loaders',
     name: 'DataLoaders',
     component: DataLoaderDashboard,
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/hydroloader/download',
@@ -134,10 +152,21 @@ export const routes: RouteRecordRaw[] = [
     beforeEnter: requireAuth,
   },
   {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: VerifyEmail,
+    beforeEnter: requireAuth,
+  },
+  {
+    path: '/activate/:uid/:token',
+    name: 'ActivateAccount',
+    component: ActivateAccount
+  },
+  {
     path: '/metadata',
     name: 'Metadata',
     component: Metadata,
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/:catchAll(.*)*',
