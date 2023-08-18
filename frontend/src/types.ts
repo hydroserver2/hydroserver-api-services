@@ -13,9 +13,9 @@ export class Thing {
   site_type: string
   sampling_feature_code: string
   is_private: boolean
-  latitude?: number
-  longitude?: number
-  elevation?: number
+  latitude?: number | undefined
+  longitude?: number | undefined
+  elevation?: number | undefined
   owns_thing: boolean
   follows_thing: boolean
   description: string
