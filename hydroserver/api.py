@@ -1,4 +1,5 @@
 import copy
+import math
 import uuid
 from functools import wraps
 from datetime import timedelta
@@ -995,7 +996,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
             for observation in observations:
                 observation_list.append({
                     "id": observation.id,
-                    "result": observation.result,
+                    "result": observation.result if not math.isnan(observation.result) else None,
                     "result_time": observation.result_time,
                 })
             if observation_list:
