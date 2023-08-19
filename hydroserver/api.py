@@ -31,104 +31,15 @@ from hydrothings.validators import allow_partial
 from accounts.models import CustomUser, PasswordReset
 from sites.models import Datastream, Sensor, ObservedProperty, Unit, ThingAssociation, Thing, Location, Observation, \
     ProcessingLevel, DataSource, DataSourceOwner, DataLoader, DataLoaderOwner, Photo
+from sites.unit_utils import unit_to_dict, transfer_unit_ownership
+from sites.unit_endpoints import router as unit_router
 import boto3
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
-
-
-class BasicAuth(HttpBasicAuth):
-    def authenticate(self, request, username, password):
-        user = authenticate(username=username, password=password)
-        if user and user.is_authenticated:
-            request.authenticated_user = user
-            return user
-
+from sites.auth_utils import BasicAuth, jwt_auth, jwt_check_user, thing_ownership_required, datastream_ownership_required
 
 api = NinjaAPI()
-
-
-def jwt_auth(request):
-    try:
-        token = request.META['HTTP_AUTHORIZATION'].split()[1]
-        untyped_token = UntypedToken(token)
-        user_id = untyped_token.payload['user_id']
-        user = CustomUser.objects.get(pk=user_id)
-        request.authenticated_user = user
-        return True
-    except (KeyError, IndexError, InvalidToken, TokenError) as e:
-        if isinstance(e, TokenError) and str(e) == 'Token is invalid or expired':
-            raise HttpError(401, 'Token is invalid or expired')
-        raise HttpError(401, 'Unauthorized')
-
-
-def jwt_check_user(request):
-    """
-    Checks if user is logged in. Used for public views where the functionality is different for authenticated users
-    """
-    try:
-        token = request.META['HTTP_AUTHORIZATION'].split()[1]
-        untyped_token = UntypedToken(token)
-        user_id = untyped_token.payload['user_id']
-        user = CustomUser.objects.get(pk=user_id)
-        request.user_if_there_is_one = user
-    except (KeyError, IndexError, InvalidToken, TokenError) as e:
-        if isinstance(e, TokenError) and str(e) == 'Token is invalid or expired':
-            raise HttpError(401, 'Token is invalid or expired')
-        else:
-            request.user_if_there_is_one = None
-    return True
-
-
-def thing_ownership_required(func):
-    """
-    Decorator for thing views that checks the user is logged in and is an owner of the related thing.
-    """
-    @wraps(func)
-    def wrapper(request, *args, **kwargs):
-        jwt_auth(request)
-
-        thing_id = kwargs.get('thing_id')
-        try:
-            thing = Thing.objects.get(id=thing_id)
-        except Thing.DoesNotExist:
-            raise HttpError(403, 'Site cannot be found')
-        try:
-            thing_association = request.authenticated_user.thing_associations.get(thing=thing, owns_thing=True)
-        except ThingAssociation.DoesNotExist:
-            raise HttpError(403, 'You do not have permission to access this site.')
-        request.thing_association = thing_association
-        request.thing = thing
-        return func(request, *args, **kwargs)
-
-    return wrapper
-
-
-def datastream_ownership_required(func):
-    """
-    Decorator for datastream views that checks the user is logged in and is an owner of the related datastream's thing.
-    """
-
-    @wraps(func)
-    def wrapper(request, *args, **kwargs):
-        jwt_auth(request)
-
-        datastream_id = kwargs.get('datastream_id')
-        try:
-            datastream = Datastream.objects.get(id=datastream_id)
-        except Datastream.DoesNotExist:
-            return JsonResponse({'detail': 'Datastream not found.'}, status=404)
-        request.datastream = datastream
-        thing = datastream.thing
-
-        try:
-            thing_association = request.authenticated_user.thing_associations.get(thing=thing, owns_thing=True)
-        except ThingAssociation.DoesNotExist:
-            raise HttpError(403, 'You do not have permission to access this datastream.')
-        request.thing_association = thing_association
-
-        return func(request, *args, **kwargs)
-
-    return wrapper
+api.add_router("", unit_router)
 
 
 class GetTokenInput(Schema):
@@ -570,32 +481,6 @@ def transfer_processing_level_ownership(datastream, new_owner, old_owner):
         new_property.person = new_owner
         new_property.save()
         datastream.processing_level = new_property
-
-    datastream.save()
-
-
-def transfer_unit_ownership(datastream, new_owner, old_owner):
-    """
-    Transfers ownership of a datastream's unit from the old owner to the new owner.
-    """
-    if datastream.unit.person != old_owner or datastream.unit.person is None:
-        return
-
-    fields_to_compare = ['name', 'symbol', 'definition', 'unit_type']
-
-    same_properties = Unit.objects.filter(
-        person=new_owner,
-        **{f: getattr(datastream.unit, f) for f in fields_to_compare}
-    )
-
-    if same_properties.exists():
-        datastream.unit = same_properties[0]
-    else:
-        new_property = copy.copy(datastream.unit)
-        new_property.id = None  # Set to None so Django can auto-generate a new unique integer id
-        new_property.person = new_owner
-        new_property.save()
-        datastream.unit = new_property
 
     datastream.save()
 
@@ -1240,32 +1125,6 @@ def delete_datastream(request, datastream_id: str):
     return JsonResponse({'detail': 'Datastream deleted successfully.'}, status=200)
 
 
-def unit_to_dict(unit):
-    return {
-        "id": unit.pk,
-        "name": unit.name,
-        "symbol": unit.symbol,
-        "definition": unit.definition,
-        "unit_type": unit.unit_type,
-        "person_id": unit.person.pk if unit.person else None
-    }
-
-
-@api.get('/units', auth=jwt_auth)
-def get_units(request):
-    units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
-    return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
-
-
-# @api.get('/units/{unit_id}')
-# def get_unit_by_id(request, unit_id):
-#     try:
-#         unit = Unit.objects.get(id=unit_id)
-#         return JsonResponse(unit_to_dict(unit), safe=False)
-#     except Unit.DoesNotExist:
-#         return JsonResponse({'detail': 'Unit not found.'}, status=404)
-
-
 @api.get('/things/{thing_id}/metadata', auth=jwt_auth)
 @thing_ownership_required
 def get_primary_owner_metadata(request, thing_id):
@@ -1290,65 +1149,6 @@ def get_primary_owner_metadata(request, thing_id):
         'processing_levels': processing_level_data,
         'observed_properties': observed_property_data
     })
-
-
-class CreateUnitInput(Schema):
-    name: str
-    symbol: str
-    definition: str
-    unit_type: str
-
-
-@api.post('/units', auth=jwt_auth)
-def create_unit(request, data: CreateUnitInput):
-    unit = Unit.objects.create(
-        name=data.name,
-        person=request.authenticated_user,
-        symbol=data.symbol,
-        definition=data.definition,
-        unit_type=data.unit_type
-    )
-    return JsonResponse(unit_to_dict(unit))
-
-
-class UpdateUnitInput(Schema):
-    name: str
-    symbol: str
-    definition: str
-    unit_type: str
-
-
-@api.patch('/units/{unit_id}', auth=jwt_auth)
-def update_unit(request, unit_id: str, data: UpdateUnitInput):
-    unit = Unit.objects.get(id=unit_id)
-    if request.authenticated_user != unit.person:
-        return JsonResponse({'detail': 'You are not authorized to update this unit.'}, status=403)
-
-    if data.name is not None:
-        unit.name = data.name
-    if data.symbol is not None:
-        unit.symbol = data.symbol
-    if data.definition is not None:
-        unit.definition = data.definition
-    if data.unit_type is not None:
-        unit.unit_type = data.unit_type
-
-    unit.save()
-    return JsonResponse(unit_to_dict(unit))
-
-
-@api.delete('/units/{unit_id}', auth=jwt_auth)
-def delete_unit(request, unit_id: str):
-    try:
-        unit = Unit.objects.get(id=unit_id)
-    except Unit.DoesNotExist:
-        return JsonResponse({'detail': 'Unit not found.'}, status=404)
-
-    if request.authenticated_user != unit.person:
-        return JsonResponse({'detail': 'You are not authorized to delete this unit.'}, status=403)
-
-    unit.delete()
-    return {'detail': 'Unit deleted successfully.'}
 
 
 class ProcessingLevelInput(Schema):
