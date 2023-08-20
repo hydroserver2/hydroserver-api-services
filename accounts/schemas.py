@@ -1,6 +1,7 @@
 import base64
 from ninja import Schema
 from pydantic import validator
+from hydrothings.validators import allow_partial
 
 
 class UserFields(Schema):
@@ -18,10 +19,17 @@ class UserGetResponse(UserFields):
     is_verified: bool
 
 
+class UserAuthResponse(Schema):
+    access: str
+    refresh: str
+    user: UserGetResponse
+
+
 class UserPostBody(UserFields):
     password: str
 
 
+@allow_partial
 class UserPatchBody(UserFields):
     pass
 

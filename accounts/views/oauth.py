@@ -1,5 +1,6 @@
 import json
 from ninja import Router
+from ninja_jwt.tokens import RefreshToken
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from authlib.integrations.django_client import OAuth
@@ -20,13 +21,15 @@ oauth.register(
 orcid_router = Router(tags=['ORCID OAuth 2.0'])
 
 
-def oauth_response(user: user_model):
+def oauth_response(access_token: str, refresh_token: str, user: user_model):
     """
     The oauth_response function is used to return a response to the HydroServer client application.
     The response contains information about the user that has just signed in, and it is sent back
     to the client app using postMessage(). The message contains a JSON object with all the
     user's information.
 
+    :param access_token: str: A JWT access token for the account
+    :param refresh_token: str: A JWT refresh token for the account
     :param user: user_model: Pass the user object to the function
     :return: The user's information in json format
     """
@@ -36,8 +39,10 @@ def oauth_response(user: user_model):
 
     response_html = response_html.replace(
         "%value%", json.dumps({
+            'access': access_token,
+            'refresh': refresh_token,
             'user': {
-                'email': user.email,
+                'email': user.email if user.is_verified else user.unverified_email,
                 'first_name': user.first_name,
                 'middle_name': user.middle_name,
                 'last_name': user.last_name,
@@ -74,11 +79,18 @@ def orcid_auth(request):
 
     except user_model.DoesNotExist:
         user = user_model.objects.create_user(
+            orcid=user_id,
             first_name=token.get('userinfo', {}).get('given_name'),
             last_name=token.get('userinfo', {}).get('family_name'),
         )
 
-    return HttpResponse(oauth_response(user=user))
+    jwt = RefreshToken.for_user(user)
+
+    return HttpResponse(oauth_response(
+        access_token=str(getattr(jwt, 'access_token', '')),
+        refresh_token=str(jwt),
+        user=user
+    ))
 
 
 oauth.register(
@@ -118,4 +130,10 @@ def google_auth(request):
 
         user = update_account_to_verified(user)
 
-    return HttpResponse(oauth_response(user=user))
+    jwt = RefreshToken.for_user(user)
+
+    return HttpResponse(oauth_response(
+        access_token=str(getattr(jwt, 'access_token', '')),
+        refresh_token=str(jwt),
+        user=user
+    ))

@@ -1,6 +1,5 @@
 <template>
   <v-card>
-    <v-card-title>Edit Profile </v-card-title>
     <v-card-text>
       <v-form
         ref="myForm"
@@ -28,6 +27,15 @@
               v-model="user.last_name"
               label="Last Name"
               :rules="rules.requiredName"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row v-if="!user.is_verified">
+          <v-col>
+            <v-text-field
+              v-model="user.email"
+              label="Email"
+              :rules="rules.email"
             ></v-text-field>
           </v-col>
         </v-row>
@@ -66,10 +74,14 @@
             ></v-autocomplete>
           </v-col>
         </v-row>
-        <v-card-actions>
+        <v-card-actions v-if="isModal">
           <v-spacer></v-spacer>
           <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
           <v-btn type="submit">Update</v-btn>
+        </v-card-actions>
+        <v-card-actions v-else>
+          <v-spacer></v-spacer>
+          <v-btn type="submit">Save</v-btn>
         </v-card-actions>
       </v-form>
     </v-card-text>
@@ -78,7 +90,7 @@
 
 <script setup lang="ts">
 import { rules } from '@/utils/rules'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, defineProps } from 'vue'
 import { useAuthStore } from '@/store/authentication'
 import { userTypes } from '@/vocabularies'
 import { VForm } from 'vuetify/components'
@@ -86,6 +98,9 @@ import { vMaska } from 'maska'
 
 const phoneMask = { mask: '(###) ###-####' }
 const authStore = useAuthStore()
+const props = defineProps({
+  isModal: { type: Boolean, required: false, default: true }
+})
 let user = reactive({ ...authStore.user })
 const valid = ref(false)
 const myForm = ref<VForm>()

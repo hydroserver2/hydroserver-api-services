@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex align-center justify-center my-8">
+  <v-container v-if="authStore.user.email" class="d-flex align-center justify-center my-8">
     <v-card width="50rem">
       <v-card-title class="mb-4 signup-title">Verify Your Email</v-card-title>
       <v-card-text>
@@ -24,10 +24,14 @@
       </v-card-text>
     </v-card>
   </v-container>
+  <v-container v-else>
+    <AccountModal title="Finish Account Setup" :is-modal="false"/>
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { useAuthStore } from '@/store/authentication'
+import AccountModal from '@/components/account/AccountModal.vue'
 
 const authStore = useAuthStore()
 

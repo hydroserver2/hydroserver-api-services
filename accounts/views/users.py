@@ -27,7 +27,7 @@ def get_user(request: HttpRequest):
     return user
 
 
-@user_router.post('/user')
+@user_router.post('/user', response=UserAuthResponse)
 def create_user(_: HttpRequest, data: UserPostBody):
 
     user = user_model.objects.filter(username=data.email, is_verified=True).first()
@@ -50,18 +50,35 @@ def create_user(_: HttpRequest, data: UserPostBody):
     send_verification_email(user)
     jwt = RefreshToken.for_user(user)
 
+    user.email = user.unverified_email
+
     return {
-        'access_token': str(jwt),
-        'refresh_token': str(getattr(jwt, 'access_token', '')),
+        'access': str(jwt),
+        'refresh': str(getattr(jwt, 'access_token', '')),
+        'user': user
     }
 
 
-@user_router.patch('/user')
-def update_user(request: HttpRequest):
+@user_router.patch('/user', response=UserGetResponse, auth=JWTAuth())
+def update_user(request: HttpRequest, data: UserPatchBody):
 
-    print(request.user.first_name)
+    user = getattr(request, 'authenticated_user', None)
+    user_data = data.dict(exclude_unset=True)
 
-    pass
+    for field in ['first_name', 'last_name', 'middle_name', 'phone', 'address', 'organization', 'type']:
+        if field in user_data:
+            setattr(user, field, getattr(data, field))
+
+    if 'email' in user_data and user.unverified_email is None:
+        user.unverified_email = data.email
+        send_verification_email(user)
+
+    if user and user.is_verified is False:
+        user.email = user.unverified_email
+
+    user.save()
+
+    return user
 
 
 @user_router.post(
@@ -88,7 +105,7 @@ def verify_account(request: HttpRequest):
     '/activate',
     response={
         403: str,
-        200: UserGetResponse
+        200: UserAuthResponse
     }
 )
 def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
@@ -103,6 +120,13 @@ def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
 
     if account_activation_token.check_token(user, data.token):
         user = update_account_to_verified(user)
-        return 200, user
+        jwt = RefreshToken.for_user(user)
+
+        return {
+            'access': str(jwt),
+            'refresh': str(getattr(jwt, 'access_token', '')),
+            'user': user
+        }
+
     else:
         return 403, 'Account activation token incorrect or expired.'

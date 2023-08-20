@@ -66,7 +66,7 @@
               </v-card-text>
             </v-card>
             <v-dialog v-model="editAccountDialog" max-width="40rem">
-              <AccountModal @close="editAccountDialog = false"></AccountModal>
+              <AccountModal title="Edit Profile" @close="editAccountDialog = false"></AccountModal>
             </v-dialog>
           </v-col>
           <v-col md="8">

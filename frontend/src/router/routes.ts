@@ -46,6 +46,17 @@ function requireVerifiedAuth(
   else next()
 }
 
+function requireUnverifiedAuth(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: (to?: string | object) => void
+) {
+  const authStore = useAuthStore()
+  if (!authStore.isLoggedIn) next({ name: 'Login' })
+  else if (authStore.isVerified) next({ name: 'Sites'})
+  else next()
+}
+
 async function requireThingOwnership(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
@@ -155,7 +166,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/verify-email',
     name: 'VerifyEmail',
     component: VerifyEmail,
-    beforeEnter: requireAuth,
+    beforeEnter: requireUnverifiedAuth,
   },
   {
     path: '/activate/:uid/:token',

@@ -109,11 +109,17 @@ export const useAuthStore = defineStore({
       try {
         const response = await this.$http.post('/account/user', user)
         if (response.status === 200) {
+          try {
+            useResetStore().things()
+          } catch (error) {}
+          this.user = response.data.user
+          this.access_token = response.data.access
+          this.refresh_token = response.data.refresh
+          await router.push({ name: 'VerifyEmail' })
           Notification.toast({
             message: 'Account successfully created.',
             type: 'success',
           })
-          await this.login(user.email, user.password)
         }
       } catch (error: any) {
         if (!error.response) {
@@ -160,8 +166,10 @@ export const useAuthStore = defineStore({
         uid: uid,
         token: token
       })
-      if (response.status === 200 && response.data.is_verified) {
-        this.user = response.data
+      if (response.status === 200 && response.data.user.is_verified) {
+        this.user = response.data.user
+        this.access_token = response.data.access
+        this.refresh_token = response.data.refresh
         Notification.toast({
           message: 'Your HydroServer account has been activated.',
           type: 'success',
@@ -178,7 +186,9 @@ export const useAuthStore = defineStore({
       try {
         const { data } = await this.$http.patch('/account/user', user)
         // things.organizations could be affected for many things so just invalidate cache
-        useResetStore().things()
+        try {
+          useResetStore().things()
+        } catch (error) {}
         this.user = data
       } catch (error) {}
     },
@@ -259,9 +269,6 @@ export const useAuthStore = defineStore({
         return false
       }
     },
-
-
-
     async OAuthLogin(backend: string, callback?: () => any) {
       let OAuthUrl: string = ''
 
@@ -276,6 +283,8 @@ export const useAuthStore = defineStore({
         '_blank'
       )
 
+      this.isLoginListenerSet = false
+
       if (!this.isLoginListenerSet) {
         this.isLoginListenerSet = true // Prevents registering the listener more than once
         console.info(`User: listening to login window...`)
@@ -283,16 +292,16 @@ export const useAuthStore = defineStore({
           console.log(event)
           if (
             // event.origin !== APP_URL ||
-            !event.data.hasOwnProperty('access_token')
+            !event.data.hasOwnProperty('access')
           ) {
             return
           }
 
-          if (event.data.access_token) {
+          if (event.data.access) {
             console.log(event)
 
-            this.access_token = event.data.access_token
-            this.refresh_token = event.data.refresh_token
+            this.access_token = event.data.access
+            this.refresh_token = event.data.refresh
             this.user = event.data.user
             await router.push({ name: 'Sites' })
 
