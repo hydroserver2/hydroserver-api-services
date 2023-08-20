@@ -1,6 +1,6 @@
 <template>
   <v-app-bar app elevation="2">
-    <template v-if="mdAndDown" v-slot:append>
+    <template v-if="smAndDown" v-slot:append>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     </template>
 
@@ -8,7 +8,7 @@
       <v-img class="mx-4" :src="appLogo" alt="HydroServer home" width="10rem" />
     </router-link>
 
-    <template v-if="!mdAndDown">
+    <template v-if="!smAndDown">
       <div v-for="path of paths" :key="path.name">
         <v-btn
           v-if="!path.menu"
@@ -53,7 +53,12 @@
       <v-spacer></v-spacer>
 
       <template v-if="authStore.isLoggedIn">
-        <v-btn elevation="2" rounded class="account-logout-button">
+        <v-btn
+          elevation="2"
+          rounded
+          class="account-logout-button"
+          aria-label="Account Actions"
+        >
           <v-icon>mdi-account-circle</v-icon>
           <v-icon>mdi-menu-down</v-icon>
 
@@ -72,7 +77,7 @@
 
               <v-divider></v-divider>
 
-              <v-list-item id="navbar-logout" @click="authStore.logout">
+              <v-list-item id="navbar-logout" @click="logout">
                 <template v-slot:prepend><v-icon>mdi-logout</v-icon></template>
                 <v-list-item-title>Log Out</v-list-item-title>
               </v-list-item>
@@ -103,7 +108,7 @@
   </v-app-bar>
 
   <v-navigation-drawer
-    v-if="mdAndDown"
+    v-if="smAndDown"
     temporary
     v-model="drawer"
     location="right"
@@ -138,7 +143,7 @@
         <v-list-item to="/profile" prepend-icon="mdi-account-circle"
           >Profile</v-list-item
         >
-        <v-list-item prepend-icon="mdi-logout" @click.prevent="authStore.logout"
+        <v-list-item prepend-icon="mdi-logout" @click.prevent="logout"
           >Logout</v-list-item
         >
       </template>
@@ -158,9 +163,10 @@ import { useAuthStore } from '@/store/authentication'
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import appLogo from '@/assets/hydroserver-icon-min.png'
+import Notification from '@/store/notifications'
 
 const authStore = useAuthStore()
-const { mdAndDown } = useDisplay()
+const { smAndDown } = useDisplay()
 const drawer = ref(false)
 
 const paths: {
@@ -172,12 +178,12 @@ const paths: {
   isExternal?: boolean
   isActive?: () => boolean
 }[] = [
-  {
-    name: 'home',
-    attrs: { to: '/' },
-    label: 'Home',
-    icon: 'mdi-home',
-  },
+  // {
+  //   name: 'home',
+  //   attrs: { to: '/' },
+  //   label: 'Home',
+  //   icon: 'mdi-home',
+  // },
   {
     name: 'browse',
     attrs: { to: '/browse' },
@@ -230,6 +236,10 @@ const paths: {
   // },
 ]
 
+function logout() {
+  authStore.logout()
+  Notification.toast({ message: 'You have logged out', type: 'info' })
+}
 function openInNewTab(event: MouseEvent, href: string | undefined) {
   event.preventDefault()
   if (href) window.open(href, '_blank')

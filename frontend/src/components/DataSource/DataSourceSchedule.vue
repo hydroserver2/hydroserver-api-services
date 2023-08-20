@@ -31,21 +31,15 @@
     </v-row>
     <v-row>
       <v-col class="v-col-xs-12 v-col-sm-6">
-        <v-radio-group
-          v-model="store.scheduleType"
-          inline
-        >
-          <v-radio
-            label="Interval"
-            value="interval"
-          ></v-radio>
-          <v-radio
-            label="Crontab"
-            value="crontab"
-          ></v-radio>
+        <v-radio-group v-model="store.scheduleType" inline>
+          <v-radio label="Interval" value="interval"></v-radio>
+          <v-radio label="Crontab" value="crontab"></v-radio>
         </v-radio-group>
       </v-col>
-      <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
+      <v-col
+        v-if="store.scheduleType === 'interval'"
+        class="v-col-xs-6 v-col-sm-3"
+      >
         <v-text-field
           ref="interval"
           v-model="store.interval"
@@ -54,21 +48,28 @@
           persistent-hint
           type="number"
           :rules="[
-             (val) => val != null && val !== '' || 'Interval value is required.',
-             (val) => +val === parseInt(val, 10) || 'Interval must be an integer.',
-             (val) => +val > 0 || 'Interval must be greater than zero.'
+             (val: string) => val != null && val !== '' || 'Interval value is required.',
+             (val: string) => +val === parseInt(val, 10) || 'Interval must be an integer.',
+             (val: string) => +val > 0 || 'Interval must be greater than zero.'
           ]"
         />
       </v-col>
-      <v-col v-if="store.scheduleType === 'interval'" class="v-col-xs-6 v-col-sm-3">
+      <v-col
+        v-if="store.scheduleType === 'interval'"
+        class="v-col-xs-6 v-col-sm-3"
+      >
         <v-select
           v-model="store.intervalUnits"
           label="Interval Units"
           :items="intervalUnitValues"
-          variant="outlined" density="comfortable"
+          variant="outlined"
+          density="comfortable"
         />
       </v-col>
-      <v-col v-if="store.scheduleType === 'crontab'" class="v-col-xs-12 v-col-sm-6">
+      <v-col
+        v-if="store.scheduleType === 'crontab'"
+        class="v-col-xs-12 v-col-sm-6"
+      >
         <v-text-field
           ref="crontab"
           v-model="store.crontab"
@@ -82,8 +83,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useDataSourceFormStore } from '@/store/datasource_form';
+import { ref } from 'vue'
+import { useDataSourceFormStore } from '@/store/datasource_form'
 
 const store = useDataSourceFormStore()
 
@@ -114,11 +115,8 @@ async function validate() {
 }
 
 defineExpose({
-  validate
+  validate,
 })
-
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

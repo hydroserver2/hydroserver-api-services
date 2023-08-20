@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 
-let version = 'v0.1.14' // TODO: Add this as an environment variable
+let version = 'v0.1.15' // TODO: Add this as an environment variable
 let macosLink = `https://sdl-dist.s3.amazonaws.com/${version}/macos/Streaming+Data+Loader.dmg`
 let windowsLink = `https://sdl-dist.s3.amazonaws.com/${version}/windows/Streaming+Data+Loader.zip`
 

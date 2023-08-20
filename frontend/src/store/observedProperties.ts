@@ -6,7 +6,14 @@ export const useObservedPropertyStore = defineStore('observedProperties', {
     observedProperties: [] as ObservedProperty[],
     loaded: false,
   }),
-  getters: {},
+  getters: {
+    ownedOP(): ObservedProperty[] {
+      return this.observedProperties.filter((op) => op.person_id != null)
+    },
+    unownedOP(): ObservedProperty[] {
+      return this.observedProperties.filter((op) => op.person_id == null)
+    },
+  },
   actions: {
     sortObservedProperties() {
       this.observedProperties.sort((a, b) => a.name.localeCompare(b.name))

@@ -9,13 +9,13 @@
     </v-row>
     <v-row>
       <v-col>
-        <h6 class="text-h6 mb-2">
+        <p class="mb-2">
           Select the appropriate metadata to describe the the datastream you are
           adding to the monitoring site. If you want to modify the values
           available in the drop down menus below, click the “Add New” button or
           visit the
           <router-link to="/Metadata"> Manage Metadata page. </router-link>
-        </h6>
+        </p>
       </v-col>
     </v-row>
     <v-row v-if="isPrimaryOwner">
@@ -37,7 +37,7 @@
       validate-on="blur"
     >
       <v-row>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="6">
           <v-autocomplete
             :key="datastream.method_id"
             v-model="datastream.method_id"
@@ -67,13 +67,13 @@
             ></sensor-modal>
           </v-dialog>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="6">
           <v-autocomplete
             v-model="datastream.observed_property_id"
             label="Select observed property *"
             :items="
               isPrimaryOwner
-                ? opStore.observedProperties
+                ? opStore.ownedOP
                 : thingStore.POMetadata[thingId].observed_properties
             "
             item-title="name"
@@ -92,13 +92,13 @@
             >Add New</v-btn-add
           >
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="6">
           <v-autocomplete
             v-model="datastream.unit_id"
             label="Select unit *"
             :items="
               isPrimaryOwner
-                ? unitStore.units
+                ? unitStore.ownedUnits
                 : thingStore.POMetadata[thingId].units
             "
             item-title="name"
@@ -118,7 +118,7 @@
             >
           </v-dialog>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="6">
           <v-autocomplete
             v-model="datastream.processing_level_id"
             label="Select processing level *"
@@ -139,6 +139,16 @@
               >Add New</ProcessingLevelModal
             >
           </v-dialog>
+        </v-col>
+      </v-row>
+
+      <v-row>
+        <v-col>
+          <p class="mt-2">
+            For the following items, select an option or type your own. Note:
+            the default selections won't be available if there is custom text in
+            the field.
+          </p>
         </v-col>
       </v-row>
       <v-row>
@@ -254,7 +264,7 @@ const formattedDatastreams = computed(() => {
 const formattedProcessingLevels = computed(() => {
   let processingLevels
   if (isPrimaryOwner.value) {
-    processingLevels = plStore.processingLevels
+    processingLevels = plStore.ownedProcessingLevels
   } else {
     processingLevels = thingStore.POMetadata[thingId].processing_levels
   }

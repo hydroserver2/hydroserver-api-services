@@ -144,7 +144,10 @@ export function drawChart(
   // Append x-axis label
   plot_g
     .append('text')
-    .attr('transform', `translate(${width / 2} ,${height + margin.top})`)
+    .attr(
+      'transform',
+      `translate(${width / 2 - labelWidth} ,${height + margin.top})`
+    )
     .style('text-anchor', 'middle')
     .text('Date/Time')
 

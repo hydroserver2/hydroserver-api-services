@@ -12,6 +12,18 @@
           validate-on="blur"
         >
           <v-row>
+            <v-col>
+              <v-autocomplete
+                v-if="!isEdit"
+                v-model="selectedId"
+                label="Load a template unit"
+                :items="unitStore.unownedUnits"
+                item-title="name"
+                item-value="id"
+              ></v-autocomplete>
+            </v-col>
+          </v-row>
+          <v-row>
             <v-col cols="12">
               <v-text-field
                 v-model="unit.name"
@@ -54,32 +66,30 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { VForm } from 'vuetify/components'
 import { rules } from '@/utils/rules'
 import { useUnitStore } from '@/store/unit'
-import { Unit } from '@/types'
+import { useUnits } from '@/composables/useMetadata'
 
 const unitStore = useUnitStore()
 const props = defineProps({ id: String })
-const isEdit = computed(() => props.id != null)
 const emit = defineEmits(['uploaded', 'close'])
-const valid = ref(false)
-const myForm = ref<VForm>()
-const unit = reactive<Unit>(new Unit())
+
+const {
+  isEdit,
+  selectedId,
+  myForm,
+  valid,
+  selectedEntity: unit,
+} = useUnits(props.id)
 
 async function uploadUnit() {
   await myForm.value?.validate()
   if (!valid.value) return
-  if (isEdit.value) await unitStore.updateUnit(unit)
+  if (isEdit.value) await unitStore.updateUnit(unit.value)
   else {
-    const newUnit = await unitStore.createUnit(unit)
+    const newUnit = await unitStore.createUnit(unit.value)
     emit('uploaded', newUnit.id)
   }
   emit('close')
 }
-
-onMounted(async () => {
-  await unitStore.fetchUnits()
-  if (props.id) Object.assign(unit, unitStore.getUnitById(props.id))
-})
 </script>

@@ -7,21 +7,7 @@ from django.http import StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from hydroserver.settings import LOCAL_CSV_STORAGE
-from .models import Thing, Observation, Sensor
-
-
-# class SensorSelectionForm(ModelForm):
-#     sensor = ChoiceField()
-#
-#     def __init__(self, *args, **kwargs):
-#         sensors = kwargs.pop('sensors', None)
-#         super().__init__(*args, **kwargs)
-#         sensor_choices = [(s.pk, s.name) for s in sensors]
-#         self.fields['sensor'] = ChoiceField(choices=sensor_choices, widget=Select())
-#
-#     class Meta:
-#         model = Sensor
-#         fields = ['sensor']
+from ..models import Thing, Observation, Sensor
 
 
 def export_csv(request, thing_pk):

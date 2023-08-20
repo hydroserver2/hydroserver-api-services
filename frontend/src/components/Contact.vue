@@ -13,7 +13,7 @@
     </v-row>
 
     <v-row class="d-flex align-start justify-start" align="stretch">
-      <v-col cols="6" class="align-self-start">
+      <v-col cols="12" md="6" class="align-self-start">
         <v-card class="fill-height d-flex flex-column justify-space-between">
           <v-card-text class="text-h6">
             <h5 class="text-h5 mb-4 d-flex align-center">
@@ -32,7 +32,7 @@
           </v-card-actions>
         </v-card>
       </v-col>
-      <v-col cols="6">
+      <v-col cols="12" md="6">
         <v-card class="fill-height d-flex flex-column justify-space-between">
           <v-card-text class="text-h6">
             <h5 class="text-h5 mb-4 d-flex align-center">

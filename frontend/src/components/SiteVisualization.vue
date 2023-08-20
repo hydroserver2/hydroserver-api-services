@@ -1,17 +1,23 @@
 <template>
-  <!-- <v-row class="pt-4 pb-4" align="center" justify="center"> -->
-  <!-- <v-col cols="10" lg="8"> -->
   <v-card class="elevation-5">
-    <h5 class="text-h5 pt-2 text-center">Datastream for {{ thing?.name }}</h5>
+    <v-row>
+      <v-col>
+        <h5 class="text-h5 pt-2 text-center">
+          Datastream for {{ thing?.name }}
+        </h5>
+      </v-col>
+      <v-col cols="auto">
+        <v-btn class="pt-2 pr-2" icon @click="$emit('close')">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
     <div ref="chart"></div>
   </v-card>
-  <!-- </v-col> -->
-  <!-- </v-row> -->
 </template>
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-// import { useRoute } from 'vue-router'
 import { useDatastream } from '@/composables/useDatastream'
 import { useThing } from '@/composables/useThing'
 import { drawChart } from '@/composables/chart'
@@ -27,8 +33,7 @@ const props = defineProps({
   },
 })
 
-// const datastreamId = useRoute().params.datastreamId.toString()
-// const thingId = useRoute().params.id.toString()
+const emit = defineEmits(['close'])
 
 const { thing } = useThing(props.thingId)
 const { datastream, observations } = useDatastream(

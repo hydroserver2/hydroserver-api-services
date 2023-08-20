@@ -63,6 +63,24 @@
                 ></v-autocomplete
               ></v-col>
             </v-row>
+            <v-row no-gutters class="pt-2">
+              <v-col>
+                <v-switch
+                  v-model="thing.include_data_disclaimer"
+                  color="primary"
+                  hide-details
+                  label="Include a data disclaimer for this site"
+                ></v-switch>
+              </v-col>
+            </v-row>
+            <v-row v-if="thing.include_data_disclaimer" no-gutters>
+              <v-col>
+                <v-textarea
+                  v-model="thing.data_disclaimer"
+                  color="primary"
+                ></v-textarea>
+              </v-col>
+            </v-row>
           </v-col>
           <v-col cols="12" md="6">
             <h6 class="text-h6 my-4">Site Location</h6>
@@ -73,6 +91,7 @@
                   v-model="thing.latitude"
                   type="number"
                   :rules="rules.required"
+                  validate-on="input"
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
@@ -80,13 +99,15 @@
                   v-model="thing.longitude"
                   type="number"
                   :rules="rules.required"
+                  validate-on="input"
               /></v-col>
               <v-col cols="12" sm="6"
                 ><v-text-field
-                  label="Elevation *"
+                  label="Elevation (m) *"
                   v-model="thing.elevation"
                   type="number"
                   :rules="rules.required"
+                  validate-on="input"
               /></v-col>
               <v-col cols="12" sm="6">
                 <v-text-field
@@ -188,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import GoogleMap from '../GoogleMap.vue'
 import { useThingStore } from '@/store/things'
 import { usePhotosStore } from '@/store/photos'
@@ -217,6 +238,16 @@ const mapOptions = ref({
   mapTypeId: 'roadmap',
 })
 const thing = reactive<Thing>(new Thing())
+
+watch(
+  () => thing.include_data_disclaimer,
+  (newVal) => {
+    if (newVal && !thing.data_disclaimer) {
+      thing.data_disclaimer =
+        'WARNING: These data may be provisional and subject to revision. The data are released under the condition that the data collectors may not be held liable for any damages resulting from their use.'
+    }
+  }
+)
 
 function handleDrop(e: DragEvent) {
   e.preventDefault()
@@ -285,6 +316,7 @@ async function uploadThing() {
 
   emit('close')
   if (thing) {
+    if (!thing.include_data_disclaimer) thing.data_disclaimer = ''
     if (props.thingId) {
       await thingStore.updateThing(thing)
       await photoStore.updatePhotos(

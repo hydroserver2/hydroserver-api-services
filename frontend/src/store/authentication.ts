@@ -88,9 +88,8 @@ export const useAuthStore = defineStore({
       }
     },
     async logout() {
-      this.resetState()
       await router.push({ name: 'Login' })
-      Notification.toast({ message: 'You have logged out', type: 'info' })
+      this.resetState()
     },
     async refreshAccessToken() {
       try {
@@ -211,7 +210,7 @@ export const useAuthStore = defineStore({
     },
     async requestPasswordReset(email: String) {
       try {
-        const response = await this.$http.post('/account/password-reset', {
+        const response = await this.$http.post('/user/password_reset', {
           email: email,
         })
         return response.status === 200
@@ -239,7 +238,7 @@ export const useAuthStore = defineStore({
     },
     async resetPassword(uid: string, token: string, password: string) {
       try {
-        const response = await this.$http.post('/account/reset-password', {
+        const response = await this.$http.post('/user/reset_password', {
           uid: uid,
           token: token,
           password: password,
@@ -278,10 +277,7 @@ export const useAuthStore = defineStore({
         OAuthUrl = '/api/account/orcid/login'
       }
 
-      window.open(
-        OAuthUrl,
-        '_blank'
-      )
+      window.open(OAuthUrl, '_blank')
 
       this.isLoginListenerSet = false
 

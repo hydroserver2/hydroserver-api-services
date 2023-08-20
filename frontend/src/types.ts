@@ -24,6 +24,8 @@ export class Thing {
   county: string
   is_primary_owner: boolean
   followers: number
+  data_disclaimer: string
+  include_data_disclaimer: boolean
 
   constructor() {
     this.id = ''
@@ -43,6 +45,8 @@ export class Thing {
     this.county = ''
     this.is_primary_owner = false
     this.followers = 0
+    this.data_disclaimer = ''
+    this.include_data_disclaimer = false
   }
 }
 
@@ -148,6 +152,7 @@ export class Sensor {
 export class ObservedProperty {
   id: string
   name: string
+  person_id: string
   definition: string
   description: string
   variable_type: string
@@ -156,9 +161,10 @@ export class ObservedProperty {
   constructor() {
     this.id = ''
     this.name = ''
+    this.person_id = ''
     this.definition = ''
     this.description = ''
-    this.variable_type = ''
+    this.variable_type = 'Hydrology'
     this.variable_code = ''
   }
 }

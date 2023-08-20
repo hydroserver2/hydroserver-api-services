@@ -48,7 +48,7 @@
     </v-row>
     <v-data-table
       :headers="OPHeaders"
-      :items="opStore.observedProperties"
+      :items="opStore.ownedOP"
       class="elevation-3"
     >
       <template v-slot:item.actions="{ item }">

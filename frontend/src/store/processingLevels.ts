@@ -7,6 +7,9 @@ export const useProcessingLevelStore = defineStore('processingLevels', {
     ownedProcessingLevels(): ProcessingLevel[] {
       return this.processingLevels.filter((pl) => pl.person_id != null)
     },
+    unownedProcessingLevels(): ProcessingLevel[] {
+      return this.processingLevels.filter((pl) => pl.person_id == null)
+    },
   },
   actions: {
     sortProcessingLevels() {

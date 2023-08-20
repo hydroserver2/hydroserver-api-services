@@ -180,10 +180,11 @@
       >
         <template v-slot:item.observations="{ item }">
           <div v-if="item.raw.observations">
-            <v-dialog v-model="item.raw.chartOpen">
+            <v-dialog v-model="item.raw.chartOpen" width="80rem">
               <SiteVisualization
                 :thing-id="thingId"
                 :datastream-id="item.raw.id"
+                @close="item.raw.chartOpen = false"
               ></SiteVisualization>
             </v-dialog>
             <LineChart
@@ -205,8 +206,10 @@
               }}
             </v-row>
             <v-row>
-              {{ item.raw.unit_name }} -
-              {{ (item.raw.most_recent_observation as Observation).result }}
+              {{
+                (item.raw.most_recent_observation as Observation).result
+              }}&nbsp;
+              {{ item.raw.unit_name }}
             </v-row>
           </div>
         </template>
@@ -270,10 +273,7 @@
                 v-if="is_owner"
                 prepend-icon="mdi-chart-line"
                 title="View Time Series Plot"
-                :to="{
-                  name: 'SiteVisualization',
-                  params: { id: thingId, datastreamId: item.raw.id },
-                }"
+                @click="item.raw.chartOpen = true"
               />
               <v-list-item
                 v-if="is_owner"
@@ -330,6 +330,11 @@
           :column="linkFormColumn"
         />
       </v-dialog>
+    </v-row>
+    <v-row v-if="thing?.include_data_disclaimer" class="pt-2 pb-8">
+      <h6 class="text-h6" style="color: #b71c1c">
+        {{ thing.data_disclaimer }}
+      </h6>
     </v-row>
   </v-container>
 </template>
