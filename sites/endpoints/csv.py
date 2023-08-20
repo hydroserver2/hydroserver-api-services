@@ -7,7 +7,7 @@ from django.http import StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from hydroserver.settings import LOCAL_CSV_STORAGE
-from .models import Thing, Observation, Sensor
+from ..models import Thing, Observation, Sensor
 
 
 def export_csv(request, thing_pk):

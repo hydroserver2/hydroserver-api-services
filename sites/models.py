@@ -36,7 +36,6 @@ class Photo(models.Model):
 
 @receiver(pre_delete, sender=Photo)
 def delete_photo(sender, instance, **kwargs):
-    print("deleting photo")
     s3 = boto3.client('s3', 
                         region_name='us-east-1', 
                         aws_access_key_id=AWS_ACCESS_KEY_ID,

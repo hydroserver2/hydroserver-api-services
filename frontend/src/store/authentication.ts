@@ -150,7 +150,7 @@ export const useAuthStore = defineStore({
     },
     async requestPasswordReset(email: String) {
       try {
-        const response = await this.$http.post('/password_reset', {
+        const response = await this.$http.post('/user/password_reset', {
           email: email,
         })
         return response.status === 200
@@ -178,7 +178,7 @@ export const useAuthStore = defineStore({
     },
     async resetPassword(uid: string, token: string, password: string) {
       try {
-        const response = await this.$http.post('/reset_password', {
+        const response = await this.$http.post('/user/reset_password', {
           uid: uid,
           token: token,
           password: password,

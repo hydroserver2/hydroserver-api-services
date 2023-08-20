@@ -1,4 +1,4 @@
-from .models import Unit
+from sites.models import Unit
 import copy
 
 def transfer_unit_ownership(datastream, new_owner, old_owner):

@@ -1,11 +1,12 @@
-from ninja import Router, Schema
-from .models import Unit
-from .unit_utils import unit_to_dict
-
 from django.http import JsonResponse
 from django.db.models import Q
 
-from .auth_utils import jwt_auth
+from ninja import Router, Schema
+
+from sites.models import Unit
+from sites.utils.unit import unit_to_dict
+from sites.utils.authentication import jwt_auth
+
 
 router = Router()
 
@@ -17,7 +18,7 @@ class CreateUnitInput(Schema):
     unit_type: str
 
 
-@router.post('/units', auth=jwt_auth)
+@router.post('', auth=jwt_auth)
 def create_unit(request, data: CreateUnitInput):
     unit = Unit.objects.create(
         name=data.name,
@@ -29,7 +30,7 @@ def create_unit(request, data: CreateUnitInput):
     return JsonResponse(unit_to_dict(unit))
 
 
-@router.get('/units', auth=jwt_auth)
+@router.get('', auth=jwt_auth)
 def get_units(request):
     units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
@@ -42,7 +43,7 @@ class UpdateUnitInput(Schema):
     unit_type: str
 
 
-@router.patch('/units/{unit_id}', auth=jwt_auth)
+@router.patch('/{unit_id}', auth=jwt_auth)
 def update_unit(request, unit_id: str, data: UpdateUnitInput):
     unit = Unit.objects.get(id=unit_id)
     if request.authenticated_user != unit.person:
@@ -61,7 +62,7 @@ def update_unit(request, unit_id: str, data: UpdateUnitInput):
     return JsonResponse(unit_to_dict(unit))
 
 
-@router.delete('/units/{unit_id}', auth=jwt_auth)
+@router.delete('/{unit_id}', auth=jwt_auth)
 def delete_unit(request, unit_id: str):
     try:
         unit = Unit.objects.get(id=unit_id)
