@@ -193,7 +193,7 @@ export const useAuthStore = defineStore({
     },
     async deleteAccount() {
       try {
-        await this.$http.delete('/account/user')
+        await this.$http.delete('/user')
         await this.logout()
         Notification.toast({
           message: 'Your account has been deleted',
