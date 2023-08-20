@@ -1,11 +1,17 @@
-from ninja import NinjaAPI
-from accounts.views import router
+from ninja_extra import NinjaExtraAPI
+from accounts.views.users import user_router
+from accounts.views.oauth import orcid_router, google_router
+from accounts.views.jwt import HydroServerJWTController
 
 
-user_api = NinjaAPI(
-    title='HydroServer User Management API',
+accounts_api = NinjaExtraAPI(
+    title='HydroServer Account Management API',
     version='0.0.1',
-    urls_namespace='user'
+    urls_namespace='accounts'
 )
 
-user_api.add_router(prefix='', router=router)
+
+accounts_api.add_router(prefix='', router=user_router)
+accounts_api.register_controllers(HydroServerJWTController)
+accounts_api.add_router(prefix='google', router=google_router)
+accounts_api.add_router(prefix='orcid', router=orcid_router)

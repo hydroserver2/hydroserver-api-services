@@ -12,6 +12,7 @@ export const useAuthStore = defineStore({
     refresh_token: '',
     user: new User(),
     loggingIn: false,
+    sendingVerificationEmail: false,
     isLoginListenerSet: false,
     loggedIn$: new Subject<void>(),
   }),
@@ -24,28 +25,41 @@ export const useAuthStore = defineStore({
       try {
         this.loggingIn = true
         this.resetState()
-        const response = await this.$http.post('/token', {
+        const tokenResponse = await this.$http.post('/account/jwt/pair', {
           email: email,
           password: password,
         })
-        if (response.status === 401) {
+        if (tokenResponse.status === 200) {
+          this.access_token = tokenResponse.data.access
+          this.refresh_token = tokenResponse.data.refresh
+          const userResponse = await this.$http.get('/account/user')
+          if (userResponse.status === 200) {
+            this.user = userResponse.data
+            await router.push({ name: 'Sites' })
+            Notification.toast({
+              message: 'You have logged in!',
+              type: 'success',
+            })
+          } else if (userResponse.status === 401) {
+            Notification.toast({
+              message: 'Invalid email or password.',
+              type: 'error',
+            })
+          } else {
+            Notification.toast({
+              message: 'Server error. Please try again later.',
+              type: 'error',
+            })
+          }
+        } else if (tokenResponse.status === 401) {
           Notification.toast({
             message: 'Invalid email or password.',
             type: 'error',
           })
-        } else if (response.status >= 500 && response.status < 600) {
+        } else {
           Notification.toast({
             message: 'Server error. Please try again later.',
             type: 'error',
-          })
-        } else if (response.status === 200) {
-          this.access_token = response.data.access_token
-          this.refresh_token = response.data.refresh_token
-          this.user = response.data.user
-          await router.push({ name: 'Sites' })
-          Notification.toast({
-            message: 'You have logged in!',
-            type: 'success',
           })
         }
       } catch (error: any) {
@@ -79,11 +93,11 @@ export const useAuthStore = defineStore({
     },
     async refreshAccessToken() {
       try {
-        const { data } = await this.$http.post('/token/refresh', {
-          refresh_token: this.refresh_token,
+        const { data } = await this.$http.post('/account/jwt/refresh', {
+          refresh: this.refresh_token,
         })
-        this.access_token = data.access_token
-        this.refresh_token = data.refresh_token
+        this.access_token = data.access
+        this.refresh_token = data.refresh
         console.log('Access token refreshed')
       } catch (error) {
         console.error('Error refreshing access token:', error)
@@ -92,13 +106,19 @@ export const useAuthStore = defineStore({
     },
     async createUser(user: User) {
       try {
-        const response = await this.$http.post('/user', user)
+        const response = await this.$http.post('/account/user', user)
         if (response.status === 200) {
+          try {
+            useResetStore().things()
+          } catch (error) {}
+          this.user = response.data.user
+          this.access_token = response.data.access
+          this.refresh_token = response.data.refresh
+          await router.push({ name: 'VerifyEmail' })
           Notification.toast({
             message: 'Account successfully created.',
             type: 'success',
           })
-          await this.login(user.email, user.password)
         }
       } catch (error: any) {
         if (!error.response) {
@@ -123,17 +143,57 @@ export const useAuthStore = defineStore({
         console.error('Error creating user', error)
       }
     },
+    async sendVerificationEmail() {
+      if (this.sendingVerificationEmail === true) { return }
+      this.sendingVerificationEmail = true
+      const response = await this.$http.post('/account/send-verification-email')
+      this.sendingVerificationEmail = false
+      if (response.status === 200) {
+        Notification.toast({
+          message: 'Verification email sent successfully.',
+          type: 'info',
+        })
+      } else {
+        Notification.toast({
+          message: 'Failed to send verification email.',
+          type: 'error',
+        })
+      }
+    },
+    async activateAccount(uid: string, token: string) {
+      const response = await this.$http.post('account/activate', {
+        uid: uid,
+        token: token
+      })
+      if (response.status === 200 && response.data.user.is_verified) {
+        this.user = response.data.user
+        this.access_token = response.data.access
+        this.refresh_token = response.data.refresh
+        Notification.toast({
+          message: 'Your HydroServer account has been activated.',
+          type: 'success',
+        })
+      } else {
+        Notification.toast({
+          message: 'Account activation failed. Token incorrect or expired.',
+          type: 'error',
+        })
+      }
+      await router.push({ name: 'Sites' })
+    },
     async updateUser(user: User) {
       try {
-        const { data } = await this.$http.patch('/user', user)
+        const { data } = await this.$http.patch('/account/user', user)
         // things.organizations could be affected for many things so just invalidate cache
-        useResetStore().things()
+        try {
+          useResetStore().things()
+        } catch (error) {}
         this.user = data
       } catch (error) {}
     },
     async deleteAccount() {
       try {
-        await this.$http.delete('/user')
+        await this.$http.delete('/account/user')
         await this.logout()
         Notification.toast({
           message: 'Your account has been deleted',
@@ -208,17 +268,18 @@ export const useAuthStore = defineStore({
         return false
       }
     },
-
     async OAuthLogin(backend: string, callback?: () => any) {
       let OAuthUrl: string = ''
 
       if (backend === 'google') {
-        OAuthUrl = '/api2/auth/google/login'
+        OAuthUrl = '/api/account/google/login'
       } else if (backend === 'orcid') {
-        OAuthUrl = '/api2/auth/orcid/login'
+        OAuthUrl = '/api/account/orcid/login'
       }
 
       window.open(OAuthUrl, '_blank')
+
+      this.isLoginListenerSet = false
 
       if (!this.isLoginListenerSet) {
         this.isLoginListenerSet = true // Prevents registering the listener more than once
@@ -227,16 +288,16 @@ export const useAuthStore = defineStore({
           console.log(event)
           if (
             // event.origin !== APP_URL ||
-            !event.data.hasOwnProperty('access_token')
+            !event.data.hasOwnProperty('access')
           ) {
             return
           }
 
-          if (event.data.access_token) {
+          if (event.data.access) {
             console.log(event)
 
-            this.access_token = event.data.access_token
-            this.refresh_token = event.data.refresh_token
+            this.access_token = event.data.access
+            this.refresh_token = event.data.refresh
             this.user = event.data.user
             await router.push({ name: 'Sites' })
 
@@ -265,5 +326,8 @@ export const useAuthStore = defineStore({
     isLoggedIn: (state) => {
       return !!state.access_token
     },
+    isVerified: (state) => {
+      return state.user.is_verified
+    }
   },
 })

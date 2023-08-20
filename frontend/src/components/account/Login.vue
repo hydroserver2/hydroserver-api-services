@@ -4,7 +4,6 @@
   >
     <v-card class="login-card" width="40rem">
       <v-card-title class="mb-4 login-title">Sign In</v-card-title>
-
       <v-card-text>
         <v-btn
           @click="openLogInDialog('google')"
@@ -15,7 +14,16 @@
           Log in using Google
         </v-btn>
       </v-card-text>
-
+      <v-card-text>
+        <v-btn
+          @click="openLogInDialog('orcid')"
+          variant="flat"
+          color="secondary"
+          prepend-icon="mdi-orcid"
+        >
+          Log in using ORCID
+        </v-btn>
+      </v-card-text>
       <v-card-text>
         <v-form
           class="login-form"

@@ -1,16 +1,32 @@
+import uuid
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-import uuid
 from django.utils import timezone
 from datetime import timedelta
 
+
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+    def create_user(self, email=None, password=None, **extra_fields):
+        uid = f'{uuid.uuid4()}@hydroserver-temp.org'
+
+        if email is not None:
+            unverified_email = self.normalize_email(email)
+        else:
+            unverified_email = None
+
+        user = self.model(
+            username=uid,
+            email=uid,
+            unverified_email=unverified_email,
+            **extra_fields
+        )
+
+        if password is not None:
+            user.set_password(password)
+
         user.save(using=self._db)
+
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -21,11 +37,14 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
+    unverified_email = models.EmailField(blank=True, null=True)
+    orcid = models.CharField(max_length=255, blank=True, null=True)
     organization = models.CharField(max_length=255, blank=True, null=True)
     middle_name = models.CharField(max_length=30, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     type = models.CharField(max_length=255, blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 

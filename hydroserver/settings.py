@@ -90,11 +90,21 @@ REST_FRAMEWORK = {
     # 'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=15),
 }
 
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
+# SIMPLE_JWT = {
+#     'AUTH_HEADER_TYPES': ('JWT',),
+#     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
+#     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
+# }
+
+NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'accounts.auth.backends.UnverifiedUserBackend'
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',

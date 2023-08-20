@@ -14,6 +14,28 @@ function requireAuth(
   else next()
 }
 
+function requireVerifiedAuth(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: (to?: string | object) => void
+) {
+  const authStore = useAuthStore()
+  if (!authStore.isLoggedIn) next({ name: 'Login' })
+  else if (!authStore.isVerified) next({ name: 'VerifyEmail'})
+  else next()
+}
+
+function requireUnverifiedAuth(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: (to?: string | object) => void
+) {
+  const authStore = useAuthStore()
+  if (!authStore.isLoggedIn) next({ name: 'Login' })
+  else if (authStore.isVerified) next({ name: 'Sites'})
+  else next()
+}
+
 async function requireThingOwnership(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
@@ -23,6 +45,11 @@ async function requireThingOwnership(
   const thingStore = useThingStore()
   if (!authStore.isLoggedIn) {
     next({ name: 'Login' })
+    return
+  }
+
+  if (!authStore.isVerified) {
+    next({ name: 'VerifyEmail'})
     return
   }
 
@@ -49,7 +76,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/sites',
     name: 'Sites',
     component: () => import('@/components/Site/Sites.vue'),
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/sites/:id',
@@ -76,7 +103,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-sources',
     name: 'DataSources',
     component: () => import('@/components/DataSource/DataSourceDashboard.vue'),
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/data-sources/:id',
@@ -87,7 +114,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/data-loaders',
     name: 'DataLoaders',
     component: () => import('@/components/DataSource/DataLoaderDashboard.vue'),
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/hydroloader/download',
@@ -129,10 +156,21 @@ export const routes: RouteRecordRaw[] = [
     beforeEnter: requireAuth,
   },
   {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('@/components/account/VerifyEmail.vue'),
+    beforeEnter: requireUnverifiedAuth,
+  },
+  {
+    path: '/activate/:uid/:token',
+    name: 'ActivateAccount',
+    component: () => import('@/components/account/ActivateAccount.vue'),
+  },
+  {
     path: '/metadata',
     name: 'Metadata',
     component: () => import('@/components/Datastream/Metadata.vue'),
-    beforeEnter: requireAuth,
+    beforeEnter: requireVerifiedAuth,
   },
   {
     path: '/:catchAll(.*)*',

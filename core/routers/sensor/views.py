@@ -3,7 +3,7 @@ from typing import List
 from django.http import HttpRequest
 from django.db import transaction
 from django.db.models import Q
-from core.auth import BasicAuth, JWTAuth
+from accounts.auth import BasicAuth, JWTAuth
 from core.routers.sensor.schemas import *
 from sites.models import Sensor
 
