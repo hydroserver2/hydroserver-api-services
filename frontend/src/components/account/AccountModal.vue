@@ -74,6 +74,16 @@
             ></v-autocomplete>
           </v-col>
         </v-row>
+        <v-row>
+          <v-col>
+            <v-text-field
+              v-model="user.link"
+              label="User's Link (URL)"
+              :rules="user.link ? rules.urlFormat : []"
+            >
+            </v-text-field>
+          </v-col>
+        </v-row>
         <v-card-actions v-if="isModal">
           <v-spacer></v-spacer>
           <v-btn-cancel @click="closeDialog">Cancel</v-btn-cancel>
@@ -99,7 +109,7 @@ import { vMaska } from 'maska'
 const phoneMask = { mask: '(###) ###-####' }
 const authStore = useAuthStore()
 const props = defineProps({
-  isModal: { type: Boolean, required: false, default: true }
+  isModal: { type: Boolean, required: false, default: true },
 })
 let user = reactive({ ...authStore.user })
 const valid = ref(false)

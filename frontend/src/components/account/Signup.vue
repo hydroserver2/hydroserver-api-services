@@ -97,6 +97,15 @@
               ></v-autocomplete>
             </v-col>
           </v-row>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="user.link"
+                label="User's Link (URL)"
+                :rules="user.link ? rules.urlFormat : []"
+              ></v-text-field>
+            </v-col>
+          </v-row>
           <div class="mt-6">
             <v-btn-primary type="submit">Create User</v-btn-primary>
           </div>

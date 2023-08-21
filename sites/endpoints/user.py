@@ -14,6 +14,50 @@ from sites.models import Thing
 
 router = Router()
 
+class CreateUserInput(Schema):
+    first_name: str
+    last_name: str
+    email: str
+    password: str
+    middle_name: str = None
+    phone: str = None
+    address: str = None
+    type: str = None
+    organization: str = None
+    link: str = None
+
+
+@router.post('')
+def create_user(request, data: CreateUserInput):
+    try:
+        user = CustomUser.objects.create_user(
+            username=data.email,
+            email=data.email,
+            password=data.password,
+            first_name=data.first_name,
+            middle_name=data.middle_name,
+            last_name=data.last_name,
+            organization=data.organization,
+            type=data.type,
+            link=data.link,
+            phone=data.phone,
+            address=data.address
+        )
+    except IntegrityError:
+        raise HttpError(400, 'EmailAlreadyExists')
+    except Exception as e:
+        raise HttpError(400, str(e))
+
+    user = authenticate(username=data.email, password=data.password)
+    user.save()
+
+    token = RefreshToken.for_user(user)
+
+    return {
+        'access_token': str(token.access_token),
+        'refresh_token': str(token),
+    }
+
 
 class UpdateUserInput(Schema):
     first_name: str = None
@@ -23,6 +67,7 @@ class UpdateUserInput(Schema):
     address: str = None
     organization: str = None
     type: str = None
+    link: str = None
 
 
 @router.patch('', auth=jwt_auth)
@@ -43,6 +88,8 @@ def update_user(request, data: UpdateUserInput):
         user.organization = data.organization
     if data.type is not None:
         user.type = data.type
+    if data.link is not None:
+        user.link = data.link
 
     user.save()
     return JsonResponse(user_to_dict(user))
@@ -82,49 +129,6 @@ def reset_password(request, data: ResetPasswordInput):
     password_reset.delete()
 
     return JsonResponse({'message': 'Password reset successful'}, status=200)
-
-
-class CreateUserInput(Schema):
-    first_name: str
-    last_name: str
-    email: str
-    password: str
-    middle_name: str = None
-    phone: str = None
-    address: str = None
-    type: str = None
-    organization: str = None
-
-
-@router.post('')
-def create_user(request, data: CreateUserInput):
-    try:
-        user = CustomUser.objects.create_user(
-            username=data.email,
-            email=data.email,
-            password=data.password,
-            first_name=data.first_name,
-            middle_name=data.middle_name,
-            last_name=data.last_name,
-            organization=data.organization,
-            type=data.type,
-            phone=data.phone,
-            address=data.address
-        )
-    except IntegrityError:
-        raise HttpError(400, 'EmailAlreadyExists')
-    except Exception as e:
-        raise HttpError(400, str(e))
-
-    user = authenticate(username=data.email, password=data.password)
-    user.save()
-
-    token = RefreshToken.for_user(user)
-
-    return {
-        'access_token': str(token.access_token),
-        'refresh_token': str(token),
-    }
 
 
 class PasswordResetRequestInput(Schema):

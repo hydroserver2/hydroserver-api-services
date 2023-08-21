@@ -44,7 +44,8 @@ def create_user(_: HttpRequest, data: UserPostBody):
         organization=data.organization,
         type=data.type,
         phone=data.phone,
-        address=data.address
+        address=data.address,
+        link=data.link
     )
 
     send_verification_email(user)
@@ -65,7 +66,7 @@ def update_user(request: HttpRequest, data: UserPatchBody):
     user = getattr(request, 'authenticated_user', None)
     user_data = data.dict(exclude_unset=True)
 
-    for field in ['first_name', 'last_name', 'middle_name', 'phone', 'address', 'organization', 'type']:
+    for field in ['first_name', 'last_name', 'middle_name', 'phone', 'address', 'organization', 'type', 'link']:
         if field in user_data:
             setattr(user, field, getattr(data, field))
 

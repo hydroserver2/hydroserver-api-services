@@ -15,7 +15,7 @@
     <v-row class="d-flex align-start justify-start" align="stretch">
       <v-col cols="12" md="6" class="align-self-start">
         <v-card class="fill-height d-flex flex-column justify-space-between">
-          <v-card-text class="text-h6">
+          <v-card-text>
             <h5 class="text-h5 mb-4 d-flex align-center">
               <v-icon left color="grey-darken-1">mdi-email</v-icon>Email Us
             </h5>
@@ -34,7 +34,7 @@
       </v-col>
       <v-col cols="12" md="6">
         <v-card class="fill-height d-flex flex-column justify-space-between">
-          <v-card-text class="text-h6">
+          <v-card-text>
             <h5 class="text-h5 mb-4 d-flex align-center">
               <v-icon left color="grey-darken-1">mdi-github</v-icon>Connect With
               Us on GitHub

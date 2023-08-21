@@ -39,6 +39,10 @@
                         <td class="pr-4"><strong>Email</strong></td>
                         <td>{{ authStore.user.email }}</td>
                       </tr>
+                      <tr>
+                        <td class="pr-4"><strong>Link</strong></td>
+                        <td>{{ authStore.user.link }}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </v-col>
@@ -66,7 +70,10 @@
               </v-card-text>
             </v-card>
             <v-dialog v-model="editAccountDialog" max-width="40rem">
-              <AccountModal title="Edit Profile" @close="editAccountDialog = false"></AccountModal>
+              <AccountModal
+                title="Edit Profile"
+                @close="editAccountDialog = false"
+              ></AccountModal>
             </v-dialog>
           </v-col>
           <v-col md="8">

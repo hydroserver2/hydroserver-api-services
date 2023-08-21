@@ -13,6 +13,7 @@ class UserFields(Schema):
     address: str = None
     type: str = None
     organization: str = None
+    link: str = None
 
 
 class UserGetResponse(UserFields):

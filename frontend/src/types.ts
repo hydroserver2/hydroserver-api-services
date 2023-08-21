@@ -197,6 +197,7 @@ export class User {
   organization: string
   type: string
   is_verified: boolean
+  link: string
 
   constructor() {
     this.id = ''
@@ -210,6 +211,7 @@ export class User {
     this.organization = ''
     this.type = ''
     this.is_verified = false
+    this.link = ''
   }
 }
 

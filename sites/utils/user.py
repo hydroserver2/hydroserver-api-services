@@ -12,7 +12,9 @@ def user_to_dict(user):
         "phone": user.phone,
         "address": user.address,
         "organization": user.organization,
-        "type": user.type
+        "type": user.type, 
+        "link": user.link
+
     }
 
 def send_password_reset_email(user, uid, token):
