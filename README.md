@@ -103,3 +103,7 @@ If you'd like to contribute to CIROH Hydrologic Information System, please follo
 3. Make changes and commit (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create a pull request
+
+## Funding and Acknowledgements
+
+Funding for this project was provided by the National Oceanic & Atmospheric Administration (NOAA), awarded to the Cooperative Institute for Research to Operations in Hydrology (CIROH) through the NOAA Cooperative Agreement with The University of Alabama (NA22NWS4320003).
