@@ -1,4 +1,4 @@
-# CIROH Hydrologic Information System
+# HydroServer Webapp Backend
 
 CIROH Hydrologic Information System is a web application built with Django that allows users to view and analyze 
 hydrologic data. The application uses TimescaleDB, an open-source time-series database, to store and manage large 
