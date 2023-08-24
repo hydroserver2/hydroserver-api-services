@@ -1,5 +1,4 @@
 from django.urls import path
-from django.conf import settings
 from hydrothings import SensorThingsAPI, SensorThingsComponent, SensorThingsEndpoint
 from sensorthings import schemas
 from sensorthings.engine import SensorThingsEngine
@@ -8,9 +7,9 @@ from sensorthings.auth import observation_authorization, BasicAuth
 
 st_api_1_1 = SensorThingsAPI(
     engine=SensorThingsEngine,
-    title=settings.STAPI_TITLE,
+    title='HydroServer SensorThings API',
     version='1.1',
-    description=settings.STAPI_DESCRIPTION,
+    description='This is the documentation for the HydroServer SensorThings API implementation.',
     components=[
         SensorThingsComponent(
             name='datastream',

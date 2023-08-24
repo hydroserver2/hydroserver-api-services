@@ -1,3 +1,4 @@
+from django.urls import path
 from ninja import NinjaAPI
 from core.routers import thing_router, sensor_router
 
@@ -10,3 +11,7 @@ management_api = NinjaAPI(
 
 management_api.add_router(prefix='', router=thing_router)
 management_api.add_router(prefix='', router=sensor_router)
+
+urlpatterns = [
+    path('', management_api.urls),
+]

@@ -10,6 +10,7 @@ import boto3
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
 
+
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, unique=True)
@@ -36,10 +37,12 @@ class Photo(models.Model):
 
 @receiver(pre_delete, sender=Photo)
 def delete_photo(sender, instance, **kwargs):
-    s3 = boto3.client('s3', 
-                        region_name='us-east-1', 
-                        aws_access_key_id=AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    s3 = boto3.client(
+        's3',
+        region_name='us-east-1',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
     
     file_name = instance.url.split(f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/")[1]
 
@@ -109,7 +112,9 @@ class FeatureOfInterest(models.Model):
 
 class ProcessingLevel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
+    person = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True
+    )
     processing_level_code = models.CharField(max_length=255)
     definition = models.TextField()
     explanation = models.TextField()
@@ -195,7 +200,9 @@ class Datastream(models.Model):
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, related_name='datastreams')
     observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT)
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True, related_name='unit', db_constraint=False)
+    unit = models.ForeignKey(
+        Unit, on_delete=models.PROTECT, null=True, blank=True, related_name='unit', db_constraint=False
+    )
     processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True,
                                          related_name='processing_level', db_constraint=False)
 
@@ -250,7 +257,8 @@ class Observation(models.Model):
         managed = False
 
     def __str__(self):
-        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name} - {self.result_time} -- {self.result}"
+        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name} - " + \
+               f"{self.result_time} -- {self.result}"
         if hasattr(self.phenomenon_time, 'strftime'):
             name += f" - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
         return name
