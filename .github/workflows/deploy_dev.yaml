@@ -19,29 +19,8 @@ jobs:
         with:
           ref: dev
 
-      - name: Setup Node 18.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-          
-      - name: Add Node Environment Variables
-        env:
-          VITE_APP_VERSION: ${{ secrets.VITE_APP_VERSION }}
-          VITE_APP_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_APP_GOOGLE_MAPS_API_KEY }}
-          VITE_APP_PROXY_BASE_URL: ${{ secrets.VITE_APP_PROXY_BASE_URL }}
-        run: |
-          touch ./frontend/.env
-          echo VITE_APP_VERSION="$VITE_APP_VERSION" >> ./frontend/.env
-          echo VITE_APP_GOOGLE_MAPS_API_KEY="$VITE_APP_GOOGLE_MAPS_API_KEY" >> ./frontend/.env
-          echo VITE_APP_PROXY_BASE_URL="$VITE_APP_PROXY_BASE_URL" >> ./frontend/.env
-
       - name: Create deployment package
-        run: |
-          npm --prefix ./frontend install ./frontend && \
-          npm --prefix ./frontend run build && \
-          zip -r deploy_package.zip ./
+        run: zip -r deploy_package.zip ./
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -51,18 +30,18 @@ jobs:
           aws-region: 'us-east-1'
 
       - name: Upload deployment package to S3
-        run: aws s3 cp deploy_package.zip s3://ciroh-his/deploy/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip
+        run: aws s3 cp deploy_package.zip s3://hydroserver/deployment/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip
 
       - name: Create ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk create-application-version \
-          --application-name ciroh-his-django-dev \
-          --source-bundle S3Bucket="ciroh-his",S3Key="deploy/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip" \
+          --application-name hydroserver-dev \
+          --source-bundle S3Bucket="hydroserver",S3Key="deployment/dev/deploy_package_${{ github.event.workflow_run.head_sha }}.zip" \
           --version-label "${{ github.event.workflow_run.head_sha }}" \
           --description "commit-sha-${{ github.event.workflow_run.head_sha }}"
 
       - name: Deploy ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk update-environment \
-          --environment-name ciroh-his-dev \
+          --environment-name hydroserver-dev-env \
           --version-label "${{ github.event.workflow_run.head_sha }}"
