@@ -1,8 +1,8 @@
 from ninja import Schema, Field
 from pydantic import HttpUrl
 from typing import List, Literal, Union
-from hydrothings import components as st_components
-from hydrothings.extras.iso_types import ISOInterval
+from sensorthings import components as st_components
+from sensorthings.extras.iso_types import ISOInterval
 
 
 class DatastreamProperties(Schema):

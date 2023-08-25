@@ -1,5 +1,6 @@
 import datetime
 import os
+import socket
 import dj_database_url
 from pathlib import Path
 
@@ -24,8 +25,10 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 DEPLOYED = config('DEPLOYED', default=False, cast=bool)
 
 if DEPLOYED:
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
@@ -56,7 +59,6 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'django_ses',
     'sensorthings',
-    # 'ninja',
     'ninja_extra',
 ]
 
@@ -68,7 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hydrothings.middleware.SensorThingsMiddleware'
+    'sensorthings.middleware.SensorThingsMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'

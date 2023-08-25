@@ -2,7 +2,7 @@ from uuid import UUID
 from ninja import Schema, Field
 from typing import Optional, List
 from pydantic import validator, root_validator, AnyHttpUrl
-from hydrothings.validators import allow_partial
+from sensorthings.validators import allow_partial
 
 
 class ThingOwner(Schema):

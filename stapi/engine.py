@@ -10,10 +10,10 @@ from django.urls.exceptions import Http404
 from django.db import connection
 from django.db.models import F, Window
 from django.db.models.functions import DenseRank
-from hydrothings import SensorThingsAbstractEngine
-from hydrothings import components as component_schemas
-from hydrothings.utils import lookup_component
-from sensorthings.mapper import sensorthings_mapper
+from sensorthings import SensorThingsAbstractEngine
+from sensorthings import components as component_schemas
+from sensorthings.utils import lookup_component
+from stapi.mapper import sensorthings_mapper
 from sites import models as core_models
 
 

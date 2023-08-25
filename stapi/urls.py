@@ -1,8 +1,8 @@
 from django.urls import path
-from hydrothings import SensorThingsAPI, SensorThingsComponent, SensorThingsEndpoint
-from sensorthings import schemas
-from sensorthings.engine import SensorThingsEngine
-from sensorthings.auth import observation_authorization, BasicAuth
+from sensorthings import SensorThingsAPI, SensorThingsComponent, SensorThingsEndpoint
+from stapi import schemas
+from stapi.engine import SensorThingsEngine
+from stapi.auth import observation_authorization, BasicAuth
 
 
 st_api_1_1 = SensorThingsAPI(

@@ -2,7 +2,7 @@ from typing import Sequence
 from django.contrib.auth import authenticate
 from ninja.security import HttpBasicAuth
 from sites.models import ThingAssociation
-from hydrothings import SensorThingsRequest
+from sensorthings import SensorThingsRequest
 
 
 class BasicAuth(HttpBasicAuth):

@@ -1,7 +1,7 @@
 from uuid import UUID
 from ninja import Schema
 from typing import Optional
-from hydrothings.validators import allow_partial
+from sensorthings.validators import allow_partial
 
 
 class SensorFields(Schema):
