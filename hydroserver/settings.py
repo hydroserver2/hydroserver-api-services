@@ -1,5 +1,6 @@
 import datetime
 import os
+import socket
 import dj_database_url
 from pathlib import Path
 
@@ -9,78 +10,40 @@ from typing import Union
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
-try:
-    GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
-except UndefinedValueError:
-    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
-
-try:
-    LOCAL_CSV_STORAGE = config('LOCAL_CSV_STORAGE')
-except UndefinedValueError:
-    LOCAL_CSV_STORAGE = '~/'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-class EnvironmentSettings(BaseSettings):
-    """
-    Defines Django environment variables.
-
-    The default settings defined here should only be used in development environments and are not suitable for
-    production. In production environments, these settings should be defined using environment variables or a .env file
-    in the root project directory.
-    """
-
-    # TODO Find/create types for other databases. In the meantime, allow str.
-    PROXY_BASE_URL: str = 'http://127.0.0.1:8000'
-    ALLOWED_HOSTS: str = '127.0.0.1,localhost'
-    CORS_ALLOWED_ORIGINS: str = 'http://127.0.0.1:5173,http://localhost:5173'
-    DATABASE_URL: Union[PostgresDsn, str] = f'sqlite:///{BASE_DIR}/db.sqlite3'
-    CONN_MAX_AGE: int = 600
-    CONN_HEALTH_CHECKS: bool = True
-    SSL_REQUIRED: bool = False
-    SECRET_KEY: str = 'django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4'
-    DEBUG: bool = True
-
-    class Config:
-        env_file = f'{BASE_DIR}/.env'
-        case_sensitive = True
-
-
-env_config = EnvironmentSettings()
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env_config.SECRET_KEY
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_config.DEBUG
+DEBUG = config('DEBUG', default=True, cast=bool)
+DEPLOYED = config('DEPLOYED', default=False, cast=bool)
 
-PROXY_BASE_URL = env_config.PROXY_BASE_URL
+if DEPLOYED:
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
+    PROXY_BASE_URL = config('PROXY_BASE_URL')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
+else:
+    PROXY_BASE_URL = 'http://127.0.0.1:8000'
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-ALLOWED_HOSTS = env_config.ALLOWED_HOSTS.split(',')
+LOGIN_REDIRECT_URL = 'sites'
+LOGOUT_REDIRECT_URL = 'home'
 
-CORS_ALLOWED_ORIGINS = env_config.CORS_ALLOWED_ORIGINS.split(',') if hasattr(env_config, 'CORS_ALLOWED_ORIGINS') else ['http://localhost:5173']
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'Refresh_Authorization',
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'accounts.auth.backends.UnverifiedUserBackend'
 ]
 
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    # 'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=15),
-}
-
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
+NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
 }
@@ -92,26 +55,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts.apps.AccountsConfig',
     'sites.apps.SitesConfig',
-    'django_vite',
+    'accounts.apps.AccountsConfig',
+    'django_ses',
     'sensorthings',
-    'rest_framework',
-    'ninja',
-    # 'rest_framework_simplejwt',
-    'corsheaders',
+    'ninja_extra',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hydrothings.middleware.SensorThingsMiddleware'
+    'sensorthings.middleware.SensorThingsMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
@@ -138,19 +97,15 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = env_config.DATABASE_URL
+os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
 
 DATABASES = {
     'default': dj_database_url.config(
-        conn_max_age=env_config.CONN_MAX_AGE,
-        conn_health_checks=env_config.CONN_HEALTH_CHECKS,
-        ssl_require=env_config.SSL_REQUIRED
+        conn_max_age=config('CONN_MAX_AGE', default=600),
+        conn_health_checks=config('CONN_HEALTH_CHECKS', default=True, cast=bool),
+        ssl_require=config('SSL_REQUIRED', default=False, cast=bool)
     )
 }
-
-LOGIN_REDIRECT_URL = 'sites'
-LOGOUT_REDIRECT_URL = 'home'
-AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -170,16 +125,42 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# OAuth Settings
+
+AUTHLIB_OAUTH_CLIENTS = {
+    'orcid': {
+        'client_id': config('OAUTH_ORCID_CLIENT', default=''),
+        'client_secret': config('OAUTH_ORCID_SECRET', default=''),
+        'server_metadata_url': 'https://sandbox.orcid.org/.well-known/openid-configuration'
+    },
+    'google': {
+        'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
+        'client_secret': config('OAUTH_GOOGLE_SECRET', default=''),
+        'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
+    }
+}
+
+# Email Backend Settings
+
+EMAIL_BACKEND = 'django_ses.SESBackend'
+DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
+
+# AWS Settings
+
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+
+if DEPLOYED:
+    AWS_LOCATION = 'static/'
+    AWS_S3_CUSTOM_DOMAIN = PROXY_BASE_URL
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -187,34 +168,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static'
-]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
+if DEPLOYED:
+    STORAGES = {'staticfiles': {'BACKEND': 'storages.backends.s3boto3.S3StaticStorage'}}
+
 STATIC_ROOT = 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-# Vite Settings
-
-DJANGO_VITE_ASSETS_PATH = BASE_DIR / 'frontend' / 'dist'
-DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH / 'vite' / 'manifest.json'
-DJANGO_VITE_STATIC_URL_PREFIX = 'vite'
-
-STATICFILES_DIRS += [DJANGO_VITE_ASSETS_PATH]
-
-# SensorThings API Settings
-
-STAPI_TITLE = 'HydroServer SensorThings API'
-STAPI_DESCRIPTION = '''
-    The HydroServer API can be used to create and update monitoring site metadata, and post
-    results data to HydroServer data stores.
-'''
-STAPI_VERSION = '1.1'
-
-FROST_BASE_URL = 'http://localhost:8080/FROST-Server'
