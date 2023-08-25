@@ -13,7 +13,7 @@ def auth_headers():
 
 @pytest.fixture
 def base_url():
-    return '/sensorthings/v1.1'
+    return '/api/sensorthings/v1.1'
 
 
 @pytest.mark.parametrize('endpoint, query_params', [

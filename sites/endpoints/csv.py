@@ -6,7 +6,6 @@ from django.core.files.storage import FileSystemStorage
 from django.http import StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404
 
-from hydroserver.settings import LOCAL_CSV_STORAGE
 from ..models import Thing, Observation, Sensor
 
 

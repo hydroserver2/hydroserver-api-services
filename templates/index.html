@@ -1,57 +1,12 @@
-{% load django_vite %}
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="description"
-      content="HydroServer: A comprehensive platform for water data management. Collect and manage your operational hydrologic data"
-    />
-
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="/static/vite/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="/static/vite/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="/static/vite/favicon-16x16.png"
-    />
-    <link rel="manifest" href="/static/vite/site.webmanifest" />
-    <link
-      rel="mask-icon"
-      href="/static/vite/safari-pinned-tab.svg"
-      color="#5bbad5"
-    />
-    <meta name="msapplication-TileColor" content="#da532c" />
-    <meta name="theme-color" content="#2d1d1d" />
-    <link rel="manifest" href="/static/vite/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"
-      crossorigin="anonymous"
-    />
-
     <title>HydroServer</title>
   </head>
+
   <body>
     <div id="app"></div>
-
-    <script>
-      let PROXY_BASE_URL = "{{ proxy_base_url }}";
-    </script>
-
-    {% vite_hmr_client %} {% vite_asset 'src/main.ts' %}
   </body>
 </html>

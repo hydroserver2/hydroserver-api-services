@@ -1,7 +1,6 @@
-.DS_Store
-.idea
 .env
 /frontend/.env
+.pytest_cache
 __pycache__/
 db.sqlite3
 staticfiles/

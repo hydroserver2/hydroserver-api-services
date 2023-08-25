@@ -1,7 +1,7 @@
 import base64
 from ninja import Schema
 from pydantic import validator
-from hydrothings.validators import allow_partial
+from sensorthings.validators import allow_partial
 
 
 class UserFields(Schema):

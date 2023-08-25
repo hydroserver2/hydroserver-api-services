@@ -18,10 +18,12 @@ router = Router()
 @thing_ownership_required
 def update_thing_photos(request, thing_id):
     try:
-        s3 = boto3.client('s3', 
-                            region_name='us-east-1', 
-                            aws_access_key_id=AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        s3 = boto3.client(
+            's3',
+            region_name='us-east-1',
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+        )
         
         # First delete specified photos if there are any
         for photo_id in request.POST.getlist('photosToDelete', []):

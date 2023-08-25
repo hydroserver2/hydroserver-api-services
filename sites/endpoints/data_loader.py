@@ -4,7 +4,7 @@ from django.db import transaction
 from ninja import Schema, Router
 from typing import List
 from uuid import UUID
-from hydrothings.validators import allow_partial
+from sensorthings.validators import allow_partial
 
 from sites.models import DataLoader, DataLoaderOwner
 from sites.utils.authentication import BasicAuth, jwt_auth

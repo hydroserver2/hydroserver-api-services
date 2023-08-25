@@ -10,7 +10,7 @@ from datetime import datetime
 
 from .data_loader import DataLoaderGetResponse
 from hydroloader import HydroLoaderConf, HydroLoaderConfFileTimestamp, HydroLoaderConfSchedule, HydroLoaderConfFileAccess
-from hydrothings.validators import allow_partial
+from sensorthings.validators import allow_partial
 from sites.models import Datastream, DataSource, DataSourceOwner
 from sites.utils.authentication import BasicAuth, jwt_auth
 
