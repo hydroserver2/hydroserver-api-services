@@ -1,0 +1,22 @@
+- model: core.Sensor
+  fields:
+    name: Temperature Sensor
+    description: Measures temperature in Celsius
+    encoding_type: application/json
+    manufacturer: Acme Co.
+    model: TS-123
+    model_url: https://acme.co/ts-123
+    method_type: InstrumentDeployment
+    method_link: https://acme.co/sensor-deployment
+    method_code: TS-123
+- model: core.Sensor
+  fields:
+    name: Humidity Sensor
+    description: Measures relative humidity
+    encoding_type: application/json
+    manufacturer: Acme Co.
+    model: HS-456
+    model_url: https://acme.co/hs-456
+    method_type: InstrumentDeployment
+    method_link: https://acme.co/sensor-deployment
+    method_code: HS-456

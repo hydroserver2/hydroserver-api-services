@@ -1,7 +1,7 @@
 from typing import Sequence
 from django.contrib.auth import authenticate
 from ninja.security import HttpBasicAuth
-from sites.models import ThingAssociation
+from core.models import ThingAssociation
 from sensorthings import SensorThingsRequest
 
 

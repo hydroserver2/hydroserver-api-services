@@ -14,7 +14,7 @@ from sensorthings import SensorThingsAbstractEngine
 from sensorthings import components as component_schemas
 from sensorthings.utils import lookup_component
 from stapi.mapper import sensorthings_mapper
-from sites import models as core_models
+from core import models as core_models
 
 
 class SensorThingsEngine(SensorThingsAbstractEngine):

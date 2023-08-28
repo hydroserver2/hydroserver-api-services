@@ -42,3 +42,13 @@ class VerifyAccountPostBody(Schema):
     @validator('uid')
     def decode_uid(cls, v: str):
         return base64.b64decode(v).decode('utf-8')
+
+
+class PasswordResetRequestPostBody(Schema):
+    email: str
+
+
+class ResetPasswordPostBody(Schema):
+    uid: str
+    token: str
+    password: str

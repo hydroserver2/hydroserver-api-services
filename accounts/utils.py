@@ -14,7 +14,7 @@ class TokenGenerator(PasswordResetTokenGenerator):
         return str(user.pk) + str(timestamp) + str(user.is_active)
 
 
-account_activation_token = TokenGenerator()
+account_verification_token = TokenGenerator()
 
 
 def send_verification_email(user: user_model):
@@ -31,7 +31,7 @@ def send_verification_email(user: user_model):
 
     context = {
         'uid': base64.b64encode(bytes(user.email, 'utf-8')).decode('utf-8'),
-        'token': account_activation_token.make_token(user),
+        'token': account_verification_token.make_token(user),
         'name': user.first_name,
         'proxy_base_url': settings.PROXY_BASE_URL
     }

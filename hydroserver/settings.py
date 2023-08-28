@@ -32,6 +32,9 @@ if DEPLOYED:
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
+
+CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 
 LOGIN_REDIRECT_URL = 'sites'
 LOGOUT_REDIRECT_URL = 'home'
@@ -55,7 +58,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sites.apps.SitesConfig',
+    'corsheaders',
+    'core.apps.CoreConfig',
     'accounts.apps.AccountsConfig',
     'django_ses',
     'sensorthings',
@@ -65,6 +69,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
