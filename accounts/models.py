@@ -15,12 +15,20 @@ class CustomUserManager(BaseUserManager):
         else:
             unverified_email = None
 
-        user = self.model(
-            username=uid,
-            email=uid,
-            unverified_email=unverified_email,
-            **extra_fields
-        )
+        if extra_fields.get('is_superuser') is True:
+            user = self.model(
+                username=email,
+                email=email,
+                is_verified=True,
+                **extra_fields
+            )
+        else:
+            user = self.model(
+                username=uid,
+                email=uid,
+                unverified_email=unverified_email,
+                **extra_fields
+            )
 
         if password is not None:
             user.set_password(password)
@@ -32,6 +40,7 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+
         return self.create_user(email, password, **extra_fields)
 
 
