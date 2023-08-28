@@ -26,7 +26,7 @@ class Command(BaseCommand):
         ) as connection:
             with connection.cursor() as cursor:
                 observation_table = """
-                    CREATE TABLE IF NOT EXISTS core_observation (
+                    CREATE TABLE IF NOT EXISTS Observation (
                         id uuid NOT NULL,
                         datastream_id uuid NOT NULL,
                         "result" float8 NOT NULL,
@@ -37,7 +37,7 @@ class Command(BaseCommand):
 	                    valid_end_time timestamp NULL,
                         CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE (datastream_id, result_time),
                         CONSTRAINT observation_pkey PRIMARY KEY (id, datastream_id, result_time),
-                        CONSTRAINT observation_datastream_id_fkey FOREIGN KEY (datastream_id) REFERENCES public.core_datastream(id)
+                        CONSTRAINT observation_datastream_id_fkey FOREIGN KEY (datastream_id) REFERENCES public.Datastream(id)
                     );
                 """
 
@@ -45,4 +45,4 @@ class Command(BaseCommand):
 
                 if options['no_timescale'] is False:
                     cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
-                    cursor.execute("SELECT create_hypertable('core_observation', 'result_time', if_not_exists => TRUE);")
+                    cursor.execute("SELECT create_hypertable('Observation', 'result_time', if_not_exists => TRUE);")
