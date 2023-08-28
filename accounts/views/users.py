@@ -4,7 +4,8 @@ from django.http import HttpRequest
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from accounts.schemas import *
-from accounts.utils import account_verification_token, update_account_to_verified, send_verification_email
+from accounts.utils import account_verification_token, update_account_to_verified, send_verification_email, \
+     send_password_reset_confirmation_email
 from accounts.auth import JWTAuth, BasicAuth
 from accounts.models import PasswordReset
 
@@ -159,7 +160,7 @@ def send_password_reset_email(
                 password_reset.save()
 
             token = account_verification_token.make_token(user)
-            send_password_reset_email(user, password_reset.id, token)
+            send_password_reset_confirmation_email(user, password_reset.id, token)
 
             return 200, 'Password reset email sent.'
         else:

@@ -41,7 +41,7 @@ def send_verification_email(user: user_model):
     send_mail(
         'Verify HydroServer Account',
         '',  # Don't support plain text emails
-        'HydroServer <admin@hydroserver.ciroh.org>',
+        f'HydroServer <{settings.DEFAULT_FROM_EMAIL}>',
         [user.unverified_email],
         html_message=html_message,
     )
@@ -63,3 +63,25 @@ def update_account_to_verified(user: user_model):
     user.save()
 
     return user
+
+
+def send_password_reset_confirmation_email(user, uid, token):
+    mail_subject = 'Password Reset'
+
+    context = {
+        'user': user,
+        'uid': uid,
+        'token': token,
+        'domain': 'hydroserver.ciroh.org',
+        'proxy_base_url': settings.PROXY_BASE_URL
+    }
+
+    html_message = render_to_string('reset_password_email.html', context)
+
+    send_mail(
+        mail_subject,
+        '',  # Don't support plain text emails
+        f'HydroServer <{settings.DEFAULT_FROM_EMAIL}>',
+        [user.email],
+        html_message=html_message,
+    )
