@@ -1,4 +1,4 @@
-- model: sites.sensor
+- model: core.Sensor
   fields:
     name: Temperature Sensor
     description: Measures temperature in Celsius
@@ -9,7 +9,7 @@
     method_type: InstrumentDeployment
     method_link: https://acme.co/sensor-deployment
     method_code: TS-123
-- model: sites.sensor
+- model: core.Sensor
   fields:
     name: Humidity Sensor
     description: Measures relative humidity

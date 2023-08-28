@@ -50,7 +50,7 @@
     organization: "University C"
     type: "Post-Doctoral Fellow"
 
-- model: sites.thing
+- model: core.thing
   pk: 0c04fcdc-3876-429e-8260-14b7baca0231
   fields:
     name: South Cheyenne Creek
@@ -58,7 +58,7 @@
     sampling_feature_type: Test Site
     sampling_feature_code: SCC_1
     site_type: Stream
-- model: sites.thing
+- model: core.thing
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
     name: Site in Miami
@@ -66,7 +66,7 @@
     sampling_feature_type: Test Site 2
     sampling_feature_code: MIA1
     site_type: House
-- model: sites.thing
+- model: core.thing
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
     name: Lake Michigan
@@ -75,7 +75,7 @@
     sampling_feature_code: MICH_1
     site_type: Lake, Reservoir, Impoundment
 
-- model: sites.location
+- model: core.location
   pk: 0c04fcdc-3876-429e-8260-14b7baca0231
   fields:
     description: Location for Site at South Cheyenne Creek next to Seven Falls
@@ -86,7 +86,7 @@
     elevation_datum: DATUM
     state: CO
     county: El Paso County
-- model: sites.location
+- model: core.location
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
     name: Location for Site in Miami
@@ -98,7 +98,7 @@
     elevation_datum: DATUM
     state: FL
     county: Miami-Dade County
-- model: sites.location
+- model: core.location
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
     description: A test location for A test thing in Lake Michigan
@@ -110,7 +110,7 @@
     state: MI
     county: Berrien County
 
-- model: sites.sensor
+- model: core.sensor
   pk: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
   fields:
     person: 1_000_000_002
@@ -123,7 +123,7 @@
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 2
-- model: sites.sensor
+- model: core.sensor
   pk: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
   fields:
     person: 1_000_000_001
@@ -136,7 +136,7 @@
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 3
-- model: sites.sensor
+- model: core.sensor
   pk: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
   fields:
     person: 1_000_000_002
@@ -150,7 +150,7 @@
     method_link: http://www.example.com/method
     method_code: METHOD 1
 
-- model: sites.observedproperty
+- model: core.observedproperty
   pk: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
   fields:
     name: test_property_1
@@ -159,7 +159,7 @@
     description: A test property.
     variable_type: Variable
     variable_code: VARIABLE1
-- model: sites.observedproperty
+- model: core.observedproperty
   pk: 4c310501-31f3-4954-80b0-2279eb049e39
   fields:
     name: test_property_2
@@ -168,7 +168,7 @@
     description: A test property.
     variable_type: Variable
     variable_code: VARIABLE2
-- model: sites.observedproperty
+- model: core.observedproperty
   pk: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
   fields:
     name: test_property_3
@@ -178,21 +178,21 @@
     variable_type: Variable
     variable_code: VARIABLE3
 
-- model: sites.processinglevel
+- model: core.processinglevel
   pk: 7e57d004-2b97-44e7-8f03-713f25415a10
   fields:
     person: 1_000_000_000
     processing_level_code: test_processing_level_1
     definition: Processing level 1
     explanation: A processing level
-- model: sites.processinglevel
+- model: core.processinglevel
   pk: 83fdb8ba-5db4-4f31-b1fa-e68478a4be13
   fields:
     person: 1_000_000_001
     processing_level_code: test_processing_level_2
     definition: Processing level 2
     explanation: A processing level
-- model: sites.processinglevel
+- model: core.processinglevel
   pk: 3c72a7e0-d7fd-4be4-9663-264e4634b020
   fields:
     person: 1_000_000_002
@@ -200,7 +200,7 @@
     definition: Processing level 3
     explanation: A processing level
 
-- model: sites.unit
+- model: core.unit
   pk: 9f33a7bc-f0ae-4e58-9207-58b8c42f9e86
   fields:
     name: test_unit_1
@@ -208,7 +208,7 @@
     symbol: T
     definition: http://www.example.com/unit1
     unit_type: Unit
-- model: sites.unit
+- model: core.unit
   pk: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
   fields:
     name: test_unit_2
@@ -216,7 +216,7 @@
     symbol: T
     definition: http://www.example.com/unit2
     unit_type: Unit
-- model: sites.unit
+- model: core.unit
   pk: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
   fields:
     name: test_unit_3
@@ -225,7 +225,7 @@
     definition: http://www.example.com/unit3
     unit_type: Unit
 
-- model: sites.datastream
+- model: core.datastream
   pk: 376be82c-b3a1-4d96-821b-c7954b931f94
   fields:
     unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
@@ -250,7 +250,7 @@
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
     result_end_time: 2023-01-01 10:10:10+00:00
-- model: sites.datastream
+- model: core.datastream
   pk: 8af17d0e-8fce-4264-93b5-e55aa6a7ca02
   fields:
     unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
@@ -275,7 +275,7 @@
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
     result_end_time: 2023-01-01 10:10:10+00:00
-- model: sites.datastream
+- model: core.datastream
   pk: c2f32f37-9e2f-471b-a65c-26420e0e55f4
   fields:
     unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
@@ -300,7 +300,7 @@
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
     result_begin_time: 2022-01-01 10:10:10+00:00
     result_end_time: 2023-01-01 10:10:10+00:00
-- model: sites.datastream
+- model: core.datastream
   pk: ca999458-d644-44b0-b678-09a892fd54ac
   fields:
     unit: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
@@ -326,7 +326,7 @@
     result_begin_time: 2022-05-01 10:10:10+00:00
     result_end_time: 2022-05-04 09:10:10+00:00
 
-- model: sites.observation
+- model: core.observation
   pk: 056b132d-cf81-4627-90b0-e005076d4c68
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
@@ -336,7 +336,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 2b13ddf5-6a9f-4865-aa0d-446fe0ed79f6
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
@@ -346,7 +346,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 391808c3-b51f-458a-a364-9cabd5430456
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
@@ -356,7 +356,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 583bf8c7-c220-47e5-9cd6-bf2427dab8d2
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
@@ -366,7 +366,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 6ad9cf17-acd8-4973-8c22-340cda2ed8ca
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
@@ -376,7 +376,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 71335328-fd9f-4079-b51d-ddd629545c27
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
@@ -386,7 +386,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 853527d6-d7df-47d4-bdee-c53bae7cc4ed
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
@@ -396,7 +396,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: a0e6b98b-39da-4f66-9fdc-a537fbd2b3c3
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
@@ -406,7 +406,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: ddafa714-c1a2-4a59-9324-261ccc8ce8b3
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
@@ -416,7 +416,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 94876352-6a5d-4e67-bddc-e3d91afd67af
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -426,7 +426,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 52c5b826-488c-42e6-9d3f-3bbc2572ab50
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -436,7 +436,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: a47803da-62b3-416f-a1ae-f0fb606c72ae
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -446,7 +446,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 194518ea-ea8f-4c05-9ea3-ce46955bae9b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -456,7 +456,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: af2d3e35-4858-413f-93d3-4775cd252b7a
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -466,7 +466,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: a3014845-185a-460f-8897-cf193fcd42e3
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -476,7 +476,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 43b44ebb-6cfe-4265-8cba-eed26bf2ff28
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -486,7 +486,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: cfb3affd-4681-4f7c-96d9-13342121fd8d
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -496,7 +496,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: f7df7d66-30d9-4f4a-8bb2-c8f246dd5e61
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -506,7 +506,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 0b5b0c89-2269-4552-8bd8-127bd6260a81
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -516,7 +516,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: f1f1be13-b008-4e68-8079-8d8842560054
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -526,7 +526,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 00a7d4ce-cbb1-4e4f-afcc-00d123aa66e0
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -536,7 +536,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: bae1e00c-ff30-4d06-bf42-4174f7a285cd
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -546,7 +546,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: c7b9bcc8-11f1-409d-bc23-22912283e21d
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -556,7 +556,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 9df91183-9e91-4c8e-a6ab-9888a470c693
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -566,7 +566,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 7d8bee78-c0a0-497d-9235-8d1aef59320f
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -576,7 +576,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 25eecd3e-ab67-4b34-a792-bd29a521ccb4
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -586,7 +586,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 7dcd9e11-90e9-4a7a-a537-3fbd86cb2f5e
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -596,7 +596,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 5e08688a-c9f4-48ba-9433-510f885535c7
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -606,7 +606,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: d64d424a-cba7-4a4c-ae36-7598b7730846
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -616,7 +616,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: c3028763-47e7-4b80-9862-21670bde3f9b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -626,7 +626,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: d3ab2c5d-c3f2-4d56-bd02-7eb7db7b80ce
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -636,7 +636,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 8119cba7-8c00-454d-9584-3f605b1a0c74
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -646,7 +646,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: c095f442-fbb2-482b-8249-4ffd6b3d844b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -656,7 +656,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 84535ad5-ac68-4078-951a-192df9f02b99
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -666,7 +666,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 0c928214-2de6-46f9-82de-7b9561931b39
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -676,7 +676,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: c34d8f6c-1ecd-4ce0-83b9-e23bf98e592a
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -686,7 +686,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 938ce04c-ab00-49d7-85c8-038d5d8b5bcc
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -696,7 +696,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: bba0945f-e696-4e9e-9ea1-26f3b806ae66
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -706,7 +706,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 2c9ef87b-2c87-4efe-bb8a-b119809c9511
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -716,7 +716,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: ba3bfca8-69a6-4458-82db-0f84fa7e8ac0
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -726,7 +726,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: f8e36bc8-2698-4b99-8020-5fcd5318ce7c
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -736,7 +736,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 29d57a59-f048-4833-b759-34fb5fff57f8
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -746,7 +746,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 0609504d-eb17-42f3-8d1a-489ecd46ef8e
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -756,7 +756,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 0295557c-1810-4163-9fca-e717dfdecf1b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -766,7 +766,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: cbc5fa28-9a7d-46ab-b1ce-347076c173e1
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -776,7 +776,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 5372dddd-1b34-4634-a402-fb808e1a2bcb
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -786,7 +786,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 8cb58976-c0f7-4e38-be8d-85005a74ed0e
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -796,7 +796,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 2138d692-ddcd-441f-9548-f68766b99ff2
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -806,7 +806,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 3ba6a0f9-a27f-4ce0-85cf-67cc4e95fd32
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -816,7 +816,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 4df31c52-5636-4943-85a5-fc6a23646cc8
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -826,7 +826,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 83cce35c-f7ff-4a88-86bc-6fd41e62b7f8
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -836,7 +836,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: be3aa211-bc77-4ef2-9987-978d3bc62c1a
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -846,7 +846,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 698c8a4c-a9b7-4f96-b415-3e523d7e7a4b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -856,7 +856,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 14bcc6f6-6e2e-4dca-af5e-526e0e357d0b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -866,7 +866,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 72e94902-b935-4556-825d-ba441b8fbfba
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -876,7 +876,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 8641945e-f2b5-4b83-b67d-33e2682eb8da
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -886,7 +886,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 5ff048a5-a4a0-4b63-b33d-fc2a46d418b5
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -896,7 +896,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 8bae57f1-5d9c-4aa6-b2c4-6e2daba6ec31
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -906,7 +906,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 814bd7f3-8fc3-4d5e-8d6c-b078965b349b
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -916,7 +916,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: e56d5a1c-7f4a-4fba-8dd6-478b72c676af
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -926,7 +926,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: cf64a513-0352-4a1f-84ba-a43f8cd0c6db
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -936,7 +936,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: ebb88846-f299-4b4c-b638-b81e6c820f03
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -946,7 +946,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: a7cbc71e-7e22-4fa5-a9ba-32e4fe1b65f8
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -956,7 +956,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: e3ed1588-3f3c-4e30-b238-2c9b24ff10cc
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -966,7 +966,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 002bc4e1-3b3e-448b-a91f-346f968b988c
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -976,7 +976,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 9b930e1b-b9b5-4302-bd66-349c37f1d42e
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -986,7 +986,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: e7027b82-34ff-4b2d-b655-23640688c7e5
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -996,7 +996,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: cab9ed9c-0cad-4d89-9a7f-8fbf396cc816
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1006,7 +1006,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: bc92d93a-2bfb-4fed-a065-97471668261e
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1016,7 +1016,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 269b0c3d-aa62-418f-881a-4508ece02644
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1026,7 +1026,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 4d871c77-4fb7-4542-918d-505850099334
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1036,7 +1036,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 64dd5e12-0d76-45c0-af6e-5cd6801e121d
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1046,7 +1046,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 8b435cfa-7480-4f04-9935-0b6b609d6e5d
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1056,7 +1056,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 391751dc-6464-45ce-aadf-044cde15720c
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1066,7 +1066,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 0786c66e-0cbb-4d28-8213-d21277201dbf
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1076,7 +1076,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 4b517d2b-6085-4bff-989e-134166b9c5e1
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1086,7 +1086,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: b7d2618f-4170-4e0d-a8df-efb920de3733
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1096,7 +1096,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 83b1064c-a80e-4cc3-9276-61a166fa00f8
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1106,7 +1106,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: c667e079-0d0b-441e-b557-8c29aafb01e7
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1116,7 +1116,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 84b5427a-37aa-4cd1-9523-f7abe901a18a
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1126,7 +1126,7 @@
     phenomenon_time: null
     valid_begin_time: null
     valid_end_time: null
-- model: sites.observation
+- model: core.observation
   pk: 035a0556-7276-46c7-8e03-da57479416d2
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
@@ -1137,7 +1137,7 @@
     valid_begin_time: null
     valid_end_time: null
 
-- model: sites.thingassociation
+- model: core.thingassociation
   pk: 1_100_000_001
   fields:
     thing: 0c04fcdc-3876-429e-8260-14b7baca0231
@@ -1145,7 +1145,7 @@
     owns_thing: true
     follows_thing: false
     is_primary_owner: true
-- model: sites.thingassociation
+- model: core.thingassociation
   pk: 1_100_000_002
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
@@ -1153,7 +1153,7 @@
     owns_thing: true
     follows_thing: false
     is_primary_owner: true
-- model: sites.thingassociation
+- model: core.thingassociation
   pk: 1_100_000_003
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
@@ -1161,7 +1161,7 @@
     owns_thing: true
     follows_thing: false
     is_primary_owner: false
-- model: sites.thingassociation
+- model: core.thingassociation
   pk: 1_100_000_004
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
@@ -1169,7 +1169,7 @@
     owns_thing: false
     follows_thing: true
     is_primary_owner: false
-- model: sites.thingassociation
+- model: core.thingassociation
   pk: 1_100_000_005
   fields:
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
@@ -1177,7 +1177,7 @@
     owns_thing: true
     follows_thing: false
     is_primary_owner: true
-- model: sites.thingassociation
+- model: core.thingassociation
   pk: 1_100_000_006
   fields:
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
