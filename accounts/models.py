@@ -48,8 +48,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     unverified_email = models.EmailField(blank=True, null=True)
     orcid = models.CharField(max_length=255, blank=True, null=True)
-    organization = models.CharField(max_length=255, blank=True, null=True)
-    middle_name = models.CharField(max_length=30, blank=True, null=True)
+    middle_name = models.CharField(max_length=50, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     type = models.CharField(max_length=255, blank=True, null=True)
@@ -69,3 +68,12 @@ class PasswordReset(models.Model):
 
     def is_valid(self):
         return timezone.now() - self.timestamp <= timedelta(days=1)
+
+class Organization(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    person = models.OneToOneField(CustomUser, related_name='organization', on_delete=models.CASCADE)
+    code = models.CharField(max_length=200)
+    name = models.CharField(max_length=500)
+    description = models.TextField(null=True, blank=True)
+    type = models.CharField(max_length=255)
+    link = models.URLField(max_length=2000, blank=True, null=True)

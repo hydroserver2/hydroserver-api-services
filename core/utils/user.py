@@ -1,9 +1,20 @@
 from django.core.mail import send_mail
 from hydroserver.settings import PROXY_BASE_URL
 from django.template.loader import render_to_string
-
+from core.utils.organization import organization_to_dict
 
 def user_to_dict(user):
+    organization_data = {
+        "id": '',
+        "code": '',
+        "name": '',
+        "description": '',
+        "type": '',
+        "link": '',
+    }
+    if hasattr(user, 'organization'):
+        organization_data = organization_to_dict(user.organization)
+
     return {
         "id": user.id,
         "email": user.email,
@@ -12,7 +23,8 @@ def user_to_dict(user):
         "last_name": user.last_name,
         "phone": user.phone,
         "address": user.address,
-        "organization": user.organization,
+        "is_verified": user.is_verified,
+        "organization": organization_data,
         "type": user.type, 
         "link": user.link
 

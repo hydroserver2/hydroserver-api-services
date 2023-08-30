@@ -7,7 +7,8 @@ from accounts.schemas import *
 from accounts.utils import account_verification_token, update_account_to_verified, send_verification_email, \
      send_password_reset_confirmation_email
 from accounts.auth import JWTAuth, BasicAuth
-from accounts.models import PasswordReset
+from accounts.models import PasswordReset, Organization
+from core.utils.user import user_to_dict
 
 
 user_router = Router(tags=['User Management'])
@@ -17,17 +18,16 @@ user_model = get_user_model()
 
 @user_router.get(
     '/user',
-    auth=[BasicAuth(), JWTAuth()],
+    auth=[JWTAuth(), BasicAuth()],
     response=UserGetResponse
 )
 def get_user(request: HttpRequest):
 
     user = getattr(request, 'authenticated_user', None)
-
     if user and user.is_verified is False:
         user.email = user.unverified_email
 
-    return user
+    return user_to_dict(user)
 
 
 @user_router.post('/user', response=UserAuthResponse)
@@ -44,12 +44,14 @@ def create_user(_: HttpRequest, data: UserPostBody):
         first_name=data.first_name,
         middle_name=data.middle_name,
         last_name=data.last_name,
-        organization=data.organization,
         type=data.type,
         phone=data.phone,
         address=data.address,
         link=data.link
     )
+
+    if hasattr(data, 'organization') and not OrganizationFields.is_empty(data.organization):
+        Organization.objects.create(person=user, **data.organization.dict())
 
     send_verification_email(user)
     jwt = RefreshToken.for_user(user)
@@ -69,9 +71,24 @@ def update_user(request: HttpRequest, data: UserPatchBody):
     user = getattr(request, 'authenticated_user', None)
     user_data = data.dict(exclude_unset=True)
 
-    for field in ['first_name', 'last_name', 'middle_name', 'phone', 'address', 'organization', 'type', 'link']:
+    for field in ['first_name', 'last_name', 'middle_name', 'phone', 'address', 'type', 'link']:
         if field in user_data:
             setattr(user, field, getattr(data, field))
+
+    if hasattr(data, 'organization') and not OrganizationFields.is_empty(data.organization):
+        if hasattr(user, 'organization'):
+            organization = user.organization
+            for field in ['code', 'name', 'description', 'type', 'link']:
+                if hasattr(organization, field):
+                    value = getattr(data.organization, field)
+                    setattr(organization, field, value)
+            organization.save()
+        else:
+            Organization.objects.create(person=user, **data.organization.dict())
+    else: 
+        if hasattr(user, 'organization'):
+            user.organization.delete()
+            user.organization = None
 
     # TODO: We should have a process in place for letting a user change their email and re-verifying.
 
@@ -85,7 +102,7 @@ def update_user(request: HttpRequest, data: UserPatchBody):
 
     user.save()
 
-    return user
+    return user_to_dict(user)
 
 
 @user_router.post(

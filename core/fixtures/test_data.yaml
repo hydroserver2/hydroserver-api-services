@@ -30,7 +30,7 @@
     date_joined: 2022-01-01 10:00:00.000 -0700
     phone: "0987654321"
     address: "456, High Street, City B"
-    organization: "University A"
+    # organization: "University A"
     type: "University Faculty"
 - model: accounts.customuser
   pk: 1_000_000_002
@@ -47,7 +47,7 @@
     date_joined: 2022-01-01 10:00:00.000 -0700
     phone: "5678901234"
     address: "789, West Street, City C"
-    organization: "University C"
+    # organization: "University C"
     type: "Post-Doctoral Fellow"
 
 - model: core.thing

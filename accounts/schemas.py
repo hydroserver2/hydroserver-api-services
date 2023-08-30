@@ -4,6 +4,18 @@ from pydantic import validator
 from sensorthings.validators import allow_partial
 
 
+class OrganizationFields(Schema):
+    code: str
+    name: str
+    description: str = None
+    type: str
+    link: str = None
+
+    @classmethod
+    def is_empty(cls, obj):
+        return not (obj.name and obj.code and obj.type)
+
+
 class UserFields(Schema):
     first_name: str
     last_name: str
@@ -12,8 +24,8 @@ class UserFields(Schema):
     phone: str = None
     address: str = None
     type: str = None
-    organization: str = None
     link: str = None
+    organization: OrganizationFields = None
 
 
 class UserGetResponse(UserFields):

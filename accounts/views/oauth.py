@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from authlib.integrations.django_client import OAuth
 from accounts.utils import update_account_to_verified
 from hydroserver import settings
-
+from core.utils.organization import organization_to_dict
 
 user_model = get_user_model()
 
@@ -48,7 +48,7 @@ def oauth_response(access_token: str, refresh_token: str, user: user_model):
                 'last_name': user.last_name,
                 'phone': user.phone,
                 'address': user.address,
-                'organization': user.organization,
+                'organization': organization_to_dict(user.organization) if hasattr(user, 'organization')  else None,
                 'type': user.type,
                 'is_verified': user.is_verified
             }
