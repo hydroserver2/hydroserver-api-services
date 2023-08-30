@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from ninja import Router, Schema
 
-from accounts.models import CustomUser
+from accounts.models import Person
 from core.models import ThingAssociation, Thing, Location, Sensor, Unit, ProcessingLevel, ObservedProperty
 from core.utils.unit import transfer_unit_ownership, unit_to_dict
 from core.utils.observed_property import transfer_properties_ownership, observed_property_to_dict
@@ -159,8 +159,8 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
             {"error": "Only one action (make_owner, remove_owner, transfer_primary) should be true."}, status=400)
 
     try:
-        user = CustomUser.objects.get(email=data.email)
-    except CustomUser.DoesNotExist:
+        user = Person.objects.get(email=data.email)
+    except Person.DoesNotExist:
         return JsonResponse({"error": "Specified user not found."}, status=404)
 
     current_user_association = ThingAssociation.objects.get(thing=request.thing, person=request.authenticated_user)

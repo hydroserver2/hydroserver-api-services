@@ -39,7 +39,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 LOGIN_REDIRECT_URL = 'sites'
 LOGOUT_REDIRECT_URL = 'home'
 
-AUTH_USER_MODEL = 'accounts.CustomUser'
+AUTH_USER_MODEL = 'accounts.Person'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',

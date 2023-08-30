@@ -7,7 +7,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import UntypedToken
 from ninja.errors import HttpError
 
-from accounts.models import CustomUser
+from accounts.models import Person
 from core.models import Datastream, ThingAssociation, Thing
 
 
@@ -24,7 +24,7 @@ def jwt_auth(request):
         token = request.META['HTTP_AUTHORIZATION'].split()[1]
         untyped_token = UntypedToken(token)
         user_id = untyped_token.payload['user_id']
-        user = CustomUser.objects.get(pk=user_id)
+        user = Person.objects.get(pk=user_id)
         request.authenticated_user = user
         return True
     except (KeyError, IndexError, InvalidToken, TokenError) as e:
@@ -41,7 +41,7 @@ def jwt_check_user(request):
         token = request.META['HTTP_AUTHORIZATION'].split()[1]
         untyped_token = UntypedToken(token)
         user_id = untyped_token.payload['user_id']
-        user = CustomUser.objects.get(pk=user_id)
+        user = Person.objects.get(pk=user_id)
         request.user_if_there_is_one = user
     except (KeyError, IndexError, InvalidToken, TokenError) as e:
         if isinstance(e, TokenError) and str(e) == 'Token is invalid or expired':

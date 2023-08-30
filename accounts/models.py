@@ -6,7 +6,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 
-class CustomUserManager(BaseUserManager):
+class PersonManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
         uid = f'{uuid.uuid4()}@hydroserver-temp.org'
 
@@ -44,7 +44,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class CustomUser(AbstractUser):
+class Person(AbstractUser):
     email = models.EmailField(unique=True)
     unverified_email = models.EmailField(blank=True, null=True)
     orcid = models.CharField(max_length=255, blank=True, null=True)
@@ -55,7 +55,7 @@ class CustomUser(AbstractUser):
     is_verified = models.BooleanField(default=False)
     link = models.URLField(max_length=2000, blank=True, null=True)
 
-    objects = CustomUserManager()
+    objects = PersonManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
@@ -63,15 +63,16 @@ class CustomUser(AbstractUser):
 
 class PasswordReset(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE)
+    user = models.OneToOneField('Person', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def is_valid(self):
         return timezone.now() - self.timestamp <= timedelta(days=1)
 
+
 class Organization(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    person = models.OneToOneField(CustomUser, related_name='organization', on_delete=models.CASCADE)
+    person = models.OneToOneField(Person, related_name='organization', on_delete=models.CASCADE)
     code = models.CharField(max_length=200)
     name = models.CharField(max_length=500)
     description = models.TextField(null=True, blank=True)

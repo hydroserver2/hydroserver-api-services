@@ -3,7 +3,7 @@ from django.db.models import ForeignKey
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from accounts.models import CustomUser
+from accounts.models import Person
 import boto3
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
@@ -78,7 +78,7 @@ class Location(models.Model):
 
 class Sensor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     encoding_type = models.CharField(max_length=255, blank=True, null=True)
@@ -102,7 +102,7 @@ class Sensor(models.Model):
 class ObservedProperty(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
     definition = models.TextField()
     description = models.TextField(null=True, blank=True)
     variable_type = models.CharField(max_length=500, blank=True, null=True)
@@ -128,7 +128,7 @@ class FeatureOfInterest(models.Model):
 
 class ProcessingLevel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='processing_levels', null=True,
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='processing_levels', null=True,
                                blank=True)
     processing_level_code = models.CharField(max_length=255)
     definition = models.TextField()
@@ -144,7 +144,7 @@ class ProcessingLevel(models.Model):
 class Unit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
     unit_type = models.CharField(max_length=255)
@@ -159,7 +159,7 @@ class Unit(models.Model):
 class DataLoader(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='data_loaders')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_loaders')
 
 
 class DataSource(models.Model):
@@ -186,7 +186,7 @@ class DataSource(models.Model):
     last_sync_message = models.TextField(null=True, blank=True)
     last_synced = models.DateTimeField(null=True, blank=True)
     next_sync = models.DateTimeField(null=True, blank=True)
-    person = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='data_sources')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_sources')
 
     def __str__(self):
         return self.name
@@ -260,7 +260,7 @@ class Observation(models.Model):
 
 class ThingAssociation(models.Model):
     thing = ForeignKey(Thing, on_delete=models.CASCADE, related_name='associates')
-    person = ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='thing_associations')
+    person = ForeignKey(Person, on_delete=models.CASCADE, related_name='thing_associations')
     owns_thing = models.BooleanField(default=False)
     follows_thing = models.BooleanField(default=False)
     is_primary_owner = models.BooleanField(default=False)

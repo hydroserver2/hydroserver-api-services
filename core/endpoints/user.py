@@ -7,7 +7,7 @@
 # from ninja import Router, Schema
 # from ninja.errors import HttpError
 #
-# from accounts.models import CustomUser, PasswordReset
+# from accounts.models import Person, PasswordReset
 # from core.utils.authentication import jwt_auth
 # from core.utils.user import user_to_dict, send_password_reset_email
 # from core.models import Thing
@@ -31,7 +31,7 @@
 # @router.post('')
 # def create_user(request, data: CreateUserInput):
 #     try:
-#         user = CustomUser.objects.create_user(
+#         user = Person.objects.create_user(
 #             username=data.email,
 #             email=data.email,
 #             password=data.password,
@@ -104,7 +104,7 @@
 #         request.authenticated_user.delete()
 #         logout(request)
 #         return {'detail': 'Your account has been removed!'}
-#     except CustomUser.DoesNotExist:
+#     except Person.DoesNotExist:
 #         raise HttpError(404, 'User not found')
 #
 #
@@ -139,7 +139,7 @@
 # @router.post("/password_reset")
 # def password_reset(request, data: PasswordResetRequestInput):
 #     try:
-#         user = CustomUser.objects.filter(email=data.email).first()
+#         user = Person.objects.filter(email=data.email).first()
 #         if user:
 #             try:
 #                 password_reset = PasswordReset(user=user)

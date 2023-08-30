@@ -4,7 +4,7 @@
 # from rest_framework_simplejwt.tokens import RefreshToken, UntypedToken
 # from django.http import JsonResponse
 # from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-# from accounts.models import CustomUser
+# from accounts.models import Person
 #
 # router = Router()
 #
@@ -40,13 +40,13 @@
 #         token = data.refresh_token
 #         untyped_token = UntypedToken(token)
 #         user_id = untyped_token.payload['user_id']
-#         user = CustomUser.objects.get(pk=user_id)
+#         user = Person.objects.get(pk=user_id)
 #         new_token = RefreshToken.for_user(user)
 #         return JsonResponse({
 #             'access_token': str(new_token.access_token),
 #             'refresh_token': str(new_token),
 #         })
-#     except CustomUser.DoesNotExist:
+#     except Person.DoesNotExist:
 #         return JsonResponse({'error': 'User does not exist'}, status=401)
 #     except (InvalidToken, TokenError, KeyError, ValueError) as e:
 #         return JsonResponse({'error': str(e)}, status=401)
