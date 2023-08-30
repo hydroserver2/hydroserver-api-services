@@ -27,11 +27,11 @@ def thing_to_dict(thing, user):
         person = thing_association.person
         if thing_association.owns_thing:
             thing_dict['owners'].append({
-                "firstname": person.first_name,
-                "lastname": person.last_name,
+                "firstName": person.first_name,
+                "lastName": person.last_name,
                 "organizationName": user.organization.name if hasattr(user, 'organization') else None,
                 "email": person.email,
-                "is_primary_owner": thing_association.is_primary_owner
+                "isPrimaryOwner": thing_association.is_primary_owner
             })
     if user is not None:
         thing_association = thing_associations.filter(person=user).first()

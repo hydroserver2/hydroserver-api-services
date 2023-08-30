@@ -18,12 +18,12 @@ def user_to_dict(user):
     return {
         "id": user.id,
         "email": user.email,
-        "first_name": user.first_name,
-        "middle_name": user.middle_name,
-        "last_name": user.last_name,
+        "firstName": user.first_name,
+        "middleName": user.middle_name,
+        "lastName": user.last_name,
         "phone": user.phone,
         "address": user.address,
-        "is_verified": user.is_verified,
+        "isVerified": user.is_verified,
         "organization": organization_data,
         "type": user.type, 
         "link": user.link
