@@ -58,7 +58,8 @@ class HistoricalLocation(models.Model):
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE)
-    url = models.URLField(max_length=2000)
+    file_path = models.CharField(max_length=1000)
+    link = models.URLField(max_length=2000)
 
     def __str__(self):
         return f'Photo for {self.thing.name}'
@@ -76,7 +77,7 @@ def delete_photo(sender, instance, **kwargs):
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
 
-    file_name = instance.url.split(f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/')[1]
+    file_name = instance.link.split(f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/')[1]
 
     try:
         s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)

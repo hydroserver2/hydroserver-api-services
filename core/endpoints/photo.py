@@ -13,7 +13,6 @@ from core.utils.authentication import jwt_auth, thing_ownership_required
 
 router = Router(tags=['Photos'])
 
-
 @router.post('/{thing_id}', auth=jwt_auth)
 @thing_ownership_required
 def update_thing_photos(request, thing_id):
@@ -39,7 +38,7 @@ def update_thing_photos(request, thing_id):
         for file in request.FILES.getlist('photos'):
             base, extension = os.path.splitext(file.name)
             file_name = f"{request.thing.id}/{uuid.uuid4()}{extension}"
-            file_url = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{file_name}"
+            file_link = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{file_name}"
 
             # Upload the photo to S3 bucket
             try:
@@ -49,7 +48,7 @@ def update_thing_photos(request, thing_id):
                 continue
 
             # Create a new photo in the database
-            photo = Photo(thing=request.thing, url=file_url)
+            photo = Photo(thing=request.thing, file_path='/', link=file_link)
             photo.save()
             photos_list.append(photo_to_dict(photo))
 

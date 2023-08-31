@@ -48,5 +48,6 @@ def photo_to_dict(photo):
     return {
         'id': photo.id, 
         'thingId': photo.thing.id, 
-        'url': photo.url
+        'filePath': photo.file_path, 
+        'link': photo.link
         }
