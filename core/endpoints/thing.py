@@ -26,7 +26,7 @@ class ThingFields(Schema):
 class LocationFields(Schema):
     latitude: float
     longitude: float
-    elevation: float
+    elevation_m: float = None
     state: str = None
     county: str = None
 
@@ -37,16 +37,15 @@ class ThingAndLocationFields(ThingFields, LocationFields):
 @router.post('', auth=jwt_auth)
 @transaction.atomic
 def create_thing(request, data: ThingAndLocationFields):
-    thing_data = data.dict(include=set(ThingFields.__fields__.keys()))
-    new_thing = Thing.objects.create(**thing_data)
-
-    Location.objects.create(
-        thing=new_thing,
-        name=f'Location for {new_thing.name}', 
+    new_location = Location.objects.create(
+        name=f'Location for {data.name}', 
         description='location',
         encoding_type="application/geo+json", 
         **data.dict(include=set(LocationFields.__fields__.keys()))
     )
+
+    thing_data = data.dict(include=set(ThingFields.__fields__.keys()))
+    new_thing = Thing.objects.create(location=new_location, **thing_data)
 
     ThingAssociation.objects.create(
         thing=new_thing, 
@@ -84,9 +83,9 @@ def update_object_from_data(obj, data_dict):
 
 @router.patch('/{thing_id}', by_alias=True)
 @thing_ownership_required
+@transaction.atomic
 def update_thing(request, thing_id: str, data: ThingAndLocationFields):
     thing = request.thing
-    location = Location.objects.get(thing=thing)
 
     thing_data = data.dict(include=set(ThingFields.__fields__.keys()))
     location_data = data.dict(include=set(LocationFields.__fields__.keys()))
@@ -95,10 +94,10 @@ def update_thing(request, thing_id: str, data: ThingAndLocationFields):
         location_data["name"] = f'Location for {thing_data["name"]}'
 
     update_object_from_data(thing, thing_data)
-    update_object_from_data(location, location_data)
+    update_object_from_data(thing.location, location_data)
 
     thing.save()
-    location.save()
+    thing.location.save()
 
     return JsonResponse(thing_to_dict(thing, request.authenticated_user), status=200)
 
@@ -107,7 +106,7 @@ def update_thing(request, thing_id: str, data: ThingAndLocationFields):
 @thing_ownership_required
 def delete_thing(request, thing_id: str):
     try:
-        request.thing.delete()
+        request.thing.location.delete()
     except Exception as e:
         return JsonResponse(status=500, detail=str(e))
 

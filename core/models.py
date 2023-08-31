@@ -9,6 +9,25 @@ from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
 
 
+class Location(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    encoding_type = models.CharField(max_length=255)
+    latitude = models.DecimalField(max_digits=22, decimal_places=16)
+    longitude = models.DecimalField(max_digits=22, decimal_places=16)
+    elevation_m = models.DecimalField(max_digits=22, decimal_places=16, null=True, blank=True)
+    elevation_datum = models.CharField(max_length=255, null=True, blank=True)
+    state = models.CharField(max_length=200, null=True, blank=True)
+    county = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'Location'
+
+
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, unique=True)
@@ -18,6 +37,7 @@ class Thing(models.Model):
     site_type = models.CharField(max_length=200)
     is_private = models.BooleanField(default=False)
     data_disclaimer = models.TextField(null=True, blank=True)
+    location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -53,26 +73,6 @@ def delete_photo(sender, instance, **kwargs):
         s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)
     except ClientError as e:
         print(f'Error deleting {file_name} from S3: {e}')
-
-
-class Location(models.Model):
-    thing = models.OneToOneField(Thing, primary_key=True, related_name='location', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    encoding_type = models.CharField(max_length=255)
-    latitude = models.DecimalField(max_digits=22, decimal_places=16)
-    longitude = models.DecimalField(max_digits=22, decimal_places=16)
-    elevation = models.DecimalField(max_digits=22, decimal_places=16)
-    elevation_datum = models.CharField(max_length=255)
-    city = models.CharField(max_length=150, null=True, blank=True)
-    state = models.CharField(max_length=150, null=True, blank=True)
-    county = models.CharField(max_length=150, null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'Location'
 
 
 class Sensor(models.Model):

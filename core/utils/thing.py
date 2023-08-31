@@ -13,7 +13,7 @@ def thing_to_dict(thing, user):
         "dataDisclaimer": thing.data_disclaimer,
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
-        "elevation": round(float(thing.location.elevation), 6),
+        "elevation_m": round(float(thing.location.elevation_m), 6),
         "state": thing.location.state,
         "county": thing.location.county,
         "isPrimaryOwner": False,
