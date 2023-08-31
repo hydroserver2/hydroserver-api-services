@@ -182,12 +182,17 @@ class Thing(ComponentMap):
         MappedField([], linked_component='ThingAssociation')
     )
 
+    location_id = FieldMap(
+        MappedField(['location_id']),
+        MappedField(['location_id'])
+    )
+
 
 class Location(ComponentMap):
 
     id = FieldMap(
         MappedField(['id']),
-        MappedField(['thing_id'])
+        MappedField(['id'])
     )
 
     name = FieldMap(
@@ -223,11 +228,6 @@ class Location(ComponentMap):
         MappedField(['location', 'geometry', 'type'], transformation=lambda: 'Point')
     )
 
-    city = FieldMap(
-        MappedField(['properties', 'city']),
-        MappedField(['city'])
-    )
-
     state = FieldMap(
         MappedField(['properties', 'state']),
         MappedField(['state'])
@@ -238,9 +238,9 @@ class Location(ComponentMap):
         MappedField(['county'])
     )
 
-    elevation = FieldMap(
-        MappedField(['properties', 'elevation']),
-        MappedField(['elevation'])
+    elevation_m = FieldMap(
+        MappedField(['properties', 'elevation_m']),
+        MappedField(['elevation_m'])
     )
 
     elevation_datum = FieldMap(

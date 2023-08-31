@@ -150,7 +150,7 @@ def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
         return {
             'access': str(jwt),
             'refresh': str(getattr(jwt, 'access_token', '')),
-            'user': user
+            'user': user_to_dict(user)
         }
 
     else:
