@@ -88,10 +88,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                 related_fields.extend(child_related_fields)
                 prefetch_components.extend(related_prefetch_components)
             else:
-                if component == 'Location':
-                    prefetch_field = 'id'
-                else:
-                    prefetch_field = lookup_component(component, 'camel_singular', 'snake_singular') + '_id'
+                prefetch_field = lookup_component(component, 'camel_singular', 'snake_singular') + '_id'
 
                 prefetch_components.append({
                     'component': child_structure['component'],
@@ -118,10 +115,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         }
 
         if component == 'Location':
-            aliased_fields['a_id'] = F('thing_id')
-
-        if component == 'Thing':
-            aliased_fields['a_location_id'] = F('id')
+            aliased_fields['thing_id'] = F('thing__id')
 
         queryset = queryset.values(**aliased_fields)
 
@@ -217,7 +211,6 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             df.rename(columns=lambda x: x[2:], inplace=True)
 
             for prefetch in querysets['prefetch']:
-                print(df)
                 prefetch['queryset'] = prefetch['queryset'].filter(
                     **{f"{prefetch['prefetch_field']}__in": df[prefetch['prefetch_filter']].tolist()}
                 )
@@ -251,8 +244,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     ) + '_rel'
 
                 if child_df['component'] == 'Location':
+                    parent_merge_join_column = 'location_id'
                     child_merge_group_column = 'id'
                 else:
+                    parent_merge_join_column = 'id'
                     child_merge_group_column = (
                         lookup_component(df_prefix['component'], 'camel_singular', 'snake_singular') + '_id'
                     )
@@ -261,7 +256,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     parent_df=df,
                     child_df=transformed_child_df,
                     merged_field_name=merged_field_name,
-                    parent_merge_join_column='id',
+                    parent_merge_join_column=parent_merge_join_column,
                     parent_merge_join_prefix=df_prefix['prefix'],
                     child_merge_group_column=child_merge_group_column
                 )
@@ -335,18 +330,14 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                             row[f'{prefix}latitude'],
                             row[f'{prefix}longitude']
                         ]
-                    },
-                    'properties': {
-                        'city': row[f'{prefix}city']
                     }
                 }, axis=1
             )
             df[f'{prefix}properties'] = df.apply(
                 lambda row: {
-                    'city': row[f'{prefix}city'],
                     'state': row[f'{prefix}state'],
                     'county': row[f'{prefix}county'],
-                    'elevation': row[f'{prefix}elevation'],
+                    'elevation_m': row[f'{prefix}elevation_m'],
                     'elevation_datum': row[f'{prefix}elevation_datum']
                 }, axis=1
             )
