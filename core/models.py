@@ -46,6 +46,15 @@ class Thing(models.Model):
         db_table = 'Thing'
 
 
+class HistoricalLocation(models.Model):
+    thing = models.ForeignKey('Thing', on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    location = models.ForeignKey('Location', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'HistoricalLocation'
+
+
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE)
