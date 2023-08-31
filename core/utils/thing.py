@@ -6,20 +6,20 @@ def thing_to_dict(thing, user):
         "id": thing.pk,
         "name": thing.name,
         "description": thing.description,
-        "sampling_feature_type": thing.sampling_feature_type,
-        "sampling_feature_code": thing.sampling_feature_code,
-        "site_type": thing.site_type,
-        "is_private": thing.is_private,
-        "include_data_disclaimer": thing.include_data_disclaimer,
-        "data_disclaimer": thing.data_disclaimer,
+        "samplingFeatureType": thing.sampling_feature_type,
+        "samplingFeatureCode": thing.sampling_feature_code,
+        "siteType": thing.site_type,
+        "isPrivate": thing.is_private,
+        "includeDataDisclaimer": thing.include_data_disclaimer,
+        "dataDisclaimer": thing.data_disclaimer,
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation": round(float(thing.location.elevation), 6),
         "state": thing.location.state,
         "county": thing.location.county,
-        "is_primary_owner": False,
-        "owns_thing": False,
-        "follows_thing": False,
+        "isPrimaryOwner": False,
+        "ownsThing": False,
+        "followsThing": False,
         "owners": [],
     }
     thing_associations = ThingAssociation.objects.filter(thing=thing)
@@ -37,9 +37,9 @@ def thing_to_dict(thing, user):
         thing_association = thing_associations.filter(person=user).first()
         if thing_association:
             thing_dict.update({
-                "is_primary_owner": thing_association.is_primary_owner,
-                "owns_thing": thing_association.owns_thing,
-                "follows_thing": thing_association.follows_thing,
+                "isPrimaryOwner": thing_association.is_primary_owner,
+                "ownsThing": thing_association.owns_thing,
+                "followsThing": thing_association.follows_thing,
             })
     return thing_dict
 

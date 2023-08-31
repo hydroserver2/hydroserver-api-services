@@ -50,7 +50,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
         "processing_level_name": datastream.processing_level.processing_level_code
         if datastream.processing_level else None,
         "is_visible": datastream.is_visible,
-        "is_primary_owner": association.is_primary_owner if association else False,
+        "isPrimaryOwner": association.is_primary_owner if association else False,
         "is_stale": is_stale,
 
         "data_source_id": datastream.data_source_id,

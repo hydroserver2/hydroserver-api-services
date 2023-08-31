@@ -1,5 +1,6 @@
 import base64
 from ninja import Schema
+from pydantic import Field
 from pydantic import validator
 from sensorthings.validators import allow_partial
 
@@ -17,10 +18,10 @@ class OrganizationFields(Schema):
 
 
 class UserFields(Schema):
-    first_name: str
-    last_name: str
+    first_name: str = Field(alias="firstName")
+    last_name: str = Field(alias="lastName")
     email: str
-    middle_name: str = None
+    middle_name: str = Field(default=None, alias="middleName")
     phone: str = None
     address: str = None
     type: str = None
@@ -29,7 +30,7 @@ class UserFields(Schema):
 
 
 class UserGetResponse(UserFields):
-    is_verified: bool
+    is_verified: bool = Field(alias="isVerified")
 
 
 class UserAuthResponse(Schema):

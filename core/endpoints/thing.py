@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from ninja import Router, Schema
+from pydantic import Field
 
 from accounts.models import Person
 from core.models import ThingAssociation, Thing, Location, Sensor, Unit, ProcessingLevel, ObservedProperty
@@ -14,43 +15,46 @@ from core.utils.thing import thing_to_dict
 
 router = Router(tags=['Things'])
 
-
-class ThingInput(Schema):
+class ThingFields(Schema):
     name: str
     description: str = None
-    sampling_feature_type: str = None
-    sampling_feature_code: str = None
-    site_type: str = None
-    include_data_disclaimer: bool = False
-    data_disclaimer: str = None
+    sampling_feature_type: str = Field(None, alias="samplingFeatureType")
+    sampling_feature_code: str = Field(None, alias="samplingFeatureCode")
+    site_type: str = Field(None, alias="siteType")
+    include_data_disclaimer: bool = Field(False, alias="includeDataDisclaimer")
+    data_disclaimer: str = Field(None, alias="dataDisclaimer")
+
+class LocationFields(Schema):
     latitude: float
     longitude: float
     elevation: float
     state: str = None
     county: str = None
 
+class ThingAndLocationFields(ThingFields, LocationFields):
+    pass
+
 
 @router.post('', auth=jwt_auth)
-def create_thing(request, data: ThingInput):
-    with transaction.atomic():
-        new_thing = Thing.objects.create(name=data.name,
-                                         description=data.description,
-                                         sampling_feature_type=data.sampling_feature_type,
-                                         sampling_feature_code=data.sampling_feature_code,
-                                         site_type=data.site_type, 
-                                         include_data_disclaimer=data.include_data_disclaimer, 
-                                         data_disclaimer=data.data_disclaimer if data.include_data_disclaimer else None)
+@transaction.atomic
+def create_thing(request, data: ThingAndLocationFields):
+    thing_data = data.dict(include=set(ThingFields.__fields__.keys()))
+    new_thing = Thing.objects.create(**thing_data)
 
-        Location.objects.create(name='Location for ' + new_thing.name,
-                                description='location',
-                                encoding_type="application/geo+json",
-                                latitude=data.latitude, longitude=data.longitude, elevation=data.elevation,
-                                state=data.state,
-                                county=data.county,
-                                thing=new_thing)
+    Location.objects.create(
+        thing=new_thing,
+        name=f'Location for {new_thing.name}', 
+        description='location',
+        encoding_type="application/geo+json", 
+        **data.dict(include=set(LocationFields.__fields__.keys()))
+    )
 
-        ThingAssociation.objects.create(thing=new_thing, person=request.authenticated_user,
-                                        owns_thing=True, is_primary_owner=True)
+    ThingAssociation.objects.create(
+        thing=new_thing, 
+        person=request.authenticated_user, 
+        owns_thing=True, 
+        is_primary_owner=True
+    )
 
     return JsonResponse(thing_to_dict(new_thing, request.authenticated_user))
 
@@ -73,57 +77,26 @@ def get_thing(request, thing_id: str):
     return JsonResponse(thing_dict)
 
 
-
-class UpdateThingInput(Schema):
-    name: str = None
-    description: str = None
-    sampling_feature_type: str = None
-    sampling_feature_code: str = None
-    site_type: str = None
-    include_data_disclaimer: bool = False
-    data_disclaimer: str = None
-    latitude: float = None
-    longitude: float = None
-    elevation: float = None
-    city: str = None
-    state: str = None
-    county: str = None
+def update_object_from_data(obj, data_dict):
+    for key, value in data_dict.items():
+        if value is not None:
+            setattr(obj, key, value)
 
 
-@router.patch('/{thing_id}')
+@router.patch('/{thing_id}', by_alias=True)
 @thing_ownership_required
-def update_thing(request, thing_id: str, data: UpdateThingInput):
+def update_thing(request, thing_id: str, data: ThingAndLocationFields):
     thing = request.thing
     location = Location.objects.get(thing=thing)
 
-    if data.name is not None:
-        thing.name = data.name
-        location.name = 'Location for ' + data.name
-    if data.description is not None:
-        thing.description = data.description
-    if data.sampling_feature_type is not None:
-        thing.sampling_feature_type = data.sampling_feature_type
-    if data.sampling_feature_code is not None:
-        thing.sampling_feature_code = data.sampling_feature_code
-    if data.site_type is not None:
-        thing.site_type = data.site_type
-    if data.include_data_disclaimer is not None:
-        thing.include_data_disclaimer = data.include_data_disclaimer
-    if data.data_disclaimer is not None:
-        thing.data_disclaimer = data.data_disclaimer
+    thing_data = data.dict(include=set(ThingFields.__fields__.keys()))
+    location_data = data.dict(include=set(LocationFields.__fields__.keys()))
 
-    if data.latitude is not None:
-        location.latitude = data.latitude
-    if data.longitude is not None:
-        location.longitude = data.longitude
-    if data.elevation is not None:
-        location.elevation = data.elevation
-    if data.city is not None:
-        location.city = data.city
-    if data.state is not None:
-        location.state = data.state
-    if data.county is not None:
-        location.county = data.county
+    if thing_data.get("name"):
+        location_data["name"] = f'Location for {thing_data["name"]}'
+
+    update_object_from_data(thing, thing_data)
+    update_object_from_data(location, location_data)
 
     thing.save()
     location.save()
@@ -144,9 +117,9 @@ def delete_thing(request, thing_id: str):
 
 class UpdateOwnershipInput(Schema):
     email: str
-    make_owner: bool = False
-    remove_owner: bool = False
-    transfer_primary: bool = False
+    make_owner: bool = Field(False, alias="makeOwner")
+    remove_owner: bool = Field(False, alias="removeOwner")
+    transfer_primary: bool = Field(False, alias="transferPrimary")
 
 
 @router.patch('/{thing_id}/ownership', auth=jwt_auth)
@@ -201,7 +174,7 @@ def update_thing_ownership(request, thing_id: str, data: UpdateOwnershipInput):
 
 
 class UpdateThingPrivacy(Schema):
-    is_private: bool
+    is_private: bool = Field(None, alias="isPrivate")
 
 
 @router.patch('/{thing_id}/privacy', auth=jwt_auth)
