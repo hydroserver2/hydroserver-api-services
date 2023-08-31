@@ -14,6 +14,7 @@ def thing_to_dict(thing, user):
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
         "elevation_m": round(float(thing.location.elevation_m), 6),
+        "elevationDatum": thing.location.elevation_datum,
         "state": thing.location.state,
         "county": thing.location.county,
         "isPrimaryOwner": False,

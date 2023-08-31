@@ -27,6 +27,7 @@ class LocationFields(Schema):
     latitude: float
     longitude: float
     elevation_m: float = None
+    elevation_datum: str = Field(None, alias='elevationDatum')
     state: str = None
     county: str = None
 
