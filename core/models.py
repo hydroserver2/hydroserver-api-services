@@ -12,12 +12,11 @@ from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, unique=True)
-    description = models.TextField(null=True, blank=True)
-    sampling_feature_type = models.CharField(max_length=200, null=True, blank=True)
-    sampling_feature_code = models.CharField(max_length=200, null=True, blank=True)
-    site_type = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField()
+    sampling_feature_type = models.CharField(max_length=200)
+    sampling_feature_code = models.CharField(max_length=200)
+    site_type = models.CharField(max_length=200)
     is_private = models.BooleanField(default=False)
-    include_data_disclaimer = models.BooleanField(default=False)
     data_disclaimer = models.TextField(null=True, blank=True)
 
     def __str__(self):

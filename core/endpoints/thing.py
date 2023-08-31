@@ -17,11 +17,10 @@ router = Router(tags=['Things'])
 
 class ThingFields(Schema):
     name: str
-    description: str = None
-    sampling_feature_type: str = Field(None, alias="samplingFeatureType")
-    sampling_feature_code: str = Field(None, alias="samplingFeatureCode")
-    site_type: str = Field(None, alias="siteType")
-    include_data_disclaimer: bool = Field(False, alias="includeDataDisclaimer")
+    description: str
+    sampling_feature_type: str = Field(alias="samplingFeatureType")
+    sampling_feature_code: str = Field(alias="samplingFeatureCode")
+    site_type: str = Field(alias="siteType")
     data_disclaimer: str = Field(None, alias="dataDisclaimer")
 
 class LocationFields(Schema):

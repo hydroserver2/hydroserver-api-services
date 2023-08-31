@@ -10,7 +10,6 @@ def thing_to_dict(thing, user):
         "samplingFeatureCode": thing.sampling_feature_code,
         "siteType": thing.site_type,
         "isPrivate": thing.is_private,
-        "includeDataDisclaimer": thing.include_data_disclaimer,
         "dataDisclaimer": thing.data_disclaimer,
         "latitude": round(float(thing.location.latitude), 6),
         "longitude": round(float(thing.location.longitude), 6),
