@@ -30,7 +30,7 @@ class Location(models.Model):
 
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     description = models.TextField()
     sampling_feature_type = models.CharField(max_length=200)
     sampling_feature_code = models.CharField(max_length=200)
