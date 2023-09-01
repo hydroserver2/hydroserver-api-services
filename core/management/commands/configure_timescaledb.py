@@ -27,22 +27,26 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 observation_table = """
                     CREATE TABLE IF NOT EXISTS "Observation" (
-                        id uuid NOT NULL,
-                        datastream_id uuid NOT NULL,
+                        "id" uuid NOT NULL,
+                        "datastreamId" uuid NOT NULL,
+                        "featureOfInterestId" uuid NULL,
+                        "phenomenonTime" timestamp NOT NULL,
                         "result" float8 NOT NULL,
-                        result_time timestamp NOT NULL,
-                        result_quality varchar(255) NULL,
-                        phenomenon_time timestamp NULL,
-	                    valid_begin_time timestamp NULL,
-	                    valid_end_time timestamp NULL,
-                        CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE (datastream_id, result_time),
-                        CONSTRAINT observation_pkey PRIMARY KEY (id, datastream_id, result_time),
-                        CONSTRAINT observation_datastream_id_fkey FOREIGN KEY (datastream_id) REFERENCES public."Datastream"(id)
+                        "resultTime" timestamp NULL,
+                        "qualityCode" varchar(255) NULL,
+                        CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE ("datastreamId", "phenomenonTime"),
+                        CONSTRAINT observation_pkey PRIMARY KEY ("id", "datastreamId", "phenomenonTime"),
+                        CONSTRAINT observation_datastream_id_fkey FOREIGN KEY ("datastreamId") REFERENCES public."Datastream"(id),
+                        CONSTRAINT observation_feature_of_interest_id_fkey FOREIGN KEY ("featureOfInterestId") REFERENCES public."Datastream"(id)
                     );
                 """
 
                 cursor.execute(observation_table)
 
                 if options['no_timescale'] is False:
-                    cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
-                    cursor.execute("SELECT create_hypertable('\"Observation\"', 'result_time', if_not_exists => TRUE);")
+                    cursor.execute(
+                        "CREATE EXTENSION IF NOT EXISTS timescaledb;"
+                    )
+                    cursor.execute(
+                        "SELECT create_hypertable('\"Observation\"', 'phenomenonTime', if_not_exists => TRUE);"
+                    )

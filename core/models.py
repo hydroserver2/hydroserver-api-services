@@ -248,7 +248,7 @@ class Datastream(models.Model):
 class Observation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE, db_column='datastreamId')
-    feature_of_interest = models.ForeignKey(Datastream, on_delete=models.PROTECT, null=True, blank=True,
+    feature_of_interest = models.ForeignKey(FeatureOfInterest, on_delete=models.PROTECT, null=True, blank=True,
                                             db_column='featureOfInterestId')
     phenomenon_time = models.DateTimeField(db_column='phenomenonTime')
     result = models.FloatField()
