@@ -122,7 +122,7 @@
     encoding_type: application/json
     manufacturer: Sensor Manufacturer
     model: Sensor Model
-    model_url: http://www.example.com/model
+    model_link: http://www.example.com/model
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 2
@@ -135,7 +135,7 @@
     encoding_type: application/json
     manufacturer: Sensor Manufacturer
     model: Sensor Model
-    model_url: http://www.example.com/model
+    model_link: http://www.example.com/model
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 3
@@ -148,7 +148,7 @@
     encoding_type: application/json
     manufacturer: Sensor Manufacturer
     model: Sensor Model
-    model_url: http://www.example.com/model
+    model_link: http://www.example.com/model
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 1

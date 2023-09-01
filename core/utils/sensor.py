@@ -10,11 +10,11 @@ def sensor_to_dict(sensor):
         "description": sensor.description,
         "manufacturer": sensor.manufacturer,
         "model": sensor.model,
-        "method_type": sensor.method_type,
-        "method_code": sensor.method_code,
-        "method_link": sensor.method_link,
-        "encoding_type": sensor.encoding_type,
-        "model_url": sensor.model_url,
+        "methodType": sensor.method_type,
+        "methodCode": sensor.method_code,
+        "methodLink": sensor.method_link,
+        "encodingType": sensor.encoding_type,
+        "modelLink": sensor.model_link,
     }
 
 
@@ -25,7 +25,7 @@ def transfer_sensor_ownership(datastream, new_owner, old_owner):
     if datastream.sensor.person != old_owner or datastream.sensor.person is None:
         return
 
-    fields_to_compare = ['name', 'description', 'encoding_type', 'manufacturer', 'model', 'model_url',
+    fields_to_compare = ['name', 'description', 'encoding_type', 'manufacturer', 'model', 'model_link',
                          'method_type', 'method_link', 'method_code']
 
     same_properties = Sensor.objects.filter(

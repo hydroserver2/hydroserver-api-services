@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.http import JsonResponse
 from ninja import Router, Schema
+from pydantic import Field
 
 from core.models import Sensor
 from core.utils.authentication import jwt_auth
@@ -9,33 +10,22 @@ from core.utils.sensor import sensor_to_dict
 router = Router(tags=['Sensors'])
 
 
-class SensorInput(Schema):
+class SensorFields(Schema):
     name: str = None
-    description: str = None
-    encoding_type: str = None
+    description: str
+    encoding_type: str = Field(alias="encodingType")
     manufacturer: str = None
     model: str = None
-    model_url: str = None
-    method_type: str = None
-    method_link: str = None
-    method_code: str = None
+    model_link: str = Field(None, alias='modelLink')
+    method_type: str = Field(alias='methodType')
+    method_link: str = Field(None, alias='methodLink')
+    method_code: str = Field(None, alias='methodCode')
 
 
 @router.post('', auth=jwt_auth)
-def create_sensor(request, data: SensorInput):
-    sensor = Sensor.objects.create(
-        person=request.authenticated_user,
-        name=data.name,
-        description=data.description,
-        manufacturer=data.manufacturer,
-        model=data.model,
-        method_type=data.method_type,
-        method_code=data.method_code,
-        method_link=data.method_link,
-        encoding_type="application/json",
-        model_url=data.model_url,
-    )
-
+def create_sensor(request, data: SensorFields):
+    sensor_data = data.dict(include=set(SensorFields.__fields__.keys()))
+    sensor = Sensor.objects.create(person=request.authenticated_user, **sensor_data)
     return JsonResponse(sensor_to_dict(sensor))
 
 
@@ -46,30 +36,16 @@ def get_sensors(request):
 
 
 @router.patch('/{sensor_id}', auth=jwt_auth)
-def update_sensor(request, sensor_id: str, data: SensorInput):
+def update_sensor(request, sensor_id: str, data: SensorFields):
     sensor = Sensor.objects.get(id=sensor_id)
     if request.authenticated_user != sensor.person:
         return JsonResponse({'detail': 'You are not authorized to update this sensor.'}, status=403)
 
-    if data.name is not None:
-        sensor.name = data.name
-    if data.description is not None:
-        sensor.description = data.description
-    if data.manufacturer is not None:
-        sensor.manufacturer = data.manufacturer
-    if data.model is not None:
-        sensor.model = data.model
-    if data.method_type is not None:
-        sensor.method_type = data.method_type
-    if data.method_code is not None:
-        sensor.method_code = data.method_code
-    if data.method_link is not None:
-        sensor.method_link = data.method_link
-    # Should always be JSON
-    # if data.encoding_type is not None:
-    #     sensor.encoding_type = data.encoding_type
-    if data.model_url is not None:
-        sensor.model_url = data.model_url
+    sensor_data = data.dict(include=set(SensorFields.__fields__.keys()))
+
+    for key, value in sensor_data.items():
+        if value is not None:
+            setattr(sensor, key, value)
 
     sensor.save()
 
