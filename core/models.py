@@ -137,14 +137,13 @@ class FeatureOfInterest(models.Model):
 
 class ProcessingLevel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='processing_levels', null=True,
-                               blank=True)
-    processing_level_code = models.CharField(max_length=255)
-    definition = models.TextField()
-    explanation = models.TextField()
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
+    code = models.CharField(max_length=255)
+    definition = models.TextField(null=True, blank=True)
+    explanation = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.processing_level_code
+        return self.code
 
     class Meta:
         db_table = 'ProcessingLevel'
@@ -152,8 +151,8 @@ class ProcessingLevel(models.Model):
 
 class Unit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=255)
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
     unit_type = models.CharField(max_length=255)

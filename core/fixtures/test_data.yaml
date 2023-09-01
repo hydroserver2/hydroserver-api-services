@@ -185,21 +185,21 @@
   pk: 7e57d004-2b97-44e7-8f03-713f25415a10
   fields:
     person: 1_000_000_000
-    processing_level_code: test_processing_level_1
+    code: test_processing_level_1
     definition: Processing level 1
     explanation: A processing level
 - model: core.processinglevel
   pk: 83fdb8ba-5db4-4f31-b1fa-e68478a4be13
   fields:
     person: 1_000_000_001
-    processing_level_code: test_processing_level_2
+    code: test_processing_level_2
     definition: Processing level 2
     explanation: A processing level
 - model: core.processinglevel
   pk: 3c72a7e0-d7fd-4be4-9663-264e4634b020
   fields:
     person: 1_000_000_002
-    processing_level_code: test_processing_level_3
+    code: test_processing_level_3
     definition: Processing level 3
     explanation: A processing level
 
