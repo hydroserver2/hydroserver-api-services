@@ -207,17 +207,17 @@ class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.UUIDField()
     description = models.TextField()
-    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, db_column='sensorId')
-    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, db_column='thingId')
-    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT, db_column='observedPropertyId')
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, db_column='unitId')
+    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, db_column='thingId', related_name='datastreams')
+    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, db_column='sensorId', related_name='datastreams')
+    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT, db_column='observedPropertyId', related_name='datastreams')
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, db_column='unitId', related_name='datastreams')
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, db_column='processingLevelId', related_name='datastreams')
     observation_type = models.CharField(max_length=255, db_column='observationType')
     result_type = models.CharField(max_length=255, db_column='resultType')
     status = models.CharField(max_length=255, null=True, blank=True)
     sampled_medium = models.CharField(max_length=255, db_column='sampledMedium')
     value_count = models.IntegerField(null=True, blank=True, db_column='valueCount')
     no_data_value = models.FloatField(db_column='noDataValue')
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, db_column='processingLevelId')
     intended_time_spacing = models.FloatField(null=True, blank=True)
     intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
                                                     related_name='intended_time_spacing_units',
@@ -233,6 +233,11 @@ class Datastream(models.Model):
     is_visible = models.BooleanField(default=True)
     data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
     data_source_column = models.CharField(max_length=255, null=True, blank=True)
+
+    # In the data model, not implemented for now
+    observed_area = models.CharField(max_length=255, null=True, blank=True)
+    result_time = models.DateTimeField(null=True, blank=True, db_column='resultTime')
+    result_begin_time = models.DateTimeField(null=True, blank=True, db_column='resultBeginTime')
 
     def save(self, *args, **kwargs):
         self.name = str(self.id)

@@ -10,7 +10,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
     most_recent_observation = None
     is_stale = True
     if add_recent_observations:
-        if datastream.result_end_time:
+        if hasattr(datastream, 'result_end_time'):
             if datastream.result_end_time > timezone.now() - timedelta(hours=72):
                 is_stale = False
             since_time = datastream.result_end_time - timedelta(hours=72)
@@ -21,41 +21,51 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
                 observation_list.append({
                     "id": observation.id,
                     "result": observation.result if not math.isnan(observation.result) else None,
-                    "result_time": observation.result_time,
+                    "resultTime": observation.result_time,
                 })
             if observation_list:
                 most_recent_observation = observation_list[0]
 
     return {
         "id": datastream.pk,
-        "thing_id": datastream.thing.id,
-        "observation_type": datastream.observation_type,
-        "result_type": datastream.result_type,
+        "name": datastream.name,
+        "description": datastream.description,
+        "thingId": datastream.thing.id,
+        "observationType": datastream.observation_type,
+        "resultType": datastream.result_type,
         "status": datastream.status,
-        "sampled_medium": datastream.sampled_medium,
-        "no_data_value": datastream.no_data_value,
-        "aggregation_statistic": datastream.aggregation_statistic,
+        "sampledMedium": datastream.sampled_medium,
+        "noDataValue": datastream.no_data_value,
+        "aggregationStatistic": datastream.aggregation_statistic,
         "observations": observation_list if observation_list else None,
-        "most_recent_observation": most_recent_observation,
+        "mostRecentObservation": most_recent_observation,
 
-        "unit_id": datastream.unit.pk if datastream.unit else None,
-        "observed_property_id": datastream.observed_property.pk if datastream.observed_property else None,
-        "method_id": datastream.sensor.pk if datastream.sensor else None,
-        "processing_level_id": datastream.processing_level.pk if datastream.processing_level else None,
+        "unitId": datastream.unit.pk if datastream.unit else None,
+        "observedPropertyId": datastream.observed_property.pk if datastream.observed_property else None,
+        "methodId": datastream.sensor.pk if datastream.sensor else None,
+        "processingLevelId": datastream.processing_level.pk if datastream.processing_level else None,
 
-        "unit_name": datastream.unit.name if datastream.unit else None,
-        "unit_symbol": datastream.unit.symbol if datastream.unit else None,
-        "observed_property_name": datastream.observed_property.name if datastream.observed_property else None,
-        "method_name": datastream.sensor.name if datastream.sensor else None,
-        "processing_level_name": datastream.processing_level.code
-        if datastream.processing_level else None,
-        "is_visible": datastream.is_visible,
+        "unitName": datastream.unit.name if datastream.unit else None,
+        "unitSymbol": datastream.unit.symbol if datastream.unit else None,
+        "observedPropertyName": datastream.observed_property.name if datastream.observed_property else None,
+        "methodName": datastream.sensor.name if datastream.sensor else None,
+        "processingLevelName": datastream.processing_level.code if datastream.processing_level else None,
+        "isVisible": datastream.is_visible,
         "isPrimaryOwner": association.is_primary_owner if association else False,
-        "is_stale": is_stale,
+        "isStale": is_stale,
 
-        "data_source_id": datastream.data_source_id,
+        "phenomenonBeginTime": datastream.phenomenon_begin_time,
+        "phenomenonEndTime": datastream.phenomenon_end_time,
+
+        "intendedTimeSpacing": datastream.intended_time_spacing if datastream.intended_time_spacing else None,
+        "intendedTimeSpacingUnitsId": datastream.intended_time_spacing_units.pk if datastream.intended_time_spacing_units else None,
+        "timeAggregationInterval": datastream.time_aggregation_interval,
+        "timeAggregationIntervalUnitsId": datastream.time_aggregation_interval_units.pk,
+
+        "dataSourceId": datastream.data_source_id,
         "column": datastream.data_source_column
     }
+
 
 
 def get_public_datastreams(thing_id: str):

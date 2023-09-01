@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.http import JsonResponse
 from ninja import Router, Schema
+from pydantic import Field
 
 from core.utils.authentication import thing_ownership_required, jwt_auth, jwt_check_user, datastream_ownership_required
 from core.models import Sensor, ObservedProperty, Unit, ProcessingLevel, Datastream, ThingAssociation
@@ -9,36 +10,39 @@ from core.utils.datastream import datastream_to_dict, get_public_datastreams
 router = Router(tags=['Datastreams'])
 
 
-class CreateDatastreamInput(Schema):
-    thing_id: str
-    method_id: str
-    observed_property_id: str
-    processing_level_id: str = None
-    unit_id: str = None
+class DatastreamFields(Schema):
+    name: str
+    description: str
+    thing_id: str = Field(..., alias="thingId")
+    method_id: str = Field(..., alias="methodId")
+    observed_property_id: str = Field(..., alias="observedPropertyId")
+    processing_level_id: str = Field(..., alias="processingLevelId")
+    unit_id: str = Field(..., alias="unitId")
 
-    observation_type: str = None
-    result_type: str = None
+    observation_type: str = Field(..., alias="observationType")
+    result_type: str = Field(None, alias="resultType")
     status: str = None
-    sampled_medium: str = None
-    value_count: str = None
-    no_data_value: str = None
-    intended_time_spacing: str = None
-    intended_time_spacing_units: str = None
+    sampled_medium: str = Field(..., alias="sampledMedium")
+    value_count: str = Field(None, alias="valueCount")
+    no_data_value: str = Field(..., alias="noDataValue")
+    aggregation_statistic: str = Field(..., alias="aggregationStatistic")
 
-    aggregation_statistic: str = None
-    time_aggregation_interval: str = None
-    time_aggregation_interval_units: str = None
+    intended_time_spacing: str = Field(None, alias="intendedTimeSpacing")
+    intended_time_spacing_units_id: str = Field(None, alias="intendedTimeSpacingUnitsId")
+    time_aggregation_interval: str = Field(..., alias="timeAggregationInterval")
+    time_aggregation_interval_units_id: str = Field(..., alias="timeAggregationIntervalUnitsId")
 
-    phenomenon_start_time: str = None
-    phenomenon_end_time: str = None
-    result_begin_time: str = None
-    result_end_time: str = None
+    phenomenon_begin_time: str = Field(None, alias="phenomenonBeginTime")
+    phenomenon_end_time: str = Field(None, alias="phenomenonEndTime")
+    result_begin_time: str = Field(None, alias="resultBeginTime")
+    result_end_time: str = Field(None, alias="resultEndTime")
+
 
 
 @router.post('/{thing_id}', auth=jwt_auth)
 @thing_ownership_required
 @transaction.atomic
-def create_datastream(request, thing_id, data: CreateDatastreamInput):
+def create_datastream(request, thing_id, data: DatastreamFields):
     try:
         sensor = Sensor.objects.get(id=data.method_id)
     except Sensor.DoesNotExist:
@@ -59,7 +63,18 @@ def create_datastream(request, thing_id, data: CreateDatastreamInput):
     else:
         processing_level = None
 
+    try:
+        intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units_id) if data.intended_time_spacing_units_id else None
+    except Unit.DoesNotExist:
+        return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
+    
+    try:
+        time_aggregation_interval_units = Unit.objects.get(id=data.time_aggregation_interval_units_id)
+    except Unit.DoesNotExist:
+        return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
+
     datastream = Datastream.objects.create(
+        name="Site Datastream",
         description="Site Datastream",
         observed_property=observed_property,
         unit=unit,
@@ -72,6 +87,10 @@ def create_datastream(request, thing_id, data: CreateDatastreamInput):
         observation_type='OM_Measurement',
         thing=request.thing,
         sensor=sensor,
+        intended_time_spacing_units=intended_time_spacing_units,
+        time_aggregation_interval_units=time_aggregation_interval_units,
+        time_aggregation_interval=data.time_aggregation_interval,
+        intended_time_spacing = data.intended_time_spacing if data.intended_time_spacing else None,
     )
 
     return JsonResponse(datastream_to_dict(datastream, request.thing_association))
@@ -112,39 +131,16 @@ def get_datastreams_for_thing(request, thing_id: str):
         return get_public_datastreams(thing_id=thing_id)
 
 
-class UpdateDatastreamInput(Schema):
-    unit_id: str = None
-    method_id: str = None
-    observed_property_id: str = None
-    processing_level_id: str = None
-
-    observation_type: str = None
-    result_type: str = None
-    status: str = None
-    sampled_medium: str = None
-    value_count: str = None
-    no_data_value: str = None
-    intended_time_spacing: str = None
-    intended_time_spacing_units: str = None
-
-    aggregation_statistic: str = None
-    time_aggregation_interval: str = None
-    time_aggregation_interval_units: str = None
-
-    phenomenon_start_time: str = None
-    phenomenon_end_time: str = None
-    result_begin_time: str = None
-    result_end_time: str = None
-    is_visible: bool = None
-
+class UpdateDatastreamFields(DatastreamFields):
     data_source_id: str = None
     data_source_column: str = None
+    is_visible: bool = Field(None, alias='isVisible')
 
 
 @router.patch('/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
 @transaction.atomic
-def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
+def update_datastream(request, datastream_id: str, data: UpdateDatastreamFields):
     datastream = request.datastream
     
     if data.method_id is not None:
@@ -171,10 +167,22 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
         except ProcessingLevel.DoesNotExist:
             return JsonResponse({'detail': 'Processing Level not found.'}, status=404)
 
-    # if data.observation_type is not None:
-    #     datastream.observation_type = data.observation_type
-    # if data.result_type is not None:
-    #     datastream.result_type = data.result_type
+    if data.intended_time_spacing_units_id is not None:
+        try:
+            datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units_id)
+        except Unit.DoesNotExist:
+            return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
+        
+    if data.time_aggregation_interval_units_id is not None:
+        try:
+            datastream.time_aggregation_interval_units = Unit.objects.get(id=data.time_aggregation_interval_units_id)
+        except Unit.DoesNotExist:
+            return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
+        
+    if data.observation_type is not None:
+        datastream.observation_type = data.observation_type
+    if data.result_type is not None:
+        datastream.result_type = data.result_type
     if data.status is not None:
         datastream.status = data.status
     if data.sampled_medium is not None:
@@ -185,13 +193,8 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
         datastream.aggregation_statistic = data.aggregation_statistic
     if data.time_aggregation_interval is not None:
         datastream.time_aggregation_interval = data.time_aggregation_interval
-    if data.time_aggregation_interval_units is not None:
-        try:
-            datastream.time_aggregation_interval_units = Unit.objects.get(id=data.time_aggregation_interval_units)
-        except Unit.DoesNotExist:
-            return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
-    if data.phenomenon_start_time is not None:
-        datastream.phenomenon_begin_time = data.phenomenon_start_time
+    if data.phenomenon_begin_time is not None:
+        datastream.phenomenon_begin_time = data.phenomenon_begin_time
     if data.phenomenon_end_time is not None:
         datastream.phenomenon_end_time = data.phenomenon_end_time
     if data.result_begin_time is not None:
@@ -202,11 +205,6 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
         datastream.value_count = data.value_count
     if data.intended_time_spacing is not None:
         datastream.intended_time_spacing = data.intended_time_spacing
-    if data.intended_time_spacing_units is not None:
-        try:
-            datastream.intended_time_spacing_units = Unit.objects.get(id=data.intended_time_spacing_units)
-        except Unit.DoesNotExist:
-            return JsonResponse({'detail': 'intended_time_spacing_units not found.'}, status=404)
     if data.is_visible is not None:
         datastream.is_visible = data.is_visible
 
