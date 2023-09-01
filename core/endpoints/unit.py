@@ -15,7 +15,7 @@ class CreateUnitInput(Schema):
     name: str
     symbol: str
     definition: str
-    unit_type: str
+    type: str
 
 
 @router.post('', auth=jwt_auth)
@@ -25,7 +25,7 @@ def create_unit(request, data: CreateUnitInput):
         person=request.authenticated_user,
         symbol=data.symbol,
         definition=data.definition,
-        unit_type=data.unit_type
+        type=data.type
     )
     return JsonResponse(unit_to_dict(unit))
 
@@ -55,8 +55,8 @@ def update_unit(request, unit_id: str, data: UpdateUnitInput):
         unit.symbol = data.symbol
     if data.definition is not None:
         unit.definition = data.definition
-    if data.unit_type is not None:
-        unit.unit_type = data.unit_type
+    if data.type is not None:
+        unit.type = data.type
 
     unit.save()
     return JsonResponse(unit_to_dict(unit))

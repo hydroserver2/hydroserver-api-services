@@ -210,7 +210,7 @@
     person: 1_000_000_000
     symbol: T
     definition: http://www.example.com/unit1
-    unit_type: Unit
+    type: Unit
 - model: core.unit
   pk: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
   fields:
@@ -218,7 +218,7 @@
     person: 1_000_000_001
     symbol: T
     definition: http://www.example.com/unit2
-    unit_type: Unit
+    type: Unit
 - model: core.unit
   pk: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
   fields:
@@ -226,7 +226,7 @@
     person: 1_000_000_002
     symbol: T
     definition: http://www.example.com/unit3
-    unit_type: Unit
+    type: Unit
 
 - model: core.datastream
   pk: 376be82c-b3a1-4d96-821b-c7954b931f94

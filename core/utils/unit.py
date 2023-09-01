@@ -9,7 +9,7 @@ def transfer_unit_ownership(datastream, new_owner, old_owner):
     if datastream.unit.person != old_owner or datastream.unit.person is None:
         return
 
-    fields_to_compare = ['name', 'symbol', 'definition', 'unit_type']
+    fields_to_compare = ['name', 'symbol', 'definition', 'type']
 
     same_properties = Unit.objects.filter(
         person=new_owner,
@@ -34,6 +34,6 @@ def unit_to_dict(unit):
         "name": unit.name,
         "symbol": unit.symbol,
         "definition": unit.definition,
-        "unit_type": unit.unit_type,
-        "person_id": unit.person.pk if unit.person else None
+        "type": unit.type,
+        "personId": unit.person.pk if unit.person else None
     }

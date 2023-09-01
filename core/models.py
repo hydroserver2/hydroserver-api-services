@@ -155,7 +155,7 @@ class Unit(models.Model):
     name = models.CharField(max_length=255)
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
-    unit_type = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
