@@ -344,8 +344,8 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         elif component == 'ObservedProperty':
             df[f'{prefix}properties'] = df.apply(
                 lambda row: {
-                    'variable_code': row[f'{prefix}variable_code'],
-                    'variable_type': row[f'{prefix}variable_type']
+                    'variable_code': row[f'{prefix}code'],
+                    'variable_type': row[f'{prefix}type']
                 }, axis=1
             )
         elif component == 'Sensor':
@@ -357,7 +357,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     'sensor_model': {
                         'sensor_model_name': row[f'{prefix}model'],
                         'sensor_manufacturer': row[f'{prefix}manufacturer'],
-                        'sensor_model_url': row[f'{prefix}model_url']
+                        'sensor_model_url': row[f'{prefix}model_link']
                     }
                 }, axis=1
             )
@@ -371,12 +371,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             )
             df[f'{prefix}phenomenon_time'] = df.apply(
                 lambda row: self.format_isointerval(
-                    row[f'{prefix}phenomenon_start_time'], row[f'{prefix}phenomenon_end_time']
-                ), axis=1
-            )
-            df[f'{prefix}result_time'] = df.apply(
-                lambda row: self.format_isointerval(
-                    row[f'{prefix}result_begin_time'], row[f'{prefix}result_end_time']
+                    row[f'{prefix}phenomenon_begin_time'], row[f'{prefix}phenomenon_end_time']
                 ), axis=1
             )
             df[f'{prefix}properties'] = df.apply(
@@ -386,7 +381,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                     'sampled_medium': row[f'{prefix}sampled_medium'],
                     'value_count': row[f'{prefix}value_count'] if not pd.isnull(row[f'{prefix}value_count']) else 0,
                     'no_data_value': row[f'{prefix}no_data_value'],
-                    'processing_level_code': row[f'{prefix}processing_level__processing_level_code'],
+                    'processing_level_code': row[f'{prefix}processing_level__code'],
                     'intended_time_spacing': row[f'{prefix}intended_time_spacing'],
                     'intended_time_spacing_unit_of_measurement': {
                         'name': row[f'{prefix}intended_time_spacing_units__name'],
@@ -404,7 +399,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
             )
         elif component == 'Observation':
             df[f'{prefix}result_time'] = df.apply(
-                lambda row: row[f'{prefix}result_time'].strftime('%Y-%m-%dT%H:%M:%SZ'),
+                lambda row: row[f'{prefix}phenomenon_time'].strftime('%Y-%m-%dT%H:%M:%SZ'),
                 axis=1
             )
 
@@ -569,10 +564,8 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         datastream_id=entity_body.datastream.id,
                         result=entity_body.result,
                         result_time=entity_body.result_time,
-                        result_quality=entity_body.quality_code,
+                        quality_code=entity_body.result_quality,
                         phenomenon_time=entity_body.phenomenon_time,
-                        valid_begin_time=entity_body.valid_time,
-                        valid_end_time=entity_body.valid_time,
                     ) for entity_body in [
                         observation for observations in grouped_observations.values() for observation in observations
                     ]
@@ -581,30 +574,6 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
 
             for datastream_id, observations in grouped_observations.items():
                 datastream = core_models.Datastream.objects.get(pk=datastream_id)
-
-                ds_result_end_time = datastream.result_end_time
-                max_obs_result_time = max([
-                    observation.result_time for observation in observations
-                    if observation.result_time is not None
-                ], default=None)
-
-                if (
-                        max_obs_result_time and ds_result_end_time and
-                        max_obs_result_time.__datetime__() > ds_result_end_time
-                   ) or (max_obs_result_time and not ds_result_end_time):
-                    datastream.result_end_time = max_obs_result_time
-
-                ds_result_begin_time = datastream.result_begin_time
-                min_obs_result_time = min([
-                    observation.result_time for observation in observations
-                    if observation.result_time is not None
-                ], default=None)
-
-                if (
-                        min_obs_result_time and ds_result_begin_time and
-                        min_obs_result_time.__datetime__() < ds_result_begin_time
-                   ) or (min_obs_result_time and not ds_result_begin_time):
-                    datastream.result_begin_time = min_obs_result_time
 
                 ds_phen_end_time = datastream.phenomenon_end_time
                 max_obs_phen_time = max([

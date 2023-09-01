@@ -298,7 +298,7 @@ class Sensor(ComponentMap):
 
     model_url = FieldMap(
         MappedField(['metadata', 'sensorModel', 'sensorModelURL']),
-        MappedField(['model_url'])
+        MappedField(['model_link'])
     )
 
 
@@ -326,12 +326,12 @@ class ObservedProperty(ComponentMap):
 
     variable_code = FieldMap(
         MappedField(['metadata', 'variableCode']),
-        MappedField(['variable_code'])
+        MappedField(['code'])
     )
 
     variable_type = FieldMap(
         MappedField(['metadata', 'variableType']),
-        MappedField(['variable_type'])
+        MappedField(['type'])
     )
 
 
@@ -414,7 +414,7 @@ class Datastream(ComponentMap):
 
     processing_level_code = FieldMap(
         MappedField(['properties', 'processingLevelCode']),
-        MappedField(['processing_level', 'processing_level_code'])
+        MappedField(['processing_level', 'code'])
     )
 
     intended_time_spacing = FieldMap(
@@ -462,24 +462,14 @@ class Datastream(ComponentMap):
         MappedField(['time_aggregation_interval_units', 'symbol'])
     )
 
-    phenomenon_start_time = FieldMap(
+    phenomenon_begin_time = FieldMap(
         MappedField(['properties', 'phenomenonTime'], transformation=lambda v, m: f'{v}/{m.phenomenon_end_time}'),
-        MappedField(['phenomenon_start_time'], transformation=lambda v, m: v.split('/')[0])
+        MappedField(['phenomenon_begin_time'], transformation=lambda v, m: v.split('/')[0])
     )
 
     phenomenon_end_time = FieldMap(
         MappedField(['properties', 'phenomenonTime'], transformation=lambda v, m: f'{m.phenomenon_begin_time}/{v}'),
         MappedField(['phenomenon_end_time'], transformation=lambda v, m: v.split('/')[1])
-    )
-
-    result_begin_time = FieldMap(
-        MappedField(['properties', 'resultTime'], transformation=lambda v, m: f'{v}/{m.result_end_time}'),
-        MappedField(['result_begin_time'], transformation=lambda v, m: v.split('/')[0])
-    )
-
-    result_end_time = FieldMap(
-        MappedField(['properties', 'resultTime'], transformation=lambda v, m: f'{m.result_begin_time}/{v}'),
-        MappedField(['result_end_time'], transformation=lambda v, m: v.split('/')[1])
     )
 
 
@@ -507,7 +497,7 @@ class Observation(ComponentMap):
 
     result_quality = FieldMap(
         MappedField(['resultQuality']),
-        MappedField(['result_quality'])
+        MappedField(['quality_code'])
     )
 
     phenomenon_time = FieldMap(
@@ -515,15 +505,15 @@ class Observation(ComponentMap):
         MappedField(['phenomenon_time'])
     )
 
-    valid_begin_time = FieldMap(
-        MappedField(['properties', 'validTime'], transformation=lambda v, m: f'{v}/{m.valid_end_time}'),
-        MappedField(['valid_begin_time'], transformation=lambda v, m: v.split('/')[0])
-    )
-
-    valid_end_time = FieldMap(
-        MappedField(['properties', 'validTime'], transformation=lambda v, m: f'{m.valid_begin_time}/{v}'),
-        MappedField(['valid_begin_time'], transformation=lambda v, m: v.split('/')[1])
-    )
+    # valid_begin_time = FieldMap(
+    #     MappedField(['properties', 'validTime'], transformation=lambda v, m: f'{v}/{m.valid_end_time}'),
+    #     MappedField(['valid_begin_time'], transformation=lambda v, m: v.split('/')[0])
+    # )
+    #
+    # valid_end_time = FieldMap(
+    #     MappedField(['properties', 'validTime'], transformation=lambda v, m: f'{m.valid_begin_time}/{v}'),
+    #     MappedField(['valid_begin_time'], transformation=lambda v, m: v.split('/')[1])
+    # )
 
 
 sensorthings_mapper = {

@@ -7,7 +7,8 @@ from django.test import Client
 @pytest.fixture
 def auth_headers():
     return {
-        'HTTP_AUTHORIZATION': 'Basic ' + base64.b64encode(bytes('paul@example.com:default', 'utf8')).decode('utf8'),
+        'HTTP_AUTHORIZATION': 'Basic ' +
+                              base64.b64encode(bytes('paul@example.com:thisispaulspassword', 'utf8')).decode('utf8'),
     }
 
 
@@ -48,7 +49,7 @@ def base_url():
     ('ObservedProperties', {'$expand': 'Datastreams/Thing'}),
     ('Datastreams', {}),
     ('Datastreams', {'$count': True}),
-    ('Datastreams', {'$filter': 'name eq \'test\''}),
+    ('Datastreams', {'$filter': 'name eq \'ca999458-d644-44b0-b678-09a892fd54ac\''}),
     ('Datastreams', {'$skip': 10}),
     ('Datastreams', {'$top': 10}),
     ('Datastreams', {'$expand': 'Observations,Thing/Locations,Sensor,ObservedProperty'}),
@@ -120,6 +121,43 @@ def test_sensorthings_get_endpoints(
         query_params,
         **auth_headers
     )
+    json.loads(response.content)
+
+    assert response.status_code == status_code
+
+
+@pytest.mark.parametrize('endpoint, post_body, status_code', [
+    ('Observations', {
+        'phenomenonTime': '2023-10-01T10:00:00Z',
+        'result': 23.2,
+        'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'}
+    }, 201),
+    ('Observations', [{
+        'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'},
+        'components': ['phenomenonTime', 'result'],
+        'dataArray': [['2023-10-02T10:00:00Z', 24.5], ['2023-10-03T10:00:00Z', 22.8]]
+    }], 201)
+])
+@pytest.mark.django_db()
+def test_sensorthings_post_endpoints(
+        django_test_db,
+        auth_headers,
+        base_url,
+        endpoint,
+        post_body,
+        status_code
+):
+    client = Client()
+
+    response = client.post(
+        f'{base_url}/{endpoint}',
+        json.dumps(post_body),
+        content_type="application/json",
+        **auth_headers
+    )
+
+    print(response.content)
+
     json.loads(response.content)
 
     assert response.status_code == status_code
