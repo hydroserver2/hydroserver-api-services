@@ -191,7 +191,7 @@ def update_datastream(request, datastream_id: str, data: UpdateDatastreamInput):
         except Unit.DoesNotExist:
             return JsonResponse({'detail': 'time_aggregation_interval_units not found.'}, status=404)
     if data.phenomenon_start_time is not None:
-        datastream.phenomenon_start_time = data.phenomenon_start_time
+        datastream.phenomenon_begin_time = data.phenomenon_start_time
     if data.phenomenon_end_time is not None:
         datastream.phenomenon_end_time = data.phenomenon_end_time
     if data.result_begin_time is not None:

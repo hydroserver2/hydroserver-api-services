@@ -468,7 +468,7 @@ class Datastream(ComponentMap):
     )
 
     phenomenon_end_time = FieldMap(
-        MappedField(['properties', 'phenomenonTime'], transformation=lambda v, m: f'{m.phenomenon_start_time}/{v}'),
+        MappedField(['properties', 'phenomenonTime'], transformation=lambda v, m: f'{m.phenomenon_begin_time}/{v}'),
         MappedField(['phenomenon_end_time'], transformation=lambda v, m: v.split('/')[1])
     )
 

@@ -1,4 +1,6 @@
 import uuid
+import pytz
+from datetime import datetime
 from django.db.models import ForeignKey
 from django.db import models
 from django.db.models.signals import pre_delete
@@ -128,7 +130,7 @@ class FeatureOfInterest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
-    encoding_type = models.CharField(max_length=255)
+    encoding_type = models.CharField(max_length=255, db_column='encodingType')
     feature = models.TextField()
 
     class Meta:
@@ -202,43 +204,42 @@ class DataSource(models.Model):
 
 class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, related_name='datastreams')
-    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, related_name='datastreams')
-    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT)
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True, related_name='unit',
-                             db_constraint=False)
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, null=True, blank=True,
-                                         related_name='processing_level', db_constraint=False)
-    name = models.CharField(max_length=255)
-    description = models.TextField(null=True, blank=True)
-    observation_type = models.CharField(max_length=255, null=True, blank=True)
-    result_type = models.CharField(max_length=255, null=True, blank=True)
+    name = models.UUIDField()
+    description = models.TextField()
+    sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, db_column='sensorId')
+    thing = models.ForeignKey(Thing, on_delete=models.CASCADE, db_column='thingId')
+    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT, db_column='observedPropertyId')
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, db_column='unitId')
+    observation_type = models.CharField(max_length=255, db_column='observationType')
+    result_type = models.CharField(max_length=255, db_column='resultType')
     status = models.CharField(max_length=255, null=True, blank=True)
-    sampled_medium = models.CharField(max_length=255, null=True, blank=True)
-    value_count = models.IntegerField(null=True, blank=True)
-    no_data_value = models.FloatField(max_length=255, null=True, blank=True)
-    intended_time_spacing = models.FloatField(max_length=255, null=True, blank=True)
+    sampled_medium = models.CharField(max_length=255, db_column='sampledMedium')
+    value_count = models.IntegerField(null=True, blank=True, db_column='valueCount')
+    no_data_value = models.FloatField(db_column='noDataValue')
+    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, db_column='processingLevelId')
+    intended_time_spacing = models.FloatField(null=True, blank=True)
     intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                    related_name='intended_time_spacing', db_constraint=False)
-    aggregation_statistic = models.CharField(max_length=255, null=True, blank=True)
-    time_aggregation_interval = models.FloatField(max_length=255, null=True, blank=True)
-    time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                        related_name='time_aggregation_interval', db_constraint=False)
-    phenomenon_start_time = models.DateTimeField(null=True, blank=True)
-    phenomenon_end_time = models.DateTimeField(null=True, blank=True)
-    result_begin_time = models.DateTimeField(null=True, blank=True)
-    result_end_time = models.DateTimeField(null=True, blank=True)
+                                                    related_name='intended_time_spacing_units',
+                                                    db_column='intendedTimeSpacingUnitsId')
+    aggregation_statistic = models.CharField(max_length=255, db_column='aggregationStatistic')
+    time_aggregation_interval = models.FloatField(db_column='timeAggregationInterval')
+    time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.PROTECT,
+                                                        related_name='time_aggregation_interval_units',
+                                                        db_column='timeAggregationIntervalUnitsId')
+    phenomenon_begin_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonBeginTime')
+    phenomenon_end_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonEndTime')
+
     is_visible = models.BooleanField(default=True)
     data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
     data_source_column = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.name:
-            self.name = str(self.id)
+        self.name = str(self.id)
+        self.description = f'{self.observed_property.name} at {self.thing.name} - {self.processing_level.code}'
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return self.description
 
     class Meta:
         db_table = 'Datastream'
@@ -246,24 +247,25 @@ class Datastream(models.Model):
 
 class Observation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE)
+    datastream = models.ForeignKey(Datastream, on_delete=models.CASCADE, db_column='datastreamId')
+    feature_of_interest = models.ForeignKey(Datastream, on_delete=models.PROTECT, null=True, blank=True,
+                                            db_column='featureOfInterestId')
+    phenomenon_time = models.DateTimeField(db_column='phenomenonTime')
     result = models.FloatField()
-    result_time = models.DateTimeField()
-    result_quality = models.CharField(max_length=255, null=True)
-    phenomenon_time = models.DateTimeField(null=True, blank=True)
-    valid_begin_time = models.DateTimeField(null=True, blank=True)
-    valid_end_time = models.DateTimeField(null=True, blank=True)
+    result_time = models.DateTimeField(null=True, blank=True, db_column='resultTime')
+    quality_code = models.CharField(max_length=255, null=True, blank=True, db_column='qualityCode')
+
+    def save(self, *args, **kwargs):
+        if not self.phenomenon_time:
+            self.phenomenon_time = datetime.now(pytz.utc)
+
+    def __str__(self):
+        return f'{self.datastream.observed_property.name} at {self.datastream.thing.name} ' + \
+               f'on {self.phenomenon_time.strftime("%Y-%m-%d %H:%M:%S")} - {self.datastream.processing_level.code}'
 
     class Meta:
         db_table = 'Observation'
         managed = False
-
-    def __str__(self):
-        name = f"{self.datastream.thing.name}: {self.datastream.observed_property.name} - " + \
-               f"{self.result_time} -- {self.result}"
-        if hasattr(self.phenomenon_time, 'strftime'):
-            name += f" - {self.phenomenon_time.strftime('%Y-%m-%d %H:%M:%S')}"
-        return name
 
 
 class ThingAssociation(models.Model):

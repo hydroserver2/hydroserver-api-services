@@ -569,7 +569,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         datastream_id=entity_body.datastream.id,
                         result=entity_body.result,
                         result_time=entity_body.result_time,
-                        result_quality=entity_body.result_quality,
+                        result_quality=entity_body.quality_code,
                         phenomenon_time=entity_body.phenomenon_time,
                         valid_begin_time=entity_body.valid_time,
                         valid_end_time=entity_body.valid_time,
@@ -618,7 +618,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                    ) or (max_obs_phen_time and not ds_phen_end_time):
                     datastream.phenomenon_end_time = max_obs_phen_time
 
-                ds_phen_start_time = datastream.phenomenon_start_time
+                ds_phen_start_time = datastream.phenomenon_begin_time
                 min_obs_phen_time = min([
                     observation.phenomenon_time for observation in observations
                     if observation.phenomenon_time is not None
@@ -628,7 +628,7 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
                         min_obs_phen_time and ds_phen_start_time and
                         min_obs_phen_time.__datetime__() < ds_phen_start_time
                    ) or (min_obs_phen_time and not ds_phen_start_time):
-                    datastream.phenomenon_start_time = min_obs_phen_time
+                    datastream.phenomenon_begin_time = min_obs_phen_time
 
                 datastream.save()
 
