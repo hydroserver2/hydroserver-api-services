@@ -15,11 +15,11 @@ class Location(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
-    encoding_type = models.CharField(max_length=255)
+    encoding_type = models.CharField(max_length=255, db_column='encodingType')
     latitude = models.DecimalField(max_digits=22, decimal_places=16)
     longitude = models.DecimalField(max_digits=22, decimal_places=16)
     elevation_m = models.DecimalField(max_digits=22, decimal_places=16, null=True, blank=True)
-    elevation_datum = models.CharField(max_length=255, null=True, blank=True)
+    elevation_datum = models.CharField(max_length=255, null=True, blank=True, db_column='elevationDatum')
     state = models.CharField(max_length=200, null=True, blank=True)
     county = models.CharField(max_length=200, null=True, blank=True)
 
@@ -34,12 +34,12 @@ class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField()
-    sampling_feature_type = models.CharField(max_length=200)
-    sampling_feature_code = models.CharField(max_length=200)
-    site_type = models.CharField(max_length=200)
-    is_private = models.BooleanField(default=False)
-    data_disclaimer = models.TextField(null=True, blank=True)
-    location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE)
+    sampling_feature_type = models.CharField(max_length=200, db_column='samplingFeatureType')
+    sampling_feature_code = models.CharField(max_length=200, db_column='samplingFeatureCode')
+    site_type = models.CharField(max_length=200, db_column='siteType')
+    is_private = models.BooleanField(default=False, db_column='isPrivate')
+    data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
+    location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
 
     def __str__(self):
         return self.name
@@ -49,9 +49,9 @@ class Thing(models.Model):
 
 
 class HistoricalLocation(models.Model):
-    thing = models.ForeignKey('Thing', on_delete=models.CASCADE)
+    thing = models.ForeignKey('Thing', on_delete=models.CASCADE, db_column='thingId')
     time = models.DateTimeField()
-    location = models.ForeignKey('Location', on_delete=models.CASCADE)
+    location = models.ForeignKey('Location', on_delete=models.CASCADE, db_column='locationId')
 
     class Meta:
         db_table = 'HistoricalLocation'
@@ -59,8 +59,8 @@ class HistoricalLocation(models.Model):
 
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE)
-    file_path = models.CharField(max_length=1000)
+    thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE, db_column='thingId')
+    file_path = models.CharField(max_length=1000, db_column='filePath')
     link = models.URLField(max_length=2000)
 
     def __str__(self):
@@ -89,16 +89,16 @@ def delete_photo(sender, instance, **kwargs):
 
 class Sensor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True, db_column='personId')
     name = models.CharField(max_length=255)
     description = models.TextField()
-    encoding_type = models.CharField(max_length=255)
+    encoding_type = models.CharField(max_length=255, db_column='encodingType')
     manufacturer = models.CharField(max_length=255, null=True, blank=True)
     model = models.CharField(max_length=255, null=True, blank=True)
-    model_link = models.CharField(max_length=500, null=True, blank=True)
-    method_type = models.CharField(max_length=100)
-    method_link = models.CharField(max_length=500, blank=True, null=True)
-    method_code = models.CharField(max_length=50, blank=True, null=True)
+    model_link = models.CharField(max_length=500, null=True, blank=True, db_column='modelLink')
+    method_type = models.CharField(max_length=100, db_column='methodType')
+    method_link = models.CharField(max_length=500, blank=True, null=True, db_column='methodLink')
+    method_code = models.CharField(max_length=50, blank=True, null=True, db_column='methodCode')
 
     def __str__(self):
         if self.method_type and self.method_type.strip().lower().replace(" ", "") == 'instrumentdeployment':
@@ -112,7 +112,7 @@ class Sensor(models.Model):
 
 class ObservedProperty(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True, db_column='personId')
     name = models.CharField(max_length=255)
     definition = models.TextField()
     description = models.TextField()
@@ -139,7 +139,8 @@ class FeatureOfInterest(models.Model):
 
 class ProcessingLevel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='processing_levels', null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='processing_levels', null=True,
+                               blank=True, db_column='personId')
     code = models.CharField(max_length=255)
     definition = models.TextField(null=True, blank=True)
     explanation = models.TextField(null=True, blank=True)
@@ -153,7 +154,7 @@ class ProcessingLevel(models.Model):
 
 class Unit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True, db_column='personId')
     name = models.CharField(max_length=255)
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
@@ -269,11 +270,11 @@ class Observation(models.Model):
 
 
 class ThingAssociation(models.Model):
-    thing = ForeignKey(Thing, on_delete=models.CASCADE, related_name='associates')
-    person = ForeignKey(Person, on_delete=models.CASCADE, related_name='thing_associations')
-    owns_thing = models.BooleanField(default=False)
-    follows_thing = models.BooleanField(default=False)
-    is_primary_owner = models.BooleanField(default=False)
+    thing = ForeignKey(Thing, on_delete=models.CASCADE, related_name='associates', db_column='thingId')
+    person = ForeignKey(Person, on_delete=models.CASCADE, related_name='thing_associations', db_column='personId')
+    owns_thing = models.BooleanField(default=False, db_column='ownsThing')
+    follows_thing = models.BooleanField(default=False, db_column='followsThing')
+    is_primary_owner = models.BooleanField(default=False, db_column='isPrimaryOwner')
 
     def __str__(self):
         return f'{self.person.first_name} {self.person.last_name} - {self.thing.name}'
