@@ -13,8 +13,8 @@ class ObservedPropertyInput(Schema):
     name: str
     definition: str
     description: str = None
-    variable_type: str = None
-    variable_code: str = None
+    type: str = None
+    code: str = None
 
 
 @router.post('', auth=jwt_auth)
@@ -24,8 +24,8 @@ def create_observed_property(request, data: ObservedPropertyInput):
         person=request.authenticated_user,
         definition=data.definition,
         description=data.description,
-        variable_type=data.variable_type,
-        variable_code=data.variable_code
+        type=data.type,
+        code=data.code
     )
     return JsonResponse(observed_property_to_dict(observed_property))
 
@@ -48,10 +48,10 @@ def update_observed_property(request, observed_property_id: str, data: ObservedP
         observed_property.definition = data.definition
     if data.description is not None:
         observed_property.description = data.description
-    if data.variable_type is not None:
-        observed_property.variable_type = data.variable_type
-    if data.variable_code is not None:
-        observed_property.variable_code = data.variable_code
+    if data.type is not None:
+        observed_property.type = data.type
+    if data.code is not None:
+        observed_property.code = data.code
 
     observed_property.save()
 

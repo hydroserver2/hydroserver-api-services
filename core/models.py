@@ -110,12 +110,12 @@ class Sensor(models.Model):
 
 class ObservedProperty(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=255)
     definition = models.TextField()
-    description = models.TextField(null=True, blank=True)
-    variable_type = models.CharField(max_length=500, blank=True, null=True)
-    variable_code = models.CharField(max_length=500, blank=True, null=True)
+    description = models.TextField()
+    type = models.CharField(max_length=500)
+    code = models.CharField(max_length=500)
 
     def __str__(self):
         return self.name

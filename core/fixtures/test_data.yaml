@@ -160,8 +160,8 @@
     person: 1_000_000_002
     definition: http://www.example.com/property1
     description: A test property.
-    variable_type: Variable
-    variable_code: VARIABLE1
+    type: Variable
+    code: VARIABLE1
 - model: core.observedproperty
   pk: 4c310501-31f3-4954-80b0-2279eb049e39
   fields:
@@ -169,8 +169,8 @@
     person: 1_000_000_002
     definition: http://www.example.com/property2
     description: A test property.
-    variable_type: Variable
-    variable_code: VARIABLE2
+    type: Variable
+    code: VARIABLE2
 - model: core.observedproperty
   pk: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
   fields:
@@ -178,8 +178,8 @@
     person: 1_000_000_001
     definition: http://www.example.com/property3
     description: A test property.
-    variable_type: Variable
-    variable_code: VARIABLE3
+    type: Variable
+    code: VARIABLE3
 
 - model: core.processinglevel
   pk: 7e57d004-2b97-44e7-8f03-713f25415a10

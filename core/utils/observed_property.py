@@ -7,11 +7,11 @@ def observed_property_to_dict(op):
     return {
         "id": op.pk,
         "name": op.name,
-        "person_id": op.person.pk if op.person else None,
+        "personId": op.person.pk if op.person else None,
         "definition": op.definition,
         "description": op.description,
-        "variable_type": op.variable_type,
-        "variable_code": op.variable_code,
+        "type": op.type,
+        "code": op.code,
     }
 
 
@@ -25,7 +25,7 @@ def transfer_properties_ownership(datastream, new_owner, old_owner):
     if datastream.observed_property.person != old_owner or datastream.observed_property.person is None:
         return
 
-    fields_to_compare = ['name', 'definition', 'description', 'variable_type', 'variable_code']
+    fields_to_compare = ['name', 'definition', 'description', 'type', 'code']
     same_properties = ObservedProperty.objects.filter(
         person=new_owner,
         **{f: getattr(datastream.observed_property, f) for f in fields_to_compare}
