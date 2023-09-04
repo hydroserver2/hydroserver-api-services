@@ -10,6 +10,7 @@
     is_staff: False
     is_superuser: False
     is_active: True
+    is_verified: True
     date_joined: 2022-01-01 10:00:00.000 -0700
     middle_name: "J"
     phone: "1234567890"
@@ -27,6 +28,7 @@
     is_staff: False
     is_superuser: False
     is_active: True
+    is_verified: True
     date_joined: 2022-01-01 10:00:00.000 -0700
     phone: "0987654321"
     address: "456, High Street, City B"
@@ -44,6 +46,7 @@
     is_staff: False
     is_superuser: False
     is_active: True
+    is_verified: True
     date_joined: 2022-01-01 10:00:00.000 -0700
     phone: "5678901234"
     address: "789, West Street, City C"
