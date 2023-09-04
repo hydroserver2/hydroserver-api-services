@@ -236,7 +236,7 @@ class Datastream(models.Model):
 
     # In the data model, not implemented for now
     observed_area = models.CharField(max_length=255, null=True, blank=True)
-    result_time = models.DateTimeField(null=True, blank=True, db_column='resultTime')
+    result_end_time = models.DateTimeField(null=True, blank=True, db_column='resultEndTime')
     result_begin_time = models.DateTimeField(null=True, blank=True, db_column='resultBeginTime')
 
     def save(self, *args, **kwargs):

@@ -10,7 +10,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
     most_recent_observation = None
     is_stale = True
     if add_recent_observations:
-        if hasattr(datastream, 'result_end_time'):
+        if hasattr(datastream, 'result_end_time') and datastream.result_end_time is not None:
             if datastream.result_end_time > timezone.now() - timedelta(hours=72):
                 is_stale = False
             since_time = datastream.result_end_time - timedelta(hours=72)
@@ -42,7 +42,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
 
         "unitId": datastream.unit.pk if datastream.unit else None,
         "observedPropertyId": datastream.observed_property.pk if datastream.observed_property else None,
-        "methodId": datastream.sensor.pk if datastream.sensor else None,
+        "sensorId": datastream.sensor.pk if datastream.sensor else None,
         "processingLevelId": datastream.processing_level.pk if datastream.processing_level else None,
 
         "unitName": datastream.unit.name if datastream.unit else None,
