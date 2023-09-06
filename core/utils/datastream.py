@@ -48,7 +48,7 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
         "unitName": datastream.unit.name if datastream.unit else None,
         "unitSymbol": datastream.unit.symbol if datastream.unit else None,
         "observedPropertyName": datastream.observed_property.name if datastream.observed_property else None,
-        "methodName": datastream.sensor.name if datastream.sensor else None,
+        "sensorName": datastream.sensor.name if datastream.sensor else None,
         "processingLevelName": datastream.processing_level.code if datastream.processing_level else None,
         "isVisible": datastream.is_visible,
         "isPrimaryOwner": association.is_primary_owner if association else False,
