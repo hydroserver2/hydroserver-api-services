@@ -44,6 +44,15 @@ class PersonManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+class Organization(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    code = models.CharField(max_length=200)
+    name = models.CharField(max_length=500)
+    description = models.TextField(null=True, blank=True)
+    type = models.CharField(max_length=255)
+    link = models.URLField(max_length=2000, blank=True, null=True)
+
+
 class Person(AbstractUser):
     email = models.EmailField(unique=True)
     unverified_email = models.EmailField(blank=True, null=True)
@@ -54,7 +63,8 @@ class Person(AbstractUser):
     type = models.CharField(max_length=255, blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     link = models.URLField(max_length=2000, blank=True, null=True)
-
+    organization = models.OneToOneField(Organization, related_name='person', on_delete=models.SET_NULL,  
+                                        db_column='organizationId', blank=True, null=True)
     objects = PersonManager()
 
     USERNAME_FIELD = 'email'
@@ -68,13 +78,3 @@ class PasswordReset(models.Model):
 
     def is_valid(self):
         return timezone.now() - self.timestamp <= timedelta(days=1)
-
-
-class Organization(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    person = models.OneToOneField(Person, related_name='organization', on_delete=models.CASCADE)
-    code = models.CharField(max_length=200)
-    name = models.CharField(max_length=500)
-    description = models.TextField(null=True, blank=True)
-    type = models.CharField(max_length=255)
-    link = models.URLField(max_length=2000, blank=True, null=True)

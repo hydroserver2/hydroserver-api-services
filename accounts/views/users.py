@@ -79,34 +79,31 @@ def create_user(_: HttpRequest, data: UserPostBody):
 def update_user(request: HttpRequest, data: UserPatchBody):
 
     user = getattr(request, 'authenticated_user', None)
-    user_data = data.dict(exclude_unset=True)
+    included_names = set(['first_name', 'last_name', 'middle_name', 'phone', 'address', 'type', 'link'])
+    user_data = data.dict(include=included_names, exclude_unset=True)
 
-    for field in ['first_name', 'last_name', 'middle_name', 'phone', 'address', 'type', 'link']:
-        if field in user_data:
-            setattr(user, field, getattr(data, field))
+    for field in user_data:
+        setattr(user, field, getattr(data, field))
 
-    if hasattr(data, 'organization') and not OrganizationFields.is_empty(data.organization):
-        if hasattr(user, 'organization'):
-            organization = user.organization
-            for field in ['code', 'name', 'description', 'type', 'link']:
-                if hasattr(organization, field):
-                    value = getattr(data.organization, field)
-                    setattr(organization, field, value)
-            organization.save()
-        else:
-            Organization.objects.create(person=user, **data.organization.dict())
-    else: 
-        if hasattr(user, 'organization'):
+    org_data = data.organization
+
+    if 'organization' in data.dict(exclude_unset=True):
+        if not org_data and user.organization:
             user.organization.delete()
             user.organization = None
+        elif org_data:
+            if user.organization:
+                for field, value in org_data.dict(exclude_unset=True).items():
+                    setattr(user.organization, field, value)
+                user.organization.save()
+            else:
+                user.organization = Organization.objects.create(**org_data.dict())
 
     # TODO: We should have a process in place for letting a user change their email and re-verifying.
-
     # if 'email' in user_data and user.unverified_email is None and data.email != user.email:
     #     user.unverified_email = data.email
     #     user.is_verified = False
     #     send_verification_email(user)
-
     # if user and user.is_verified is False:
     #     user.email = user.unverified_email
 

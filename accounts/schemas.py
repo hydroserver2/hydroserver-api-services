@@ -42,11 +42,13 @@ class UserAuthResponse(Schema):
 class UserPostBody(UserFields):
     password: str
 
+@allow_partial
+class OrganizationPatchBody(OrganizationFields):
+    pass
 
 @allow_partial
 class UserPatchBody(UserFields):
-    pass
-
+    organization: OrganizationPatchBody = None
 
 class VerifyAccountPostBody(Schema):
     uid: str
