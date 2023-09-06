@@ -23,9 +23,6 @@ class Location(models.Model):
     state = models.CharField(max_length=200, null=True, blank=True)
     county = models.CharField(max_length=200, null=True, blank=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         db_table = 'Location'
 
@@ -40,9 +37,6 @@ class Thing(models.Model):
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         db_table = 'Thing'
@@ -62,9 +56,6 @@ class Photo(models.Model):
     thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE, db_column='thingId')
     file_path = models.CharField(max_length=1000, db_column='filePath')
     link = models.URLField(max_length=2000)
-
-    def __str__(self):
-        return f'Photo for {self.thing.name}'
 
     class Meta:
         db_table = 'Photo'
@@ -119,9 +110,6 @@ class ObservedProperty(models.Model):
     type = models.CharField(max_length=500)
     code = models.CharField(max_length=500)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         db_table = 'ObservedProperty'
 
@@ -145,9 +133,6 @@ class ProcessingLevel(models.Model):
     definition = models.TextField(null=True, blank=True)
     explanation = models.TextField(null=True, blank=True)
 
-    def __str__(self):
-        return self.code
-
     class Meta:
         db_table = 'ProcessingLevel'
 
@@ -159,9 +144,6 @@ class Unit(models.Model):
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
     type = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         db_table = 'Unit'
@@ -198,9 +180,6 @@ class DataSource(models.Model):
     last_synced = models.DateTimeField(null=True, blank=True)
     next_sync = models.DateTimeField(null=True, blank=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_sources')
-
-    def __str__(self):
-        return self.name
 
 
 class Datastream(models.Model):
@@ -244,9 +223,6 @@ class Datastream(models.Model):
         self.description = f'{self.observed_property.name} at {self.thing.name} - {self.processing_level.code}'
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return self.description
-
     class Meta:
         db_table = 'Datastream'
 
@@ -265,10 +241,6 @@ class Observation(models.Model):
         if not self.phenomenon_time:
             self.phenomenon_time = datetime.now(pytz.utc)
 
-    def __str__(self):
-        return f'{self.datastream.observed_property.name} at {self.datastream.thing.name} ' + \
-               f'on {self.phenomenon_time.strftime("%Y-%m-%d %H:%M:%S")} - {self.datastream.processing_level.code}'
-
     class Meta:
         db_table = 'Observation'
         managed = False
@@ -280,9 +252,6 @@ class ThingAssociation(models.Model):
     owns_thing = models.BooleanField(default=False, db_column='ownsThing')
     follows_thing = models.BooleanField(default=False, db_column='followsThing')
     is_primary_owner = models.BooleanField(default=False, db_column='isPrimaryOwner')
-
-    def __str__(self):
-        return f'{self.person.first_name} {self.person.last_name} - {self.thing.name}'
 
     class Meta:
         db_table = 'ThingAssociation'

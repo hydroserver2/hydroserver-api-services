@@ -1,11 +1,10 @@
 from django.http import JsonResponse
 from django.db.models import Q
-
 from ninja import Router, Schema
-
 from core.models import Unit
 from core.utils.unit import unit_to_dict
 from core.utils.authentication import jwt_auth
+from sensorthings.validators import allow_partial
 
 
 router = Router(tags=['Units'])
@@ -16,6 +15,11 @@ class CreateUnitInput(Schema):
     symbol: str
     definition: str
     type: str
+
+
+@allow_partial
+class UnitPatchBody(CreateUnitInput):
+    pass
 
 
 @router.post('', auth=jwt_auth)
@@ -44,7 +48,7 @@ class UpdateUnitInput(Schema):
 
 
 @router.patch('/{unit_id}', auth=jwt_auth)
-def update_unit(request, unit_id: str, data: UpdateUnitInput):
+def update_unit(request, unit_id: str, data: UnitPatchBody):
     unit = Unit.objects.get(id=unit_id)
     if request.authenticated_user != unit.person:
         return JsonResponse({'detail': 'You are not authorized to update this unit.'}, status=403)

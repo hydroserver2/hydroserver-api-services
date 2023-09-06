@@ -22,8 +22,8 @@ class DataSourceDatastream(Schema):
     id: UUID
     name: str
     description: str
-    result_start_time: Optional[datetime]
-    result_end_time: Optional[datetime]
+    phenomenon_start_time: Optional[datetime]
+    phenomenon_end_time: Optional[datetime]
     column: Optional[Union[int, str]]
 
 
@@ -274,12 +274,12 @@ def transform_data_source(data_source):
             name=data_source.data_loader.name
         ) if data_source.data_loader else None,
         database_thru_upper=max([
-            datastream.result_end_time for datastream in data_source.datastream_set.all()
-            if datastream.result_end_time is not None
+            datastream.phenomenon_end_time for datastream in data_source.datastream_set.all()
+            if datastream.phenomenon_end_time is not None
         ], default=None),
         database_thru_lower=min([
-            datastream.result_end_time for datastream in data_source.datastream_set.all()
-            if datastream.result_end_time is not None
+            datastream.phenomenon_end_time for datastream in data_source.datastream_set.all()
+            if datastream.phenomenon_end_time is not None
         ], default=None),
         file_access=HydroLoaderConfFileAccess(
             path=data_source.path,
@@ -305,10 +305,10 @@ def transform_data_source(data_source):
         datastreams=[
             DataSourceDatastream(
                 id=datastream.id,
-                name=datastream.name,
+                name=str(datastream.name),
                 description=datastream.description,
-                result_start_time=datastream.result_begin_time,
-                result_end_time=datastream.result_end_time,
+                phenomenon_start_time=datastream.phenomenon_begin_time,
+                phenomenon_end_time=datastream.phenomenon_end_time,
                 column=datastream.data_source_column
             ) for datastream in data_source.datastream_set.all()
         ]

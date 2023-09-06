@@ -4,6 +4,7 @@ from core.utils.authentication import jwt_auth
 from django.db.models import Q
 from django.http import JsonResponse
 from core.utils.processing_level import processing_level_to_dict
+from sensorthings.validators import allow_partial
 
 router = Router(tags=['Processing Levels'])
 
@@ -12,6 +13,11 @@ class ProcessingLevelFields(Schema):
     code: str
     definition: str = None
     explanation: str = None
+
+
+@allow_partial
+class ProcessingLevelPatchBody(Schema):
+    pass
 
 
 @router.post('', auth=jwt_auth)
@@ -33,7 +39,7 @@ def get_processing_levels(request):
 
 
 @router.patch('/{processing_level_id}', auth=jwt_auth)
-def update_processing_level(request, processing_level_id: str, data: ProcessingLevelFields):
+def update_processing_level(request, processing_level_id: str, data: ProcessingLevelPatchBody):
     processing_level = ProcessingLevel.objects.get(id=processing_level_id)
     if request.authenticated_user != processing_level.person:
         return JsonResponse({'detail': 'You are not authorized to update this processing level.'}, status=403)

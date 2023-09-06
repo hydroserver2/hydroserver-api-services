@@ -43,14 +43,14 @@ def oauth_response(access_token: str, refresh_token: str, user: user_model):
             'refresh': refresh_token,
             'user': {
                 'email': user.email if user.is_verified else user.unverified_email,
-                'first_name': user.first_name,
-                'middle_name': user.middle_name,
-                'last_name': user.last_name,
+                'firstName': user.first_name,
+                'middleName': user.middle_name,
+                'lastName': user.last_name,
                 'phone': user.phone,
                 'address': user.address,
-                'organization': organization_to_dict(user.organization) if hasattr(user, 'organization')  else None,
+                'organization': organization_to_dict(user.organization) if hasattr(user, 'organization') else None,
                 'type': user.type,
-                'is_verified': user.is_verified
+                'isVerified': user.is_verified
             }
         })
     )
@@ -63,7 +63,7 @@ def orcid_login(request):
     redirect_uri = request.build_absolute_uri('/api/account/orcid/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
-        redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
+        redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
     return oauth.orcid.authorize_redirect(request, redirect_uri)
 
@@ -107,7 +107,7 @@ def google_login(request):
     redirect_uri = request.build_absolute_uri('/api/account/google/auth')
 
     if 'X-Forwarded-Proto' in request.headers:
-        redirect_uri = redirect_uri.replace('http:', request.headers['X-Forwarded-Proto'] + ':')
+        redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
     return oauth.google.authorize_redirect(request, redirect_uri)
 
