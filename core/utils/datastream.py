@@ -10,18 +10,18 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
     most_recent_observation = None
     is_stale = True
     if add_recent_observations:
-        if hasattr(datastream, 'result_end_time') and datastream.result_end_time is not None:
-            if datastream.result_end_time > timezone.now() - timedelta(hours=72):
+        if hasattr(datastream, 'phenomenon_end_time') and datastream.phenomenon_end_time is not None:
+            if datastream.phenomenon_end_time > timezone.now() - timedelta(hours=72):
                 is_stale = False
-            since_time = datastream.result_end_time - timedelta(hours=72)
+            since_time = datastream.phenomenon_end_time - timedelta(hours=72)
             observations = Observation.objects.filter(
-                datastream=datastream, result_time__gte=since_time
-            ).order_by('-result_time')
+                datastream=datastream, phenomenon_time__gte=since_time
+            ).order_by('-phenomenon_time')
             for observation in observations:
                 observation_list.append({
                     "id": observation.id,
                     "result": observation.result if not math.isnan(observation.result) else None,
-                    "resultTime": observation.result_time,
+                    "phenomenonTime": observation.phenomenon_time,
                 })
             if observation_list:
                 most_recent_observation = observation_list[0]
