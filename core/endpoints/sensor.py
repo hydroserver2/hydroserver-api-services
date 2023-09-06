@@ -2,10 +2,10 @@ from django.db.models import Q
 from django.http import JsonResponse
 from ninja import Router, Schema
 from pydantic import Field
-
 from core.models import Sensor
 from core.utils.authentication import jwt_auth
 from core.utils.sensor import sensor_to_dict
+from sensorthings.validators import allow_partial
 
 router = Router(tags=['Sensors'])
 
@@ -22,6 +22,15 @@ class SensorFields(Schema):
     method_code: str = Field(None, alias='methodCode')
 
 
+class SensorPostBody(SensorFields):
+    pass
+
+
+@allow_partial
+class SensorPatchBody(SensorFields):
+    pass
+
+
 @router.post('', auth=jwt_auth)
 def create_sensor(request, data: SensorFields):
     sensor_data = data.dict(include=set(SensorFields.__fields__.keys()))
@@ -36,7 +45,7 @@ def get_sensors(request):
 
 
 @router.patch('/{sensor_id}', auth=jwt_auth)
-def update_sensor(request, sensor_id: str, data: SensorFields):
+def update_sensor(request, sensor_id: str, data: SensorPatchBody):
     sensor = Sensor.objects.get(id=sensor_id)
     if request.authenticated_user != sensor.person:
         return JsonResponse({'detail': 'You are not authorized to update this sensor.'}, status=403)

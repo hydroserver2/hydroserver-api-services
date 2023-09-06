@@ -2,10 +2,11 @@ from django.db import transaction
 from django.http import JsonResponse
 from ninja import Router, Schema
 from pydantic import Field
-
 from core.models import Sensor, ObservedProperty, Unit, ProcessingLevel, Datastream, ThingAssociation
 from core.utils.authentication import thing_ownership_required, jwt_auth, jwt_check_user, datastream_ownership_required
 from core.utils.datastream import datastream_to_dict, get_public_datastreams
+from sensorthings.validators import allow_partial
+
 
 router = Router(tags=['Datastreams'])
 
@@ -38,7 +39,8 @@ class DatastreamFields(Schema):
     result_end_time: str = Field(None, alias="resultEndTime")
 
 
-class UpdateDatastreamFields(DatastreamFields):
+@allow_partial
+class DatastreamPatchBody(DatastreamFields):
     data_source_id: str = None
     data_source_column: str = None
     is_visible: bool = Field(None, alias='isVisible')
@@ -58,7 +60,7 @@ fields_to_models = {
     'time_aggregation_interval_units': (Unit, 'time_aggregation_interval_units not found.')
 }
 
-non_FK_set = set(UpdateDatastreamFields.__fields__.keys()) - set(fields_to_models.keys())
+non_FK_set = set(DatastreamPatchBody.__fields__.keys()) - set(fields_to_models.keys())
 
 
 @router.post('/{thing_id}', auth=jwt_auth)
@@ -122,7 +124,7 @@ def get_datastreams_for_thing(request, thing_id: str):
 @router.patch('/patch/{datastream_id}', auth=jwt_auth)
 @datastream_ownership_required
 @transaction.atomic
-def update_datastream(request, datastream_id: str, data: UpdateDatastreamFields):
+def update_datastream(request, datastream_id: str, data: DatastreamPatchBody):
     datastream = request.datastream
     
     for field, (model, error_message) in fields_to_models.items():

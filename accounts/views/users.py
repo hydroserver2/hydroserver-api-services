@@ -31,7 +31,11 @@ def get_user(request: HttpRequest):
     return user_to_dict(user)
 
 
-@user_router.post('/user', response=UserAuthResponse)
+@user_router.post(
+    '/user',
+    response=UserAuthResponse,
+    by_alias=True
+)
 def create_user(_: HttpRequest, data: UserPostBody):
 
     user = user_model.objects.filter(username=data.email, is_verified=True).first()
@@ -66,7 +70,12 @@ def create_user(_: HttpRequest, data: UserPostBody):
     }
 
 
-@user_router.patch('/user', response=UserGetResponse, auth=JWTAuth())
+@user_router.patch(
+    '/user',
+    response=UserGetResponse,
+    auth=JWTAuth(),
+    by_alias=True
+)
 def update_user(request: HttpRequest, data: UserPatchBody):
 
     user = getattr(request, 'authenticated_user', None)
@@ -131,7 +140,8 @@ def verify_account(request: HttpRequest):
     response={
         403: str,
         200: UserAuthResponse
-    }
+    },
+    by_alias=True
 )
 def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
 
@@ -147,7 +157,7 @@ def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
         user = update_account_to_verified(user)
         jwt = RefreshToken.for_user(user)
 
-        return {
+        return 200, {
             'access': str(jwt),
             'refresh': str(getattr(jwt, 'access_token', '')),
             'user': user_to_dict(user)

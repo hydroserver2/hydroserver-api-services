@@ -281,6 +281,10 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
     ):
         """"""
 
+        if child_df.empty:
+            parent_df[f'{parent_merge_join_prefix}{merged_field_name}'] = np.empty((len(parent_df), 0)).tolist()
+            return parent_df
+
         child_df = child_df.groupby([child_merge_group_column]).apply(
             lambda row: row[
                 [col for col in child_df.columns if col != child_merge_group_column]

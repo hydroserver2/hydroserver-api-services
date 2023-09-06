@@ -1,10 +1,10 @@
 from django.db.models import Q
 from django.http import JsonResponse
 from ninja import Router, Schema
-
 from core.models import ObservedProperty
 from core.utils.authentication import jwt_auth
 from core.utils.observed_property import observed_property_to_dict
+from sensorthings.validators import allow_partial
 
 router = Router(tags=['Observed Properties'])
 
@@ -15,6 +15,11 @@ class ObservedPropertyInput(Schema):
     description: str = None
     type: str = None
     code: str = None
+
+
+@allow_partial
+class ObservedPropertyPatchBody(ObservedPropertyInput):
+    pass
 
 
 @router.post('', auth=jwt_auth)
@@ -37,7 +42,7 @@ def get_observed_properties(request):
 
 
 @router.patch('/{observed_property_id}', auth=jwt_auth)
-def update_observed_property(request, observed_property_id: str, data: ObservedPropertyInput):
+def update_observed_property(request, observed_property_id: str, data: ObservedPropertyPatchBody):
     observed_property = ObservedProperty.objects.get(id=observed_property_id)
     if request.authenticated_user != observed_property.person:
         return JsonResponse({'detail': 'You are not authorized to update this observed property.'}, status=403)

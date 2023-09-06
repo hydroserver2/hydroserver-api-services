@@ -12,8 +12,10 @@ from core.utils.processing_level import transfer_processing_level_ownership, pro
 from core.utils.sensor import transfer_sensor_ownership, sensor_to_dict
 from core.utils.authentication import jwt_auth, jwt_check_user, thing_ownership_required
 from core.utils.thing import thing_to_dict
+from sensorthings.validators import allow_partial
 
 router = Router(tags=['Things'])
+
 
 class ThingFields(Schema):
     name: str
@@ -23,6 +25,7 @@ class ThingFields(Schema):
     site_type: str = Field(alias="siteType")
     data_disclaimer: str = Field(None, alias="dataDisclaimer")
 
+
 class LocationFields(Schema):
     latitude: float
     longitude: float
@@ -31,13 +34,19 @@ class LocationFields(Schema):
     state: str = None
     county: str = None
 
-class ThingAndLocationFields(ThingFields, LocationFields):
+
+class ThingPostBody(ThingFields, LocationFields):
+    pass
+
+
+@allow_partial
+class ThingPatchBody(ThingFields, LocationFields):
     pass
 
 
 @router.post('', auth=jwt_auth)
 @transaction.atomic
-def create_thing(request, data: ThingAndLocationFields):
+def create_thing(request, data: ThingPostBody):
     new_location = Location.objects.create(
         name=f'Location for {data.name}', 
         description='location',
@@ -85,7 +94,7 @@ def update_object_from_data(obj, data_dict):
 @router.patch('/{thing_id}', by_alias=True)
 @thing_ownership_required
 @transaction.atomic
-def update_thing(request, thing_id: str, data: ThingAndLocationFields):
+def update_thing(request, thing_id: str, data: ThingPatchBody):
     thing = request.thing
 
     thing_data = data.dict(include=set(ThingFields.__fields__.keys()))
@@ -105,6 +114,7 @@ def update_thing(request, thing_id: str, data: ThingAndLocationFields):
 
 @router.delete('/{thing_id}')
 @thing_ownership_required
+@allow_partial
 def delete_thing(request, thing_id: str):
     try:
         request.thing.location.delete()

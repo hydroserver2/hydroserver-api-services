@@ -32,7 +32,7 @@ class DataLoaderPatchBody(Schema):
     response={
         200: List[DataLoaderGetResponse]
     },
-    auth=[BasicAuth(), JWTAuth()]
+    auth=[JWTAuth(), BasicAuth()]
 )
 def get_data_loaders(request: HttpRequest):
 
@@ -53,7 +53,7 @@ def get_data_loaders(request: HttpRequest):
         200: DataLoaderGetResponse,
         404: None
     },
-    auth=[BasicAuth(), JWTAuth()]
+    auth=[JWTAuth(), BasicAuth()]
 )
 def get_data_loader(request: HttpRequest, data_loader_id: str):
 
@@ -73,7 +73,7 @@ def get_data_loader(request: HttpRequest, data_loader_id: str):
     response={
         201: None
     },
-    auth=[BasicAuth(), JWTAuth()]
+    auth=[JWTAuth(), BasicAuth()]
 )
 @transaction.atomic
 def post_data_loader(request: HttpRequest, data_loader: DataLoaderPostBody):
@@ -93,7 +93,7 @@ def post_data_loader(request: HttpRequest, data_loader: DataLoaderPostBody):
     response={
         204: None
     },
-    auth=[BasicAuth(), JWTAuth()],
+    auth=[JWTAuth(), BasicAuth()],
 )
 @transaction.atomic
 def patch_data_loader(request: HttpRequest, data_loader_id: str, data_loader: DataLoaderPatchBody):
@@ -115,7 +115,7 @@ def patch_data_loader(request: HttpRequest, data_loader_id: str, data_loader: Da
 
 @router.delete(
     '/{data_loader_id}',
-    auth=[BasicAuth(), JWTAuth()],
+    auth=[JWTAuth(), BasicAuth()],
     response={
         200: None,
         403: None,
