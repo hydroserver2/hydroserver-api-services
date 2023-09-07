@@ -253,7 +253,7 @@
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
     phenomenon_begin_time: 2022-01-01 10:10:10+00:00
-    phenomenon_end_time: 2023-01-01 10:10:10+00:00
+    phenomenon_end_time: 2022-03-01 10:10:10+00:00
 - model: core.datastream
   pk: 8af17d0e-8fce-4264-93b5-e55aa6a7ca02
   fields:
@@ -325,20 +325,20 @@
     phenomenon_end_time: 2022-05-04 09:10:10+00:00
 
 - model: core.observation
-  pk: 056b132d-cf81-4627-90b0-e005076d4c68
+  pk: a0e6b98b-39da-4f66-9fdc-a537fbd2b3c3
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
-    result: 0.0
-    phenomenon_time: 2022-02-01 10:10:10+00:00
+    result: 3.0
+    phenomenon_time: 2022-03-01 10:00:10+00:00
     result_time: null
     feature_of_interest: null
     quality_code: null
 - model: core.observation
-  pk: 2b13ddf5-6a9f-4865-aa0d-446fe0ed79f6
+  pk: 056b132d-cf81-4627-90b0-e005076d4c68
   fields:
-    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
-    result: 2.0
-    phenomenon_time: 2022-03-01 10:10:10+00:00
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 0.0
+    phenomenon_time: 2022-03-01 10:05:10+00:00
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -346,6 +346,15 @@
   pk: 391808c3-b51f-458a-a364-9cabd5430456
   fields:
     datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 2.0
+    phenomenon_time: 2022-03-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
+- model: core.observation
+  pk: 2b13ddf5-6a9f-4865-aa0d-446fe0ed79f6
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 2.0
     phenomenon_time: 2022-03-01 10:10:10+00:00
     result_time: null
@@ -383,15 +392,6 @@
   fields:
     datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
     result: 1.0
-    phenomenon_time: 2022-01-01 10:10:10+00:00
-    result_time: null
-    feature_of_interest: null
-    quality_code: null
-- model: core.observation
-  pk: a0e6b98b-39da-4f66-9fdc-a537fbd2b3c3
-  fields:
-    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
-    result: 3.0
     phenomenon_time: 2022-01-01 10:10:10+00:00
     result_time: null
     feature_of_interest: null
