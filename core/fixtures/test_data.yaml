@@ -97,6 +97,7 @@
     sampling_feature_code: SCC_1
     site_type: Stream
     location: e78380f8-bdb5-4f15-8f37-bde53a4dd5c3
+    is_private: True
 - model: core.thing
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
@@ -106,6 +107,7 @@
     sampling_feature_code: MIA1
     site_type: House
     location: 1796a56f-2cdf-42c6-8cc7-3da2f757e9a0
+    is_private: False
 - model: core.thing
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
@@ -115,6 +117,7 @@
     sampling_feature_code: MICH_1
     site_type: Lake, Reservoir, Impoundment
     location: a10a9b2f-7942-48aa-9cfc-fba55732fe39
+    is_private: False
 
 - model: core.sensor
   pk: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
