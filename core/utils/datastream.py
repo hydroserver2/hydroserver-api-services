@@ -14,7 +14,9 @@ def datastream_to_dict(datastream, association=None, add_recent_observations=Tru
             if datastream.phenomenon_end_time > timezone.now() - timedelta(hours=72):
                 is_stale = False
             since_time = datastream.phenomenon_end_time - timedelta(hours=72)
-            observations = Observation.objects.filter(datastream=datastream, phenomenon_time__gte=since_time)
+            observations = Observation.objects.filter(
+                datastream=datastream, phenomenon_time__gte=since_time
+            ).order_by('-phenomenon_time')
             for observation in observations:
                 observation_list.append({
                     "id": observation.id,
