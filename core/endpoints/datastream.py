@@ -57,6 +57,7 @@ fields_to_models = {
 
 FK_set = set(fields_to_models.keys())
 non_FK_set = set(DatastreamPatchBody.__fields__.keys()) - FK_set
+non_FK_post_set = set(DatastreamFields.__fields__.keys()) - FK_set
 
 @router.post('/{thing_id}', auth=jwt_auth)
 @thing_ownership_required
@@ -72,7 +73,7 @@ def create_datastream(request, thing_id, data: DatastreamFields):
             except model.DoesNotExist:
                 return JsonResponse({'detail': error_message}, status=404)
 
-    datastream_data = data.dict(include=non_FK_set)
+    datastream_data = data.dict(include=non_FK_post_set)
     datastream_data.update(related_objects)
     datastream_data.update({'thing': request.thing})
 
