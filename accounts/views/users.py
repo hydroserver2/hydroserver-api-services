@@ -55,7 +55,7 @@ def create_user(_: HttpRequest, data: UserPostBody):
         link=data.link
     )
 
-    if hasattr(data, 'organization') and not OrganizationFields.is_empty(data.organization):
+    if getattr(data, 'organization', None) is not None:
         Organization.objects.create(person=user, **data.organization.dict())
 
     send_verification_email(user)
@@ -64,8 +64,8 @@ def create_user(_: HttpRequest, data: UserPostBody):
     user.email = user.unverified_email
 
     return {
-        'access': str(jwt),
-        'refresh': str(getattr(jwt, 'access_token', '')),
+        'access': str(getattr(jwt, 'access_token', '')),
+        'refresh': str(jwt),
         'user': user_to_dict(user)
     }
 
@@ -79,7 +79,7 @@ def create_user(_: HttpRequest, data: UserPostBody):
 def update_user(request: HttpRequest, data: UserPatchBody):
 
     user = getattr(request, 'authenticated_user', None)
-    included_names = set(['first_name', 'last_name', 'middle_name', 'phone', 'address', 'type', 'link'])
+    included_names = {'first_name', 'last_name', 'middle_name', 'phone', 'address', 'type', 'link'}
     user_data = data.dict(include=included_names, exclude_unset=True)
 
     for field in user_data:
@@ -155,8 +155,8 @@ def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
         jwt = RefreshToken.for_user(user)
 
         return 200, {
-            'access': str(jwt),
-            'refresh': str(getattr(jwt, 'access_token', '')),
+            'access': str(getattr(jwt, 'access_token', '')),
+            'refresh': str(jwt),
             'user': user_to_dict(user)
         }
 
