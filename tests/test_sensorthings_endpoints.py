@@ -156,8 +156,6 @@ def test_sensorthings_post_endpoints(
         **auth_headers
     )
 
-    print(response.content)
-
     json.loads(response.content)
 
     assert response.status_code == status_code
