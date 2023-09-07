@@ -40,27 +40,15 @@ def get_units(request):
     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
 
 
-class UpdateUnitInput(Schema):
-    name: str
-    symbol: str
-    definition: str
-    unit_type: str
-
-
 @router.patch('/{unit_id}', auth=jwt_auth)
 def update_unit(request, unit_id: str, data: UnitPatchBody):
     unit = Unit.objects.get(id=unit_id)
     if request.authenticated_user != unit.person:
         return JsonResponse({'detail': 'You are not authorized to update this unit.'}, status=403)
 
-    if data.name is not None:
-        unit.name = data.name
-    if data.symbol is not None:
-        unit.symbol = data.symbol
-    if data.definition is not None:
-        unit.definition = data.definition
-    if data.type is not None:
-        unit.type = data.type
+    patch_data = data.dict(exclude_unset=True)
+    for key, value in patch_data.items():
+        setattr(unit, key, value)
 
     unit.save()
     return JsonResponse(unit_to_dict(unit))
