@@ -29,7 +29,7 @@ def thing_to_dict(thing, user):
             thing_dict['owners'].append({
                 "firstName": person.first_name,
                 "lastName": person.last_name,
-                "organizationName": user.organization.name if hasattr(user, 'organization') else None,
+                "organizationName": user.organization.name if user.organization else None,
                 "email": person.email,
                 "isPrimaryOwner": thing_association.is_primary_owner
             })

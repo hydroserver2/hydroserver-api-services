@@ -65,6 +65,9 @@ def orcid_login(request):
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
+    if settings.DEPLOYED is True:
+        redirect_uri = redirect_uri.replace('http:', 'https:')
+
     return oauth.orcid.authorize_redirect(request, redirect_uri)
 
 
@@ -108,6 +111,9 @@ def google_login(request):
 
     if 'X-Forwarded-Proto' in request.headers:
         redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
+
+    if settings.DEPLOYED is True:
+        redirect_uri = redirect_uri.replace('http:', 'https:')
 
     return oauth.google.authorize_redirect(request, redirect_uri)
 

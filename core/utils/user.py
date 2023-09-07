@@ -4,17 +4,6 @@ from django.template.loader import render_to_string
 from core.utils.organization import organization_to_dict
 
 def user_to_dict(user):
-    organization_data = {
-        "id": '',
-        "code": '',
-        "name": '',
-        "description": '',
-        "type": '',
-        "link": '',
-    }
-    if hasattr(user, 'organization'):
-        organization_data = organization_to_dict(user.organization)
-
     return {
         "id": user.id,
         "email": user.email,
@@ -24,10 +13,9 @@ def user_to_dict(user):
         "phone": user.phone,
         "address": user.address,
         "isVerified": user.is_verified,
-        "organization": organization_data,
+        "organization": organization_to_dict(user.organization) if user.organization else None,
         "type": user.type, 
         "link": user.link
-
     }
 
 

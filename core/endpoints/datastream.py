@@ -46,11 +46,6 @@ class DatastreamPatchBody(DatastreamFields):
     is_visible: bool = Field(None, alias='isVisible')
 
 
-def update_object_from_data(obj, data_dict):
-    for key, value in data_dict.items():
-        if value is not None:
-            setattr(obj, key, value)
-
 fields_to_models = {
     'sensor': (Sensor, 'Sensor not found.'),
     'observed_property': (ObservedProperty, 'Observed Property not found.'),
@@ -60,8 +55,8 @@ fields_to_models = {
     'time_aggregation_interval_units': (Unit, 'time_aggregation_interval_units not found.')
 }
 
-non_FK_set = set(DatastreamPatchBody.__fields__.keys()) - set(fields_to_models.keys())
-
+FK_set = set(fields_to_models.keys())
+non_FK_set = set(DatastreamPatchBody.__fields__.keys()) - FK_set
 
 @router.post('/{thing_id}', auth=jwt_auth)
 @thing_ownership_required
@@ -126,17 +121,21 @@ def get_datastreams_for_thing(request, thing_id: str):
 @transaction.atomic
 def update_datastream(request, datastream_id: str, data: DatastreamPatchBody):
     datastream = request.datastream
-    
-    for field, (model, error_message) in fields_to_models.items():
-        field_value = getattr(data, field, None)
-        if field_value is not None:
-            try:
-                setattr(datastream, field, model.objects.get(id=field_value))
-            except model.DoesNotExist:
-                return JsonResponse({'detail': error_message}, status=404)
 
-    datastream_data = data.dict(include=non_FK_set)
-    update_object_from_data(datastream, datastream_data)
+    foreign_data_dict = data.dict(include=FK_set, exclude_unset=True)
+    for field, value in foreign_data_dict.items():
+        model, error_message = fields_to_models.get(field)
+        try:
+            setattr(datastream, field, model.objects.get(id=value))
+        except model.DoesNotExist:
+            if field == 'intended_time_spacing_units':
+                setattr(datastream, field, None)
+                continue
+            return JsonResponse({'detail': error_message}, status=404)
+
+    datastream_data = data.dict(include=non_FK_set, exclude_unset=True)
+    for key, value in datastream_data.items():
+        setattr(datastream, key, value)
 
     datastream.save()
 

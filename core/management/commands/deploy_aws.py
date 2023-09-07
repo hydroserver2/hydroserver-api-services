@@ -45,7 +45,7 @@ class Command(BaseCommand):
         ]
 
         os.system(
-            f'zip -r {os.path.join(deploy_settings.backend, "deploy_package.zip")} {deploy_settings.backend} ' +
+            f'cd {deploy_settings.backend}; zip -r deploy_package.zip ./ ' +
             ' '.join(['-x "' + i + '"' for i in ignored_files])
         )
 
