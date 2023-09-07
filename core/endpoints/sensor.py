@@ -50,11 +50,9 @@ def update_sensor(request, sensor_id: str, data: SensorPatchBody):
     if request.authenticated_user != sensor.person:
         return JsonResponse({'detail': 'You are not authorized to update this sensor.'}, status=403)
 
-    sensor_data = data.dict(include=set(SensorFields.__fields__.keys()))
-
+    sensor_data = data.dict(exclude_unset=True)
     for key, value in sensor_data.items():
-        if value is not None:
-            setattr(sensor, key, value)
+        setattr(sensor, key, value)
 
     sensor.save()
 
