@@ -6,7 +6,7 @@ import uuid
 import os
 from botocore.exceptions import ClientError
 
-from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 from core.models import Photo, Thing
 from core.utils.thing import photo_to_dict
 from core.utils.authentication import jwt_auth, thing_ownership_required
@@ -37,8 +37,8 @@ def update_thing_photos(request, thing_id):
         photos_list = []
         for file in request.FILES.getlist('photos'):
             base, extension = os.path.splitext(file.name)
-            file_name = f"{request.thing.id}/{uuid.uuid4()}{extension}"
-            file_link = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{file_name}"
+            file_name = f"photos/{request.thing.id}/{uuid.uuid4()}{extension}"
+            file_link = f"{PROXY_BASE_URL}/{file_name}"
 
             # Upload the photo to S3 bucket
             try:
