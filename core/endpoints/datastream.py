@@ -1,12 +1,12 @@
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from ninja import Router, Schema
 from pydantic import Field
-from core.models import Sensor, ObservedProperty, Unit, ProcessingLevel, Datastream, ThingAssociation
+from core.models import Sensor, ObservedProperty, Unit, ProcessingLevel, Datastream, ThingAssociation, Observation
 from core.utils.authentication import thing_ownership_required, jwt_auth, jwt_check_user, datastream_ownership_required
 from core.utils.datastream import datastream_to_dict, get_public_datastreams
 from sensorthings.validators import allow_partial
-
+from django.utils import timezone
 
 router = Router(tags=['Datastreams'])
 
@@ -153,3 +153,149 @@ def delete_datastream(request, datastream_id: str):
         return JsonResponse(status=500, detail=str(e))
 
     return JsonResponse({'detail': 'Datastream deleted successfully.'}, status=200)
+
+
+@router.get('/csv/{id}', auth=jwt_check_user)
+def get_datastream_csv(request, id):
+    # TODO: Prevent public access to private datastreams
+    response = StreamingHttpResponse(generate_csv(id), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="hello_world.csv"'
+    return response
+
+
+def generate_csv(id):
+    # TODO Optimize this function
+    datastream = Datastream.objects.get(pk=id)
+    thing = datastream.thing
+    location = thing.location
+    sensor = datastream.sensor
+    observed_property = datastream.observed_property
+    unit = datastream.unit
+    processing_level = datastream.processing_level
+    observations = Observation.objects.filter(datastream=datastream).order_by('-phenomenon_time')
+
+    try:
+        thing_association = ThingAssociation.objects.get(thing=thing, is_primary_owner=True)
+        primary_owner = thing_association.person
+    except ThingAssociation.DoesNotExist:
+        primary_owner = None
+    
+    header = f'# =============================================================================\n'
+    header += f'# Generated on: {timezone.now().isoformat()}\n'
+    header += f'#\n'
+
+    if primary_owner:
+        header += f'# Site Owner Information:\n'
+        header += "# -------------------------------------\n"
+        header += f'# Name: {primary_owner.first_name} {primary_owner.last_name}\n'
+        header += f'# Phone: {primary_owner.phone}\n'
+        header += f'# Email: {primary_owner.email}\n'
+        header += f'# Address: {primary_owner.address}\n'
+        header += f'# PersonLink: {primary_owner.link}\n'
+        organization = primary_owner.organization
+        if organization:
+            header += f'# OrganizationCode: {organization.code}\n'
+            header += f'# OrganizationName: {organization.name}\n'
+            header += f'# OrganizationDescription: {organization.description}\n'
+            header += f'# OrganizationType: {organization.type}\n'
+            header += f'# OrganizationLink: {organization.link}\n'
+        else:
+            header += f'# Organization: None\n'
+        header += "#\n"
+
+    header += f'# Site Information:\n'
+    header += "# -------------------------------------\n"
+    header += f'# Name: {thing.name}\n'
+    header += f'# Description: {thing.description}\n'
+    header += f'# SamplingFeatureType: {thing.sampling_feature_type}\n'
+    header += f'# SamplingFeatureCode: {thing.sampling_feature_code}\n'
+    header += f'# SiteType: {thing.site_type}\n'
+    header += "#\n"
+
+    header += f'# Location Information:\n'
+    header += "# -------------------------------------\n"
+    header += f'# Name: {location.name}\n'
+    header += f'# Description: {location.description}\n'
+    latitude = round(location.latitude, 6) if location.latitude else "None"
+    longitude = round(location.longitude, 6) if location.longitude else "None"
+    elevation_m = round(location.elevation_m, 6) if location.elevation_m else "None"
+    header += f'# Latitude: {latitude}\n'
+    header += f'# Longitude: {longitude}\n'
+    header += f'# Elevation_m: {elevation_m}\n'
+    header += f'# ElevationDatum: {location.elevation_datum}\n'
+    header += f'# State: {location.state}\n'
+    header += f'# County: {location.county}\n'
+    header += "#\n"
+
+    header += f'# Datastream Information:\n'
+    header += f'# -------------------------------------\n'
+    header += f'# Name: {datastream.name}\n'
+    header += f'# Description: {datastream.description}\n'
+    header += f'# ObservationType: {datastream.observation_type}\n'
+    header += f'# ResultType: {datastream.result_type}\n'
+    header += f'# Status: {datastream.status}\n'
+    header += f'# SampledMedium: {datastream.sampled_medium}\n'
+    header += f'# ValueCount: {datastream.value_count}\n'
+    header += f'# NoDataValue: {datastream.no_data_value}\n'
+    header += f'# IntendedTimeSpacing: {datastream.intended_time_spacing}\n'
+    header += f'# IntendedTimeSpacingUnitsName: {datastream.intended_time_spacing_units.name if datastream.intended_time_spacing_units else None}\n'
+    header += f'# AggregationStatistic: {datastream.aggregation_statistic}\n'
+    header += f'# TimeAggregationInterval: {datastream.time_aggregation_interval}\n'
+    header += f'# TimeAggregationIntervalUnitsName: {datastream.time_aggregation_interval_units.name}\n'
+    header += "#\n"
+
+    header += "# Method Information:\n"
+    header += "# -------------------------------------\n"
+    header += f'# Name: {sensor.name}\n'
+    header += f'# Description: {sensor.description}\n'
+    header += f'# MethodCode: {sensor.method_code}\n'
+    header += f'# MethodType: {sensor.method_type}\n'
+    header += f'# MethodLink: {sensor.method_link}\n'
+    header += f'# SensorManufacturerName: {sensor.manufacturer}\n'
+    header += f'# SensorModelName: {sensor.model}\n'
+    header += f'# SensorModelLink: {sensor.model_link}\n'
+    header += "#\n"
+
+    header += "# Observed Property Information:\n"
+    header += "# -------------------------------------\n"
+    header += f'# Name: {observed_property.name}\n'
+    header += f'# Definition: {observed_property.definition}\n'
+    header += f'# Description: {observed_property.description}\n'
+    header += f'# VariableType: {observed_property.type}\n'
+    header += f'# VariableCode: {observed_property.code}\n'
+    header += "#\n"
+
+    header += "# Unit Information:\n"
+    header += "# -------------------------------------\n"
+    header += f'# Name: {unit.name}\n'
+    header += f'# Symbol: {unit.symbol}\n'
+    header += f'# Definition: {unit.definition}\n'
+    header += f'# UnitType: {unit.type}\n'
+    header += "#\n"
+
+    header += "# Processing Level Information:\n"
+    header += "# -------------------------------------\n"
+    header += f'# Code: {processing_level.code}\n'
+    header += f'# Definition: {processing_level.definition}\n'
+    header += f'# Explanation: {processing_level.explanation}\n'
+    header += "#\n"
+
+    header += "# Data Disclaimer:\n"
+    header += "# -------------------------------------\n"
+    header += "# Output date/time values are in UTC unless they were input to HydroServer without time zone offset information. In that case, date/time values are output as they were supplied to HydroServer.\n"
+    if thing.data_disclaimer:
+        header += f'# {thing.data_disclaimer}\n'
+    header += f'# =============================================================================\n'
+    yield header
+
+    obs = Observation.objects.get(pk="a0e6b98b-39da-4f66-9fdc-a537fbd2b3c3")
+    print(obs.phenomenon_time)
+
+    obs_header = "ResultTime,Result\n"
+    observation_rows = [obs_header]
+
+    for observation in observations:
+        row = f"{observation.phenomenon_time.isoformat()},{observation.result}\n"
+        observation_rows.append(row)
+    
+    yield ''.join(observation_rows)		
