@@ -5,7 +5,7 @@ from typing import List, Union, Tuple, Optional
 from pydantic.fields import SHAPE_LIST
 from odata_query.django.django_q import AstToDjangoQVisitor
 from odata_query.rewrite import AliasRewriter
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, FieldError
 from django.urls.exceptions import Http404
 from django.db import connection
 from django.db.models import F, Window
@@ -29,27 +29,46 @@ class SensorThingsEngine(SensorThingsAbstractEngine):
         self.component = component
         self.version = version
 
-    def resolve_entity_id_chain(self, entity_chain: List[Tuple[str, Union[uuid.UUID, int, str]]]) -> bool:
+    def resolve_entity_id_chain(self, entity_chain: List[Tuple[str, Union[uuid.UUID, int, str]]]) -> \
+            (bool, Optional[Union[uuid.UUID, int, str]]):
         """"""
 
+        entity_id = None
+
         for i, entity in enumerate(entity_chain):
-            if i == 0:
-                if getattr(core_models, entity[0]).objects.filter(
-                        pk=entity[1]
-                ).exists() is False:
-                    return False
-            else:
-                if getattr(core_models, entity[0]).filter(
+            query = getattr(core_models, entity[0]).objects
+            update_next_id = False
+
+            if i < len(entity_chain) - 1:
+                try:
+                    uuid.UUID(entity_chain[i + 1][1], version=4)
+                    query = query.values('id')
+                except ValueError:
+                    query = query.values(entity_chain[i + 1][1])
+                    update_next_id = True
+
+            if i != 0 and not update_next_id:
+                try:
+                    query = query.filter(
                         **{
                             f'{lookup_component(entity_chain[i - 1][0], "camel_singular", "snake_singular")}_id':
                                 entity_chain[i - 1][1]
                         }
-                ).filter(
-                    pk=entity[1]
-                ).exists() is False:
-                    return False
+                    )
+                except FieldError:
+                    pass
 
-        return True
+            record = query.filter(pk=entity[1]).first()
+
+            if not record:
+                return False, entity_id
+
+            if update_next_id:
+                entity_id = str(record[entity_chain[i + 1][1]])
+                entity_chain[i + 1] = (entity_chain[i + 1][0], entity_id,)
+                self.path = self.path.replace('temp_id', entity_id)
+
+        return True, entity_id
 
     def get_fields(self, query_structure, prefix='', df_prefixes=None):
         """"""

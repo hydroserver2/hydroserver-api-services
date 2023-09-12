@@ -21,7 +21,7 @@ def base_url():
     ('observed-properties', {}, 200, 1),
     ('processing-levels', {}, 200, 1),
     ('sensors', {}, 200, 1),
-    ('things', {}, 200, 2),
+    ('things', {}, 200, 3),
     ('units', {}, 200, 1)
 ])
 @pytest.mark.django_db()
