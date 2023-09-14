@@ -19,12 +19,16 @@ def base_url():
 
 @pytest.mark.parametrize('endpoint, query_params', [
     ('Things', {}),
+    ('Things(0c04fcdc-3876-429e-8260-14b7baca0231)/Datastreams', {}),
+    ('Things(0c04fcdc-3876-429e-8260-14b7baca0231)/Locations', {}),
     ('Things', {'$count': True}),
     ('Things', {'$filter': 'name eq \'test\''}),
     ('Things', {'$skip': 10}),
     ('Things', {'$top': 10}),
     ('Things', {'$expand': 'Locations,Datastreams/Sensor'}),
     ('Locations', {}),
+    ('Locations(e78380f8-bdb5-4f15-8f37-bde53a4dd5c3)/Things', {}),
+    ('Locations(e78380f8-bdb5-4f15-8f37-bde53a4dd5c3)/HistoricalLocations', {}),
     ('Locations', {'$count': True}),
     ('Locations', {'$filter': 'name eq \'test\''}),
     ('Locations', {'$skip': 10}),
@@ -32,22 +36,24 @@ def base_url():
     ('Locations', {'$expand': 'Things/Datastreams/ObservedProperty'}),
     ('HistoricalLocations', {}),
     ('HistoricalLocations', {'$count': True}),
-    # ('HistoricalLocations', {'$filter': 'name eq \'test\''}),
     ('HistoricalLocations', {'$skip': 10}),
     ('HistoricalLocations', {'$top': 10}),
     ('Sensors', {}),
+    ('Sensors(7294c8a8-a9d8-4490-b3be-315bbe971e0c)/Datastreams', {}),
     ('Sensors', {'$count': True}),
     ('Sensors', {'$filter': 'name eq \'test\''}),
     ('Sensors', {'$skip': 10}),
     ('Sensors', {'$top': 10}),
     ('Sensors', {'$expand': 'Datastreams/Thing'}),
     ('ObservedProperties', {}),
+    ('ObservedProperties(4c310501-31f3-4954-80b0-2279eb049e39)/Datastreams', {}),
     ('ObservedProperties', {'$count': True}),
     ('ObservedProperties', {'$filter': 'name eq \'test\''}),
     ('ObservedProperties', {'$skip': 10}),
     ('ObservedProperties', {'$top': 10}),
     ('ObservedProperties', {'$expand': 'Datastreams/Thing'}),
     ('Datastreams', {}),
+    ('Datastreams(8af17d0e-8fce-4264-93b5-e55aa6a7ca02)/Observations', {}),
     ('Datastreams', {'$count': True}),
     ('Datastreams', {'$filter': 'name eq \'ca999458-d644-44b0-b678-09a892fd54ac\''}),
     ('Datastreams', {'$skip': 10}),
@@ -62,7 +68,6 @@ def base_url():
     ('Observations', {'$expand': 'Datastream/Thing'}),
     ('FeaturesOfInterest', {}),
     ('FeaturesOfInterest', {'$count': True}),
-    # ('FeaturesOfInterest', {'$filter': 'name eq \'test\''}),
     ('FeaturesOfInterest', {'$skip': 10}),
     ('FeaturesOfInterest', {'$top': 10}),
 ])
@@ -80,29 +85,34 @@ def test_sensorthings_list_endpoints(django_test_db, auth_headers, base_url, end
     assert response.status_code == 200
 
 
-@pytest.mark.parametrize('endpoint, entity_id, query_params, status_code', [
-    ('Things', '0c04fcdc-3876-429e-8260-14b7baca0231', {}, 200),
-    ('Things', '0c04fcdc-3876-429e-8260-14b7baca0231', {'$expand': 'Locations,Datastreams/Sensor'}, 200),
-    ('Things', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('Locations', '1796a56f-2cdf-42c6-8cc7-3da2f757e9a0', {}, 200),
-    ('Locations', '1796a56f-2cdf-42c6-8cc7-3da2f757e9a0', {'$expand': 'Things/Datastreams/ObservedProperty'}, 200),
-    ('Locations', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('HistoricalLocations', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('Sensors', '7294c8a8-a9d8-4490-b3be-315bbe971e0c', {}, 200),
-    ('Sensors', '7294c8a8-a9d8-4490-b3be-315bbe971e0c', {'$expand': 'Datastreams/Thing'}, 200),
-    ('Sensors', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('ObservedProperties', '97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19', {}, 200),
-    ('ObservedProperties', '97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19', {'$expand': 'Datastreams/Thing'}, 200),
-    ('ObservedProperties', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('Datastreams', '376be82c-b3a1-4d96-821b-c7954b931f94', {}, 200),
-    ('Datastreams', '376be82c-b3a1-4d96-821b-c7954b931f94', {
+@pytest.mark.parametrize('endpoint, query_params, status_code', [
+    ('', {}, 200),
+    ('Things(0c04fcdc-3876-429e-8260-14b7baca0231)', {}, 200),
+    ('Things(0c04fcdc-3876-429e-8260-14b7baca0231)', {'$expand': 'Locations,Datastreams/Sensor'}, 200),
+    ('Things(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('Locations(1796a56f-2cdf-42c6-8cc7-3da2f757e9a0)', {}, 200),
+    ('Locations(1796a56f-2cdf-42c6-8cc7-3da2f757e9a0)', {'$expand': 'Things/Datastreams/ObservedProperty'}, 200),
+    ('Locations(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('HistoricalLocations(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('Sensors(7294c8a8-a9d8-4490-b3be-315bbe971e0c)', {}, 200),
+    ('Sensors(7294c8a8-a9d8-4490-b3be-315bbe971e0c)', {'$expand': 'Datastreams/Thing'}, 200),
+    ('Sensors(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('ObservedProperties(97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19)', {}, 200),
+    ('ObservedProperties(97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19)', {'$expand': 'Datastreams/Thing'}, 200),
+    ('ObservedProperties(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('Datastreams(376be82c-b3a1-4d96-821b-c7954b931f94)', {}, 200),
+    ('Datastreams(376be82c-b3a1-4d96-821b-c7954b931f94)', {
         '$expand': 'Observations,Thing/Locations,Sensor,ObservedProperty'
     }, 200),
-    ('Datastreams', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('Observations', '71335328-fd9f-4079-b51d-ddd629545c27', {}, 200),
-    ('Observations', '71335328-fd9f-4079-b51d-ddd629545c27', {'$expand': 'Datastream/Thing'}, 200),
-    ('Observations', '00000000-0000-0000-0000-000000000000', {}, 404),
-    ('FeaturesOfInterest', '00000000-0000-0000-0000-000000000000', {}, 404),
+    ('Datastreams(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('Datastreams(8af17d0e-8fce-4264-93b5-e55aa6a7ca02)/Sensor', {}, 200),
+    ('Datastreams(8af17d0e-8fce-4264-93b5-e55aa6a7ca02)/ObservedProperty', {}, 200),
+    ('Datastreams(8af17d0e-8fce-4264-93b5-e55aa6a7ca02)/Thing', {}, 200),
+    ('Observations(71335328-fd9f-4079-b51d-ddd629545c27)', {}, 200),
+    ('Observations(71335328-fd9f-4079-b51d-ddd629545c27)', {'$expand': 'Datastream/Thing'}, 200),
+    ('Observations(00000000-0000-0000-0000-000000000000)', {}, 404),
+    ('Observations(8119cba7-8c00-454d-9584-3f605b1a0c74)/Datastream', {}, 200),
+    ('FeaturesOfInterest(00000000-0000-0000-0000-000000000000)', {}, 404),
 ])
 @pytest.mark.django_db()
 def test_sensorthings_get_endpoints(
@@ -110,14 +120,13 @@ def test_sensorthings_get_endpoints(
         auth_headers,
         base_url,
         endpoint,
-        entity_id,
         query_params,
         status_code
 ):
     client = Client()
 
     response = client.get(
-        f'{base_url}/{endpoint}({entity_id})',
+        f'{base_url}/{endpoint}',
         query_params,
         **auth_headers
     )

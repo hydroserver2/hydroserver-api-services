@@ -16,7 +16,7 @@ class ProcessingLevelFields(Schema):
 
 
 @allow_partial
-class ProcessingLevelPatchBody(Schema):
+class ProcessingLevelPatchBody(ProcessingLevelFields):
     pass
 
 
@@ -44,12 +44,9 @@ def update_processing_level(request, processing_level_id: str, data: ProcessingL
     if request.authenticated_user != processing_level.person:
         return JsonResponse({'detail': 'You are not authorized to update this processing level.'}, status=403)
 
-    if data.code is not None:
-        processing_level.code = data.code
-    if data.definition is not None:
-        processing_level.definition = data.definition
-    if data.explanation is not None:
-        processing_level.explanation = data.explanation
+    pl_data = data.dict(exclude_unset=True)
+    for key, value in pl_data.items():
+        setattr(processing_level, key, value)
 
     processing_level.save()
 

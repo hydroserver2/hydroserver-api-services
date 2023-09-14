@@ -183,3 +183,7 @@ STATIC_ROOT = 'staticfiles'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# SensorThings Configuration
+
+ST_API_PREFIX = 'api/sensorthings'

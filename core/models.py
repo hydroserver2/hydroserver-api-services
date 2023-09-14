@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from accounts.models import Person
 import boto3
 from botocore.exceptions import ClientError
-from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
+from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 
 
 class Location(models.Model):
@@ -70,7 +70,7 @@ def delete_photo(sender, instance, **kwargs):
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
 
-    file_name = instance.link.split(f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/')[1]
+    file_name = instance.link.split(f'{PROXY_BASE_URL}/')[1]
 
     try:
         s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)

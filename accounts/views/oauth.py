@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from authlib.integrations.django_client import OAuth
 from accounts.utils import update_account_to_verified
 from hydroserver import settings
-from core.utils.organization import organization_to_dict
+from core.utils.user import user_to_dict
 
 user_model = get_user_model()
 
@@ -41,17 +41,7 @@ def oauth_response(access_token: str, refresh_token: str, user: user_model):
         "%value%", json.dumps({
             'access': access_token,
             'refresh': refresh_token,
-            'user': {
-                'email': user.email if user.is_verified else user.unverified_email,
-                'firstName': user.first_name,
-                'middleName': user.middle_name,
-                'lastName': user.last_name,
-                'phone': user.phone,
-                'address': user.address,
-                'organization': organization_to_dict(user.organization) if hasattr(user, 'organization') else None,
-                'type': user.type,
-                'isVerified': user.is_verified
-            }
+            'user': user
         })
     )
 
@@ -60,13 +50,13 @@ def oauth_response(access_token: str, refresh_token: str, user: user_model):
 
 @orcid_router.get('/login')
 def orcid_login(request):
-    redirect_uri = request.build_absolute_uri('/api/account/orcid/auth')
-
-    if 'X-Forwarded-Proto' in request.headers:
-        redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
-
     if settings.DEPLOYED is True:
-        redirect_uri = redirect_uri.replace('http:', 'https:')
+        redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/orcid/auth'
+    else:
+        redirect_uri = request.build_absolute_uri('/api/account/orcid/auth')
+
+    # if 'X-Forwarded-Proto' in request.headers:
+    #     redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
     return oauth.orcid.authorize_redirect(request, redirect_uri)
 
@@ -92,7 +82,7 @@ def orcid_auth(request):
     return HttpResponse(oauth_response(
         access_token=str(getattr(jwt, 'access_token', '')),
         refresh_token=str(jwt),
-        user=user
+        user=user_to_dict(user)
     ))
 
 
@@ -107,13 +97,13 @@ google_router = Router(tags=['Google OAuth 2.0'])
 
 @google_router.get('/login')
 def google_login(request):
-    redirect_uri = request.build_absolute_uri('/api/account/google/auth')
-
-    if 'X-Forwarded-Proto' in request.headers:
-        redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
-
     if settings.DEPLOYED is True:
-        redirect_uri = redirect_uri.replace('http:', 'https:')
+        redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/google/auth'
+    else:
+        redirect_uri = request.build_absolute_uri('/api/account/google/auth')
+
+    # if 'X-Forwarded-Proto' in request.headers:
+    #     redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
     return oauth.google.authorize_redirect(request, redirect_uri)
 
@@ -141,5 +131,5 @@ def google_auth(request):
     return HttpResponse(oauth_response(
         access_token=str(getattr(jwt, 'access_token', '')),
         refresh_token=str(jwt),
-        user=user
+        user=user_to_dict(user)
     ))

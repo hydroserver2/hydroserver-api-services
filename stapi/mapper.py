@@ -152,6 +152,11 @@ class Thing(ComponentMap):
         MappedField(['id'])
     )
 
+    location = FieldMap(
+        MappedField(['Location', 'id']),
+        MappedField(['location_id'])
+    )
+
     name = FieldMap(
         MappedField(['name']),
         MappedField(['name'])
@@ -193,6 +198,11 @@ class Location(ComponentMap):
     id = FieldMap(
         MappedField(['id']),
         MappedField(['id'])
+    )
+
+    thing = FieldMap(
+        MappedField(['Thing', 'id']),
+        MappedField(['thing'])
     )
 
     name = FieldMap(
@@ -342,14 +352,29 @@ class Datastream(ComponentMap):
         MappedField(['id'])
     )
 
+    observed_property = FieldMap(
+        MappedField(['ObservedProperty', 'id']),
+        MappedField(['observed_property_id'])
+    )
+
     observed_property_id = FieldMap(
         MappedField(['observed_property_id']),
         MappedField(['observed_property_id'])
     )
 
+    sensor = FieldMap(
+        MappedField(['Sensor', 'id']),
+        MappedField(['sensor_id'])
+    )
+
     sensor_id = FieldMap(
         MappedField(['sensor_id']),
         MappedField(['sensor_id'])
+    )
+
+    thing = FieldMap(
+        MappedField(['Thing', 'id']),
+        MappedField(['thing_id'])
     )
 
     thing_id = FieldMap(
