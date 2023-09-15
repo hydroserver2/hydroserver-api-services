@@ -159,7 +159,7 @@ def delete_datastream(request, datastream_id: str):
 def get_datastream_csv(request, id):
     # TODO: Prevent public access to private datastreams
     response = StreamingHttpResponse(generate_csv(id), content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="hello_world.csv"'
+    response['Content-Disposition'] = 'attachment; filename="datastream.csv"'
     return response
 
 

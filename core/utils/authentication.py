@@ -63,7 +63,7 @@ def thing_ownership_required(func):
         try:
             thing = Thing.objects.get(id=thing_id)
         except Thing.DoesNotExist:
-            raise HttpError(403, 'Site cannot be found')
+            raise HttpError(404, 'Site cannot be found')
         try:
             thing_association = request.authenticated_user.thing_associations.get(thing=thing, owns_thing=True)
         except ThingAssociation.DoesNotExist:

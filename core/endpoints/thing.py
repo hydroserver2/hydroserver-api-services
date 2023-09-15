@@ -114,7 +114,6 @@ def update_thing(request, thing_id: str, data: ThingPatchBody):
 
 @router.delete('/{thing_id}')
 @thing_ownership_required
-@allow_partial
 def delete_thing(request, thing_id: str):
     try:
         request.thing.location.delete()
