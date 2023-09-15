@@ -4,11 +4,13 @@ from core.endpoints.datastream import router as datastream_router
 from core.endpoints.observed_property import router as op_router
 from core.endpoints.processing_level import router as pl_router
 from core.endpoints.sensor import router as sensor_router
-from core.endpoints.thing import router as thing_router
+# from core.endpoints.thing import router as thing_router
 from core.endpoints.unit import router as unit_router
 from core.endpoints.photo import router as photo_router
 from core.endpoints.data_loader import router as dl_router
 from core.endpoints.data_sources import router as ds_router
+
+from core.routers.thing.views import router as thing_router
 
 api = NinjaAPI(
     title='HydroServer Data Management API',

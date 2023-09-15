@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 
 class JWTAuth(JWTBaseAuthentication, HttpBearer):
-    def authenticate(self, request, token):
+    def authenticate(self, request, token, *args, **kwargs):
 
         if not hasattr(self, 'user_model'):
             self.user_model = get_user_model()
