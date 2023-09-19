@@ -5,10 +5,11 @@ from django.db import transaction
 from django.db.models import Q
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
+from accounts.auth.anonymous import anonymous_auth
 from core.models import Thing, Location, ThingAssociation, Person, Unit, ProcessingLevel, Sensor, ObservedProperty
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
     ThingMetadataGetResponse, LocationFields, ThingFields
-from .utils import query_things, get_thing_association, get_thing_by_id
+from .utils import query_visible_things, query_thing_by_id, build_thing_response
 
 from core.utils.unit import transfer_unit_ownership, unit_to_dict
 from core.utils.observed_property import transfer_properties_ownership, observed_property_to_dict
@@ -21,7 +22,7 @@ router = Router(tags=['Things'])
 
 @router.get(
     '',
-    auth=[JWTAuth(), BasicAuth(), lambda *_: True],
+    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
     response={
         200: List[ThingGetResponse]
     },
@@ -34,11 +35,12 @@ def get_things(request):
     This endpoint returns a list of public Things and Things owned by the authenticated user if there is one.
     """
 
-    things = query_things(
-        user=getattr(request, 'authenticated_user', None)
-    )
+    user = getattr(request, 'authenticated_user', None)
+    things = query_visible_things(user=user)
 
-    return things
+    return [
+        build_thing_response(user, thing) for thing in things
+    ]
 
 
 @router.get(
@@ -57,12 +59,9 @@ def get_thing(request, thing_id: UUID):
     This endpoint returns details for a Thing given a Thing ID.
     """
 
-    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing_id)
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id)
 
-    if not thing:
-        return 404, f'Thing with ID: {thing_id} was not found.'
-
-    return 200, thing
+    return 200, build_thing_response(request.authenticated_user, thing)
 
 
 @router.post(
@@ -102,12 +101,9 @@ def create_thing(request, data: ThingPostBody):
         is_primary_owner=True
     )
 
-    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
 
-    if not thing:
-        return 500, 'Encountered an unexpected error creating Thing.'
-
-    return 201, thing
+    return 201, build_thing_response(request.authenticated_user, thing)
 
 
 @router.patch(
@@ -130,18 +126,7 @@ def update_thing(request, thing_id: UUID, data: ThingPatchBody):
     This endpoint will update an existing Thing owned by the authenticated user and return the updated Thing.
     """
 
-    thing_association = get_thing_association(user=request.authenticated_user, thing_id=thing_id)
-
-    if thing_association == 404:
-        return 404, f'Thing with ID: {thing_id} was not found.'
-
-    elif thing_association == 403:
-        return 403, 'You do not have permission to modify this Thing.'
-
-    elif thing_association.owns_thing is False:
-        return 403, 'You do not have permission to modify this Thing.'
-
-    thing = thing_association.thing
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_ownership=True)
     location = thing.location
 
     thing_data = data.dict(include=set(ThingFields.__fields__.keys()), exclude_unset=True)
@@ -160,12 +145,9 @@ def update_thing(request, thing_id: UUID, data: ThingPatchBody):
 
     location.save()
 
-    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
 
-    if not thing:
-        return 500, 'Encountered an unexpected error updating Thing.'
-
-    return 203, thing
+    return 203, build_thing_response(request.authenticated_user, thing)
 
 
 @router.delete(
@@ -187,22 +169,10 @@ def delete_thing(request, thing_id: UUID):
     This endpoint will delete an existing Thing if the authenticated user is the primary owner of the Thing.
     """
 
-    thing_association = get_thing_association(user=request.authenticated_user, thing_id=thing_id)
-
-    if thing_association == 404:
-        return 404, f'Thing with ID: {thing_id} was not found.'
-
-    elif thing_association == 403:
-        return 403, 'You do not have permission to delete this Thing.'
-
-    elif thing_association.is_primary_owner is False and thing_association.owns_thing is True:
-        return 403, 'You do not have permission to delete this Thing. Things must be deleted by the primary owner.'
-
-    elif thing_association.is_primary_owner is False:
-        return 403, 'You do not have permission to delete this Thing.'
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_primary_ownership=True)
 
     try:
-        thing_association.thing.location.delete()
+        thing.location.delete()
     except Exception as e:
         return 500, str(e)
 
@@ -230,39 +200,37 @@ def update_thing_ownership(request, thing_id: UUID, data: ThingOwnershipPatchBod
     modification can happen per request. Possible options are "make_owner", "remove_owner", and "transfer_primary".
     """
 
-    authenticated_user_association = get_thing_association(
+    thing = query_thing_by_id(
         user=request.authenticated_user,
-        thing_id=thing_id
+        thing_id=thing_id,
+        require_ownership=True,
+        prefetch_datastreams=True
     )
 
-    if authenticated_user_association == 404:
-        return 404, f'Thing with ID: {thing_id} was not found.'
-
-    elif authenticated_user_association == 403:
-        return 403, 'You do not have permission to modify this Thing\'s ownership.'
-
-    elif authenticated_user_association.owns_thing is False:
-        return 403, 'You do not have permission to modify this Thing\'s ownership.'
+    authenticated_user_association = next(iter([
+        associate for associate in thing.associates.all()
+        if associate.person == request.authenticated_user
+    ]), None)
 
     try:
         user = Person.objects.get(email=data.email)
     except Person.DoesNotExist:
         return 404, 'User with the given email not found.'
 
-    if request.authenticated_user == user and authenticated_user_association.is_primary_owner is True:
+    if request.authenticated_user == user and authenticated_user_association.is_primary_owner:
         return 403, 'Primary owner cannot edit their own ownership.'
 
-    if request.authenticated_user != user and authenticated_user_association.is_primary_owner is False:
+    if request.authenticated_user != user and not authenticated_user_association.is_primary_owner:
         return 403, 'You do not have permission to modify this Thing\'s ownership.'
 
     thing_association, created = ThingAssociation.objects.get_or_create(
-        thing=authenticated_user_association.thing, person=user
+        thing=thing, person=user
     )
 
     if data.transfer_primary:
         if not authenticated_user_association.is_primary_owner:
             return 403, 'Only primary owner can transfer primary ownership.'
-        datastreams = authenticated_user_association.thing.datastreams.all()
+        datastreams = thing.datastreams.all()
         for datastream in datastreams:
             transfer_properties_ownership(datastream, user, request.authenticated_user)
             transfer_processing_level_ownership(datastream, user, request.authenticated_user)
@@ -287,12 +255,9 @@ def update_thing_ownership(request, thing_id: UUID, data: ThingOwnershipPatchBod
         thing_association.follows_thing = False
         thing_association.save()
 
-    thing = get_thing_by_id(user=request.authenticated_user, thing_id=authenticated_user_association.thing.id)
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=authenticated_user_association.thing.id)
 
-    if not thing:
-        return 500, 'Encountered an unexpected error updating Thing ownership.'
-
-    return 203, thing
+    return 203, build_thing_response(request.authenticated_user, thing)
 
 
 @router.patch(
@@ -315,36 +280,20 @@ def update_thing_privacy(request, thing_id: UUID, data: ThingPrivacyPatchBody):
     This endpoint allows the owner of a Thing to toggle it between a private and public resource.
     """
 
-    thing_association = get_thing_association(
-        user=request.authenticated_user,
-        thing_id=thing_id
-    )
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_ownership=True)
 
-    if thing_association == 404:
-        return 404, f'Thing with ID: {thing_id} was not found.'
-
-    elif thing_association == 403:
-        return 403, 'You do not have permission to modify this Thing\'s privacy.'
-
-    elif thing_association.owns_thing is False:
-        return 403, 'You do not have permission to modify this Thing\'s privacy.'
-
-    thing_association.thing.is_private = data.is_private
+    thing.is_private = data.is_private
 
     if data.is_private:
-        thing_associations = ThingAssociation.objects.filter(thing=thing_association.thing)
-        for thing_association in thing_associations:
+        for thing_association in thing.associates:
             if thing_association.follows_thing:
                 thing_association.delete()
 
-    thing_association.thing.save()
+    thing.save()
 
-    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing_association.thing.id)
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
 
-    if not thing:
-        return 500, 'Encountered an unexpected error updating Thing privacy.'
-
-    return 203, thing
+    return 203, build_thing_response(request.authenticated_user, thing)
 
 
 @router.patch(
@@ -367,36 +316,28 @@ def update_thing_followership(request, thing_id: UUID):
     This endpoint allows a user to follow or unfollow a public Thing. Users cannot follow Things they own.
     """
 
-    authenticated_user_association = get_thing_association(
-        user=request.authenticated_user,
-        thing_id=thing_id
-    )
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_unaffiliated=True)
 
-    if authenticated_user_association == 404:
-        return 404, f'Thing with ID: {thing_id} was not found.'
+    user_association = next(iter([
+        associate for associate in thing.associates.all()
+        if associate.follows_thing is True and associate.person == request.authenticated_user
+    ]), None)
 
-    elif authenticated_user_association == 403:
+    if user_association:
+        user_association.delete()
+    else:
         ThingAssociation.objects.create(
             thing_id=thing_id,
             person=request.authenticated_user,
             follows_thing=True
         )
 
-    elif authenticated_user_association.owns_thing is True:
-        return 403, 'Owners cannot update follow status.'
-
-    else:
-        authenticated_user_association.delete()
-
-    thing = get_thing_by_id(
+    thing = query_thing_by_id(
         user=request.authenticated_user,
         thing_id=thing_id
     )
 
-    if not thing:
-        return 500, 'Encountered an unexpected error updating Thing follower status.'
-
-    return 203, thing
+    return 203, build_thing_response(request.authenticated_user, thing)
 
 
 @router.get(
@@ -418,27 +359,12 @@ def get_thing_metadata(request, thing_id: UUID):
     units, observed properties, sensors, and processing levels.
     """
 
-    thing_association = get_thing_association(user=request.authenticated_user, thing_id=thing_id)
+    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_ownership=True)
 
-    if thing_association == 404:
-        return 404, f'Thing with ID: {thing_id} was not found.'
-
-    elif thing_association == 403:
-        return 403, 'You do not have permission to view this Thing\'s metadata.'
-
-    elif thing_association.owns_thing is False:
-        return 403, 'You do not have permission to view this Thing\'s metadata.'
-
-    if thing_association.is_primary_owner:
-        primary_owner = request.authenticated_user
-    else:
-        try:
-            primary_owner = Person.objects.get(
-                thing_associations__thing_id=thing_id,
-                thing_associations__is_primary_owner=True
-            )
-        except Person.DoesNotExist:
-            return 404, 'Primary owner cannot be found for this thing.'
+    primary_owner = next(iter([
+        associate.person for associate in thing.associates.all()
+        if associate.is_primary_owner is True
+    ]), None)
 
     units = Unit.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
     sensors = Sensor.objects.filter(Q(person=primary_owner))
