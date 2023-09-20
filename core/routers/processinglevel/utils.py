@@ -92,7 +92,7 @@ def get_processing_level_by_id(
     processing_level = next(iter(processing_level_query.all()), None)
 
     if raise_http_errors and not processing_level_exists:
-        raise HttpError(404, 'ProcessingLevel not found.')
+        raise HttpError(404, 'Processing Level not found.')
     if raise_http_errors and processing_level_exists and not processing_level:
         raise HttpError(403, 'You do not have permission to perform this action on this Processing Level.')
 

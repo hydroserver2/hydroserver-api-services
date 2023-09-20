@@ -246,6 +246,26 @@ class Observation(models.Model):
         managed = False
 
 
+class ResultQualifier(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.CharField(max_length=255)
+    description = models.TextField()
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
+                               blank=True, db_column='personId')
+
+    class Meta:
+        db_table = 'ResultQualifier'
+
+
+class QualifierAssociation(models.Model):
+    result_qualifier = ForeignKey(ResultQualifier, on_delete=models.PROTECT, related_name='qualifier_associations', db_column='resultQualifierId')
+    observation = ForeignKey(Observation, on_delete=models.CASCADE, related_name='qualifier_associations', db_column='observationId')
+
+    class Meta:
+        db_table = 'QualifierAssociation'
+        managed = False
+
+
 class ThingAssociation(models.Model):
     thing = ForeignKey(Thing, on_delete=models.CASCADE, related_name='associates', db_column='thingId')
     person = ForeignKey(Person, on_delete=models.CASCADE, related_name='thing_associations', db_column='personId')

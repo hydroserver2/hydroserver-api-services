@@ -27,7 +27,7 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 observation_table = """
                     CREATE TABLE IF NOT EXISTS "Observation" (
-                        "id" uuid NOT NULL,
+                        "id" uuid UNIQUE NOT NULL,
                         "datastreamId" uuid NOT NULL,
                         "featureOfInterestId" uuid NULL,
                         "phenomenonTime" timestamp NOT NULL,
@@ -42,6 +42,19 @@ class Command(BaseCommand):
                 """
 
                 cursor.execute(observation_table)
+
+                qualifier_association_table = """
+                    CREATE TABLE IF NOT EXISTS "QualifierAssociation" (
+                        "id" INTEGER PRIMARY KEY,
+                        "observationId" uuid NOT NULL,
+                        "resultQualifierId" uuid NOT NULL,
+                        CONSTRAINT "_observation_result_qualifier_uc" UNIQUE ("observationId", "resultQualifierId"),
+                        CONSTRAINT qualifier_association_observation_id_fkey FOREIGN KEY ("observationId") REFERENCES public."Observation"(id),
+                        CONSTRAINT qualifier_association_result_qualifier_id_fkey FOREIGN KEY ("resultQualifierId") REFERENCES public."ResultQualifier"(id)
+                    )
+                """
+
+                cursor.execute(qualifier_association_table)
 
                 if options['no_timescale'] is False:
                     cursor.execute(

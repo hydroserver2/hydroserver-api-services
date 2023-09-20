@@ -19,11 +19,12 @@ def base_url():
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams', None, 200, 1, 4),
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231/datastreams', None, 403, None, 4),
     ('things/00000000-0000-0000-0000-000000000000/datastreams', None, 404, None, 4),
-    ('observed-properties', {}, 200, 2, 100),
-    ('processing-levels', {}, 200, 2, 100),
-    ('sensors', {}, 200, 2, 100),
+    ('observed-properties', {}, 200, 2, 4),
+    ('processing-levels', {}, 200, 2, 4),
+    ('sensors', {}, 200, 2, 4),
     ('things', {}, 200, 3, 4),
-    ('units', {}, 200, 2, 100)
+    ('units', {}, 200, 2, 4),
+    ('result-qualifiers', {}, 200, 2, 4)
 ])
 @pytest.mark.django_db()
 def test_core_list_endpoints(
@@ -38,9 +39,6 @@ def test_core_list_endpoints(
             query_params,
             **auth_headers
         )
-        print('**************')
-        print(response.status_code)
-        print(response.content)
 
     assert response.status_code == response_code
 
@@ -100,14 +98,14 @@ def test_core_get_endpoints(
         'description': 'string',
         'type': 'string',
         'code': 'string'
-    }, 201, 100),
-    ('observed-properties', {}, 422, 100),
+    }, 201, 6),
+    ('observed-properties', {}, 422, 2),
     ('processing-levels', {
         'code': 'string',
         'definition': 'string',
         'explanation': 'string'
-    }, 201, 100),
-    ('processing-levels', {}, 422, 100),
+    }, 201, 6),
+    ('processing-levels', {}, 422, 2),
     ('sensors', {
         'name': 'string',
         'description': 'string',
@@ -118,8 +116,13 @@ def test_core_get_endpoints(
         'methodType': 'string',
         'methodLink': 'string',
         'methodCode': 'string'
-    }, 201, 100),
-    ('sensors', {}, 422, 100),
+    }, 201, 6),
+    ('sensors', {}, 422, 2),
+    ('result-qualifiers', {
+        'code': 'string',
+        'description': 'string'
+    }, 201, 6),
+    ('result-qualifiers', {}, 422, 2),
     ('things', {
         'latitude': 0,
         'longitude': 0,
@@ -140,8 +143,8 @@ def test_core_get_endpoints(
         'symbol': 'string',
         'definition': 'string',
         'type': 'string'
-    }, 201, 100),
-    ('units', {}, 422, 100),
+    }, 201, 6),
+    ('units', {}, 422, 2),
 ])
 @pytest.mark.django_db()
 def test_core_post_endpoints(
@@ -169,6 +172,7 @@ def test_core_post_endpoints(
     ('observed-properties/97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19', {'name': 'string'}, 203, 8),
     ('processing-levels/83fdb8ba-5db4-4f31-b1fa-e68478a4be13', {'code': 'string'}, 203, 8),
     ('sensors/90d7f4a5-2042-4840-9bb4-b991f49cb8ed', {'name': 'string'}, 203, 8),
+    ('result-qualifiers/565b2407-fc55-4e4a-bcd7-6e945860f11b', {'code': 'string'}, 203, 8),
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8', {'name': 'string'}, 203, 11),
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231', {'name': 'string'}, 403, 6),
     ('things/00000000-0000-0000-0000-000000000000', {'name': 'string'}, 404, 6),
@@ -213,7 +217,11 @@ def test_core_patch_endpoints(
     ('processing-levels/83fdb8ba-5db4-4f31-b1fa-e68478a4be13', 409, 7),
     ('processing-levels/7e57d004-2b97-44e7-8f03-713f25415a10', 403, 7),
     ('processing-levels/00000000-0000-0000-0000-000000000000', 404, 7),
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204, 7),
+    ('result-qualifiers/93ccb684-2921-49df-a6cf-2f0dea8eb210', 204, 7),
+    ('result-qualifiers/565b2407-fc55-4e4a-bcd7-6e945860f11b', 409, 7),
+    ('result-qualifiers/369c1e3e-e465-41bc-9b13-933d81d50d0d', 403, 7),
+    ('result-qualifiers/00000000-0000-0000-0000-000000000000', 404, 7),
+    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204, 9),
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231/datastreams/8af17d0e-8fce-4264-93b5-e55aa6a7ca02', 403, 5),
     ('things/ab6d5d46-1ded-4ac6-8da8-0203df67950b/datastreams/376be82c-b3a1-4d96-821b-c7954b931f94', 403, 5),
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/00000000-0000-0000-0000-000000000000', 404, 5)

@@ -271,6 +271,31 @@
     definition: http://www.example.com/unit4
     type: Unit
 
+- model: core.resultqualifier
+  pk: 565b2407-fc55-4e4a-bcd7-6e945860f11b
+  fields:
+    code: RESULTQUALIFIER1
+    description: A test result qualifier.
+    person: 1_000_000_001
+- model: core.resultqualifier
+  pk: 93ccb684-2921-49df-a6cf-2f0dea8eb210
+  fields:
+    code: RESULTQUALIFIER2
+    description: A test result qualifier.
+    person: 1_000_000_001
+- model: core.resultqualifier
+  pk: b0df0deb-f340-482e-93c8-4d340cd49e6d
+  fields:
+    code: RESULTQUALIFIER3
+    description: A test result qualifier.
+    person: 1_000_000_002
+- model: core.resultqualifier
+  pk: 369c1e3e-e465-41bc-9b13-933d81d50d0d
+  fields:
+    code: RESULTQUALIFIER4
+    description: A test result qualifier.
+    person: 1_000_000_000
+
 - model: core.datastream
   pk: 376be82c-b3a1-4d96-821b-c7954b931f94
   fields:
@@ -1142,3 +1167,14 @@
     owns_thing: false
     follows_thing: true
     is_primary_owner: false
+
+- model: core.qualifierassociation
+  pk: 1_100_000_001
+  fields:
+    observation: 84b5427a-37aa-4cd1-9523-f7abe901a18a
+    result_qualifier: 565b2407-fc55-4e4a-bcd7-6e945860f11b
+- model: core.qualifierassociation
+  pk: 1_100_000_002
+  fields:
+    observation: 035a0556-7276-46c7-8e03-da57479416d2
+    result_qualifier: 565b2407-fc55-4e4a-bcd7-6e945860f11b
