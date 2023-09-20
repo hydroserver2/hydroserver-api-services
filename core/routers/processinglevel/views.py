@@ -1,13 +1,13 @@
-from ninja import Router
+from ninja import Router, Path
 from typing import List
 from uuid import UUID
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from core.models import ProcessingLevel
 from .schemas import ProcessingLevelGetResponse, ProcessingLevelPostBody, ProcessingLevelPatchBody, \
     ProcessingLevelFields
-from .utils import query_processing_levels, get_processing_level_by_id
+from .utils import query_processing_levels, get_processing_level_by_id, build_processing_level_response
 
 
 router = Router(tags=['Processing Levels'])
@@ -28,11 +28,14 @@ def get_processing_levels(request):
     This endpoint returns a list of Processing Levels owned by the authenticated user.
     """
 
-    processing_levels = query_processing_levels(
-        user=getattr(request, 'authenticated_user', None)
+    processing_level_query, _ = query_processing_levels(
+        user=getattr(request, 'authenticated_user', None),
+        require_ownership=True
     )
 
-    return processing_levels
+    return [
+        build_processing_level_response(processing_level) for processing_level in processing_level_query.all()
+    ]
 
 
 @router.get(
@@ -44,7 +47,7 @@ def get_processing_levels(request):
     },
     by_alias=True
 )
-def get_processing_level(request, processing_level_id: UUID):
+def get_processing_level(request, processing_level_id: UUID = Path(...)):
     """
     Get details for a Processing Level
 
@@ -53,13 +56,11 @@ def get_processing_level(request, processing_level_id: UUID):
 
     processing_level = get_processing_level_by_id(
         user=request.authenticated_user,
-        processing_level_id=processing_level_id
+        processing_level_id=processing_level_id,
+        raise_http_errors=True
     )
 
-    if not processing_level:
-        return 404, f'Processing Level with ID: {processing_level_id} was not found.'
-
-    return 200, processing_level
+    return 200, build_processing_level_response(processing_level)
 
 
 @router.post(
@@ -88,13 +89,11 @@ def create_processing_level(request, data: ProcessingLevelPostBody):
 
     processing_level = get_processing_level_by_id(
         user=request.authenticated_user,
-        processing_level_id=processing_level.id
+        processing_level_id=processing_level.id,
+        raise_http_errors=True
     )
 
-    if not processing_level:
-        return 500, 'Encountered an unexpected error creating Processing Level.'
-
-    return 201, processing_level
+    return 201, build_processing_level_response(processing_level)
 
 
 @router.patch(
@@ -110,7 +109,7 @@ def create_processing_level(request, data: ProcessingLevelPostBody):
     by_alias=True
 )
 @transaction.atomic
-def update_processing_level(request, processing_level_id: UUID, data: ProcessingLevelPatchBody):
+def update_processing_level(request, data: ProcessingLevelPatchBody, processing_level_id: UUID = Path(...)):
     """
     Update a Processing Level
 
@@ -118,13 +117,12 @@ def update_processing_level(request, processing_level_id: UUID, data: Processing
     Processing Level.
     """
 
-    processing_level = ProcessingLevel.objects.select_related('person').get(pk=processing_level_id)
-
-    if not processing_level:
-        return 404, f'Processing Level with ID: {processing_level_id} was not found.'
-
-    if processing_level.person != request.authenticated_user:
-        return 403, 'You do not have permission to modify this Processing Level.'
+    processing_level = get_processing_level_by_id(
+        user=request.authenticated_user,
+        processing_level_id=processing_level_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
 
     processing_level_data = data.dict(include=set(ProcessingLevelFields.__fields__.keys()), exclude_unset=True)
 
@@ -133,15 +131,12 @@ def update_processing_level(request, processing_level_id: UUID, data: Processing
 
     processing_level.save()
 
-    processing_level_response = get_processing_level_by_id(
+    processing_level = get_processing_level_by_id(
         user=request.authenticated_user,
-        processing_level_id=processing_level.id
+        processing_level_id=processing_level_id
     )
 
-    if not processing_level_response:
-        return 500, 'Encountered an unexpected error updating Processing Level.'
-
-    return 203, processing_level_response
+    return 203, build_processing_level_response(processing_level)
 
 
 @router.delete(
@@ -152,11 +147,11 @@ def update_processing_level(request, processing_level_id: UUID, data: Processing
         401: str,
         403: str,
         404: str,
-        500: str
+        409: str
     }
 )
 @transaction.atomic
-def delete_processing_level(request, processing_level_id: UUID):
+def delete_processing_level(request, processing_level_id: UUID = Path(...)):
     """
     Delete a Processing Level
 
@@ -164,17 +159,16 @@ def delete_processing_level(request, processing_level_id: UUID):
     Processing Level.
     """
 
-    processing_level = ProcessingLevel.objects.select_related('person').get(pk=processing_level_id)
-
-    if not processing_level:
-        return 404, f'Processing Level with ID: {processing_level_id} was not found.'
-
-    if processing_level.person != request.authenticated_user:
-        return 403, 'You do not have permission to delete this Processing Level.'
+    processing_level = get_processing_level_by_id(
+        user=request.authenticated_user,
+        processing_level_id=processing_level_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
 
     try:
         processing_level.delete()
-    except Exception as e:
-        return 500, str(e)
+    except IntegrityError as e:
+        return 409, str(e)
 
     return 204, None

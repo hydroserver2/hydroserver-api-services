@@ -8,7 +8,7 @@ from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
 from typing import List
 from botocore.exceptions import ClientError
-from core.routers.thing.utils import query_thing_by_id
+from core.routers.thing.utils import get_thing_by_id
 from core.models import Photo
 from .schemas import PhotoGetResponse, PhotoPostBody
 from .utils import build_photo_response
@@ -34,9 +34,9 @@ def get_thing_photos(request, thing_id):
     This endpoint returns photo details for a Thing given a Thing ID.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, prefetch_photos=True)
+    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing_id, prefetch_photos=True)
 
-    return [
+    return 200, [
         build_photo_response(photo) for photo in thing.photos.all()
     ]
 
@@ -52,7 +52,7 @@ def get_thing_photos(request, thing_id):
 def update_thing_photos(request, thing_id, data: PhotoPostBody, files: List[UploadedFile] = File(...)):
     """"""
 
-    thing = query_thing_by_id(
+    thing = get_thing_by_id(
         user=request.authenticated_user,
         thing_id=thing_id,
         require_ownership=True,
@@ -86,6 +86,6 @@ def update_thing_photos(request, thing_id, data: PhotoPostBody, files: List[Uplo
         photo = Photo(thing=thing, file_path='/', link=file_link)
         photo.save()
 
-    return [
+    return 201, [
         build_photo_response(photo) for photo in thing.photos.all()
     ]

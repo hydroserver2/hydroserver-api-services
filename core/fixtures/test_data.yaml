@@ -146,6 +146,19 @@
     method_link: http://www.example.com/method
     method_code: METHOD 3
 - model: core.sensor
+  pk: 27fb4b01-478a-4ba8-a309-21ea49057704
+  fields:
+    person: 1_000_000_001
+    name: test_sensor_4
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_link: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD 4
+- model: core.sensor
   pk: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
   fields:
     person: 1_000_000_002
@@ -186,6 +199,15 @@
     description: A test property.
     type: Variable
     code: VARIABLE3
+- model: core.observedproperty
+  pk: 65d1d57a-528a-4a29-9a1e-a0e605eb6066
+  fields:
+    name: test_property_4
+    person: 1_000_000_001
+    definition: http://www.example.com/property3
+    description: A test property.
+    type: Variable
+    code: VARIABLE4
 
 - model: core.processinglevel
   pk: 7e57d004-2b97-44e7-8f03-713f25415a10
@@ -207,6 +229,13 @@
     person: 1_000_000_002
     code: test_processing_level_3
     definition: Processing level 3
+    explanation: A processing level
+- model: core.processinglevel
+  pk: 265f3951-7d73-4b7f-9b6a-ae19d3cecb2b
+  fields:
+    person: 1_000_000_001
+    code: test_processing_level_4
+    definition: Processing level 4
     explanation: A processing level
 
 - model: core.unit
@@ -232,6 +261,14 @@
     person: 1_000_000_002
     symbol: T
     definition: http://www.example.com/unit3
+    type: Unit
+- model: core.unit
+  pk: 04d023bf-5d0a-4b61-9eac-7b7b6097af6f
+  fields:
+    name: test_unit_4
+    person: 1_000_000_001
+    symbol: T
+    definition: http://www.example.com/unit4
     type: Unit
 
 - model: core.datastream

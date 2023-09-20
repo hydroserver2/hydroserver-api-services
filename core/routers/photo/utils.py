@@ -1,5 +1,4 @@
 def build_photo_response(photo):
-    """"""
 
     return {
         'id': photo.id,

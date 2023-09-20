@@ -1,7 +1,7 @@
-from ninja import Router
+from ninja import Router, Path
 from typing import List
 from uuid import UUID
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Q
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
@@ -9,7 +9,7 @@ from accounts.auth.anonymous import anonymous_auth
 from core.models import Thing, Location, ThingAssociation, Person, Unit, ProcessingLevel, Sensor, ObservedProperty
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
     ThingMetadataGetResponse, LocationFields, ThingFields
-from .utils import query_visible_things, query_thing_by_id, build_thing_response
+from .utils import query_things, get_thing_by_id, build_thing_response
 
 from core.utils.unit import transfer_unit_ownership, unit_to_dict
 from core.utils.observed_property import transfer_properties_ownership, observed_property_to_dict
@@ -35,31 +35,30 @@ def get_things(request):
     This endpoint returns a list of public Things and Things owned by the authenticated user if there is one.
     """
 
-    user = getattr(request, 'authenticated_user', None)
-    things = query_visible_things(user=user)
+    thing_query, _ = query_things(user=request.authenticated_user)
 
     return [
-        build_thing_response(user, thing) for thing in things
+        build_thing_response(request.authenticated_user, thing) for thing in thing_query.all()
     ]
 
 
 @router.get(
     '{thing_id}',
-    auth=[JWTAuth(), BasicAuth(), lambda *_: True],
+    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
     response={
         200: ThingGetResponse,
         404: str
     },
     by_alias=True
 )
-def get_thing(request, thing_id: UUID):
+def get_thing(request, thing_id: UUID = Path(...)):
     """
     Get details for a Thing
 
     This endpoint returns details for a Thing given a Thing ID.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id)
+    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing_id, raise_http_errors=True)
 
     return 200, build_thing_response(request.authenticated_user, thing)
 
@@ -101,7 +100,7 @@ def create_thing(request, data: ThingPostBody):
         is_primary_owner=True
     )
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
+    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
 
     return 201, build_thing_response(request.authenticated_user, thing)
 
@@ -119,14 +118,19 @@ def create_thing(request, data: ThingPostBody):
     by_alias=True
 )
 @transaction.atomic
-def update_thing(request, thing_id: UUID, data: ThingPatchBody):
+def update_thing(request, data: ThingPatchBody, thing_id: UUID = Path(...)):
     """
     Update a Thing
 
     This endpoint will update an existing Thing owned by the authenticated user and return the updated Thing.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_ownership=True)
+    thing = get_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=thing_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
     location = thing.location
 
     thing_data = data.dict(include=set(ThingFields.__fields__.keys()), exclude_unset=True)
@@ -145,7 +149,7 @@ def update_thing(request, thing_id: UUID, data: ThingPatchBody):
 
     location.save()
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
+    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
 
     return 203, build_thing_response(request.authenticated_user, thing)
 
@@ -158,23 +162,27 @@ def update_thing(request, thing_id: UUID, data: ThingPatchBody):
         401: str,
         403: str,
         404: str,
-        500: str
+        409: str
     }
 )
-@transaction.atomic
-def delete_thing(request, thing_id: UUID):
+def delete_thing(request, thing_id: UUID = Path(...)):
     """
     Delete a Thing
 
     This endpoint will delete an existing Thing if the authenticated user is the primary owner of the Thing.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_primary_ownership=True)
+    thing = get_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=thing_id,
+        require_primary_ownership=True,
+        raise_http_errors=True
+    )
 
     try:
         thing.location.delete()
-    except Exception as e:
-        return 500, str(e)
+    except IntegrityError as e:
+        return 409, str(e)
 
     return 204, None
 
@@ -192,7 +200,7 @@ def delete_thing(request, thing_id: UUID):
     by_alias=True
 )
 @transaction.atomic
-def update_thing_ownership(request, thing_id: UUID, data: ThingOwnershipPatchBody):
+def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUID = Path(...)):
     """
     Update a Thing's Ownership
 
@@ -200,11 +208,11 @@ def update_thing_ownership(request, thing_id: UUID, data: ThingOwnershipPatchBod
     modification can happen per request. Possible options are "make_owner", "remove_owner", and "transfer_primary".
     """
 
-    thing = query_thing_by_id(
+    thing = get_thing_by_id(
         user=request.authenticated_user,
         thing_id=thing_id,
         require_ownership=True,
-        prefetch_datastreams=True
+        raise_http_errors=True
     )
 
     authenticated_user_association = next(iter([
@@ -255,7 +263,7 @@ def update_thing_ownership(request, thing_id: UUID, data: ThingOwnershipPatchBod
         thing_association.follows_thing = False
         thing_association.save()
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=authenticated_user_association.thing.id)
+    thing = get_thing_by_id(user=request.authenticated_user, thing_id=authenticated_user_association.thing.id)
 
     return 203, build_thing_response(request.authenticated_user, thing)
 
@@ -273,14 +281,19 @@ def update_thing_ownership(request, thing_id: UUID, data: ThingOwnershipPatchBod
     by_alias=True
 )
 @transaction.atomic
-def update_thing_privacy(request, thing_id: UUID, data: ThingPrivacyPatchBody):
+def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = Path(...)):
     """
     Update a Thing's Privacy
 
     This endpoint allows the owner of a Thing to toggle it between a private and public resource.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_ownership=True)
+    thing = get_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=thing_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
 
     thing.is_private = data.is_private
 
@@ -291,7 +304,7 @@ def update_thing_privacy(request, thing_id: UUID, data: ThingPrivacyPatchBody):
 
     thing.save()
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
+    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing.id)
 
     return 203, build_thing_response(request.authenticated_user, thing)
 
@@ -309,14 +322,19 @@ def update_thing_privacy(request, thing_id: UUID, data: ThingPrivacyPatchBody):
     by_alias=True
 )
 @transaction.atomic
-def update_thing_followership(request, thing_id: UUID):
+def update_thing_followership(request, thing_id: UUID = Path(...)):
     """
     Update a Thing's Follower Status
 
     This endpoint allows a user to follow or unfollow a public Thing. Users cannot follow Things they own.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_unaffiliated=True)
+    thing = get_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=thing_id,
+        require_unaffiliated=True,
+        raise_http_errors=True
+    )
 
     user_association = next(iter([
         associate for associate in thing.associates.all()
@@ -332,7 +350,7 @@ def update_thing_followership(request, thing_id: UUID):
             follows_thing=True
         )
 
-    thing = query_thing_by_id(
+    thing = get_thing_by_id(
         user=request.authenticated_user,
         thing_id=thing_id
     )
@@ -351,7 +369,7 @@ def update_thing_followership(request, thing_id: UUID):
     },
     by_alias=True
 )
-def get_thing_metadata(request, thing_id: UUID):
+def get_thing_metadata(request, thing_id: UUID = Path(...)):
     """
     Get metadata for a Thing
 
@@ -359,7 +377,12 @@ def get_thing_metadata(request, thing_id: UUID):
     units, observed properties, sensors, and processing levels.
     """
 
-    thing = query_thing_by_id(user=request.authenticated_user, thing_id=thing_id, require_ownership=True)
+    thing = get_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=thing_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
 
     primary_owner = next(iter([
         associate.person for associate in thing.associates.all()

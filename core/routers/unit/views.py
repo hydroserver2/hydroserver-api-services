@@ -1,12 +1,12 @@
-from ninja import Router
+from ninja import Router, Path
 from typing import List
 from uuid import UUID
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from core.models import Unit
 from .schemas import UnitGetResponse, UnitPostBody, UnitPatchBody, UnitFields
-from .utils import query_units, get_unit_by_id
+from .utils import query_units, get_unit_by_id, build_unit_response
 
 
 router = Router(tags=['Units'])
@@ -27,11 +27,14 @@ def get_units(request):
     This endpoint returns a list of Units owned by the authenticated user.
     """
 
-    units = query_units(
-        user=getattr(request, 'authenticated_user', None)
+    unit_query, _ = query_units(
+        user=getattr(request, 'authenticated_user', None),
+        require_ownership=True
     )
 
-    return units
+    return [
+        build_unit_response(unit) for unit in unit_query.all()
+    ]
 
 
 @router.get(
@@ -43,19 +46,16 @@ def get_units(request):
     },
     by_alias=True
 )
-def get_unit(request, unit_id: UUID):
+def get_unit(request, unit_id: UUID = Path(...)):
     """
     Get details for a Unit
 
     This endpoint returns details for a Unit given a Unit ID.
     """
 
-    unit = get_unit_by_id(user=request.authenticated_user, unit_id=unit_id)
+    unit = get_unit_by_id(user=request.authenticated_user, unit_id=unit_id, raise_http_errors=True)
 
-    if not unit:
-        return 404, f'Unit with ID: {unit_id} was not found.'
-
-    return 200, unit
+    return 200, build_unit_response(unit)
 
 
 @router.post(
@@ -81,12 +81,9 @@ def create_unit(request, data: UnitPostBody):
         **data.dict(include=set(UnitFields.__fields__.keys()))
     )
 
-    unit = get_unit_by_id(user=request.authenticated_user, unit_id=unit.id)
+    unit = get_unit_by_id(user=request.authenticated_user, unit_id=unit.id, raise_http_errors=True)
 
-    if not unit:
-        return 500, 'Encountered an unexpected error creating Unit.'
-
-    return 201, unit
+    return 201, build_unit_response(unit)
 
 
 @router.patch(
@@ -102,20 +99,19 @@ def create_unit(request, data: UnitPostBody):
     by_alias=True
 )
 @transaction.atomic
-def update_unit(request, unit_id: UUID, data: UnitPatchBody):
+def update_unit(request, data: UnitPatchBody, unit_id: UUID = Path(...)):
     """
     Update a Unit
 
     This endpoint will update an existing Unit owned by the authenticated user and return the updated Unit.
     """
 
-    unit = Unit.objects.select_related('person').get(pk=unit_id)
-
-    if not unit:
-        return 404, f'Unit with ID: {unit_id} was not found.'
-
-    if unit.person != request.authenticated_user:
-        return 403, 'You do not have permission to modify this Unit.'
+    unit = get_unit_by_id(
+        user=request.authenticated_user,
+        unit_id=unit_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
 
     unit_data = data.dict(include=set(UnitFields.__fields__.keys()), exclude_unset=True)
 
@@ -124,12 +120,9 @@ def update_unit(request, unit_id: UUID, data: UnitPatchBody):
 
     unit.save()
 
-    unit_response = get_unit_by_id(user=request.authenticated_user, unit_id=unit.id)
+    unit = get_unit_by_id(user=request.authenticated_user, unit_id=unit_id)
 
-    if not unit_response:
-        return 500, 'Encountered an unexpected error updating Unit.'
-
-    return 203, unit_response
+    return 203, build_unit_response(unit)
 
 
 @router.delete(
@@ -140,28 +133,27 @@ def update_unit(request, unit_id: UUID, data: UnitPatchBody):
         401: str,
         403: str,
         404: str,
-        500: str
+        409: str
     }
 )
 @transaction.atomic
-def delete_unit(request, unit_id: UUID):
+def delete_unit(request, unit_id: UUID = Path(...)):
     """
     Delete a Unit
 
     This endpoint will delete an existing Unit if the authenticated user is the primary owner of the Unit.
     """
 
-    unit = Unit.objects.select_related('person').get(pk=unit_id)
-
-    if not unit:
-        return 404, f'Unit with ID: {unit_id} was not found.'
-
-    if unit.person != request.authenticated_user:
-        return 403, 'You do not have permission to delete this Unit.'
+    unit = get_unit_by_id(
+        user=request.authenticated_user,
+        unit_id=unit_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
 
     try:
         unit.delete()
-    except Exception as e:
-        return 500, str(e)
+    except IntegrityError as e:
+        return 409, str(e)
 
     return 204, None
