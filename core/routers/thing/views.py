@@ -2,19 +2,19 @@ from ninja import Router, Path
 from typing import List
 from uuid import UUID
 from django.db import transaction, IntegrityError
-from django.db.models import Q
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
-from core.models import Thing, Location, ThingAssociation, Person, Unit, ProcessingLevel, Sensor, ObservedProperty
+from core.models import Thing, Location, ThingAssociation, Person
+from core.routers.unit.utils import query_units, build_unit_response, transfer_unit_ownership
+from core.routers.observedproperty.utils import query_observed_properties, build_observed_property_response, \
+    transfer_observed_property_ownership
+from core.routers.processinglevel.utils import query_processing_levels, build_processing_level_response, \
+    transfer_processing_level_ownership
+from core.routers.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
     ThingMetadataGetResponse, LocationFields, ThingFields
 from .utils import query_things, get_thing_by_id, build_thing_response
-
-from core.utils.unit import transfer_unit_ownership, unit_to_dict
-from core.utils.observed_property import transfer_properties_ownership, observed_property_to_dict
-from core.utils.processing_level import transfer_processing_level_ownership, processing_level_to_dict
-from core.utils.sensor import transfer_sensor_ownership, sensor_to_dict
 
 
 router = Router(tags=['Things'])
@@ -240,7 +240,7 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
             return 403, 'Only primary owner can transfer primary ownership.'
         datastreams = thing.datastreams.all()
         for datastream in datastreams:
-            transfer_properties_ownership(datastream, user, request.authenticated_user)
+            transfer_observed_property_ownership(datastream, user, request.authenticated_user)
             transfer_processing_level_ownership(datastream, user, request.authenticated_user)
             transfer_unit_ownership(datastream, user, request.authenticated_user)
             transfer_sensor_ownership(datastream, user, request.authenticated_user)
@@ -389,15 +389,15 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
         if associate.is_primary_owner is True
     ]), None)
 
-    units = Unit.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
-    sensors = Sensor.objects.filter(Q(person=primary_owner))
-    processing_levels = ProcessingLevel.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
-    observed_properties = ObservedProperty.objects.filter(Q(person=primary_owner))
+    units, _ = query_units(user=primary_owner, require_ownership=True)
+    sensors, _ = query_sensors(user=primary_owner, require_ownership=True)
+    processing_levels, _ = query_processing_levels(user=primary_owner, require_ownership=True)
+    observed_properties, _ = query_observed_properties(user=primary_owner, require_ownership=True)
 
-    unit_data = [unit_to_dict(unit) for unit in units]
-    sensor_data = [sensor_to_dict(sensor) for sensor in sensors]
-    processing_level_data = [processing_level_to_dict(pl) for pl in processing_levels]
-    observed_property_data = [observed_property_to_dict(op) for op in observed_properties]
+    unit_data = [build_unit_response(unit) for unit in units.all()]
+    sensor_data = [build_sensor_response(sensor) for sensor in sensors.all()]
+    processing_level_data = [build_processing_level_response(pl) for pl in processing_levels.all()]
+    observed_property_data = [build_observed_property_response(op) for op in observed_properties.all()]
 
     return 200, {
         'units': unit_data,

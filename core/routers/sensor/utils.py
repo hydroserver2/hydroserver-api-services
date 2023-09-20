@@ -1,3 +1,5 @@
+import copy
+import uuid
 from ninja.errors import HttpError
 from typing import List, Optional
 from uuid import UUID
@@ -104,3 +106,28 @@ def build_sensor_response(sensor):
         'id': sensor.id,
         **{field: getattr(sensor, field) for field in SensorFields.__fields__.keys()},
     }
+
+
+def transfer_sensor_ownership(datastream, new_owner, old_owner):
+
+    if datastream.sensor.person != old_owner or datastream.sensor.person is None:
+        return
+
+    fields_to_compare = ['name', 'description', 'encoding_type', 'manufacturer', 'model', 'model_link',
+                         'method_type', 'method_link', 'method_code']
+
+    same_properties = Sensor.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.sensor, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.sensor = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.sensor)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.sensor = new_property
+
+    datastream.save()

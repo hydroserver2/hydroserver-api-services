@@ -1,3 +1,5 @@
+import uuid
+import copy
 from ninja.errors import HttpError
 from typing import List, Optional
 from uuid import UUID
@@ -104,3 +106,26 @@ def build_observed_property_response(observed_property):
         'id': observed_property.id,
         **{field: getattr(observed_property, field) for field in ObservedPropertyFields.__fields__.keys()},
     }
+
+
+def transfer_observed_property_ownership(datastream, new_owner, old_owner):
+
+    if datastream.observed_property.person != old_owner or datastream.observed_property.person is None:
+        return
+
+    fields_to_compare = ['name', 'definition', 'description', 'type', 'code']
+    same_properties = ObservedProperty.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.observed_property, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.observed_property = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.observed_property)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.observed_property = new_property
+
+    datastream.save()

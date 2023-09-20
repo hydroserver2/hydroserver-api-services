@@ -1,3 +1,5 @@
+import uuid
+import copy
 from ninja.errors import HttpError
 from typing import List, Optional
 from uuid import UUID
@@ -104,3 +106,26 @@ def build_processing_level_response(processing_level):
         'id': processing_level.id,
         **{field: getattr(processing_level, field) for field in ProcessingLevelFields.__fields__.keys()},
     }
+
+
+def transfer_processing_level_ownership(datastream, new_owner, old_owner):
+
+    if datastream.processing_level.person != old_owner or datastream.processing_level.person is None:
+        return
+
+    fields_to_compare = ['code', 'definition', 'explanation']
+    same_properties = ProcessingLevel.objects.filter(
+        person=new_owner,
+        **{f: getattr(datastream.processing_level, f) for f in fields_to_compare}
+    )
+
+    if same_properties.exists():
+        datastream.processing_level = same_properties[0]
+    else:
+        new_property = copy.copy(datastream.processing_level)
+        new_property.id = uuid.uuid4()
+        new_property.person = new_owner
+        new_property.save()
+        datastream.processing_level = new_property
+
+    datastream.save()
