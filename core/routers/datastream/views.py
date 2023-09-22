@@ -5,7 +5,6 @@ from django.db import transaction, IntegrityError
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
-from core.routers.thing.utils import check_thing_by_id
 from core.models import Datastream
 from .schemas import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody
 from .utils import query_datastreams, get_datastream_by_id, build_datastream_response, check_related_fields

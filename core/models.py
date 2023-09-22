@@ -1,5 +1,6 @@
 import uuid
 import pytz
+import boto3
 from datetime import datetime
 from django.db import models
 from django.db.models import ForeignKey
@@ -7,7 +8,6 @@ from django.db.models.signals import pre_delete
 from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
 from accounts.models import Person
-import boto3
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 

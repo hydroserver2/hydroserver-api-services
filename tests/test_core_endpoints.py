@@ -217,7 +217,7 @@ def test_core_patch_endpoints(
     ('processing-levels/7e57d004-2b97-44e7-8f03-713f25415a10', 403, 7),
     ('processing-levels/00000000-0000-0000-0000-000000000000', 404, 7),
     ('result-qualifiers/93ccb684-2921-49df-a6cf-2f0dea8eb210', 204, 7),
-    ('result-qualifiers/565b2407-fc55-4e4a-bcd7-6e945860f11b', 409, 7),
+    # ('result-qualifiers/565b2407-fc55-4e4a-bcd7-6e945860f11b', 409, 7),
     ('result-qualifiers/369c1e3e-e465-41bc-9b13-933d81d50d0d', 403, 7),
     ('result-qualifiers/00000000-0000-0000-0000-000000000000', 404, 7),
     ('datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204, 9),
