@@ -27,13 +27,14 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 observation_table = """
                     CREATE TABLE IF NOT EXISTS "Observation" (
-                        "id" uuid UNIQUE NOT NULL,
+                        "id" uuid NOT NULL,
                         "datastreamId" uuid NOT NULL,
                         "featureOfInterestId" uuid NULL,
                         "phenomenonTime" timestamp NOT NULL,
                         "result" float8 NOT NULL,
                         "resultTime" timestamp NULL,
                         "qualityCode" varchar(255) NULL,
+                        "resultQualifiers" uuid[] NULL,
                         CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE ("datastreamId", "phenomenonTime"),
                         CONSTRAINT observation_pkey PRIMARY KEY ("id", "datastreamId", "phenomenonTime"),
                         CONSTRAINT observation_datastream_id_fkey FOREIGN KEY ("datastreamId") REFERENCES public."Datastream"(id),
@@ -42,19 +43,6 @@ class Command(BaseCommand):
                 """
 
                 cursor.execute(observation_table)
-
-                qualifier_association_table = """
-                    CREATE TABLE IF NOT EXISTS "QualifierAssociation" (
-                        "id" INTEGER PRIMARY KEY,
-                        "observationId" uuid NOT NULL,
-                        "resultQualifierId" uuid NOT NULL,
-                        CONSTRAINT "_observation_result_qualifier_uc" UNIQUE ("observationId", "resultQualifierId"),
-                        CONSTRAINT qualifier_association_observation_id_fkey FOREIGN KEY ("observationId") REFERENCES public."Observation"(id),
-                        CONSTRAINT qualifier_association_result_qualifier_id_fkey FOREIGN KEY ("resultQualifierId") REFERENCES public."ResultQualifier"(id)
-                    )
-                """
-
-                cursor.execute(qualifier_association_table)
 
                 if options['no_timescale'] is False:
                     cursor.execute(

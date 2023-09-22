@@ -29,6 +29,7 @@ class DatastreamFields(Schema):
     data_source_id: UUID = Field(None, alias='dataSourceId')
     data_source_column: str = Field(None, alias='dataSourceColumn')
     is_visible: bool = Field(True, alias='isVisible')
+    thing_id: UUID = Field(..., alias='thingId')
     sensor_id: UUID = Field(..., alias='sensorId')
     observed_property_id: UUID = Field(..., alias='observedPropertyId')
     processing_level_id: UUID = Field(..., alias='processingLevelId')
@@ -38,7 +39,6 @@ class DatastreamFields(Schema):
 
 
 class DatastreamGetResponse(DatastreamFields, DatastreamID):
-    thing_id: UUID = Field(..., alias='thingId')
 
     class Config:
         allow_population_by_field_name = True

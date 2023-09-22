@@ -22,23 +22,14 @@ router = Router(tags=['Datastreams'])
     },
     by_alias=True
 )
-def get_datastreams(request, thing_id: UUID = Path(...)):
+def get_datastreams(request):
     """
     Get a list of Datastreams
 
     This endpoint returns a list of public Datastreams and Datastreams owned by the authenticated user if there is one.
     """
 
-    check_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id,
-        raise_http_errors=True
-    )
-
-    datastream_query, _ = query_datastreams(
-        user=request.authenticated_user,
-        thing_ids=[thing_id],
-    )
+    datastream_query, _ = query_datastreams(user=request.authenticated_user)
 
     return [
         build_datastream_response(datastream) for datastream in datastream_query.all()
@@ -54,18 +45,12 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
     },
     by_alias=True
 )
-def get_datastream(request, thing_id: UUID = Path(...), datastream_id: UUID = Path(...)):
+def get_datastream(request, datastream_id: UUID = Path(...)):
     """
     Get details for a Datastream
 
-    This endpoint returns details for a Datastream given a Thing ID and Datastream ID.
+    This endpoint returns details for a Datastream given a Datastream ID.
     """
-
-    check_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id,
-        raise_http_errors=True
-    )
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
@@ -87,24 +72,16 @@ def get_datastream(request, thing_id: UUID = Path(...), datastream_id: UUID = Pa
     by_alias=True
 )
 @transaction.atomic
-def create_datastream(request, data: DatastreamPostBody, thing_id: UUID = Path(...)):
+def create_datastream(request, data: DatastreamPostBody):
     """
     Create a Datastream
 
-    This endpoint will create a new Datastream for the given Thing.
+    This endpoint will create a new Datastream.
     """
-
-    check_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id,
-        require_ownership=True,
-        raise_http_errors=True
-    )
 
     check_related_fields(request.authenticated_user, data)
 
     datastream = Datastream.objects.create(
-        thing_id=thing_id,
         **data.dict(include=set(DatastreamFields.__fields__.keys()))
     )
 
@@ -129,19 +106,12 @@ def create_datastream(request, data: DatastreamPostBody, thing_id: UUID = Path(.
     by_alias=True
 )
 @transaction.atomic
-def update_datastream(request, data: DatastreamPatchBody, thing_id: UUID = Path(...), datastream_id: UUID = Path(...)):
+def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = Path(...)):
     """
     Update a Datastream
 
-    This endpoint will update an existing Datastream owned by the authenticated user and return the updated Thing.
+    This endpoint will update an existing Datastream owned by the authenticated user and return the updated Datastream.
     """
-
-    check_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id,
-        require_ownership=True,
-        raise_http_errors=True
-    )
 
     check_related_fields(request.authenticated_user, data)
 
@@ -175,19 +145,12 @@ def update_datastream(request, data: DatastreamPatchBody, thing_id: UUID = Path(
         409: str
     }
 )
-def delete_datastream(request, thing_id: UUID = Path(...), datastream_id: UUID = Path(...)):
+def delete_datastream(request, datastream_id: UUID = Path(...)):
     """
     Delete a Datastream
 
     This endpoint will delete an existing Datastream if the authenticated user is the primary owner of the Datastream.
     """
-
-    check_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id,
-        require_primary_ownership=True,
-        raise_http_errors=True
-    )
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,

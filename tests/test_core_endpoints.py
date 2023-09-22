@@ -19,6 +19,7 @@ def base_url():
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams', None, 200, 1, 4),
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231/datastreams', None, 403, None, 4),
     ('things/00000000-0000-0000-0000-000000000000/datastreams', None, 404, None, 4),
+    ('datastreams', {}, 200, 5, 4),
     ('observed-properties', {}, 200, 2, 4),
     ('processing-levels', {}, 200, 2, 4),
     ('sensors', {}, 200, 2, 4),
@@ -52,8 +53,8 @@ def test_core_list_endpoints(
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231', 403, 3),
     ('things/00000000-0000-0000-0000-000000000000', 404, 3),
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/metadata', 200, 100),
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 200, 5),
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/00000000-0000-0000-0000-000000000000', 404, 5),
+    ('datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 200, 5),
+    ('datastreams/00000000-0000-0000-0000-000000000000', 404, 5),
 ])
 @pytest.mark.django_db()
 def test_core_get_endpoints(
@@ -72,7 +73,8 @@ def test_core_get_endpoints(
 
 
 @pytest.mark.parametrize('endpoint, post_body, response_code, max_queries', [
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams', {
+    ('datastreams', {
+        'thingId': '9344a3d4-a45a-4529-b731-b51149b4d1b8',
         'sensorId': '90d7f4a5-2042-4840-9bb4-b991f49cb8ed',
         'observedPropertyId': '97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19',
         'processingLevelId': '83fdb8ba-5db4-4f31-b1fa-e68478a4be13',
@@ -91,7 +93,7 @@ def test_core_get_endpoints(
         'valueCount': 0,
         'intendedTimeSpacing': 15,
     }, 201, 23),
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams', {}, 422, 2),
+    ('datastreams', {}, 422, 2),
     ('observed-properties', {
         'name': 'string',
         'definition': 'string',
@@ -165,10 +167,7 @@ def test_core_post_endpoints(
 
 
 @pytest.mark.parametrize('endpoint, patch_body, response_code, max_queries', [
-    (
-        'things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/ca999458-d644-44b0-b678-09a892fd54ac',
-        {'name': 'string'}, 203, 12
-    ),
+    ('datastreams/ca999458-d644-44b0-b678-09a892fd54ac', {'name': 'string'}, 203, 12),
     ('observed-properties/97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19', {'name': 'string'}, 203, 8),
     ('processing-levels/83fdb8ba-5db4-4f31-b1fa-e68478a4be13', {'code': 'string'}, 203, 8),
     ('sensors/90d7f4a5-2042-4840-9bb4-b991f49cb8ed', {'name': 'string'}, 203, 8),
@@ -221,10 +220,10 @@ def test_core_patch_endpoints(
     ('result-qualifiers/565b2407-fc55-4e4a-bcd7-6e945860f11b', 409, 7),
     ('result-qualifiers/369c1e3e-e465-41bc-9b13-933d81d50d0d', 403, 7),
     ('result-qualifiers/00000000-0000-0000-0000-000000000000', 404, 7),
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204, 9),
-    ('things/0c04fcdc-3876-429e-8260-14b7baca0231/datastreams/8af17d0e-8fce-4264-93b5-e55aa6a7ca02', 403, 5),
-    ('things/ab6d5d46-1ded-4ac6-8da8-0203df67950b/datastreams/376be82c-b3a1-4d96-821b-c7954b931f94', 403, 5),
-    ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams/00000000-0000-0000-0000-000000000000', 404, 5)
+    ('datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204, 9),
+    ('datastreams/8af17d0e-8fce-4264-93b5-e55aa6a7ca02', 403, 5),
+    ('datastreams/376be82c-b3a1-4d96-821b-c7954b931f94', 403, 5),
+    ('datastreams/00000000-0000-0000-0000-000000000000', 404, 5)
 ])
 @pytest.mark.django_db()
 def test_core_delete_endpoints(

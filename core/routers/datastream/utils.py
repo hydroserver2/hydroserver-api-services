@@ -6,6 +6,7 @@ from uuid import UUID
 from typing import List, Optional
 from functools import reduce
 from core.models import Person, Datastream
+from core.routers.thing.utils import check_thing_by_id
 from core.routers.sensor.utils import check_sensor_by_id
 from core.routers.observedproperty.utils import check_observed_property_by_id
 from core.routers.processinglevel.utils import check_processing_level_by_id
@@ -162,6 +163,14 @@ def build_datastream_response(datastream):
 
 
 def check_related_fields(user, data):
+
+    if data.thing_id:
+        check_thing_by_id(
+            user=user,
+            thing_id=data.thing_id,
+            require_ownership=True,
+            raise_http_errors=True
+        )
 
     if data.sensor_id:
         check_sensor_by_id(

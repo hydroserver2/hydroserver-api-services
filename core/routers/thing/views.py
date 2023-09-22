@@ -11,10 +11,12 @@ from core.routers.observedproperty.utils import query_observed_properties, build
     transfer_observed_property_ownership
 from core.routers.processinglevel.utils import query_processing_levels, build_processing_level_response, \
     transfer_processing_level_ownership
+from core.routers.datastream.utils import query_datastreams, build_datastream_response
+from core.routers.datastream.schemas import DatastreamGetResponse
 from core.routers.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
     ThingMetadataGetResponse, LocationFields, ThingFields
-from .utils import query_things, get_thing_by_id, build_thing_response
+from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id
 
 
 router = Router(tags=['Things'])
@@ -405,3 +407,35 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
         'processing_levels': processing_level_data,
         'observed_properties': observed_property_data
     }
+
+
+@router.get(
+    '{thing_id}/datastreams',
+    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    response={
+        200: List[DatastreamGetResponse]
+    },
+    by_alias=True
+)
+def get_datastreams(request, thing_id: UUID = Path(...)):
+    """
+    Get a list of Datastreams for a Thing
+
+    This endpoint returns a list of public Datastreams and Datastreams owned by the authenticated user if there is one
+    associated with the given Thing ID.
+    """
+
+    check_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=thing_id,
+        raise_http_errors=True
+    )
+
+    datastream_query, _ = query_datastreams(
+        user=request.authenticated_user,
+        thing_ids=[thing_id],
+    )
+
+    return [
+        build_datastream_response(datastream) for datastream in datastream_query.all()
+    ]

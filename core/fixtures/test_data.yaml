@@ -1109,6 +1109,8 @@
     result_time: null
     feature_of_interest: null
     quality_code: null
+    result_qualifiers:
+      - 565b2407-fc55-4e4a-bcd7-6e945860f11b
 - model: core.observation
   pk: 035a0556-7276-46c7-8e03-da57479416d2
   fields:
@@ -1118,6 +1120,8 @@
     result_time: null
     feature_of_interest: null
     quality_code: null
+    result_qualifiers:
+      - 565b2407-fc55-4e4a-bcd7-6e945860f11b
 
 - model: core.thingassociation
   pk: 1_100_000_001
@@ -1167,14 +1171,3 @@
     owns_thing: false
     follows_thing: true
     is_primary_owner: false
-
-- model: core.qualifierassociation
-  pk: 1_100_000_001
-  fields:
-    observation: 84b5427a-37aa-4cd1-9523-f7abe901a18a
-    result_qualifier: 565b2407-fc55-4e4a-bcd7-6e945860f11b
-- model: core.qualifierassociation
-  pk: 1_100_000_002
-  fields:
-    observation: 035a0556-7276-46c7-8e03-da57479416d2
-    result_qualifier: 565b2407-fc55-4e4a-bcd7-6e945860f11b

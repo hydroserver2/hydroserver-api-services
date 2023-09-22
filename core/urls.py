@@ -19,8 +19,8 @@ api = NinjaAPI(
 )
 
 thing_router.add_router('/{thing_id}/photos', photo_router)
-thing_router.add_router('/{thing_id}/datastreams', datastream_router)
 api.add_router('/things', thing_router)
+api.add_router('/datastreams', datastream_router)
 api.add_router('/observed-properties', observed_property_router)
 api.add_router('/processing-levels', processing_level_router)
 api.add_router('/sensors', sensor_router)

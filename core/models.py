@@ -1,9 +1,10 @@
 import uuid
 import pytz
 from datetime import datetime
-from django.db.models import ForeignKey
 from django.db import models
+from django.db.models import ForeignKey
 from django.db.models.signals import pre_delete
+from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
 from accounts.models import Person
 import boto3
@@ -236,6 +237,7 @@ class Observation(models.Model):
     result = models.FloatField()
     result_time = models.DateTimeField(null=True, blank=True, db_column='resultTime')
     quality_code = models.CharField(max_length=255, null=True, blank=True, db_column='qualityCode')
+    result_qualifiers = ArrayField(models.UUIDField(), null=True, blank=True, db_column='resultQualifiers')
 
     def save(self, *args, **kwargs):
         if not self.phenomenon_time:
@@ -255,15 +257,6 @@ class ResultQualifier(models.Model):
 
     class Meta:
         db_table = 'ResultQualifier'
-
-
-class QualifierAssociation(models.Model):
-    result_qualifier = ForeignKey(ResultQualifier, on_delete=models.PROTECT, related_name='qualifier_associations', db_column='resultQualifierId')
-    observation = ForeignKey(Observation, on_delete=models.CASCADE, related_name='qualifier_associations', db_column='observationId')
-
-    class Meta:
-        db_table = 'QualifierAssociation'
-        managed = False
 
 
 class ThingAssociation(models.Model):
