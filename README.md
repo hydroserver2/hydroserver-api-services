@@ -12,8 +12,6 @@ This repository is the Django backend API of HydroServer that allows users to st
 
 [License](LICENSE)
 
-## Setting up the Development Environment
-
 ## Funding and Acknowledgements
 
 Funding for this project was provided by the National Oceanic & Atmospheric Administration (NOAA), awarded to the Cooperative Institute for Research to Operations in Hydrology (CIROH) through the NOAA Cooperative Agreement with The University of Alabama (NA22NWS4320003).
