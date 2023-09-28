@@ -228,9 +228,9 @@ def get_primary_owner_metadata(request, thing_id):
 
     if not primary_owner:
         return JsonResponse({'error': 'Primary owner cannot be found for thing'}, status=401)
-    units = Unit.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
+    units = Unit.objects.filter(Q(person=primary_owner))
     sensors = Sensor.objects.filter(Q(person=primary_owner))
-    processing_levels = ProcessingLevel.objects.filter(Q(person=primary_owner) | Q(person__isnull=True))
+    processing_levels = ProcessingLevel.objects.filter(Q(person=primary_owner))
     observed_properties = ObservedProperty.objects.filter(Q(person=primary_owner))
 
     unit_data = [unit_to_dict(unit) for unit in units]
