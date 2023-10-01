@@ -6,11 +6,11 @@ from uuid import UUID
 from typing import List, Optional
 from functools import reduce
 from core.models import Person, Datastream
-from core.api.thing.utils import check_thing_by_id
-from core.api.sensor.utils import check_sensor_by_id
-from core.api.observedproperty.utils import check_observed_property_by_id
-from core.api.processinglevel.utils import check_processing_level_by_id
-from core.api.unit.utils import check_unit_by_id
+from core.endpoints.thing.utils import check_thing_by_id
+from core.endpoints.sensor.utils import check_sensor_by_id
+from core.endpoints.observedproperty.utils import check_observed_property_by_id
+from core.endpoints.processinglevel.utils import check_processing_level_by_id
+from core.endpoints.unit.utils import check_unit_by_id
 from .schemas import DatastreamFields
 
 

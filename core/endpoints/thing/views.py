@@ -7,14 +7,14 @@ from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
 from core.models import Thing, Location, ThingAssociation, Person
 from core.router import DataManagementRouter
-from core.api.unit.utils import query_units, build_unit_response, transfer_unit_ownership
-from core.api.observedproperty.utils import query_observed_properties, build_observed_property_response, \
+from core.endpoints.unit.utils import query_units, build_unit_response, transfer_unit_ownership
+from core.endpoints.observedproperty.utils import query_observed_properties, build_observed_property_response, \
     transfer_observed_property_ownership
-from core.api.processinglevel.utils import query_processing_levels, build_processing_level_response, \
+from core.endpoints.processinglevel.utils import query_processing_levels, build_processing_level_response, \
     transfer_processing_level_ownership
-from core.api.datastream.utils import query_datastreams, build_datastream_response
-from core.api.datastream.schemas import DatastreamGetResponse
-from core.api.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
+from core.endpoints.datastream.utils import query_datastreams, build_datastream_response
+from core.endpoints.datastream.schemas import DatastreamGetResponse
+from core.endpoints.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
     ThingMetadataGetResponse, LocationFields, ThingFields
 from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id
