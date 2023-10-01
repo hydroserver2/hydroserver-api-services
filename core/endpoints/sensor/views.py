@@ -18,7 +18,7 @@ def get_sensors(request):
     This endpoint returns a list of Sensors owned by the authenticated user.
     """
 
-    # return Sensor.api.list(user=request.authenticated_user)
+    # return Sensor.endpoints.list(user=request.authenticated_user)
 
     sensor_query, _ = query_sensors(
         user=getattr(request, 'authenticated_user', None),

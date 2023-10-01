@@ -8,7 +8,7 @@ from typing import List
 from uuid import UUID
 from botocore.exceptions import ClientError
 from core.router import DataManagementRouter
-from core.api.thing.utils import get_thing_by_id, check_thing_by_id
+from core.endpoints.thing.utils import get_thing_by_id, check_thing_by_id
 from core.models import Photo
 from .schemas import PhotoGetResponse
 from .utils import build_photo_response

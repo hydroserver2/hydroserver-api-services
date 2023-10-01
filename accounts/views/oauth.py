@@ -51,9 +51,9 @@ def oauth_response(access_token: str, refresh_token: str, user: user_model):
 @orcid_router.get('/login')
 def orcid_login(request):
     if settings.DEPLOYED is True:
-        redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/orcid/auth'
+        redirect_uri = f'{settings.PROXY_BASE_URL}/endpoints/account/orcid/auth'
     else:
-        redirect_uri = request.build_absolute_uri('/api/account/orcid/auth')
+        redirect_uri = request.build_absolute_uri('/endpoints/account/orcid/auth')
 
     # if 'X-Forwarded-Proto' in request.headers:
     #     redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
@@ -98,9 +98,9 @@ google_router = Router(tags=['Google OAuth 2.0'])
 @google_router.get('/login')
 def google_login(request):
     if settings.DEPLOYED is True:
-        redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/google/auth'
+        redirect_uri = f'{settings.PROXY_BASE_URL}/endpoints/account/google/auth'
     else:
-        redirect_uri = request.build_absolute_uri('/api/account/google/auth')
+        redirect_uri = request.build_absolute_uri('/endpoints/account/google/auth')
 
     # if 'X-Forwarded-Proto' in request.headers:
     #     redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
