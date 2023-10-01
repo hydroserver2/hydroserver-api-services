@@ -1,15 +1,15 @@
 from ninja import NinjaAPI
 from django.urls import path
-from core.routers.thing.views import router as thing_router
-from core.routers.sensor.views import router as sensor_router
-from core.routers.observedproperty.views import router as observed_property_router
-from core.routers.processinglevel.views import router as processing_level_router
-from core.routers.unit.views import router as unit_router
-from core.routers.photo.views import router as photo_router
-from core.routers.datastream.views import router as datastream_router
-from core.routers.resultqualifier.views import router as result_qualifier_router
-from core.routers.dataloader.views import router as data_loader_router
-from core.routers.datasource.views import router as data_source_router
+from core.api.thing.views import router as thing_router
+from core.api.sensor.views import router as sensor_router
+from core.api.observedproperty.views import router as observed_property_router
+from core.api.processinglevel.views import router as processing_level_router
+from core.api.unit.views import router as unit_router
+from core.api.photo.views import router as photo_router
+from core.api.datastream.views import router as datastream_router
+from core.api.resultqualifier.views import router as result_qualifier_router
+from core.api.dataloader.views import router as data_loader_router
+from core.api.datasource.views import router as data_source_router
 
 api = NinjaAPI(
     title='HydroServer Data Management API',

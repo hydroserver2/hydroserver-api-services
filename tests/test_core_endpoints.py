@@ -19,11 +19,11 @@ def base_url():
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8/datastreams', None, 200, 1, 4),
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231/datastreams', None, 403, None, 4),
     ('things/00000000-0000-0000-0000-000000000000/datastreams', None, 404, None, 4),
-    ('datastreams', {}, 200, 5, 4),
+    ('datastreams', {}, 200, 2, 4),
     ('observed-properties', {}, 200, 2, 4),
     ('processing-levels', {}, 200, 2, 4),
     ('sensors', {}, 200, 2, 4),
-    ('things', {}, 200, 3, 4),
+    ('things', {}, 200, 2, 4),
     ('units', {}, 200, 2, 4),
     ('result-qualifiers', {}, 200, 2, 4)
 ])

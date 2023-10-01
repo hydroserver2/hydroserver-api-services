@@ -1,68 +1,68 @@
-from django.http import JsonResponse
-from django.db.models import Q
-from ninja import Router, Schema
-from core.models import Unit
-from core.utils.unit import unit_to_dict
-from core.utils.authentication import jwt_auth
-from sensorthings.validators import allow_partial
-
-
-router = Router(tags=['Units'])
-
-
-class CreateUnitInput(Schema):
-    name: str
-    symbol: str
-    definition: str
-    type: str
-
-
-@allow_partial
-class UnitPatchBody(CreateUnitInput):
-    pass
-
-
-@router.post('', auth=jwt_auth)
-def create_unit(request, data: CreateUnitInput):
-    unit = Unit.objects.create(
-        name=data.name,
-        person=request.authenticated_user,
-        symbol=data.symbol,
-        definition=data.definition,
-        type=data.type
-    )
-    return JsonResponse(unit_to_dict(unit))
-
-
-@router.get('', auth=jwt_auth)
-def get_units(request):
-    units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
-    return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
-
-
-@router.patch('/{unit_id}', auth=jwt_auth)
-def update_unit(request, unit_id: str, data: UnitPatchBody):
-    unit = Unit.objects.get(id=unit_id)
-    if request.authenticated_user != unit.person:
-        return JsonResponse({'detail': 'You are not authorized to update this unit.'}, status=403)
-
-    patch_data = data.dict(exclude_unset=True)
-    for key, value in patch_data.items():
-        setattr(unit, key, value)
-
-    unit.save()
-    return JsonResponse(unit_to_dict(unit))
-
-
-@router.delete('/{unit_id}', auth=jwt_auth)
-def delete_unit(request, unit_id: str):
-    try:
-        unit = Unit.objects.get(id=unit_id)
-    except Unit.DoesNotExist:
-        return JsonResponse({'detail': 'Unit not found.'}, status=404)
-
-    if request.authenticated_user != unit.person:
-        return JsonResponse({'detail': 'You are not authorized to delete this unit.'}, status=403)
-
-    unit.delete()
-    return {'detail': 'Unit deleted successfully.'}
+# from django.http import JsonResponse
+# from django.db.models import Q
+# from ninja import Router, Schema
+# from core.models import Unit
+# from core.utils.unit import unit_to_dict
+# from core.utils.authentication import jwt_auth
+# from sensorthings.validators import allow_partial
+#
+#
+# router = Router(tags=['Units'])
+#
+#
+# class CreateUnitInput(Schema):
+#     name: str
+#     symbol: str
+#     definition: str
+#     type: str
+#
+#
+# @allow_partial
+# class UnitPatchBody(CreateUnitInput):
+#     pass
+#
+#
+# @router.post('', auth=jwt_auth)
+# def create_unit(request, data: CreateUnitInput):
+#     unit = Unit.objects.create(
+#         name=data.name,
+#         person=request.authenticated_user,
+#         symbol=data.symbol,
+#         definition=data.definition,
+#         type=data.type
+#     )
+#     return JsonResponse(unit_to_dict(unit))
+#
+#
+# @router.get('', auth=jwt_auth)
+# def get_units(request):
+#     units = Unit.objects.filter(Q(person=request.authenticated_user) | Q(person__isnull=True))
+#     return JsonResponse([unit_to_dict(unit) for unit in units], safe=False)
+#
+#
+# @router.patch('/{unit_id}', auth=jwt_auth)
+# def update_unit(request, unit_id: str, data: UnitPatchBody):
+#     unit = Unit.objects.get(id=unit_id)
+#     if request.authenticated_user != unit.person:
+#         return JsonResponse({'detail': 'You are not authorized to update this unit.'}, status=403)
+#
+#     patch_data = data.dict(exclude_unset=True)
+#     for key, value in patch_data.items():
+#         setattr(unit, key, value)
+#
+#     unit.save()
+#     return JsonResponse(unit_to_dict(unit))
+#
+#
+# @router.delete('/{unit_id}', auth=jwt_auth)
+# def delete_unit(request, unit_id: str):
+#     try:
+#         unit = Unit.objects.get(id=unit_id)
+#     except Unit.DoesNotExist:
+#         return JsonResponse({'detail': 'Unit not found.'}, status=404)
+#
+#     if request.authenticated_user != unit.person:
+#         return JsonResponse({'detail': 'You are not authorized to delete this unit.'}, status=403)
+#
+#     unit.delete()
+#     return {'detail': 'Unit deleted successfully.'}

@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from accounts.schemas import UserFields, OrganizationFields
 
 
 user_model = get_user_model()
@@ -85,3 +86,15 @@ def send_password_reset_confirmation_email(user, uid, token):
         [user.email],
         html_message=html_message,
     )
+
+
+def build_user_response(user):
+    return {
+        'id': user.id,
+        'isVerified': user.is_verified,
+        'organization': {
+            **{field: getattr(user.organization, field, None)
+               for field in OrganizationFields.__fields__.keys()}
+        },
+        **{field: getattr(user, field) for field in UserFields.__fields__.keys()},
+    }

@@ -4,9 +4,9 @@ from ninja_jwt.tokens import RefreshToken
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from authlib.integrations.django_client import OAuth
-from accounts.utils import update_account_to_verified
+from accounts.utils import update_account_to_verified, build_user_response
 from hydroserver import settings
-from core.utils.user import user_to_dict
+
 
 user_model = get_user_model()
 
@@ -82,7 +82,7 @@ def orcid_auth(request):
     return HttpResponse(oauth_response(
         access_token=str(getattr(jwt, 'access_token', '')),
         refresh_token=str(jwt),
-        user=user_to_dict(user)
+        user=build_user_response(user)
     ))
 
 
@@ -131,5 +131,5 @@ def google_auth(request):
     return HttpResponse(oauth_response(
         access_token=str(getattr(jwt, 'access_token', '')),
         refresh_token=str(jwt),
-        user=user_to_dict(user)
+        user=build_user_response(user)
     ))
