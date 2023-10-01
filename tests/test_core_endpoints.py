@@ -12,7 +12,7 @@ def auth_headers(django_jwt_auth):
 
 @pytest.fixture
 def base_url():
-    return '/endpoints/data'
+    return '/api/data'
 
 
 @pytest.mark.parametrize('endpoint, query_params, response_code, response_length, max_queries', [
