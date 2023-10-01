@@ -1,12 +1,13 @@
 import uuid
 import pytz
+import boto3
 from datetime import datetime
-from django.db.models import ForeignKey
 from django.db import models
+from django.db.models import ForeignKey
 from django.db.models.signals import pre_delete
+from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
 from accounts.models import Person
-import boto3
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 
@@ -236,6 +237,7 @@ class Observation(models.Model):
     result = models.FloatField()
     result_time = models.DateTimeField(null=True, blank=True, db_column='resultTime')
     quality_code = models.CharField(max_length=255, null=True, blank=True, db_column='qualityCode')
+    result_qualifiers = ArrayField(models.UUIDField(), null=True, blank=True, db_column='resultQualifiers')
 
     def save(self, *args, **kwargs):
         if not self.phenomenon_time:
@@ -244,6 +246,17 @@ class Observation(models.Model):
     class Meta:
         db_table = 'Observation'
         managed = False
+
+
+class ResultQualifier(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.CharField(max_length=255)
+    description = models.TextField()
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
+                               blank=True, db_column='personId')
+
+    class Meta:
+        db_table = 'ResultQualifier'
 
 
 class ThingAssociation(models.Model):

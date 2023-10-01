@@ -5,10 +5,9 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from accounts.schemas import *
 from accounts.utils import account_verification_token, update_account_to_verified, send_verification_email, \
-     send_password_reset_confirmation_email
+     send_password_reset_confirmation_email, build_user_response
 from accounts.auth import JWTAuth, BasicAuth
 from accounts.models import PasswordReset, Organization
-from core.utils.user import user_to_dict
 
 
 user_router = Router(tags=['User Management'])
@@ -28,7 +27,7 @@ def get_user(request: HttpRequest):
     if user and user.is_verified is False:
         user.email = user.unverified_email
 
-    return user_to_dict(user)
+    return build_user_response(user)
 
 
 @user_router.post(
@@ -66,7 +65,7 @@ def create_user(_: HttpRequest, data: UserPostBody):
     return {
         'access': str(getattr(jwt, 'access_token', '')),
         'refresh': str(jwt),
-        'user': user_to_dict(user)
+        'user': build_user_response(user)
     }
 
 
@@ -109,7 +108,7 @@ def update_user(request: HttpRequest, data: UserPatchBody):
 
     user.save()
 
-    return user_to_dict(user)
+    return build_user_response(user)
 
 
 @user_router.post(
@@ -157,7 +156,7 @@ def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
         return 200, {
             'access': str(getattr(jwt, 'access_token', '')),
             'refresh': str(jwt),
-            'user': user_to_dict(user)
+            'user': build_user_response(user)
         }
 
     else:

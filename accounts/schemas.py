@@ -28,6 +28,9 @@ class UserFields(Schema):
     link: str = None
     organization: OrganizationFields = None
 
+    class Config:
+        allow_population_by_field_name = True
+
 
 class UserGetResponse(UserFields):
     is_verified: bool = Field(alias="isVerified")
@@ -42,13 +45,16 @@ class UserAuthResponse(Schema):
 class UserPostBody(UserFields):
     password: str
 
+
 @allow_partial
 class OrganizationPatchBody(OrganizationFields):
     pass
 
+
 @allow_partial
 class UserPatchBody(UserFields):
     organization: OrganizationPatchBody = None
+
 
 class VerifyAccountPostBody(Schema):
     uid: str

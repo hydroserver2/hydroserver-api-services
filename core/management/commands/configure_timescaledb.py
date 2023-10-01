@@ -34,6 +34,7 @@ class Command(BaseCommand):
                         "result" float8 NOT NULL,
                         "resultTime" timestamp NULL,
                         "qualityCode" varchar(255) NULL,
+                        "resultQualifiers" uuid[] NULL,
                         CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE ("datastreamId", "phenomenonTime"),
                         CONSTRAINT observation_pkey PRIMARY KEY ("id", "datastreamId", "phenomenonTime"),
                         CONSTRAINT observation_datastream_id_fkey FOREIGN KEY ("datastreamId") REFERENCES public."Datastream"(id),
