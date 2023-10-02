@@ -208,7 +208,7 @@ def check_related_fields(user, data):
         check_unit_by_id(
             user=user,
             unit_id=data.time_aggregation_interval_units_id,
-            require_ownership=True,
+            require_ownership_or_unowned=True,
             raise_http_errors=True
         )
 
@@ -216,6 +216,6 @@ def check_related_fields(user, data):
         check_unit_by_id(
             user=user,
             unit_id=data.intended_time_spacing_units_id,
-            require_ownership=True,
+            require_ownership_or_unowned=True,
             raise_http_errors=True
         )
