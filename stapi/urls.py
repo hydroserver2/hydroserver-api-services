@@ -1,12 +1,12 @@
 from django.urls import path
 from sensorthings import SensorThingsAPI, SensorThingsComponent, SensorThingsEndpoint
 from stapi import schemas
-from stapi.engine import SensorThingsEngine
+from stapi.engine import HydroServerSensorThingsEngine
 from stapi.auth import observation_authorization, BasicAuth
 
 
 st_api_1_1 = SensorThingsAPI(
-    engine=SensorThingsEngine,
+    engine=HydroServerSensorThingsEngine,
     title='HydroServer SensorThings API',
     version='1.1',
     description='This is the documentation for the HydroServer SensorThings API implementation.',
