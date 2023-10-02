@@ -122,9 +122,9 @@ def build_unit_response(unit):
             'organization': {
                 **{field: getattr(unit.person.organization, field, None)
                    for field in OrganizationFields.__fields__.keys()}
-            },
+            } if unit.person.organization else None,
             **{field: getattr(unit.person, field) for field in UserFields.__fields__.keys()}
-        },
+        } if unit.person else None,
         **{field: getattr(unit, field) for field in UnitFields.__fields__.keys()},
     }
 

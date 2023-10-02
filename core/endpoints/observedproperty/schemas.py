@@ -1,5 +1,6 @@
 from ninja import Schema
 from uuid import UUID
+from typing import Optional
 from sensorthings.validators import allow_partial
 from accounts.schemas import UserFields
 
@@ -17,7 +18,7 @@ class ObservedPropertyFields(Schema):
 
 
 class ObservedPropertyGetResponse(ObservedPropertyFields, ObservedPropertyID):
-    owner: UserFields
+    owner: Optional[UserFields]
 
     class Config:
         allow_population_by_field_name = True
