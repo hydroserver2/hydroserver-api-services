@@ -98,13 +98,9 @@ def update_user(request: HttpRequest, data: UserPatchBody):
             else:
                 user.organization = Organization.objects.create(**org_data.dict())
 
-    # TODO: We should have a process in place for letting a user change their email and re-verifying.
-    # if 'email' in user_data and user.unverified_email is None and data.email != user.email:
-    #     user.unverified_email = data.email
-    #     user.is_verified = False
-    #     send_verification_email(user)
-    # if user and user.is_verified is False:
-    #     user.email = user.unverified_email
+    if 'email' in data.dict(exclude_unset=True) and user.is_verified is False:
+        user.unverified_email = data.email
+        send_verification_email(user)
 
     user.save()
 

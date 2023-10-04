@@ -97,4 +97,5 @@ def build_user_response(user):
                for field in OrganizationFields.__fields__.keys()}
         },
         **{field: getattr(user, field) for field in UserFields.__fields__.keys()},
+        'email': user.email if user.is_verified is True else user.unverified_email,
     }

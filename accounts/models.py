@@ -8,7 +8,6 @@ from datetime import timedelta
 
 class PersonManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
-        uid = f'{uuid.uuid4()}@hydroserver-temp.org'
 
         if email is not None:
             unverified_email = self.normalize_email(email)
@@ -23,6 +22,7 @@ class PersonManager(BaseUserManager):
                 **extra_fields
             )
         else:
+            uid = f'{uuid.uuid4()}@hydroserver-temp.org'
             user = self.model(
                 username=uid,
                 email=uid,
