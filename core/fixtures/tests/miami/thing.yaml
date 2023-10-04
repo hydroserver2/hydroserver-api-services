@@ -1,0 +1,30 @@
+- model: core.location
+  pk: 1796a56f-2cdf-42c6-8cc7-3da2f757e9a0
+  fields:
+    name: Location for Site in Miami
+    description: A test location for A test thing in Miami
+    encoding_type: application/geo+json
+    latitude: 25.779063
+    longitude: -80.162356
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: FL
+    county: Miami-Dade County
+- model: core.thing
+  pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+  fields:
+    name: Site in Miami
+    description: A test thing in Miami
+    sampling_feature_type: Test Site 2
+    sampling_feature_code: MIA1
+    site_type: House
+    location: 1796a56f-2cdf-42c6-8cc7-3da2f757e9a0
+    is_private: False
+
+- model: core.thingassociation
+  pk: 1_100_000_005
+  fields:
+    thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
+    person: 1_000_000_001
+    owns_thing: true
+    is_primary_owner: true

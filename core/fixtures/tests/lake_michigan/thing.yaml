@@ -1,0 +1,37 @@
+- model: core.location
+  pk: a10a9b2f-7942-48aa-9cfc-fba55732fe39
+  fields:
+    description: A test location for A test thing in Lake Michigan
+    encoding_type: application/geo+json
+    latitude: 42.098013
+    longitude: -86.495643
+    elevation_m: 174
+    elevation_datum: WGS84
+    state: MI
+    county: Berrien County
+- model: core.thing
+  pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+  fields:
+    name: Lake Michigan
+    description: A test thing in Lake Michigan
+    sampling_feature_type: Test Site 3
+    sampling_feature_code: MICH_1
+    site_type: Lake, Reservoir, Impoundment
+    location: a10a9b2f-7942-48aa-9cfc-fba55732fe39
+    is_private: False
+
+- model: core.thingassociation
+  pk: 1_100_000_002
+  fields:
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    person: 1_000_000_002
+    owns_thing: true
+    is_primary_owner: true
+
+- model: core.thingassociation
+  pk: 1_100_000_003
+  fields:
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    person: 1_000_000_001
+    owns_thing: true
+    is_primary_owner: false
