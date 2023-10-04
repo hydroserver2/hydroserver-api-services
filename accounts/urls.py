@@ -1,7 +1,8 @@
 from django.urls import path
 from ninja_extra import NinjaExtraAPI
 from accounts.views.users import user_router
-from accounts.views.oauth import orcid_router, google_router
+from accounts.views.oauth.google import google_router
+from accounts.views.oauth.orcid import orcid_router
 from accounts.views.jwt import HydroServerJWTController
 
 
