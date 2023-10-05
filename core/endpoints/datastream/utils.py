@@ -6,7 +6,7 @@ from django.utils import timezone
 from uuid import UUID
 from typing import List, Optional
 from functools import reduce
-from core.models import Person, Datastream, ThingAssociation, Observation
+from core.models import Person, Datastream, ThingAssociation, Observation, ResultQualifier
 from core.endpoints.thing.utils import check_thing_by_id
 from core.endpoints.sensor.utils import check_sensor_by_id
 from core.endpoints.observedproperty.utils import check_observed_property_by_id
@@ -258,7 +258,9 @@ def generate_csv(datastream):
     processing_level = datastream.processing_level
     thing_association = ThingAssociation.objects.filter(thing=thing, is_primary_owner=True).first()
     primary_owner = thing_association.person if thing_association else None
-    observations = Observation.objects.filter(datastream_id=datastream.id).order_by('phenomenon_time')
+    observations = (Observation.objects.filter(datastream_id=datastream.id)
+                    .only('phenomenon_time', 'result', 'result_qualifiers')
+                    .order_by('phenomenon_time'))
 
     latitude = round(location.latitude, 6) if location.latitude else "None"
     longitude = round(location.longitude, 6) if location.longitude else "None"
@@ -343,7 +345,12 @@ def generate_csv(datastream):
 # =============================================================================
 '''
 
-    yield "ResultTime,Result\n"
+    yield "ResultTime,Result,Result Qualifiers\n"
+
+    qualifiers = ResultQualifier.objects.filter(person=primary_owner)
+    qualifier_code_map = {qualifier.id: qualifier.code for qualifier in qualifiers}
 
     for observation in observations:
-        yield f"{observation.phenomenon_time.isoformat()},{observation.result}\n"
+        result_qualifiers_str = ' '.join(qualifier_code_map.get(uuid, "") for uuid in (observation.result_qualifiers or []))
+        yield f"{observation.phenomenon_time.isoformat()},{observation.result},{result_qualifiers_str}\n"
+
