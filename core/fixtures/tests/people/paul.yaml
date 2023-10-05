@@ -25,6 +25,40 @@
     organization: b6721e57-af7a-4d32-9ad9-2a3d6b671234
     type: "University Faculty"
 
+- model: core.Sensor
+  pk: 0afabdbd-9257-4e0a-8d47-76c98fe8a513
+  fields:
+    name: "YSI: EXO2 Multiparameter Sonde"
+    description: a sophisticated water quality monitoring instrument capable of simultaneously measuring multiple aquatic parameters such as temperature, pH, dissolved oxygen, and turbidity, designed for deployment in diverse natural water environments.
+    encoding_type: application/json
+    manufacturer: YSI
+    model: EXO2 Multiparameter Sonde
+    method_type: InstrumentDeployment
+    person: 1_000_000_001
+
+- model: core.ProcessingLevel
+  pk: 3b6284d9-7163-4b9a-9482-5c08e45e7b83
+  fields:
+    definition: Raw data
+    explanation:
+      Raw and unprocessed data and data products that have not undergone
+      quality control. Depending on the variable, data type, and data transmission
+      system, raw data may be available within seconds or minutes after the measurements
+      have been made. Examples include real-time precipitation, streamflow, and water
+      quality measurements.
+    code: 0
+    person: 1_000_000_001
+
+- model: core.ObservedProperty
+  pk: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4
+  fields:
+    name: Temperature
+    definition: Temperature
+    description: "Originally from the CUAHSI HIS VariableNameCV.  See: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=VariableNameCV."
+    person: 1_000_000_001
+    code: Temperature
+    type: Hydrology
+
 - model: core.sensor
   pk: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
   fields:

@@ -3,11 +3,6 @@ from datetime import datetime, timedelta
 import math
 import random
 
-datastream_id = "02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3"
-time_delta = 5
-output_file = 'temperature_output.yaml'
-base_time = datetime.strptime("2022-03-01 10:00:10", '%Y-%m-%d %H:%M:%S')
-
 def generate_observation(base_time, result):
     observation = {
         "fields": {
@@ -34,15 +29,25 @@ def get_temperature(hour, day_of_year):
     seasonal_temp = 10 * math.sin(math.pi * (day_of_year - 80) / 182.5)
     return daily_temp + seasonal_temp + random.gauss(0, 1.5)
 
-observations = []
+if __name__ == "__main__":
+    datastream_id = "02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3"
+    time_delta = 15
+    output_file = 'temperature_output.yaml'
+    base_time = datetime.strptime("2023-10-04 10:00:00", '%Y-%m-%d %H:%M:%S')
+    end_time = base_time
+    observations = []
+    num_observations = 350_000
 
-for i in range(10000):
-    day_of_year = base_time.timetuple().tm_yday
-    temperature = get_temperature(base_time.hour, day_of_year)
-    observations.append(generate_observation(base_time, temperature))
-    base_time += timedelta(minutes=time_delta)
+    for i in range(num_observations):
+        day_of_year = base_time.timetuple().tm_yday
+        temperature = get_temperature(base_time.hour, day_of_year)
+        observations.append(generate_observation(base_time, temperature))
+        base_time -= timedelta(minutes=time_delta)
 
-with open(output_file, 'w') as outfile:
-    outfile.writelines(observations)
+    start_time = base_time
+    with open(output_file, 'w') as outfile:
+        outfile.writelines(observations)
 
-print("File 'temperature_output.yaml' generated with 100,000 observations.")
+    print(f"File '{output_file}' generated with {num_observations} observations.")
+    print(f"phenomenon_start_time = {start_time}")
+    print(f"phenomenon_end_time = {end_time}")
