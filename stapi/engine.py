@@ -1,12 +1,12 @@
 from typing import List
 from uuid import UUID
-from sensorthings import SensorThingsAbstractEngine
+from sensorthings import SensorThingsBaseEngine
 from core.endpoints.thing.utils import query_things
 from core.endpoints.datastream.utils import query_datastreams
 from core.endpoints.sensor.utils import query_sensors
 
 
-class HydroServerSensorThingsEngine(SensorThingsAbstractEngine):
+class HydroServerSensorThingsEngine(SensorThingsBaseEngine):
 
     def get_things(
             self,
