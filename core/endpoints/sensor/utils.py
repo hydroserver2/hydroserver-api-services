@@ -11,7 +11,7 @@ from .schemas import SensorFields
 
 
 def apply_sensor_auth_rules(
-        user: Person,
+        user: Optional[Person],
         sensor_query: QuerySet,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -34,7 +34,7 @@ def apply_sensor_auth_rules(
 
 
 def query_sensors(
-        user: Person,
+        user: Optional[Person],
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -64,7 +64,7 @@ def query_sensors(
 
 
 def check_sensor_by_id(
-        user: Person,
+        user: Optional[Person],
         sensor_id: UUID,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -90,7 +90,7 @@ def check_sensor_by_id(
 
 
 def get_sensor_by_id(
-        user: Person,
+        user: Optional[Person],
         sensor_id: UUID,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,

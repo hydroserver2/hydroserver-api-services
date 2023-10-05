@@ -15,7 +15,7 @@ from .schemas import DatastreamFields
 
 
 def apply_datastream_auth_rules(
-        user: Person,
+        user: Optional[Person],
         datastream_query: QuerySet,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -56,7 +56,7 @@ def apply_datastream_auth_rules(
 
 
 def query_datastreams(
-        user: Person,
+        user: Optional[Person],
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -98,7 +98,7 @@ def query_datastreams(
 
 
 def check_datastream_by_id(
-        user: Person,
+        user: Optional[Person],
         datastream_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -126,7 +126,7 @@ def check_datastream_by_id(
 
 
 def get_datastream_by_id(
-        user: Person,
+        user: Optional[Person],
         datastream_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,

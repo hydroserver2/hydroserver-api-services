@@ -10,7 +10,7 @@ from .schemas import AssociationFields, PersonFields, OrganizationFields, ThingF
 
 
 def apply_thing_auth_rules(
-        user: Person,
+        user: Optional[Person],
         thing_query: QuerySet,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -51,7 +51,7 @@ def apply_thing_auth_rules(
 
 
 def query_things(
-        user: Person,
+        user: Optional[Person],
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -91,7 +91,7 @@ def query_things(
 
 
 def check_thing_by_id(
-        user: Person,
+        user: Optional[Person],
         thing_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -119,7 +119,7 @@ def check_thing_by_id(
 
 
 def get_thing_by_id(
-        user: Person,
+        user: Optional[Person],
         thing_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
