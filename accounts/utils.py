@@ -5,6 +5,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from accounts.schemas import UserFields, OrganizationFields
+import urllib.parse
 
 
 user_model = get_user_model()
@@ -31,8 +32,8 @@ def send_verification_email(user: user_model):
     """
 
     context = {
-        'uid': base64.b64encode(bytes(user.email, 'utf-8')).decode('utf-8'),
-        'token': account_verification_token.make_token(user),
+        'uid': urllib.parse.quote(base64.b64encode(bytes(user.email, 'utf-8')).decode('utf-8')),
+        'token':  urllib.parse.quote(account_verification_token.make_token(user)),
         'name': user.first_name,
         'proxy_base_url': settings.PROXY_BASE_URL
     }
