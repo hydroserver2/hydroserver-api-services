@@ -2,10 +2,11 @@ import operator
 from ninja.errors import HttpError
 from django.db.models import Q, Count
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from uuid import UUID
 from typing import List, Optional
 from functools import reduce
-from core.models import Person, Datastream
+from core.models import Person, Datastream, ThingAssociation, Observation
 from core.endpoints.thing.utils import check_thing_by_id
 from core.endpoints.sensor.utils import check_sensor_by_id
 from core.endpoints.observedproperty.utils import check_observed_property_by_id
@@ -219,3 +220,130 @@ def check_related_fields(user, data):
             require_ownership_or_unowned=True,
             raise_http_errors=True
         )
+
+
+def get_organization_info(owner):
+    if not owner.organization:
+        return '# Organization: None'
+
+    organization = owner.organization
+    return f'''# OrganizationCode: {organization.code}
+# OrganizationName: {organization.name}
+# OrganizationDescription: {organization.description}
+# OrganizationType: {organization.type}
+# OrganizationLink: {organization.link}'''
+
+
+def get_site_owner_info(primary_owner):
+    if not primary_owner:
+        return "# Site Owner Information: None"
+
+    return f"""# Site Owner Information:
+# -------------------------------------
+# Name: {primary_owner.first_name} {primary_owner.last_name}
+# Phone: {primary_owner.phone}
+# Email: {primary_owner.email}
+# Address: {primary_owner.address}
+# PersonLink: {primary_owner.link}
+{get_organization_info(primary_owner)}"""
+
+
+def generate_csv(datastream):
+
+    thing = datastream.thing
+    location = thing.location
+    sensor = datastream.sensor
+    observed_property = datastream.observed_property
+    unit = datastream.unit
+    processing_level = datastream.processing_level
+    thing_association = ThingAssociation.objects.filter(thing=thing, is_primary_owner=True).first()
+    primary_owner = thing_association.person if thing_association else None
+    observations = Observation.objects.filter(datastream_id=datastream.id).order_by('phenomenon_time')
+
+    latitude = round(location.latitude, 6) if location.latitude else "None"
+    longitude = round(location.longitude, 6) if location.longitude else "None"
+    elevation_m = round(location.elevation_m, 6) if location.elevation_m else "None"
+
+    yield f'''# =============================================================================
+# Generated on: {timezone.now().isoformat()}
+# 
+{get_site_owner_info(primary_owner)}
+#
+# Site Information:
+# -------------------------------------
+# Name: {thing.name}
+# Description: {thing.description}
+# SamplingFeatureType: {thing.sampling_feature_type}
+# SamplingFeatureCode: {thing.sampling_feature_code}
+# SiteType: {thing.site_type}
+#
+# Location Information:
+# -------------------------------------
+# Name: {location.name}
+# Description: {location.description}
+# Latitude: {latitude}
+# Longitude: {longitude}
+# Elevation_m: {elevation_m}
+# ElevationDatum: {location.elevation_datum}
+# State: {location.state}
+# County: {location.county}
+#
+# Datastream Information:
+# -------------------------------------
+# Name: {datastream.name}
+# Description: {datastream.description}
+# ObservationType: {datastream.observation_type}
+# ResultType: {datastream.result_type}
+# Status: {datastream.status}
+# SampledMedium: {datastream.sampled_medium}
+# ValueCount: {datastream.value_count}
+# NoDataValue: {datastream.no_data_value}
+# IntendedTimeSpacing: {datastream.intended_time_spacing}
+# IntendedTimeSpacingUnitsName: {getattr(datastream.intended_time_spacing_units, 'name', None)}
+# AggregationStatistic: {datastream.aggregation_statistic}
+# TimeAggregationInterval: {datastream.time_aggregation_interval}
+# TimeAggregationIntervalUnitsName: {datastream.time_aggregation_interval_units.name}
+#
+# Method Information:
+# -------------------------------------
+# Name: {sensor.name}
+# Description: {sensor.description}
+# MethodCode: {sensor.method_code}
+# MethodType: {sensor.method_type}
+# MethodLink: {sensor.method_link}
+# SensorManufacturerName: {sensor.manufacturer}
+# SensorModelName: {sensor.model}
+# SensorModelLink: {sensor.model_link}
+#
+# Observed Property Information:
+# -------------------------------------
+# Name: {observed_property.name}
+# Definition: {observed_property.definition}
+# Description: {observed_property.description}
+# VariableType: {observed_property.type}
+# VariableCode: {observed_property.code}
+#
+# Unit Information:
+# -------------------------------------
+# Name: {unit.name}
+# Symbol: {unit.symbol}
+# Definition: {unit.definition}
+# UnitType: {unit.type}
+#
+# Processing Level Information:
+# -------------------------------------
+# Code: {processing_level.code}
+# Definition: {processing_level.definition}
+# Explanation: {processing_level.explanation}
+#
+# Data Disclaimer:
+# -------------------------------------
+# Output date/time values are in UTC unless they were input to HydroServer without time zone offset information. In that case, date/time values are output as they were supplied to HydroServer.
+# {thing.data_disclaimer if thing.data_disclaimer else ""}
+# =============================================================================
+'''
+
+    yield "ResultTime,Result\n"
+
+    for observation in observations:
+        yield f"{observation.phenomenon_time.isoformat()},{observation.result}\n"

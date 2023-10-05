@@ -22,6 +22,7 @@ class DataManagementRouter(Router):
             auth=[JWTAuth(), BasicAuth(), anonymous_auth],
             response={
                 200: response,
+                403: str,
                 404: str
             },
             by_alias=True

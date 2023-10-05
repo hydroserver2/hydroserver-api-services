@@ -1,10 +1,15 @@
 from ninja import Path
 from uuid import UUID
 from django.db import transaction, IntegrityError
+from django.http import StreamingHttpResponse
+from accounts.auth.jwt import JWTAuth
+from accounts.auth.basic import BasicAuth
+from accounts.auth.anonymous import anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream
 from .schemas import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody
-from .utils import query_datastreams, get_datastream_by_id, build_datastream_response, check_related_fields
+from .utils import query_datastreams, get_datastream_by_id, build_datastream_response, check_related_fields, \
+     generate_csv
 
 
 router = DataManagementRouter(tags=['Datastreams'])
@@ -116,3 +121,26 @@ def delete_datastream(request, datastream_id: UUID = Path(...)):
         return 409, str(e)
 
     return 204, None
+
+
+@router.get(
+    '{datastream_id}/csv',
+    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    response={
+        200: None,
+        403: str,
+        404: str
+    }
+)
+def get_datastream_csv(request, datastream_id: UUID = Path(...)):
+
+    datastream = get_datastream_by_id(
+        user=request.authenticated_user,
+        datastream_id=datastream_id,
+        raise_http_errors=True
+    )
+
+    response = StreamingHttpResponse(generate_csv(datastream), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="hello_world.csv"'
+
+    return response
