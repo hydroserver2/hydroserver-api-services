@@ -128,26 +128,24 @@ def verify_account(request: HttpRequest):
     return 200, 'Verification email sent.'
 
 
-@user_router.get(
+@user_router.post(
     '/activate',
+    response={
+        403: str,
+        200: UserAuthResponse
+    },
     by_alias=True
 )
-def activate_account(request: HttpRequest):
-    encoded_uid = urllib.parse.unquote(request.GET.get('uid'))
-    uid = base64.b64decode(encoded_uid).decode('utf-8')
-    token = urllib.parse.unquote(request.GET.get('t'))
-
+def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
     user = user_model.objects.filter(
-        username=uid,
+        username=data.uid,
         is_verified=False
     ).first()
-
-    # TODO: return to a callback to the Vue app
 
     if user is None or user.is_verified is True:
         return 403, 'This account does not exist or has already been activated.'
 
-    if account_verification_token.check_token(user, token):
+    if account_verification_token.check_token(user, data.token):
         user = update_account_to_verified(user)
         jwt = RefreshToken.for_user(user)
 

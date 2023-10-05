@@ -35,7 +35,7 @@ def send_verification_email(user: user_model):
         'uid': urllib.parse.quote(base64.b64encode(bytes(user.email, 'utf-8')).decode('utf-8')),
         'token':  urllib.parse.quote(account_verification_token.make_token(user)),
         'name': user.first_name,
-        'proxy_base_url': settings.PROXY_BASE_URL
+        'app_client_url': settings.APP_CLIENT_URL
     }
 
     html_message = render_to_string('verify_account_email.html', context)
