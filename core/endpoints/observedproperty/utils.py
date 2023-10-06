@@ -11,7 +11,7 @@ from .schemas import ObservedPropertyFields
 
 
 def apply_observed_property_auth_rules(
-        user: Person,
+        user: Optional[Person],
         observed_property_query: QuerySet,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -34,7 +34,7 @@ def apply_observed_property_auth_rules(
 
 
 def query_observed_properties(
-        user: Person,
+        user: Optional[Person],
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -64,7 +64,7 @@ def query_observed_properties(
 
 
 def check_observed_property_by_id(
-        user: Person,
+        user: Optional[Person],
         observed_property_id: UUID,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -90,7 +90,7 @@ def check_observed_property_by_id(
 
 
 def get_observed_property_by_id(
-        user: Person,
+        user: Optional[Person],
         observed_property_id: UUID,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
