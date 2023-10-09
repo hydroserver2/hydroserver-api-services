@@ -12,11 +12,17 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
             observed_property_ids: List[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
-            filters: dict = None
+            filters: dict = None,
+            expanded: bool = False
     ) -> (List[dict], int):
+
+        if observed_property_ids:
+            observed_property_ids = self.strings_to_uuids(observed_property_ids)
+
         observed_properties, _ = query_observed_properties(
-            user=None,
-            observed_property_ids=observed_property_ids
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            observed_property_ids=observed_property_ids,
+            require_ownership_or_unowned=not expanded
         )
 
         if filters:

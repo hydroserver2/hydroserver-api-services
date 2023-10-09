@@ -15,13 +15,20 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             thing_ids: List[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
-            filters: dict = None
+            filters: dict = None,
+            expanded: bool = False
     ) -> (List[dict], int):
 
+        if datastream_ids:
+            datastream_ids = self.strings_to_uuids(datastream_ids)
+
         datastreams, _ = query_datastreams(
-            user=None,
-            datastream_ids=datastream_ids
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            datastream_ids=datastream_ids,
+            ignore_privacy=expanded
         )
+
+        count = datastreams.count()
 
         if filters:
             datastreams = self.apply_filters(
@@ -30,14 +37,36 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 filters=filters
             )
 
-        count = datastreams.count()
-
-        if pagination:
-            datastreams = self.apply_pagination(
+        if thing_ids:
+            datastreams = self.apply_rank(
+                component='Datastream',
                 queryset=datastreams,
-                top=pagination.get('top'),
-                skip=pagination.get('skip')
+                partition_field='thing_id',
+                filter_ids=thing_ids,
+                max_records=1
             )
+        elif sensor_ids:
+            datastreams = self.apply_rank(
+                component='Datastream',
+                queryset=datastreams,
+                partition_field='sensor_id',
+                filter_ids=sensor_ids
+            )
+        elif observed_property_ids:
+            datastreams = self.apply_rank(
+                component='Datastream',
+                queryset=datastreams,
+                partition_field='observed_property_id',
+                filter_ids=observed_property_ids
+            )
+        else:
+            if pagination:
+                datastreams = self.apply_pagination(
+                    queryset=datastreams,
+                    top=pagination.get('top'),
+                    skip=pagination.get('skip')
+                )
+            datastreams = datastreams.all()
 
         return [
             {
@@ -77,7 +106,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                         'definition': datastream.time_aggregation_interval_units.definition
                     }
                 }
-            } for datastream in datastreams.all()
+            } for datastream in datastreams
         ], count
 
     def create_datastream(

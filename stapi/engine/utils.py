@@ -1,4 +1,6 @@
-from django.db.models import F
+from uuid import UUID
+from django.db.models import F, Window
+from django.db.models.functions import DenseRank
 from django.core.exceptions import FieldError
 from ninja.errors import HttpError
 from odata_query.django.django_q import AstToDjangoQVisitor
@@ -11,17 +13,25 @@ class SensorThingsUtils:
     def apply_pagination(queryset, top, skip):
         return queryset[skip: skip+top]
 
+    @staticmethod
+    def strings_to_uuids(strings):
+        return [
+            UUID(val) if isinstance(val, str) else val for val in strings
+        ]
+
     def transform_model_filter(self, component, prop):
         if component == 'Thing':
             return {
                 'properties__samplingFeatureType': 'sampling_feature_type',
                 'properties__samplingFeatureCode': 'sampling_feature_code',
                 'properties__siteType': 'site_type',
+                'Location__id': 'location_id'
             }.get(prop, prop)
 
         elif component == 'Location':
             return {
                 'encodingType': 'location__encoding_type',
+                'Thing__id': 'id'
             }.get(prop, f'location__{prop}')
 
         elif component == 'HistoricalLocation':
@@ -118,3 +128,29 @@ class SensorThingsUtils:
             return queryset.filter(query_filter)
         except FieldError:
             raise HttpError(422, 'Failed to parse filter parameter.')
+
+    @staticmethod
+    def apply_rank(component, queryset, partition_field, filter_ids, max_records=100):
+        """"""
+
+        total_query_limit = 10000  # TODO: Find a location in settings for this variable.
+
+        ranked_queryset = queryset.filter(
+            **{f'{partition_field}__in': filter_ids}
+        ).annotate(
+            rank=Window(
+                expression=DenseRank(),
+                partition_by=F(partition_field),
+                order_by='pk'
+            )
+        )
+
+        sql, params = ranked_queryset.query.sql_with_params()
+
+        query = getattr(core_models, component).objects.raw("""
+            SELECT * FROM ({}) ranked_result
+            WHERE rank <= %s
+            LIMIT %s
+        """.format(sql), [*params, max_records, total_query_limit])
+
+        return query

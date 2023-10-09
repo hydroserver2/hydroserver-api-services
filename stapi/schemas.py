@@ -108,3 +108,17 @@ class ThingProperties(Schema):
 
 class Thing(Schema):
     properties: ThingProperties
+
+
+class ResultQualifier(Schema):
+    code: str
+    description: str
+
+
+class ObservationResultQuality(Schema):
+    quality_code: str = Field(None, alias='qualityCode')
+    result_qualifiers: List[ResultQualifier] = Field([], alias='resultQualifiers')
+
+
+class Observation(Schema):
+    result_quality: ObservationResultQuality = Field(..., alias='resultQuality')

@@ -12,11 +12,20 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
             thing_ids: List[str] = None,
             pagination: dict = None,
             ordering: dict = None,
-            filters: dict = None
+            filters: dict = None,
+            expanded: bool = False
     ) -> (List[dict], int):
+
+        if location_ids:
+            location_ids = self.strings_to_uuids(location_ids)
+
+        if thing_ids:
+            thing_ids = self.strings_to_uuids(thing_ids)
+
         things, _ = query_things(
-            user=None,
-            thing_ids=thing_ids
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            thing_ids=thing_ids,
+            ignore_privacy=expanded
         )
 
         if filters:

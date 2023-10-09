@@ -1,4 +1,3 @@
-from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
 from core.endpoints.sensor.utils import query_sensors
@@ -9,15 +8,20 @@ from stapi.engine.utils import SensorThingsUtils
 class SensorEngine(SensorBaseEngine, SensorThingsUtils):
     def get_sensors(
             self,
-            sensor_ids: List[UUID] = None,
+            sensor_ids: List[str] = None,
             pagination: dict = None,
             ordering: dict = None,
-            filters: dict = None
+            filters: dict = None,
+            expanded: bool = False
     ) -> (List[dict], int):
 
+        if sensor_ids:
+            sensor_ids = self.strings_to_uuids(sensor_ids)
+
         sensors, _ = query_sensors(
-            user=None,
-            sensor_ids=sensor_ids
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            sensor_ids=sensor_ids,
+            require_ownership_or_unowned=not expanded
         )
 
         if filters:
