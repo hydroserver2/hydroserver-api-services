@@ -145,7 +145,7 @@ AUTHLIB_OAUTH_CLIENTS = {
     }
 }
 
-APP_CLIENT_URL = config('APP_CLIENT_URL', default='http://127.0.0.1:5173')
+APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # Email Backend Settings
