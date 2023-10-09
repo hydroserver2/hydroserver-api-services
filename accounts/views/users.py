@@ -8,7 +8,6 @@ from accounts.utils import account_verification_token, update_account_to_verifie
      send_password_reset_confirmation_email, build_user_response
 from accounts.auth import JWTAuth, BasicAuth
 from accounts.models import PasswordReset, Organization
-import urllib.parse
 
 
 user_router = Router(tags=['User Management'])

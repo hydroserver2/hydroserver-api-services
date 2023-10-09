@@ -12,6 +12,7 @@ oauth.register(
 
 orcid_router = Router(tags=['ORCID OAuth 2.0'])
 
+
 @orcid_router.get('/login')
 def orcid_login(request):
     if settings.DEPLOYED is True:

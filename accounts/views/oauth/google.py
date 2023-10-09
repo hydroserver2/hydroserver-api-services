@@ -13,6 +13,7 @@ oauth.register(
 
 google_router = Router(tags=['Google OAuth 2.0'])
 
+
 @google_router.get('/login')
 def google_login(request):
     if settings.DEPLOYED is True:
