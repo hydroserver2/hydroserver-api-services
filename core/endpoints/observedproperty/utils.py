@@ -122,9 +122,9 @@ def build_observed_property_response(observed_property):
             'organization': {
                 **{field: getattr(observed_property.person.organization, field, None)
                    for field in OrganizationFields.__fields__.keys()}
-            },
+            } if observed_property.person.organization else None,
             **{field: getattr(observed_property.person, field) for field in UserFields.__fields__.keys()}
-        },
+        } if observed_property.person else None,
         **{field: getattr(observed_property, field) for field in ObservedPropertyFields.__fields__.keys()},
     }
 

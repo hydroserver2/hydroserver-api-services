@@ -122,9 +122,9 @@ def build_sensor_response(sensor):
             'organization': {
                 **{field: getattr(sensor.person.organization, field, None)
                    for field in OrganizationFields.__fields__.keys()}
-            },
+            } if sensor.person.organization else None,
             **{field: getattr(sensor.person, field) for field in UserFields.__fields__.keys()}
-        },
+        } if sensor.person else None,
         **{field: getattr(sensor, field) for field in SensorFields.__fields__.keys()},
     }
 

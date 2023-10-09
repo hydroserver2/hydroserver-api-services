@@ -120,8 +120,8 @@ def build_result_qualifier_response(result_qualifier):
             'organization': {
                 **{field: getattr(result_qualifier.person.organization, field, None)
                    for field in OrganizationFields.__fields__.keys()}
-            },
+            } if result_qualifier.person.organization else None,
             **{field: getattr(result_qualifier.person, field) for field in UserFields.__fields__.keys()}
-        },
+        } if result_qualifier.person else None,
         **{field: getattr(result_qualifier, field) for field in ResultQualifierFields.__fields__.keys()},
     }

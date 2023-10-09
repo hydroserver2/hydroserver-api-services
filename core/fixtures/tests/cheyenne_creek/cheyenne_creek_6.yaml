@@ -1,0 +1,78 @@
+- model: core.datastream
+  pk: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+  fields:
+    unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    thing: 0c04fcdc-3876-429e-8260-14b7baca0231
+    sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
+    observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
+    processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
+    name: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 0
+    no_data_value: -9999.0
+    intended_time_spacing: 0.0
+    intended_time_spacing_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    phenomenon_begin_time: 2022-01-01 10:10:10+00:00
+    phenomenon_end_time: 2023-01-01 10:10:10+00:00
+
+- model: core.observation
+  pk: 2b13ddf5-6a9f-4865-aa0d-446fe0ed79f6
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 2.0
+    phenomenon_time: 2022-03-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
+- model: core.observation
+  pk: 583bf8c7-c220-47e5-9cd6-bf2427dab8d2
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 1.0
+    phenomenon_time: 2022-05-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
+- model: core.observation
+  pk: 6ad9cf17-acd8-4973-8c22-340cda2ed8ca
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 3.0
+    phenomenon_time: 2022-02-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
+- model: core.observation
+  pk: 71335328-fd9f-4079-b51d-ddd629545c27
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 3.0
+    phenomenon_time: 2022-06-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
+- model: core.observation
+  pk: 853527d6-d7df-47d4-bdee-c53bae7cc4ed
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 1.0
+    phenomenon_time: 2022-01-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
+- model: core.observation
+  pk: ddafa714-c1a2-4a59-9324-261ccc8ce8b3
+  fields:
+    datastream: c2f32f37-9e2f-471b-a65c-26420e0e55f4
+    result: 4.0
+    phenomenon_time: 2022-04-01 10:10:10+00:00
+    result_time: null
+    feature_of_interest: null
+    quality_code: null
