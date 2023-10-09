@@ -267,53 +267,53 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
     return 203, build_thing_response(request.authenticated_user, thing)
 
 
-@router.patch(
-    '{thing_id}/followership',
-    auth=[JWTAuth(), BasicAuth()],
-    response={
-        203: ThingGetResponse,
-        401: str,
-        403: str,
-        404: str,
-        500: str
-    },
-    by_alias=True
-)
-@transaction.atomic
-def update_thing_followership(request, thing_id: UUID = Path(...)):
-    """
-    Update a Thing's Follower Status
+# @router.patch(
+#     '{thing_id}/followership',
+#     auth=[JWTAuth(), BasicAuth()],
+#     response={
+#         203: ThingGetResponse,
+#         401: str,
+#         403: str,
+#         404: str,
+#         500: str
+#     },
+#     by_alias=True
+# )
+# @transaction.atomic
+# def update_thing_followership(request, thing_id: UUID = Path(...)):
+#     """
+#     Update a Thing's Follower Status
 
-    This endpoint allows a user to follow or unfollow a public Thing. Users cannot follow Things they own.
-    """
+#     This endpoint allows a user to follow or unfollow a public Thing. Users cannot follow Things they own.
+#     """
 
-    thing = get_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id,
-        require_unaffiliated=True,
-        raise_http_errors=True
-    )
+#     thing = get_thing_by_id(
+#         user=request.authenticated_user,
+#         thing_id=thing_id,
+#         require_unaffiliated=True,
+#         raise_http_errors=True
+#     )
 
-    user_association = next(iter([
-        associate for associate in thing.associates.all()
-        if associate.follows_thing is True and associate.person == request.authenticated_user
-    ]), None)
+#     user_association = next(iter([
+#         associate for associate in thing.associates.all()
+#         if associate.follows_thing is True and associate.person == request.authenticated_user
+#     ]), None)
 
-    if user_association:
-        user_association.delete()
-    else:
-        ThingAssociation.objects.create(
-            thing_id=thing_id,
-            person=request.authenticated_user,
-            follows_thing=True
-        )
+#     if user_association:
+#         user_association.delete()
+#     else:
+#         ThingAssociation.objects.create(
+#             thing_id=thing_id,
+#             person=request.authenticated_user,
+#             follows_thing=True
+#         )
 
-    thing = get_thing_by_id(
-        user=request.authenticated_user,
-        thing_id=thing_id
-    )
+#     thing = get_thing_by_id(
+#         user=request.authenticated_user,
+#         thing_id=thing_id
+#     )
 
-    return 203, build_thing_response(request.authenticated_user, thing)
+#     return 203, build_thing_response(request.authenticated_user, thing)
 
 
 @router.get(
