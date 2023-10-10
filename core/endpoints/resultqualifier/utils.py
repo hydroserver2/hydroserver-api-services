@@ -9,7 +9,7 @@ from .schemas import ResultQualifierFields
 
 
 def apply_result_qualifier_auth_rules(
-        user: Person,
+        user: Optional[Person],
         result_qualifier_query: QuerySet,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -32,7 +32,7 @@ def apply_result_qualifier_auth_rules(
 
 
 def query_result_qualifiers(
-        user: Person,
+        user: Optional[Person],
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -62,7 +62,7 @@ def query_result_qualifiers(
 
 
 def check_result_qualifier_by_id(
-        user: Person,
+        user: Optional[Person],
         result_qualifier_id: UUID,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
@@ -88,7 +88,7 @@ def check_result_qualifier_by_id(
 
 
 def get_result_qualifier_by_id(
-        user: Person,
+        user: Optional[Person],
         result_qualifier_id: UUID,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,

@@ -53,7 +53,7 @@
   pk: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4
   fields:
     name: Temperature
-    definition: Temperature
+    definition: http://www.example.com/property4
     description: "Originally from the CUAHSI HIS VariableNameCV.  See: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=VariableNameCV."
     person: 1_000_000_001
     code: Temperature

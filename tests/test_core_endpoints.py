@@ -4,13 +4,6 @@ from django.test import Client
 
 
 @pytest.fixture
-def auth_headers(django_jwt_auth):
-    return {
-        'HTTP_AUTHORIZATION': 'Bearer ' + str(django_jwt_auth)
-    }
-
-
-@pytest.fixture
 def base_url():
     return '/api/data'
 
@@ -20,16 +13,16 @@ def base_url():
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231/datastreams', None, 403, None, 4),
     ('things/00000000-0000-0000-0000-000000000000/datastreams', None, 404, None, 4),
     ('datastreams', {}, 200, 2, 4),
-    ('observed-properties', {}, 200, 2, 4),
-    ('processing-levels', {}, 200, 2, 4),
-    ('sensors', {}, 200, 2, 4),
+    ('observed-properties', {}, 200, 3, 4),
+    ('processing-levels', {}, 200, 3, 4),
+    ('sensors', {}, 200, 3, 4),
     ('things', {}, 200, 2, 4),
     ('units', {}, 200, 2, 4),
     ('result-qualifiers', {}, 200, 2, 4)
 ])
 @pytest.mark.django_db()
 def test_core_list_endpoints(
-        django_assert_max_num_queries, django_test_db, django_jwt_auth, auth_headers, base_url, endpoint, query_params,
+        django_assert_max_num_queries, django_jwt_auth, auth_headers, base_url, endpoint, query_params,
         response_code, response_length, max_queries
 ):
     client = Client()
@@ -58,7 +51,7 @@ def test_core_list_endpoints(
 ])
 @pytest.mark.django_db()
 def test_core_get_endpoints(
-        django_assert_max_num_queries, django_test_db, django_jwt_auth, auth_headers, base_url, endpoint, response_code,
+        django_assert_max_num_queries, django_jwt_auth, auth_headers, base_url, endpoint, response_code,
         max_queries
 ):
     client = Client()
@@ -96,7 +89,7 @@ def test_core_get_endpoints(
     ('datastreams', {}, 422, 2),
     ('observed-properties', {
         'name': 'string',
-        'definition': 'string',
+        'definition': 'http://www.example.com',
         'description': 'string',
         'type': 'string',
         'code': 'string'
@@ -150,7 +143,7 @@ def test_core_get_endpoints(
 ])
 @pytest.mark.django_db()
 def test_core_post_endpoints(
-        django_assert_max_num_queries, django_test_db, django_jwt_auth, auth_headers, base_url, endpoint, post_body,
+        django_assert_max_num_queries, django_jwt_auth, auth_headers, base_url, endpoint, post_body,
         response_code, max_queries
 ):
     client = Client()
@@ -179,7 +172,7 @@ def test_core_post_endpoints(
 ])
 @pytest.mark.django_db()
 def test_core_patch_endpoints(
-        django_assert_max_num_queries, django_test_db, django_jwt_auth, auth_headers, base_url, endpoint, patch_body,
+        django_assert_max_num_queries, django_jwt_auth, auth_headers, base_url, endpoint, patch_body,
         response_code, max_queries
 ):
     client = Client()
@@ -217,7 +210,6 @@ def test_core_patch_endpoints(
     ('processing-levels/7e57d004-2b97-44e7-8f03-713f25415a10', 403, 7),
     ('processing-levels/00000000-0000-0000-0000-000000000000', 404, 7),
     ('result-qualifiers/93ccb684-2921-49df-a6cf-2f0dea8eb210', 204, 7),
-    # ('result-qualifiers/565b2407-fc55-4e4a-bcd7-6e945860f11b', 409, 7),
     ('result-qualifiers/369c1e3e-e465-41bc-9b13-933d81d50d0d', 403, 7),
     ('result-qualifiers/00000000-0000-0000-0000-000000000000', 404, 7),
     ('datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204, 9),
@@ -227,7 +219,7 @@ def test_core_patch_endpoints(
 ])
 @pytest.mark.django_db()
 def test_core_delete_endpoints(
-        django_assert_max_num_queries, django_test_db, django_jwt_auth, auth_headers, base_url, endpoint, response_code,
+        django_assert_max_num_queries, django_jwt_auth, auth_headers, base_url, endpoint, response_code,
         max_queries
 ):
     client = Client()

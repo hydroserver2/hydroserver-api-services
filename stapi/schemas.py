@@ -1,3 +1,4 @@
+from uuid import UUID
 from ninja import Schema, Field
 from pydantic import HttpUrl
 from typing import List, Literal, Union
@@ -25,7 +26,7 @@ class DatastreamProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Datastream(Schema):
+class DatastreamResponse(Schema):
     properties: DatastreamProperties
 
 
@@ -39,7 +40,7 @@ class LocationProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Location(Schema):
+class LocationResponse(Schema):
     properties: LocationProperties
 
 
@@ -51,7 +52,7 @@ class ObservedPropertyProperties(Schema):
         allow_population_by_field_name = True
 
 
-class ObservedProperty(Schema):
+class ObservedPropertyResponse(Schema):
     properties: ObservedPropertyProperties
 
 
@@ -82,7 +83,7 @@ class SensorProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Sensor(Schema):
+class SensorResponse(Schema):
     encoding_type: sensorEncodingTypes = Field(..., alias='encodingType')
     sensor_metadata: SensorProperties = Field(..., alias='metadata')
 
@@ -106,7 +107,7 @@ class ThingProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Thing(Schema):
+class ThingResponse(Schema):
     properties: ThingProperties
 
 
@@ -115,10 +116,19 @@ class ResultQualifier(Schema):
     description: str
 
 
-class ObservationResultQuality(Schema):
+class ObservationResultQualityResponse(Schema):
     quality_code: str = Field(None, alias='qualityCode')
     result_qualifiers: List[ResultQualifier] = Field([], alias='resultQualifiers')
 
 
-class Observation(Schema):
-    result_quality: ObservationResultQuality = Field(..., alias='resultQuality')
+class ObservationResultQualityBody(Schema):
+    quality_code: str = Field(None, alias='qualityCode')
+    result_qualifiers: List[UUID] = Field(..., alias='resultQualifiers')
+
+
+class ObservationResponse(Schema):
+    result_quality: ObservationResultQualityResponse = Field([], alias='resultQuality')
+
+
+class ObservationBody(Schema):
+    result_quality: ObservationResultQualityBody = Field([], alias='resultQuality')

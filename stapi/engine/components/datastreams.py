@@ -79,7 +79,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 'unit_of_measurement': {
                     'name': datastream.unit.name,
                     'symbol': datastream.unit.symbol,
-                    'definition': datastream.unit.definition
+                    'definition': datastream.unit.definition.split(';')[0]
                 },
                 'observation_type': datastream.observation_type,
                 'observed_area': {},
@@ -96,14 +96,14 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'intended_time_spacing_units': {
                         'name': datastream.intended_time_spacing_units.name,
                         'symbol': datastream.intended_time_spacing_units.symbol,
-                        'definition': datastream.intended_time_spacing_units.definition
+                        'definition': datastream.intended_time_spacing_units.definition.split(';')[0]
                     },
                     'aggregation_statistic': datastream.aggregation_statistic,
                     'time_aggregation_interval': datastream.time_aggregation_interval,
                     'time_aggregation_interval_units': {
                         'name': datastream.time_aggregation_interval_units.name,
                         'symbol': datastream.time_aggregation_interval_units.symbol,
-                        'definition': datastream.time_aggregation_interval_units.definition
+                        'definition': datastream.time_aggregation_interval_units.definition.split(';')[0]
                     }
                 }
             } for datastream in datastreams

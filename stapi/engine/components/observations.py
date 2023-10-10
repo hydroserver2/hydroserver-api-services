@@ -1,6 +1,7 @@
 from uuid import UUID
 from typing import List
 from core.endpoints.observations.utils import query_observations
+from core.endpoints.resultqualifier.utils import query_result_qualifiers
 from sensorthings.components.observations.engine import ObservationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -52,22 +53,35 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                 )
             observations = observations.all()
 
-        result_qualifiers = {}
+        result_qualifier_ids = list(set([rq_id for rq_ids in [
+            observation.result_qualifiers for observation in observations if observation.result_qualifiers
+        ] for rq_id in rq_ids]))
+
+        result_qualifiers, _ = query_result_qualifiers(
+            user=None,
+            result_qualifier_ids=result_qualifier_ids
+        )
+
+        result_qualifiers = {
+            result_qualifier.id: result_qualifier
+            for result_qualifier in result_qualifiers
+        }
 
         return [
             {
                 'id': observation.id,
-                'phenomenon_time': observation.phenomenon_time,
+                'phenomenon_time': str(observation.phenomenon_time),
                 'result': observation.result,
-                'result_time': observation.result_time,
+                'result_time': str(observation.result_time) if observation.result_time else None,
+                'datastream_id': observation.datastream_id,
                 'result_quality': {
                     'quality_code': observation.quality_code,
                     'result_qualifiers': [
                         {
-                            'code': result_qualifiers.get(result_qualifier)['code'],
-                            'description': result_qualifiers.get(result_qualifier)['description']
+                            'code': result_qualifiers.get(result_qualifier).code,
+                            'description': result_qualifiers.get(result_qualifier).description
                         } for result_qualifier in observation.result_qualifiers
-                    ]
+                    ] if observation.result_qualifiers is not None else []
                 }
             } for observation in observations
         ], count

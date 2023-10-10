@@ -72,7 +72,7 @@ def base_url():
     ('FeaturesOfInterest', {'$top': 10}),
 ])
 @pytest.mark.django_db()
-def test_sensorthings_list_endpoints(django_test_db, auth_headers, base_url, endpoint, query_params):
+def test_sensorthings_list_endpoints(auth_headers, base_url, endpoint, query_params):
     client = Client()
 
     response = client.get(
@@ -108,15 +108,14 @@ def test_sensorthings_list_endpoints(django_test_db, auth_headers, base_url, end
     ('Datastreams(ca999458-d644-44b0-b678-09a892fd54ac)/Sensor', {}, 200),
     ('Datastreams(ca999458-d644-44b0-b678-09a892fd54ac)/ObservedProperty', {}, 200),
     ('Datastreams(ca999458-d644-44b0-b678-09a892fd54ac)/Thing', {}, 200),
-    ('Observations(71335328-fd9f-4079-b51d-ddd629545c27)', {}, 200),
-    ('Observations(71335328-fd9f-4079-b51d-ddd629545c27)', {'$expand': 'Datastream/Thing'}, 200),
+    ('Observations(002bc4e1-3b3e-448b-a91f-346f968b988c)', {}, 200),
+    ('Observations(002bc4e1-3b3e-448b-a91f-346f968b988c)', {'$expand': 'Datastream/Thing'}, 200),
     ('Observations(00000000-0000-0000-0000-000000000000)', {}, 404),
-    ('Observations(8119cba7-8c00-454d-9584-3f605b1a0c74)/Datastream', {}, 200),
+    ('Observations(002bc4e1-3b3e-448b-a91f-346f968b988c)/Datastream', {}, 200),
     ('FeaturesOfInterest(00000000-0000-0000-0000-000000000000)', {}, 404),
 ])
 @pytest.mark.django_db()
 def test_sensorthings_get_endpoints(
-        django_test_db,
         auth_headers,
         base_url,
         endpoint,
@@ -149,7 +148,6 @@ def test_sensorthings_get_endpoints(
 ])
 @pytest.mark.django_db()
 def test_sensorthings_post_endpoints(
-        django_test_db,
         auth_headers,
         base_url,
         endpoint,

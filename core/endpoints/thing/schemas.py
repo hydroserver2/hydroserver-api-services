@@ -4,6 +4,10 @@ from pydantic import Field
 from typing import List, Optional
 from uuid import UUID
 from sensorthings.validators import allow_partial
+from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
+from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
+from core.endpoints.unit.schemas import UnitGetResponse
+from core.endpoints.sensor.schemas import SensorGetResponse
 
 
 class ThingID(Schema):
@@ -93,10 +97,10 @@ class ThingPrivacyPatchBody(Schema):
 
 
 class ThingMetadataGetResponse(Schema):
-    units: List[dict]
-    sensors: List[dict]
-    processing_levels: List[dict] = Field(..., alias='processingLevels')
-    observed_properties: List[dict] = Field(..., alias='observedProperties')
+    units: List[UnitGetResponse]
+    sensors: List[SensorGetResponse]
+    processing_levels: List[ProcessingLevelGetResponse] = Field(..., alias='processingLevels')
+    observed_properties: List[ObservedPropertyGetResponse] = Field(..., alias='observedProperties')
 
     class Config:
         allow_population_by_field_name = True
