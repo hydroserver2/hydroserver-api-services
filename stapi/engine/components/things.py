@@ -36,6 +36,13 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 filters=filters
             )
 
+        if ordering:
+            things = self.apply_order(
+                queryset=things,
+                component='Thing',
+                order_by=ordering
+            )
+
         count = things.count()
 
         if pagination:

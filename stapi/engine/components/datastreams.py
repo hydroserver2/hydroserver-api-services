@@ -28,14 +28,21 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             ignore_privacy=expanded
         )
 
-        count = datastreams.count()
-
         if filters:
             datastreams = self.apply_filters(
                 queryset=datastreams,
                 component='Datastream',
                 filters=filters
             )
+
+        if ordering:
+            datastreams = self.apply_order(
+                queryset=datastreams,
+                component='Datastream',
+                order_by=ordering
+            )
+
+        count = datastreams.count()
 
         if thing_ids:
             datastreams = self.apply_rank(

@@ -32,6 +32,13 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 filters=filters
             )
 
+        if ordering:
+            observed_properties = self.apply_order(
+                queryset=observed_properties,
+                component='ObservedProperty',
+                order_by=ordering
+            )
+
         count = observed_properties.count()
 
         if pagination:

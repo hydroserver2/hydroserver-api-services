@@ -35,6 +35,13 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 filters=filters
             )
 
+        if ordering:
+            things = self.apply_order(
+                queryset=things,
+                component='Location',
+                order_by=ordering
+            )
+
         count = things.count()
 
         if pagination:

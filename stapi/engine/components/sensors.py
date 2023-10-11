@@ -31,6 +31,13 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 filters=filters
             )
 
+        if ordering:
+            sensors = self.apply_order(
+                queryset=sensors,
+                component='ObservedProperty',
+                order_by=ordering
+            )
+
         count = sensors.count()
 
         if pagination:

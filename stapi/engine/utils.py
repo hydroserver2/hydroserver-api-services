@@ -19,7 +19,7 @@ class SensorThingsUtils:
             UUID(val) if isinstance(val, str) else val for val in strings
         ]
 
-    def transform_model_filter(self, component, prop):
+    def transform_model_field(self, component, prop):
         if component == 'Thing':
             return {
                 'properties__samplingFeatureType': 'sampling_feature_type',
@@ -60,7 +60,7 @@ class SensorThingsUtils:
             ]:
                 return lookup_component(
                     prop.split('__')[0], 'camel_singular', 'snake_singular'
-                ) + '__' + self.transform_model_filter(
+                ) + '__' + self.transform_model_field(
                     component=prop.split('__')[0],
                     prop='__'.join(prop.split('__')[1:])
                 )
@@ -101,7 +101,7 @@ class SensorThingsUtils:
             ]:
                 return lookup_component(
                     prop.split('__')[0], 'camel_singular', 'snake_singular'
-                ) + '__' + self.transform_model_filter(
+                ) + '__' + self.transform_model_field(
                     component=prop.split('__')[0],
                     prop='__'.join(prop.split('__')[1:])
                 )
@@ -119,7 +119,7 @@ class SensorThingsUtils:
 
         for prop in list(query_filter.flatten()):
             if isinstance(prop, F):
-                model_field = self.transform_model_filter(component, prop.name)
+                model_field = self.transform_model_field(component, prop.name)
                 prop.__dict__ = {
                     '_constructor_args': ((model_field,), {}),
                     'name': model_field
@@ -128,6 +128,23 @@ class SensorThingsUtils:
             return queryset.filter(query_filter)
         except FieldError:
             raise HttpError(422, 'Failed to parse filter parameter.')
+
+    def apply_order(self, queryset, component, order_by):
+        """"""
+
+        order_by = [
+            {
+                'field': self.transform_model_field(component, field['field'].replace('/', '__')),
+                'direction': field['direction']
+            } for field in order_by
+        ]
+
+        queryset = queryset.order_by(*[
+            f'{"-" if order_field["direction"] == "desc" else ""}{order_field["field"]}'
+            for order_field in order_by
+        ])
+
+        return queryset
 
     @staticmethod
     def apply_rank(component, queryset, partition_field, filter_ids, max_records=100):

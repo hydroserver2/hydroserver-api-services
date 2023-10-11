@@ -27,14 +27,33 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             ignore_privacy=expanded
         )
 
-        count = observations.count()
-
         if filters:
             observations = self.apply_filters(
                 queryset=observations,
                 component='Observation',
                 filters=filters
             )
+
+        if not ordering:
+            ordering = []
+
+        if not all(field in [
+            order_rule['field'] for order_rule in ordering
+        ] for field in ['Datastream/id', 'phenomenonTime']):
+            ordering = [
+                {'field': 'Datastream/id', 'direction': 'asc'}, {'field': 'phenomenonTime', 'direction': 'asc'}
+            ] + [
+                order_rule for order_rule in ordering
+                if order_rule['field'] not in ['Datastream/id', 'phenomenonTime']
+            ]
+
+        observations = self.apply_order(
+            queryset=observations,
+            component='Observation',
+            order_by=ordering
+        )
+
+        count = observations.count()
 
         if datastream_ids:
             observations = self.apply_rank(
