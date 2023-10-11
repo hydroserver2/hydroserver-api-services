@@ -30,7 +30,7 @@ if DEPLOYED:
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
 else:
-    PROXY_BASE_URL = 'https://dev.hydroserver2.org' #'http://127.0.0.1:8000'
+    PROXY_BASE_URL = 'http://127.0.0.1:8000' #'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
 
@@ -144,6 +144,9 @@ AUTHLIB_OAUTH_CLIENTS = {
         'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
     }
 }
+
+APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # Email Backend Settings
 

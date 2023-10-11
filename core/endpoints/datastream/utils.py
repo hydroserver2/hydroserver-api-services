@@ -361,6 +361,9 @@ def generate_csv(datastream):
     qualifier_code_map = {qualifier.id: qualifier.code for qualifier in qualifiers}
 
     for observation in observations:
-        result_qualifiers_str = ' '.join(qualifier_code_map.get(uuid, "") for uuid in (observation.result_qualifiers or []))
-        yield f"{observation.phenomenon_time.isoformat()},{observation.result},{result_qualifiers_str}\n"
+        result_qualifiers_str = ','.join(qualifier_code_map.get(uuid, "") for uuid in (observation.result_qualifiers or []))
+        if result_qualifiers_str:
+            yield f'{observation.phenomenon_time.isoformat()},{observation.result},"{result_qualifiers_str}"\n'
+        else:
+            yield f'{observation.phenomenon_time.isoformat()},{observation.result},\n'
 
