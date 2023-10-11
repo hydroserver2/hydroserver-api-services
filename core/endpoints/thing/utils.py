@@ -10,11 +10,12 @@ from .schemas import AssociationFields, PersonFields, OrganizationFields, ThingF
 
 
 def apply_thing_auth_rules(
-        user: Person,
+        user: Optional[Person],
         thing_query: QuerySet,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
+        ignore_privacy: bool = False,
         check_result: bool = False
 ) -> (QuerySet, bool):
 
@@ -25,12 +26,13 @@ def apply_thing_auth_rules(
 
     auth_filters = []
 
-    if user:
-        auth_filters.append((
-            Q(is_private=False) | (Q(associates__person=user) & Q(associates__owns_thing=True))
-        ))
-    else:
-        auth_filters.append(Q(is_private=False))
+    if ignore_privacy is False:
+        if user:
+            auth_filters.append((
+                Q(is_private=False) | (Q(associates__person=user) & Q(associates__owns_thing=True))
+            ))
+        else:
+            auth_filters.append(Q(is_private=False))
 
     if require_ownership:
         auth_filters.append(Q(associates__person=user) & Q(associates__owns_thing=True))
@@ -42,7 +44,9 @@ def apply_thing_auth_rules(
         auth_filters.append(Q(associates__person=user) & Q(associates__owns_thing=False))
 
     thing_query = thing_query.annotate(
-        associates_count=Count('associates', filter=reduce(operator.and_, auth_filters))
+        associates_count=Count(
+            'associates', filter=reduce(operator.and_, auth_filters) if auth_filters else None
+        )
     ).filter(
         associates_count__gt=0
     )
@@ -51,11 +55,12 @@ def apply_thing_auth_rules(
 
 
 def query_things(
-        user: Person,
+        user: Optional[Person],
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
+        ignore_privacy: bool = False,
         thing_ids: Optional[List[UUID]] = None,
         prefetch_photos: bool = False,
         prefetch_datastreams: bool = False
@@ -84,6 +89,7 @@ def query_things(
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
         require_unaffiliated=require_unaffiliated,
+        ignore_privacy=ignore_privacy,
         check_result=check_result_exists
     )
 
@@ -91,11 +97,12 @@ def query_things(
 
 
 def check_thing_by_id(
-        user: Person,
+        user: Optional[Person],
         thing_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
+        ignore_privacy: bool = False,
         raise_http_errors: bool = False
 ) -> bool:
 
@@ -105,6 +112,7 @@ def check_thing_by_id(
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
         require_unaffiliated=require_unaffiliated,
+        ignore_privacy=ignore_privacy,
         check_result_exists=True
     )
 
@@ -119,11 +127,12 @@ def check_thing_by_id(
 
 
 def get_thing_by_id(
-        user: Person,
+        user: Optional[Person],
         thing_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
+        ignore_privacy: bool = False,
         prefetch_photos: bool = False,
         prefetch_datastreams: bool = False,
         raise_http_errors: bool = True
@@ -135,6 +144,7 @@ def get_thing_by_id(
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
         require_unaffiliated=require_unaffiliated,
+        ignore_privacy=ignore_privacy,
         prefetch_photos=prefetch_photos,
         prefetch_datastreams=prefetch_datastreams,
         check_result_exists=True

@@ -5,6 +5,7 @@ import glob
 
 BASE_DIR = os.path.join('core', 'fixtures', 'tests')
 
+
 def split_large_file(filepath, lines_per_file=20_000):
     """
     Split a large file into smaller chunks, ensuring each chunk is valid YAML.
@@ -57,6 +58,7 @@ def load_data_file(filepath):
     else:
         load_chunk(filepath)
 
+
 def load_chunk(filepath):
     cmd = f"python manage.py loaddata {filepath}"
     result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -65,6 +67,7 @@ def load_chunk(filepath):
         print(f"Failed to load {filepath}.\nError: {result.stderr.decode('utf-8')}")
     else:
         print(f"Successfully loaded {filepath}.")
+
 
 def load_data_for_directory(directory_path):
     # Load thing.yaml first
@@ -76,6 +79,7 @@ def load_data_for_directory(directory_path):
     for yaml_file in sorted(glob.glob(os.path.join(directory_path, "*.yaml"))):
         if yaml_file != thing_path:
             load_data_file(yaml_file)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Load data for tests.")

@@ -10,14 +10,14 @@ from django.urls.exceptions import Http404
 from django.db import connection
 from django.db.models import F, Window
 from django.db.models.functions import DenseRank
-from sensorthings import SensorThingsAbstractEngine
+from sensorthings import SensorThingsBaseEngine
 from sensorthings import components as component_schemas
 from sensorthings.utils import lookup_component
 from stapi.mapper import sensorthings_mapper
 from core import models as core_models
 
 
-class SensorThingsEngine(SensorThingsAbstractEngine):
+class SensorThingsEngine(SensorThingsBaseEngine):
     rewriter = AliasRewriter({
         'Datastream': 'datastream',
     })

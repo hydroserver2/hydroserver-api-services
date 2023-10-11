@@ -189,4 +189,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # SensorThings Configuration
 
-ST_API_PREFIX = 'endpoints/sensorthings'
+ST_API_PREFIX = 'api/sensorthings'
