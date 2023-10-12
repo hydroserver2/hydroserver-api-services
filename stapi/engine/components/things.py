@@ -61,7 +61,13 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                     'sampling_feature_type': thing.sampling_feature_type,
                     'sampling_feature_code': thing.sampling_feature_code,
                     'site_type': thing.site_type,
-                    'contact_people': []
+                    'contact_people': [
+                        {
+                            'first_name': thing_association.person.first_name,
+                            'last_name': thing_association.person.last_name,
+                            'email': thing_association.person.email
+                        } for thing_association in thing.associates.all()
+                    ]
                 },
                 'location_ids': [thing.location.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids
