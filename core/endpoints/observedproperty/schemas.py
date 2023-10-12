@@ -1,7 +1,6 @@
 from ninja import Schema
 from uuid import UUID
 from typing import Optional
-from pydantic import AnyHttpUrl
 from sensorthings.validators import allow_partial
 from accounts.schemas import UserFields
 
@@ -12,7 +11,7 @@ class ObservedPropertyID(Schema):
 
 class ObservedPropertyFields(Schema):
     name: str
-    definition: AnyHttpUrl
+    definition: str
     description: str = None
     type: str = None
     code: str = None

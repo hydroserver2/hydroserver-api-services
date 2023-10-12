@@ -202,7 +202,7 @@ def test_core_patch_endpoints(
     ('observed-properties/4c310501-31f3-4954-80b0-2279eb049e39', 403, 7),
     ('observed-properties/00000000-0000-0000-0000-000000000000', 404, 7),
     ('units/04d023bf-5d0a-4b61-9eac-7b7b6097af6f', 204, 9),
-    ('units/52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9', 409, 7),
+    ('units/52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9', 409, 8),
     ('units/d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e', 403, 7),
     ('units/00000000-0000-0000-0000-000000000000', 404, 7),
     ('processing-levels/265f3951-7d73-4b7f-9b6a-ae19d3cecb2b', 204, 7),
