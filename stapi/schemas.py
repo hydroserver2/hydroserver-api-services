@@ -54,6 +54,7 @@ class ObservedPropertyProperties(Schema):
 
 
 class ObservedPropertyResponse(Schema):
+    definition: str
     properties: ObservedPropertyProperties
 
 
