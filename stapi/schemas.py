@@ -27,6 +27,7 @@ class DatastreamProperties(Schema):
 
 
 class DatastreamResponse(Schema):
+    observation_type: str = Field(..., alias='observationType')
     properties: DatastreamProperties
 
 
