@@ -21,12 +21,9 @@ def google_login(request):
     else:
         redirect_uri = request.build_absolute_uri('/api/account/google/auth')
 
-    print(':::::')
-    print(redirect_uri)
-
-    if 'X-Forwarded-Proto' in request.headers:
-        print(redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':'))
-        # redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
+    # TODO: There's an issue with AWS that's causing the X-Forwarded-Proto header to always be set to http.
+    # if 'X-Forwarded-Proto' in request.headers:
+    #     redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
     return oauth.google.authorize_redirect(request, redirect_uri)
 
