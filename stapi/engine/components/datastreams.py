@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.datastream.utils import query_datastreams
+from core.endpoints.datastream.utils import query_datastreams, get_datastream_by_id
 from sensorthings.components.datastreams.engine import DatastreamBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -90,8 +90,12 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 },
                 'observation_type': datastream.observation_type,
                 'observed_area': {},
-                'phenomenon_time': None,
-                'result_time': None,
+                'phenomenon_time': getattr(self, 'iso_time_interval')(
+                    datastream.phenomenon_begin_time, datastream.phenomenon_end_time
+                ),
+                'result_time': getattr(self, 'iso_time_interval')(
+                    datastream.result_begin_time, datastream.result_end_time
+                ),
                 'properties': {
                     'result_type': datastream.result_type,
                     'status': datastream.status,
@@ -127,7 +131,31 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             datastream_id: UUID,
             datastream
     ) -> None:
-        raise HttpError(403, 'You do not have permission to perform this action.')
+
+        datastream_obj = get_datastream_by_id(
+            user=getattr(self, 'request').authenticated_user,
+            datastream_id=datastream_id,
+            require_ownership=True,
+            raise_http_errors=True
+        )
+
+        datastream_data = datastream.dict(exclude_unset=True)
+
+        if datastream_data.get('phenomenon_time', None) is not None:
+            datastream_obj.phenomenon_begin_time = datastream_data['phenomenon_time'].split('/')[0]
+            datastream_obj.phenomenon_end_time = datastream_data['phenomenon_time'].split('/')[-1]
+        else:
+            datastream_obj.phenomenon_begin_time = None
+            datastream_obj.phenomenon_end_time = None
+
+        if datastream_data.get('result_time', None) is not None:
+            datastream_obj.result_begin_time = datastream_data['result_time'].split('/')[0]
+            datastream_obj.result_end_time = datastream_data['result_time'].split('/')[-1]
+        else:
+            datastream_obj.result_begin_time = None
+            datastream_obj.result_end_time = None
+
+        datastream_obj.save()
 
     def delete_datastream(
             self,

@@ -120,17 +120,20 @@ class ResultQualifier(Schema):
 
 class ObservationResultQualityResponse(Schema):
     quality_code: str = Field(None, alias='qualityCode')
-    result_qualifiers: List[ResultQualifier] = Field([], alias='resultQualifiers')
+    result_qualifiers: List[ResultQualifier] = Field(None, alias='resultQualifiers')
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class ObservationResultQualityBody(Schema):
     quality_code: str = Field(None, alias='qualityCode')
-    result_qualifiers: List[UUID] = Field(..., alias='resultQualifiers')
+    result_qualifiers: List[UUID] = Field(None, alias='resultQualifiers')
 
 
 class ObservationResponse(Schema):
-    result_quality: ObservationResultQualityResponse = Field([], alias='resultQuality')
+    result_quality: ObservationResultQualityResponse = Field(None, alias='resultQuality')
 
 
 class ObservationBody(Schema):
-    result_quality: ObservationResultQualityBody = Field([], alias='resultQuality')
+    result_quality: ObservationResultQualityBody = Field(None, alias='resultQuality')

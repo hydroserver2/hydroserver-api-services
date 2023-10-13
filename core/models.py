@@ -242,6 +242,7 @@ class Observation(models.Model):
     def save(self, *args, **kwargs):
         if not self.phenomenon_time:
             self.phenomenon_time = datetime.now(pytz.utc)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'Observation'
