@@ -134,35 +134,35 @@ def test_sensorthings_get_endpoints(
     assert response.status_code == status_code
 
 
-# @pytest.mark.parametrize('endpoint, post_body, status_code', [
-#     ('Observations', {
-#         'phenomenonTime': '2023-10-01T10:00:00Z',
-#         'result': 23.2,
-#         'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'}
-#     }, 201),
-#     ('Observations', [{
-#         'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'},
-#         'engine': ['phenomenonTime', 'result'],
-#         'dataArray': [['2023-10-02T10:00:00Z', 24.5], ['2023-10-03T10:00:00Z', 22.8]]
-#     }], 201)
-# ])
-# @pytest.mark.django_db()
-# def test_sensorthings_post_endpoints(
-#         auth_headers,
-#         base_url,
-#         endpoint,
-#         post_body,
-#         status_code
-# ):
-#     client = Client()
-#
-#     response = client.post(
-#         f'{base_url}/{endpoint}',
-#         json.dumps(post_body),
-#         content_type="application/json",
-#         **auth_headers
-#     )
-#
-#     json.loads(response.content)
-#
-#     assert response.status_code == status_code
+@pytest.mark.parametrize('endpoint, post_body, status_code', [
+    ('Observations', {
+        'phenomenonTime': '2023-10-01T10:00:00Z',
+        'result': 23.2,
+        'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'}
+    }, 201),
+    ('Observations', [{
+        'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'},
+        'components': ['phenomenonTime', 'result'],
+        'dataArray': [['2023-10-02T10:00:00Z', 24.5], ['2023-10-03T10:00:00Z', 22.8]]
+    }], 201)
+])
+@pytest.mark.django_db()
+def test_sensorthings_post_endpoints(
+        auth_headers,
+        base_url,
+        endpoint,
+        post_body,
+        status_code
+):
+    client = Client()
+
+    response = client.post(
+        f'{base_url}/{endpoint}',
+        json.dumps(post_body),
+        content_type="application/json",
+        **auth_headers
+    )
+
+    json.loads(response.content)
+
+    assert response.status_code == status_code

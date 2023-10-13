@@ -121,8 +121,7 @@ st_api_1_1 = SensorThingsAPI(
         ),
         SensorThingsEndpoint(
             name='create_observation',
-            # authentication=[JWTAuth(), BasicAuth()],
-            # authorization=observation_authorization,
+            authentication=[JWTAuth(), BasicAuth()],
             body_schema=schemas.ObservationBody
         ),
         SensorThingsEndpoint(
@@ -133,8 +132,8 @@ st_api_1_1 = SensorThingsAPI(
         ),
         SensorThingsEndpoint(
             name='delete_observation',
-            # authentication=[JWTAuth(), BasicAuth()],
-            # authorization=observation_authorization
+            deprecated=True,
+            authorization=lambda request, observation_id: False,
         ),
         SensorThingsEndpoint(
             name='list_observed_property',
