@@ -1,0 +1,42 @@
+- model: core.datastream
+  pk: 376be82c-b3a1-4d96-821b-c7954b931f94
+  fields:
+    unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
+    sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
+    observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
+    processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
+    name: 376be82c-b3a1-4d96-821b-c7954b931f94
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 0
+    no_data_value: -9999.0
+    intended_time_spacing: 0.0
+    intended_time_spacing_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    phenomenon_begin_time: 2022-01-01 10:10:10+00:00
+    phenomenon_end_time: 2022-03-01 10:10:10+00:00
+
+- model: core.observation
+  pk: a0e6b98b-39da-4f66-9fdc-a537fbd2b3c3
+  fields:
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 3.0
+    phenomenon_time: 2022-03-01 10:00:10+00:00
+- model: core.observation
+  pk: 056b132d-cf81-4627-90b0-e005076d4c68
+  fields:
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 0.0
+    phenomenon_time: 2022-03-01 10:05:10+00:00
+- model: core.observation
+  pk: 391808c3-b51f-458a-a364-9cabd5430456
+  fields:
+    datastream: 376be82c-b3a1-4d96-821b-c7954b931f94
+    result: 2.0
+    phenomenon_time: 2022-03-01 10:10:10+00:00

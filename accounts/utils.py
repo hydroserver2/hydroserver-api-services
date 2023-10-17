@@ -4,6 +4,8 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from accounts.schemas import UserFields, OrganizationFields
+import urllib.parse
 
 
 user_model = get_user_model()
@@ -14,7 +16,7 @@ class TokenGenerator(PasswordResetTokenGenerator):
         return str(user.pk) + str(timestamp) + str(user.is_active)
 
 
-account_activation_token = TokenGenerator()
+account_verification_token = TokenGenerator()
 
 
 def send_verification_email(user: user_model):
@@ -30,10 +32,10 @@ def send_verification_email(user: user_model):
     """
 
     context = {
-        'uid': base64.b64encode(bytes(user.email, 'utf-8')).decode('utf-8'),
-        'token': account_activation_token.make_token(user),
+        'uid': urllib.parse.quote(base64.b64encode(bytes(user.email, 'utf-8')).decode('utf-8')),
+        'token':  urllib.parse.quote(account_verification_token.make_token(user)),
         'name': user.first_name,
-        'proxy_base_url': settings.PROXY_BASE_URL
+        'app_client_url': settings.APP_CLIENT_URL
     }
 
     html_message = render_to_string('verify_account_email.html', context)
@@ -41,7 +43,7 @@ def send_verification_email(user: user_model):
     send_mail(
         'Verify HydroServer Account',
         '',  # Don't support plain text emails
-        'HydroServer <admin@hydroserver.ciroh.org>',
+        f'HydroServer <{settings.DEFAULT_FROM_EMAIL}>',
         [user.unverified_email],
         html_message=html_message,
     )
@@ -63,3 +65,38 @@ def update_account_to_verified(user: user_model):
     user.save()
 
     return user
+
+
+def send_password_reset_confirmation_email(user, uid, token):
+    mail_subject = 'Password Reset'
+
+    context = {
+        'user': user,
+        'uid': uid,
+        'token': token,
+        'domain': 'hydroserver.ciroh.org',
+        'proxy_base_url': settings.PROXY_BASE_URL
+    }
+
+    html_message = render_to_string('reset_password_email.html', context)
+
+    send_mail(
+        mail_subject,
+        '',  # Don't support plain text emails
+        f'HydroServer <{settings.DEFAULT_FROM_EMAIL}>',
+        [user.email],
+        html_message=html_message,
+    )
+
+
+def build_user_response(user):
+    return {
+        'id': user.id,
+        'isVerified': user.is_verified,
+        'organization': {
+            **{field: getattr(user.organization, field, None)
+               for field in OrganizationFields.__fields__.keys()}
+        },
+        **{field: getattr(user, field) for field in UserFields.__fields__.keys()},
+        'email': user.email if user.is_verified is True else user.unverified_email,
+    }

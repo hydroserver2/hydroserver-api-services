@@ -1,8 +1,8 @@
+from uuid import UUID
 from ninja import Schema, Field
 from pydantic import HttpUrl
 from typing import List, Literal, Union
 from sensorthings import components as st_components
-from sensorthings.extras.iso_types import ISOInterval
 
 
 class DatastreamProperties(Schema):
@@ -26,22 +26,22 @@ class DatastreamProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Datastream(Schema):
+class DatastreamResponse(Schema):
+    observation_type: str = Field(..., alias='observationType')
     properties: DatastreamProperties
 
 
 class LocationProperties(Schema):
-    city: Union[str, None] = None
     state: Union[str, None] = None
     county: Union[str, None] = None
-    elevation: Union[float, None] = None
+    elevation_m: Union[float, None] = None
     elevation_datum: Union[str, None] = Field(None, alias='elevationDatum')
 
     class Config:
         allow_population_by_field_name = True
 
 
-class Location(Schema):
+class LocationResponse(Schema):
     properties: LocationProperties
 
 
@@ -53,7 +53,8 @@ class ObservedPropertyProperties(Schema):
         allow_population_by_field_name = True
 
 
-class ObservedProperty(Schema):
+class ObservedPropertyResponse(Schema):
+    definition: str
     properties: ObservedPropertyProperties
 
 
@@ -84,7 +85,7 @@ class SensorProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Sensor(Schema):
+class SensorResponse(Schema):
     encoding_type: sensorEncodingTypes = Field(..., alias='encodingType')
     sensor_metadata: SensorProperties = Field(..., alias='metadata')
 
@@ -108,5 +109,31 @@ class ThingProperties(Schema):
         allow_population_by_field_name = True
 
 
-class Thing(Schema):
+class ThingResponse(Schema):
     properties: ThingProperties
+
+
+class ResultQualifier(Schema):
+    code: str
+    description: str
+
+
+class ObservationResultQualityResponse(Schema):
+    quality_code: str = Field(None, alias='qualityCode')
+    result_qualifiers: List[ResultQualifier] = Field(None, alias='resultQualifiers')
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class ObservationResultQualityBody(Schema):
+    quality_code: str = Field(None, alias='qualityCode')
+    result_qualifiers: List[UUID] = Field(None, alias='resultQualifiers')
+
+
+class ObservationResponse(Schema):
+    result_quality: ObservationResultQualityResponse = Field(None, alias='resultQuality')
+
+
+class ObservationBody(Schema):
+    result_quality: ObservationResultQualityBody = Field(None, alias='resultQuality')

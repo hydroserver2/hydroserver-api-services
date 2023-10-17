@@ -1,38 +1,28 @@
 from django.urls import path
-from sensorthings import SensorThingsAPI, SensorThingsComponent, SensorThingsEndpoint
+from sensorthings import SensorThingsAPI, SensorThingsEndpoint
 from stapi import schemas
-from stapi.engine import SensorThingsEngine
-from stapi.auth import observation_authorization, BasicAuth
+from stapi.engine import HydroServerSensorThingsEngine
+from accounts.auth.jwt import JWTAuth
+from accounts.auth.basic import BasicAuth
+from accounts.auth.anonymous import anonymous_auth
 
 
 st_api_1_1 = SensorThingsAPI(
-    engine=SensorThingsEngine,
+    engine=HydroServerSensorThingsEngine,
     title='HydroServer SensorThings API',
     version='1.1',
     description='This is the documentation for the HydroServer SensorThings API implementation.',
-    components=[
-        SensorThingsComponent(
-            name='datastream',
-            component_schema=schemas.Datastream
-        ),
-        SensorThingsComponent(
-            name='location',
-            component_schema=schemas.Location
-        ),
-        SensorThingsComponent(
-            name='observed_property',
-            component_schema=schemas.ObservedProperty
-        ),
-        SensorThingsComponent(
-            name='sensor',
-            component_schema=schemas.Sensor
-        ),
-        SensorThingsComponent(
-            name='thing',
-            component_schema=schemas.Thing
-        )
-    ],
     endpoints=[
+        SensorThingsEndpoint(
+            name='list_datastream',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.DatastreamResponse
+        ),
+        SensorThingsEndpoint(
+            name='get_datastream',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.DatastreamResponse
+        ),
         SensorThingsEndpoint(
             name='create_datastream',
             deprecated=True,
@@ -47,6 +37,14 @@ st_api_1_1 = SensorThingsAPI(
             name='delete_datastream',
             deprecated=True,
             authorization=lambda request, datastream_id: False
+        ),
+        SensorThingsEndpoint(
+            name='list_feature_of_interest',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth]
+        ),
+        SensorThingsEndpoint(
+            name='get_feature_of_interest',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth]
         ),
         SensorThingsEndpoint(
             name='create_feature_of_interest',
@@ -64,6 +62,14 @@ st_api_1_1 = SensorThingsAPI(
             authorization=lambda request, feature_of_interest_id: False
         ),
         SensorThingsEndpoint(
+            name='list_historical_location',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth]
+        ),
+        SensorThingsEndpoint(
+            name='get_historical_location',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth]
+        ),
+        SensorThingsEndpoint(
             name='create_historical_location',
             deprecated=True,
             authorization=lambda request, historical_location: False
@@ -77,6 +83,16 @@ st_api_1_1 = SensorThingsAPI(
             name='delete_historical_location',
             deprecated=True,
             authorization=lambda request, historical_location_id: False
+        ),
+        SensorThingsEndpoint(
+            name='list_location',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.LocationResponse
+        ),
+        SensorThingsEndpoint(
+            name='get_location',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.LocationResponse
         ),
         SensorThingsEndpoint(
             name='create_location',
@@ -94,19 +110,40 @@ st_api_1_1 = SensorThingsAPI(
             authorization=lambda request, location_id: False
         ),
         SensorThingsEndpoint(
+            name='list_observation',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.ObservationResponse
+        ),
+        SensorThingsEndpoint(
+            name='get_observation',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.ObservationResponse
+        ),
+        SensorThingsEndpoint(
             name='create_observation',
-            authentication=BasicAuth(),
-            authorization=observation_authorization
+            authentication=[JWTAuth(), BasicAuth()],
+            body_schema=schemas.ObservationBody
         ),
         SensorThingsEndpoint(
             name='update_observation',
             deprecated=True,
-            authorization=lambda request, observation_id, observation: False
+            authorization=lambda request, observation_id, observation: False,
+            body_schema=schemas.ObservationBody
         ),
         SensorThingsEndpoint(
             name='delete_observation',
-            authentication=BasicAuth(),
-            authorization=observation_authorization
+            deprecated=True,
+            authorization=lambda request, observation_id: False,
+        ),
+        SensorThingsEndpoint(
+            name='list_observed_property',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.ObservedPropertyResponse
+        ),
+        SensorThingsEndpoint(
+            name='get_observed_property',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.ObservedPropertyResponse
         ),
         SensorThingsEndpoint(
             name='create_observed_property',
@@ -124,6 +161,16 @@ st_api_1_1 = SensorThingsAPI(
             authorization=lambda request, observed_property_id: False
         ),
         SensorThingsEndpoint(
+            name='list_sensor',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.SensorResponse
+        ),
+        SensorThingsEndpoint(
+            name='get_sensor',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.SensorResponse
+        ),
+        SensorThingsEndpoint(
             name='create_sensor',
             deprecated=True,
             authorization=lambda request, sensor: False
@@ -137,6 +184,16 @@ st_api_1_1 = SensorThingsAPI(
             name='delete_sensor',
             deprecated=True,
             authorization=lambda request, sensor_id: False
+        ),
+        SensorThingsEndpoint(
+            name='list_thing',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.ThingResponse
+        ),
+        SensorThingsEndpoint(
+            name='get_thing',
+            authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
+            response_schema=schemas.ThingResponse
         ),
         SensorThingsEndpoint(
             name='create_thing',

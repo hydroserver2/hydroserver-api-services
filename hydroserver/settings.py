@@ -30,13 +30,16 @@ if DEPLOYED:
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
 else:
-    PROXY_BASE_URL = 'http://127.0.0.1:8000'
+    PROXY_BASE_URL = 'http://127.0.0.1:8000' #'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
+
+CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 
 LOGIN_REDIRECT_URL = 'sites'
 LOGOUT_REDIRECT_URL = 'home'
 
-AUTH_USER_MODEL = 'accounts.CustomUser'
+AUTH_USER_MODEL = 'accounts.Person'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -55,7 +58,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sites.apps.SitesConfig',
+    'corsheaders',
+    'core.apps.CoreConfig',
     'accounts.apps.AccountsConfig',
     'django_ses',
     'sensorthings',
@@ -65,6 +69,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -140,6 +145,9 @@ AUTHLIB_OAUTH_CLIENTS = {
     }
 }
 
+APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
 # Email Backend Settings
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
@@ -178,3 +186,7 @@ STATIC_ROOT = 'staticfiles'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# SensorThings Configuration
+
+ST_API_PREFIX = 'api/sensorthings'
