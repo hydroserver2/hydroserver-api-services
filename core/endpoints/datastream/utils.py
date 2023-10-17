@@ -70,6 +70,7 @@ def query_datastreams(
         datastream_ids: Optional[List[UUID]] = None,
         thing_ids: Optional[List[UUID]] = None,
         sensor_ids: Optional[List[UUID]] = None,
+        data_source_ids: Optional[List[UUID]] = None,
         observed_property_ids: Optional[List[UUID]] = None
 ) -> (QuerySet, bool):
 
@@ -86,6 +87,9 @@ def query_datastreams(
 
     if observed_property_ids:
         datastream_query = datastream_query.filter(observed_property_id__in=observed_property_ids)
+
+    if data_source_ids:
+        datastream_query = datastream_query.filter(data_source_id__in=data_source_ids)
 
     datastream_query = datastream_query.select_related(
         'processing_level', 'unit', 'intended_time_spacing_units', 'time_aggregation_interval_units'

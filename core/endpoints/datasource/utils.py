@@ -30,6 +30,7 @@ def query_data_sources(
         check_result_exists: bool = False,
         require_ownership: bool = False,
         data_source_ids: Optional[List[UUID]] = None,
+        data_loader_ids: Optional[List[UUID]] = None,
         datastream_ids: Optional[List[UUID]] = None
 ):
 
@@ -37,6 +38,9 @@ def query_data_sources(
 
     if data_source_ids:
         data_source_query = data_source_query.filter(id__in=data_source_ids)
+
+    if data_loader_ids:
+        data_source_query = data_source_query.filter(data_loader_id__in=data_loader_ids)
 
     if datastream_ids:
         data_source_query = data_source_query.filter(datastreams__id__in=datastream_ids)

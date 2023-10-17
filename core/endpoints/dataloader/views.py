@@ -3,9 +3,11 @@ from uuid import UUID
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import DataLoader
+from core.endpoints.datasource.schemas import DataSourceGetResponse
+from core.endpoints.datasource.utils import query_data_sources, build_data_source_response
 from .schemas import DataLoaderGetResponse, DataLoaderPostBody, DataLoaderPatchBody, \
     DataLoaderFields
-from .utils import query_data_loaders, get_data_loader_by_id, build_data_loader_response
+from .utils import query_data_loaders, get_data_loader_by_id, build_data_loader_response, check_data_loader_by_id
 
 
 router = DataManagementRouter(tags=['Data Loaders'])
@@ -125,3 +127,31 @@ def delete_data_loader(request, data_loader_id: UUID = Path(...)):
         return 409, str(e)
 
     return 204, None
+
+
+@router.dm_list(
+    '{data_loader_id}/data-sources',
+    response=DataSourceGetResponse
+)
+def get_dataloader_data_sources(request, data_loader_id: UUID = Path(...)):
+    """
+    Get a list of Data Source for a Data Loader
+
+    This endpoint returns a list of Data Sources owned by the authenticated user if there is one
+    associated with the given Data Loader ID.
+    """
+
+    check_data_loader_by_id(
+        user=request.authenticated_user,
+        data_loader_id=data_loader_id,
+        raise_http_errors=True
+    )
+
+    data_source_query, _ = query_data_sources(
+        user=request.authenticated_user,
+        data_loader_ids=[data_loader_id]
+    )
+
+    return [
+        build_data_source_response(data_source) for data_source in data_source_query.all()
+    ]
