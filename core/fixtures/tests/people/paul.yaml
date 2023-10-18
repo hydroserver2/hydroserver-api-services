@@ -133,6 +133,14 @@
     symbol: T
     definition: http://www.example.com/unit4
     type: Unit
+- model: core.Unit
+  pk: baf27e36-4b49-472d-9e08-1d3d3fcb04fe
+  fields:
+    definition: http://qudt.org/vocab/unit#DegreeCelsius; http://unitsofmeasure.org/ucum.html#para-30; https://www.unidata.ucar.edu/software/udunits/udunits-current/udunits/udunits2-common.xml; http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=Units&id=1125579048; http://qwwebservices.usgs.gov/service-domains.html
+    name: Degree Celsius
+    person: 1_000_000_001
+    symbol: degC; Cel
+    type: Temperature
 - model: core.resultqualifier
   pk: 565b2407-fc55-4e4a-bcd7-6e945860f11b
   fields:

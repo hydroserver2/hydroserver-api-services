@@ -17,7 +17,7 @@ def base_url():
     ('processing-levels', {}, 200, 3, 4),
     ('sensors', {}, 200, 3, 4),
     ('things', {}, 200, 2, 4),
-    ('units', {}, 200, 2, 4),
+    ('units', {}, 200, 3, 4),
     ('result-qualifiers', {}, 200, 2, 4)
 ])
 @pytest.mark.django_db()
