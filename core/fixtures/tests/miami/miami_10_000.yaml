@@ -1,7 +1,7 @@
 - model: core.datastream
   pk: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
   fields:
-    unit: 4064695a-120b-44e8-9b5d-ab0fb5da25ce # Degree Celsius from masterlist
+    unit: baf27e36-4b49-472d-9e08-1d3d3fcb04fe # Degree Celsius from Paul's list
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8 # Site in Miami
     sensor: 0afabdbd-9257-4e0a-8d47-76c98fe8a513 # YSI: EXO2 Multiparameter Sonde
     observed_property: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4 # Temperature
