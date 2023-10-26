@@ -7,6 +7,7 @@ from pathlib import Path
 from corsheaders.defaults import default_headers
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 from typing import Union
+from ninja.types import DictStrAny
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     'django_ses',
     'sensorthings',
     'ninja_extra',
+    'simple_history'
 ]
 
 MIDDLEWARE = [
@@ -75,7 +77,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'sensorthings.middleware.SensorThingsMiddleware'
+    'sensorthings.middleware.SensorThingsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
@@ -190,3 +193,31 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SensorThings Configuration
 
 ST_API_PREFIX = 'api/sensorthings'
+
+
+# # We need to patch Django Ninja's OpenAPISchema "methods" method to create a unique operationId for endpoints
+# # that allow multiple methods on the same view function (such as GET and HEAD in this case). Without this patch,
+# # our GET and HEAD methods in the Swagger docs will have the same ID and behave inconsistently. This is probably an
+# # unintentional bug with the Django Ninja router.api_operation method when using it for multiple HTTP methods.
+#
+# from ninja.openapi.schema import OpenAPISchema
+#
+#
+# def _methods_patch(self, operations: list) -> DictStrAny:
+#     result = {}
+#     for op in operations:
+#         if op.include_in_schema:
+#             operation_details = self.operation_details(op)
+#             for method in op.methods:
+#                 # Update the operationId of HEAD methods to avoid conflict with corresponding GET methods.
+#                 # Original code:
+#                 # result[method.lower()] = operation_details
+#                 result[method.lower()] = {
+#                     **operation_details,
+#                     'operationId': operation_details['operationId'] + '_head'
+#                     if method.lower() == 'head' else operation_details['operationId']
+#                 }
+#     return result
+#
+#
+# OpenAPISchema.methods = _methods_patch

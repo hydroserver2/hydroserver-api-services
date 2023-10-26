@@ -7,6 +7,7 @@ from django.db.models import ForeignKey
 from django.db.models.signals import pre_delete
 from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
+from simple_history.models import HistoricalRecords
 from accounts.models import Person
 from botocore.exceptions import ClientError
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
@@ -23,6 +24,7 @@ class Location(models.Model):
     elevation_datum = models.CharField(max_length=255, null=True, blank=True, db_column='elevationDatum')
     state = models.CharField(max_length=200, null=True, blank=True)
     county = models.CharField(max_length=200, null=True, blank=True)
+    history = HistoricalRecords(custom_model_name='LocationChangeLog', related_name='log')
 
     class Meta:
         db_table = 'Location'
@@ -38,6 +40,7 @@ class Thing(models.Model):
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
+    history = HistoricalRecords(custom_model_name='ThingChangeLog', related_name='log')
 
     class Meta:
         db_table = 'Thing'
@@ -47,6 +50,7 @@ class HistoricalLocation(models.Model):
     thing = models.ForeignKey('Thing', on_delete=models.CASCADE, db_column='thingId')
     time = models.DateTimeField()
     location = models.ForeignKey('Location', on_delete=models.CASCADE, db_column='locationId')
+    history = HistoricalRecords(custom_model_name='HistoricalLocationChangeLog', related_name='log')
 
     class Meta:
         db_table = 'HistoricalLocation'
@@ -57,6 +61,7 @@ class Photo(models.Model):
     thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE, db_column='thingId')
     file_path = models.CharField(max_length=1000, db_column='filePath')
     link = models.URLField(max_length=2000)
+    history = HistoricalRecords(custom_model_name='PhotoChangeLog', related_name='log')
 
     class Meta:
         db_table = 'Photo'
@@ -91,6 +96,7 @@ class Sensor(models.Model):
     method_type = models.CharField(max_length=100, db_column='methodType')
     method_link = models.CharField(max_length=500, blank=True, null=True, db_column='methodLink')
     method_code = models.CharField(max_length=50, blank=True, null=True, db_column='methodCode')
+    history = HistoricalRecords(custom_model_name='SensorChangeLog', related_name='log')
 
     def __str__(self):
         if self.method_type and self.method_type.strip().lower().replace(" ", "") == 'instrumentdeployment':
@@ -110,6 +116,7 @@ class ObservedProperty(models.Model):
     description = models.TextField()
     type = models.CharField(max_length=500)
     code = models.CharField(max_length=500)
+    history = HistoricalRecords(custom_model_name='ObservedPropertyChangeLog', related_name='log')
 
     class Meta:
         db_table = 'ObservedProperty'
@@ -121,6 +128,7 @@ class FeatureOfInterest(models.Model):
     description = models.TextField()
     encoding_type = models.CharField(max_length=255, db_column='encodingType')
     feature = models.TextField()
+    history = HistoricalRecords(custom_model_name='FeatureOfInterestChangeLog', related_name='log')
 
     class Meta:
         db_table = 'FeatureOfInterest'
@@ -133,6 +141,7 @@ class ProcessingLevel(models.Model):
     code = models.CharField(max_length=255)
     definition = models.TextField(null=True, blank=True)
     explanation = models.TextField(null=True, blank=True)
+    history = HistoricalRecords(custom_model_name='ProcessingLevelChangeLog', related_name='log')
 
     class Meta:
         db_table = 'ProcessingLevel'
@@ -145,6 +154,7 @@ class Unit(models.Model):
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
     type = models.CharField(max_length=255)
+    history = HistoricalRecords(custom_model_name='UnitChangeLog', related_name='log')
 
     class Meta:
         db_table = 'Unit'
@@ -154,6 +164,7 @@ class DataLoader(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_loaders')
+    history = HistoricalRecords(custom_model_name='DataLoaderChangeLog', related_name='log')
 
 
 class DataSource(models.Model):
@@ -181,6 +192,7 @@ class DataSource(models.Model):
     last_synced = models.DateTimeField(null=True, blank=True)
     next_sync = models.DateTimeField(null=True, blank=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_sources')
+    history = HistoricalRecords(custom_model_name='DataSourceChangeLog', related_name='log')
 
 
 class Datastream(models.Model):
@@ -218,6 +230,7 @@ class Datastream(models.Model):
     observed_area = models.CharField(max_length=255, null=True, blank=True)
     result_end_time = models.DateTimeField(null=True, blank=True, db_column='resultEndTime')
     result_begin_time = models.DateTimeField(null=True, blank=True, db_column='resultBeginTime')
+    history = HistoricalRecords(custom_model_name='DatastreamChangeLog', related_name='log')
 
     def save(self, *args, **kwargs):
         self.name = str(self.id)
@@ -255,6 +268,7 @@ class ResultQualifier(models.Model):
     description = models.TextField()
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
                                blank=True, db_column='personId')
+    history = HistoricalRecords(custom_model_name='ResultQualifierChangeLog', related_name='log')
 
     class Meta:
         db_table = 'ResultQualifier'
@@ -266,6 +280,7 @@ class ThingAssociation(models.Model):
     owns_thing = models.BooleanField(default=False, db_column='ownsThing')
     follows_thing = models.BooleanField(default=False, db_column='followsThing')
     is_primary_owner = models.BooleanField(default=False, db_column='isPrimaryOwner')
+    history = HistoricalRecords(custom_model_name='ThingAssociationChangeLog', related_name='log')
 
     class Meta:
         db_table = 'ThingAssociation'
