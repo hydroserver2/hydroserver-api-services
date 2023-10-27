@@ -89,7 +89,6 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'definition': datastream.unit.definition.split(';')[0]
                 },
                 'observation_type': datastream.observation_type,
-                'observed_area': {},
                 'phenomenon_time': getattr(self, 'iso_time_interval')(
                     datastream.phenomenon_begin_time, datastream.phenomenon_end_time
                 ),
