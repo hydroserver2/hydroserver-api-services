@@ -5,6 +5,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from uuid import UUID
 from typing import List, Optional
+from datetime import datetime
 from functools import reduce
 from core.models import Person, Datastream, ThingAssociation, Observation, ResultQualifier
 from core.endpoints.thing.utils import check_thing_by_id
@@ -60,6 +61,20 @@ def apply_datastream_auth_rules(
     return datastream_query, result_exists
 
 
+def apply_recent_datastream_filter(
+        datastream_query: QuerySet,
+        modified_since: datetime
+) -> QuerySet:
+
+    datastream_history_filter = Q(log__history_date__gt=modified_since)
+
+    datastream_query = datastream_query.filter(
+        datastream_history_filter
+    )
+
+    return datastream_query
+
+
 def query_datastreams(
         user: Optional[Person],
         check_result_exists: bool = False,
@@ -71,7 +86,8 @@ def query_datastreams(
         thing_ids: Optional[List[UUID]] = None,
         sensor_ids: Optional[List[UUID]] = None,
         data_source_ids: Optional[List[UUID]] = None,
-        observed_property_ids: Optional[List[UUID]] = None
+        observed_property_ids: Optional[List[UUID]] = None,
+        modified_since: Optional[datetime] = None
 ) -> (QuerySet, bool):
 
     datastream_query = Datastream.objects
@@ -94,6 +110,10 @@ def query_datastreams(
     datastream_query = datastream_query.select_related(
         'processing_level', 'unit', 'intended_time_spacing_units', 'time_aggregation_interval_units'
     )
+
+    if modified_since:
+        datastream_query = datastream_query.prefetch_related('log')
+        datastream_query = apply_recent_datastream_filter(datastream_query, modified_since)
 
     datastream_query, result_exists = apply_datastream_auth_rules(
         user=user,
