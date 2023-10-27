@@ -2,7 +2,7 @@ from uuid import UUID
 from typing import List
 from core.endpoints.observations.utils import query_observations
 from core.endpoints.resultqualifier.utils import query_result_qualifiers, check_result_qualifier_by_id
-from core.endpoints.datastream.utils import check_datastream_by_id
+from core.endpoints.datastream.utils import check_datastream_by_id, get_datastream_by_id
 from core.models import Observation
 from sensorthings.components.observations.engine import ObservationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
@@ -142,6 +142,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             result_qualifiers=observation.result_quality.result_qualifiers if observation.result_quality else []
         )
 
+        self.update_value_count(datastream_id=observation.datastream.id)
+
         return new_observation.id
 
     def create_observation_bulk(
@@ -185,6 +187,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
             new_observations.extend(new_observations_for_datastream)
 
+            self.update_value_count(datastream_id=datastream_id)
+
         return [
             observation.id for observation in new_observations
         ]
@@ -201,3 +205,21 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             observation_id: str
     ) -> None:
         pass
+
+    def update_value_count(
+            self,
+            datastream_id: UUID
+    ) -> None:
+
+        observation_query, _ = query_observations(
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            datastream_ids=[datastream_id]
+        )
+
+        datastream = get_datastream_by_id(
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            datastream_id=datastream_id
+        )
+
+        datastream.value_count = int(observation_query.count())
+        datastream.save()
