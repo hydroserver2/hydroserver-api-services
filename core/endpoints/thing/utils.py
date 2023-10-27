@@ -1,4 +1,5 @@
 import operator
+from datetime import datetime
 from ninja.errors import HttpError
 from django.db.models import Q, Count, Prefetch
 from django.db.models.query import QuerySet
@@ -54,6 +55,18 @@ def apply_thing_auth_rules(
     return thing_query, result_exists
 
 
+def apply_recent_thing_filter(
+        thing_query: QuerySet,
+        modified_since: datetime
+) -> QuerySet:
+
+    thing_query = thing_query.filter(
+       log__history_date__gt=modified_since
+    )
+
+    return thing_query
+
+
 def query_things(
         user: Optional[Person],
         check_result_exists: bool = False,
@@ -63,7 +76,8 @@ def query_things(
         ignore_privacy: bool = False,
         thing_ids: Optional[List[UUID]] = None,
         prefetch_photos: bool = False,
-        prefetch_datastreams: bool = False
+        prefetch_datastreams: bool = False,
+        modified_since: Optional[datetime] = None
 ) -> (QuerySet, bool):
 
     thing_query = Thing.objects
@@ -82,6 +96,10 @@ def query_things(
 
     if prefetch_datastreams:
         thing_query = thing_query.prefetch_related('datastreams')
+
+    if modified_since:
+        thing_query = thing_query.prefetch_related('log')
+        thing_query = apply_recent_thing_filter(thing_query, modified_since)
 
     thing_query, result_exists = apply_thing_auth_rules(
         user=user,

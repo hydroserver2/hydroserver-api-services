@@ -1,5 +1,7 @@
 from ninja import Path
 from uuid import UUID
+from typing import Optional
+from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
 from accounts.auth.jwt import JWTAuth
@@ -16,14 +18,14 @@ router = DataManagementRouter(tags=['Datastreams'])
 
 
 @router.dm_list('', response=DatastreamGetResponse)
-def get_datastreams(request):
+def get_datastreams(request, modified_since: Optional[datetime] = None):
     """
     Get a list of Datastreams
 
     This endpoint returns a list of public Datastreams and Datastreams owned by the authenticated user if there is one.
     """
 
-    datastream_query, _ = query_datastreams(user=request.authenticated_user)
+    datastream_query, _ = query_datastreams(user=request.authenticated_user, modified_since=modified_since)
 
     return [
         build_datastream_response(datastream) for datastream in datastream_query.all()
