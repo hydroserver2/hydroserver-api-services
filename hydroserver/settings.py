@@ -193,6 +193,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SensorThings Configuration
 
 ST_API_PREFIX = 'api/sensorthings'
+ST_API_ID_QUALIFIER = "'"
 
 
 # # We need to patch Django Ninja's OpenAPISchema "methods" method to create a unique operationId for endpoints
