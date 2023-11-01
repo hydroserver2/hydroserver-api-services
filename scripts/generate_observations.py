@@ -29,18 +29,22 @@ def get_temperature(hour, day_of_year):
     seasonal_temp = 10 * math.sin(math.pi * (day_of_year - 80) / 182.5)
     return daily_temp + seasonal_temp + random.gauss(0, 1.5)
 
+def get_small_number():
+    return random.uniform(0.000, 0.001)
+
 if __name__ == "__main__":
-    datastream_id = "02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3"
-    time_delta = 15
+    datastream_id = "4c8dfc06-6be5-4650-91e1-30b6d4463bcf"
+    time_delta = 30
     output_file = 'temperature_output.yaml'
-    base_time = datetime.strptime("2023-10-04 10:00:00", '%Y-%m-%d %H:%M:%S')
+    base_time = datetime.strptime("2023-10-25 11:00:01", '%Y-%m-%d %H:%M:%S')
     end_time = base_time
     observations = []
-    num_observations = 350_000
+    num_observations = 100
 
     for i in range(num_observations):
         day_of_year = base_time.timetuple().tm_yday
-        temperature = get_temperature(base_time.hour, day_of_year)
+        # temperature = get_temperature(base_time.hour, day_of_year)
+        temperature = get_small_number()
         observations.append(generate_observation(base_time, temperature))
         base_time -= timedelta(minutes=time_delta)
 
