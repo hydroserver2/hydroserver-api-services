@@ -140,7 +140,7 @@ def test_sensorthings_get_endpoints(
         'result': 23.2,
         'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'}
     }, 201),
-    ('Observations', [{
+    ('CreateObservations', [{
         'Datastream': {'@iot.id': '376be82c-b3a1-4d96-821b-c7954b931f94'},
         'components': ['phenomenonTime', 'result'],
         'dataArray': [['2023-10-02T10:00:00Z', 24.5], ['2023-10-03T10:00:00Z', 22.8]]
