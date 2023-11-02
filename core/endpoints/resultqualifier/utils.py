@@ -3,7 +3,6 @@ from typing import List, Optional
 from uuid import UUID
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from accounts.schemas import OrganizationFields, UserFields
 from core.models import Person, ResultQualifier
 from .schemas import ResultQualifierFields
 
@@ -116,12 +115,6 @@ def get_result_qualifier_by_id(
 def build_result_qualifier_response(result_qualifier):
     return {
         'id': result_qualifier.id,
-        'owner': {
-            'organization': {
-                **{field: getattr(result_qualifier.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()}
-            } if result_qualifier.person.organization else None,
-            **{field: getattr(result_qualifier.person, field) for field in UserFields.__fields__.keys()}
-        } if result_qualifier.person else None,
+        'owner': result_qualifier.person.email if result_qualifier.person else None,
         **{field: getattr(result_qualifier, field) for field in ResultQualifierFields.__fields__.keys()},
     }

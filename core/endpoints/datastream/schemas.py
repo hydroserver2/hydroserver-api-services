@@ -1,9 +1,13 @@
 from ninja import Schema
 from pydantic import Field
-from typing import Union
+from typing import Union, List
 from uuid import UUID
 from datetime import datetime
 from sensorthings.validators import allow_partial
+from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
+from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
+from core.endpoints.unit.schemas import UnitGetResponse
+from core.endpoints.sensor.schemas import SensorGetResponse
 
 
 class DatastreamID(Schema):
@@ -51,3 +55,13 @@ class DatastreamPostBody(DatastreamFields):
 @allow_partial
 class DatastreamPatchBody(DatastreamFields):
     thing_id: UUID = Field(..., alias='thingId')
+
+
+class DatastreamMetadataGetResponse(Schema):
+    units: List[UnitGetResponse]
+    sensors: List[SensorGetResponse]
+    processing_levels: List[ProcessingLevelGetResponse] = Field(..., alias='processingLevels')
+    observed_properties: List[ObservedPropertyGetResponse] = Field(..., alias='observedProperties')
+
+    class Config:
+        allow_population_by_field_name = True

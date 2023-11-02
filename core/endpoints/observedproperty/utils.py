@@ -5,7 +5,6 @@ from typing import List, Optional
 from uuid import UUID
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from accounts.schemas import OrganizationFields, UserFields
 from core.models import Person, ObservedProperty
 from .schemas import ObservedPropertyFields
 
@@ -118,13 +117,7 @@ def get_observed_property_by_id(
 def build_observed_property_response(observed_property):
     return {
         'id': observed_property.id,
-        'owner': {
-            'organization': {
-                **{field: getattr(observed_property.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()}
-            } if observed_property.person.organization else None,
-            **{field: getattr(observed_property.person, field) for field in UserFields.__fields__.keys()}
-        } if observed_property.person else None,
+        'owner': observed_property.person.email if observed_property.person else None,
         **{field: getattr(observed_property, field) for field in ObservedPropertyFields.__fields__.keys()},
     }
 
