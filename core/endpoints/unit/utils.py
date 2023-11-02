@@ -5,7 +5,6 @@ from typing import List, Optional
 from uuid import UUID
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from accounts.schemas import OrganizationFields, UserFields
 from core.models import Person, Unit
 from .schemas import UnitFields
 
@@ -122,13 +121,7 @@ def get_unit_by_id(
 def build_unit_response(unit):
     return {
         'id': unit.id,
-        'owner': {
-            'organization': {
-                **{field: getattr(unit.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()}
-            } if unit.person.organization else None,
-            **{field: getattr(unit.person, field) for field in UserFields.__fields__.keys()}
-        } if unit.person else None,
+        'owner': unit.person.email if unit.person else None,
         **{field: getattr(unit, field) for field in UnitFields.__fields__.keys()},
     }
 

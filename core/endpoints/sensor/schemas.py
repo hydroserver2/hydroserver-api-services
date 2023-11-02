@@ -3,7 +3,6 @@ from pydantic import Field
 from uuid import UUID
 from typing import Optional
 from sensorthings.validators import allow_partial
-from accounts.schemas import UserFields
 
 
 class SensorID(Schema):
@@ -23,7 +22,7 @@ class SensorFields(Schema):
 
 
 class SensorGetResponse(SensorFields, SensorID):
-    owner: Optional[UserFields]
+    owner: Optional[str]
 
     class Config:
         allow_population_by_field_name = True
