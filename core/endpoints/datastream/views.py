@@ -9,7 +9,12 @@ from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream
-from .schemas import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody
+from core.endpoints.unit.utils import query_units, build_unit_response
+from core.endpoints.sensor.utils import query_sensors, build_sensor_response
+from core.endpoints.observedproperty.utils import query_observed_properties, build_observed_property_response
+from core.endpoints.processinglevel.utils import query_processing_levels, build_processing_level_response
+from .schemas import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody, \
+     DatastreamMetadataGetResponse
 from .utils import query_datastreams, get_datastream_by_id, build_datastream_response, check_related_fields, \
      generate_csv
 
@@ -146,3 +151,52 @@ def get_datastream_csv(request, datastream_id: UUID = Path(...)):
     response['Content-Disposition'] = 'attachment; filename="hello_world.csv"'
 
     return response
+
+
+@router.get(
+    '{datastream_id}/metadata',
+    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    response={
+        200: DatastreamMetadataGetResponse,
+        403: str,
+        404: str
+    },
+    by_alias=True
+)
+def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_assignable_metadata: bool = False):
+
+    datastream = get_datastream_by_id(
+        user=request.authenticated_user,
+        datastream_id=datastream_id,
+        raise_http_errors=True
+    )
+
+    primary_owner = next(iter([
+        associate.person for associate in datastream.thing.associates.all()
+        if associate.is_primary_owner is True
+    ]), None)
+
+    metadata_query_args = {
+        'user': primary_owner,
+        'require_ownership': True
+    }
+
+    if include_assignable_metadata is False:
+        metadata_query_args['datastream_ids'] = [datastream_id]
+
+    units, _ = query_units(**metadata_query_args)
+    sensors, _ = query_sensors(**metadata_query_args)
+    processing_levels, _ = query_processing_levels(**metadata_query_args)
+    observed_properties, _ = query_observed_properties(**metadata_query_args)
+
+    unit_data = [build_unit_response(unit) for unit in units.all()]
+    sensor_data = [build_sensor_response(sensor) for sensor in sensors.all()]
+    processing_level_data = [build_processing_level_response(pl) for pl in processing_levels.all()]
+    observed_property_data = [build_observed_property_response(op) for op in observed_properties.all()]
+
+    return 200, {
+        'units': unit_data,
+        'sensors': sensor_data,
+        'processing_levels': processing_level_data,
+        'observed_properties': observed_property_data
+    }
