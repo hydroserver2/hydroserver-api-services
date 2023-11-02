@@ -48,7 +48,11 @@ def query_units(
         unit_query = unit_query.filter(id__in=unit_ids)
 
     if datastream_ids:
-        unit_query = unit_query.filter(datastreams__id__in=datastream_ids)
+        unit_query = unit_query.filter(
+            Q(datastreams__id__in=datastream_ids) |
+            Q(intended_time_spacing_units__id__in=datastream_ids) |
+            Q(time_aggregation_interval_units__id__in=datastream_ids)
+        )
 
     unit_query = unit_query.select_related('person', 'person__organization')
 

@@ -4,6 +4,7 @@ from typing import Optional
 from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
+from django.db.models import Q
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
@@ -178,7 +179,7 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
 
     metadata_query_args = {
         'user': primary_owner,
-        'require_ownership': True
+        'require_ownership_or_unowned': True
     }
 
     if include_assignable_metadata is False:
@@ -189,7 +190,18 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
     processing_levels, _ = query_processing_levels(**metadata_query_args)
     observed_properties, _ = query_observed_properties(**metadata_query_args)
 
-    unit_data = [build_unit_response(unit) for unit in units.all()]
+    if include_assignable_metadata is True:
+        units = units.filter(
+            ~Q(person=None) |
+            Q(datastreams__id__in=[datastream_id]) |
+            Q(intended_time_spacing_units__id__in=[datastream_id]) |
+            Q(time_aggregation_interval_units__id__in=[datastream_id])
+        )
+        sensors = sensors.filter(~Q(person=None) | Q(datastreams__id__in=[datastream_id]))
+        processing_levels = processing_levels.filter(~Q(person=None) | Q(datastreams__id__in=[datastream_id]))
+        observed_properties = observed_properties.filter(~Q(person=None) | Q(datastreams__id__in=[datastream_id]))
+
+    unit_data = [build_unit_response(unit) for unit in units.all().distinct()]
     sensor_data = [build_sensor_response(sensor) for sensor in sensors.all()]
     processing_level_data = [build_processing_level_response(pl) for pl in processing_levels.all()]
     observed_property_data = [build_observed_property_response(op) for op in observed_properties.all()]
