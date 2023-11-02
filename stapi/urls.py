@@ -125,6 +125,11 @@ st_api_1_1 = SensorThingsAPI(
             body_schema=schemas.ObservationBody
         ),
         SensorThingsEndpoint(
+            name='create_observations',
+            authentication=[JWTAuth(), BasicAuth()],
+            body_schema=schemas.ObservationBody
+        ),
+        SensorThingsEndpoint(
             name='update_observation',
             deprecated=True,
             authorization=lambda request, observation_id, observation: False,
