@@ -24,14 +24,18 @@ router = DataManagementRouter(tags=['Datastreams'])
 
 
 @router.dm_list('', response=DatastreamGetResponse)
-def get_datastreams(request, modified_since: Optional[datetime] = None):
+def get_datastreams(request, modified_since: datetime = None, exclude_unowned: bool = False):
     """
     Get a list of Datastreams
 
     This endpoint returns a list of public Datastreams and Datastreams owned by the authenticated user if there is one.
     """
 
-    datastream_query, _ = query_datastreams(user=request.authenticated_user, modified_since=modified_since)
+    datastream_query, _ = query_datastreams(
+        user=request.authenticated_user,
+        modified_since=modified_since,
+        require_ownership=exclude_unowned
+    )
 
     return [
         build_datastream_response(datastream) for datastream in datastream_query.all()
