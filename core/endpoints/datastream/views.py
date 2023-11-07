@@ -1,6 +1,5 @@
 from ninja import Path
 from uuid import UUID
-from typing import Optional
 from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
@@ -10,6 +9,7 @@ from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream
+from core.endpoints.thing.utils import get_thing_by_id
 from core.endpoints.unit.utils import query_units, build_unit_response
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response
 from core.endpoints.observedproperty.utils import query_observed_properties, build_observed_property_response
@@ -68,7 +68,19 @@ def create_datastream(request, data: DatastreamPostBody):
     This endpoint will create a new Datastream.
     """
 
-    check_related_fields(request.authenticated_user, data)
+    thing = get_thing_by_id(
+        user=request.authenticated_user,
+        thing_id=data.thing_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
+
+    primary_owner = next(iter([
+        associate.person for associate in thing.associates.all()
+        if associate.is_primary_owner is True
+    ]), None)
+
+    check_related_fields(primary_owner, data)
 
     datastream = Datastream.objects.create(
         **data.dict(include=set(DatastreamFields.__fields__.keys()))
@@ -91,14 +103,19 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
     This endpoint will update an existing Datastream owned by the authenticated user and return the updated Datastream.
     """
 
-    check_related_fields(request.authenticated_user, data)
-
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
         datastream_id=datastream_id,
         require_ownership=True,
         raise_http_errors=True
     )
+
+    primary_owner = next(iter([
+        associate.person for associate in datastream.thing.associates.all()
+        if associate.is_primary_owner is True
+    ]), None)
+
+    check_related_fields(primary_owner, data)
 
     datastream_data = data.dict(include=set(DatastreamFields.__fields__.keys()), exclude_unset=True)
 

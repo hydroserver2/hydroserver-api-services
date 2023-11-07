@@ -197,60 +197,60 @@ def build_datastream_response(datastream):
     }
 
 
-def check_related_fields(user, data):
+def check_related_fields(user, metadata):
 
-    if data.thing_id:
+    if metadata.thing_id:
         check_thing_by_id(
             user=user,
-            thing_id=data.thing_id,
+            thing_id=metadata.thing_id,
             require_ownership=True,
             raise_http_errors=True
         )
 
-    if data.sensor_id:
+    if metadata.sensor_id:
         check_sensor_by_id(
             user=user,
-            sensor_id=data.sensor_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.observed_property_id:
-        check_observed_property_by_id(
-            user=user,
-            observed_property_id=data.observed_property_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.processing_level_id:
-        check_processing_level_by_id(
-            user=user,
-            processing_level_id=data.processing_level_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.unit_id:
-        check_unit_by_id(
-            user=user,
-            unit_id=data.unit_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.time_aggregation_interval_units_id:
-        check_unit_by_id(
-            user=user,
-            unit_id=data.time_aggregation_interval_units_id,
+            sensor_id=metadata.sensor_id,
             require_ownership_or_unowned=True,
             raise_http_errors=True
         )
 
-    if data.intended_time_spacing_units_id:
+    if metadata.observed_property_id:
+        check_observed_property_by_id(
+            user=user,
+            observed_property_id=metadata.observed_property_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.processing_level_id:
+        check_processing_level_by_id(
+            user=user,
+            processing_level_id=metadata.processing_level_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.unit_id:
         check_unit_by_id(
             user=user,
-            unit_id=data.intended_time_spacing_units_id,
+            unit_id=metadata.unit_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.time_aggregation_interval_units_id:
+        check_unit_by_id(
+            user=user,
+            unit_id=metadata.time_aggregation_interval_units_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.intended_time_spacing_units_id:
+        check_unit_by_id(
+            user=user,
+            unit_id=metadata.intended_time_spacing_units_id,
             require_ownership_or_unowned=True,
             raise_http_errors=True
         )
