@@ -19,13 +19,13 @@ class DatastreamFields(Schema):
     description: str
     observation_type: str = Field(..., alias='observationType')
     sampled_medium: str = Field(..., alias='sampledMedium')
-    no_data_value: str = Field(..., alias='noDataValue')
+    no_data_value: float = Field(..., alias='noDataValue')
     aggregation_statistic: str = Field(..., alias='aggregationStatistic')
-    time_aggregation_interval: str = Field(..., alias='timeAggregationInterval')
+    time_aggregation_interval: float = Field(..., alias='timeAggregationInterval')
     status: str = None
-    result_type: str = Field(None, alias='resultType')
-    value_count: str = Field(None, alias='valueCount')
-    intended_time_spacing: str = Field(None, alias='intendedTimeSpacing')
+    result_type: str = Field(..., alias='resultType')
+    value_count: int = Field(None, alias='valueCount')
+    intended_time_spacing: float = Field(None, alias='intendedTimeSpacing')
     phenomenon_begin_time: datetime = Field(None, alias='phenomenonBeginTime')
     phenomenon_end_time: datetime = Field(None, alias='phenomenonEndTime')
     result_begin_time: datetime = Field(None, alias='resultBeginTime')
