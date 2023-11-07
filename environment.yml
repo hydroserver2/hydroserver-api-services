@@ -17,7 +17,7 @@ dependencies:
 
   - pip:
       - Authlib==1.2.1
-      - hydroserver-sensorthings==0.2.4
+      - hydroserver-sensorthings==0.2.5
       - django-ninja-jwt==5.2.5
       - hydroloader==0.1.15
       - sqlalchemy-json==0.5.0
