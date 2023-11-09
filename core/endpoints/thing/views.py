@@ -358,10 +358,12 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
         Q(datastreams__thing__id__in=[thing_id]) |
         Q(intended_time_spacing_units__thing__id__in=[thing_id]) |
         Q(time_aggregation_interval_units__thing__id__in=[thing_id])
-    )
-    sensors = sensors.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id]))
-    processing_levels = processing_levels.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id]))
-    observed_properties = observed_properties.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id]))
+    ).distinct()
+    sensors = sensors.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
+    processing_levels = processing_levels.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
+    observed_properties = observed_properties.filter(
+        ~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])
+    ).distinct()
 
     unit_data = [build_unit_response(unit) for unit in units.all()]
     sensor_data = [build_sensor_response(sensor) for sensor in sensors.all()]
