@@ -65,7 +65,8 @@ INSTALLED_APPS = [
     'django_ses',
     'sensorthings',
     'ninja_extra',
-    'simple_history'
+    'simple_history',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -161,10 +162,21 @@ DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+AWS_LOCATION = 'static'
 
 if DEPLOYED:
-    AWS_LOCATION = 'static/'
-    AWS_S3_CUSTOM_DOMAIN = PROXY_BASE_URL
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "AWS_S3_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
+                "AWS_S3_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
+                "AWS_STORAGE_BUCKET_NAME": AWS_STORAGE_BUCKET_NAME,
+                "AWS_S3_CUSTOM_DOMAIN": PROXY_BASE_URL,
+                "AWS_LOCATION": AWS_LOCATION
+            }
+        },
+    }
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
