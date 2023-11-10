@@ -3,7 +3,7 @@ import os
 import socket
 import dj_database_url
 from pathlib import Path
-
+from uuid import UUID
 from corsheaders.defaults import default_headers
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 from typing import Union
@@ -194,6 +194,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ST_API_PREFIX = 'api/sensorthings'
 ST_API_ID_QUALIFIER = "'"
+ST_API_ID_TYPE = UUID
 
 
 # # We need to patch Django Ninja's OpenAPISchema "methods" method to create a unique operationId for endpoints

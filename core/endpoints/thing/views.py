@@ -3,6 +3,7 @@ from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
 from django.db import transaction, IntegrityError
+from django.db.models import Q
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
@@ -347,10 +348,22 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
         if associate.is_primary_owner is True
     ]), None)
 
-    units, _ = query_units(user=primary_owner, require_ownership=True)
-    sensors, _ = query_sensors(user=primary_owner, require_ownership=True)
-    processing_levels, _ = query_processing_levels(user=primary_owner, require_ownership=True)
-    observed_properties, _ = query_observed_properties(user=primary_owner, require_ownership=True)
+    units, _ = query_units(user=primary_owner, require_ownership_or_unowned=True)
+    sensors, _ = query_sensors(user=primary_owner, require_ownership_or_unowned=True)
+    processing_levels, _ = query_processing_levels(user=primary_owner, require_ownership_or_unowned=True)
+    observed_properties, _ = query_observed_properties(user=primary_owner, require_ownership_or_unowned=True)
+
+    units = units.filter(
+        ~Q(person=None) |
+        Q(datastreams__thing__id__in=[thing_id]) |
+        Q(intended_time_spacing_units__thing__id__in=[thing_id]) |
+        Q(time_aggregation_interval_units__thing__id__in=[thing_id])
+    ).distinct()
+    sensors = sensors.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
+    processing_levels = processing_levels.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
+    observed_properties = observed_properties.filter(
+        ~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])
+    ).distinct()
 
     unit_data = [build_unit_response(unit) for unit in units.all()]
     sensor_data = [build_sensor_response(sensor) for sensor in sensors.all()]
