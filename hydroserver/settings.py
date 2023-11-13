@@ -109,7 +109,7 @@ os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DI
 
 DATABASES = {
     'default': dj_database_url.config(
-        conn_max_age=config('CONN_MAX_AGE', default=600),
+        conn_max_age=config('CONN_MAX_AGE', default=0),
         conn_health_checks=config('CONN_HEALTH_CHECKS', default=True, cast=bool),
         ssl_require=config('SSL_REQUIRED', default=False, cast=bool)
     )
