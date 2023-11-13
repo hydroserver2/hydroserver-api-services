@@ -1,8 +1,11 @@
+import math
 from uuid import UUID
 from typing import List
+from django.db.utils import IntegrityError
+from ninja.errors import HttpError
 from core.endpoints.observations.utils import query_observations
 from core.endpoints.resultqualifier.utils import query_result_qualifiers, check_result_qualifier_by_id
-from core.endpoints.datastream.utils import check_datastream_by_id, get_datastream_by_id
+from core.endpoints.datastream.utils import get_datastream_by_id
 from core.models import Observation
 from sensorthings.components.observations.engine import ObservationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
@@ -117,7 +120,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             observation
     ) -> UUID:
 
-        check_datastream_by_id(
+        datastream = get_datastream_by_id(
             user=getattr(self, 'request').authenticated_user,
             datastream_id=observation.datastream.id,
             require_ownership=True,
@@ -133,14 +136,17 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                     raise_http_errors=True
                 )
 
-        new_observation = Observation.objects.create(
-            datastream_id=observation.datastream.id,
-            phenomenon_time=observation.phenomenon_time,
-            result=observation.result,
-            result_time=observation.result_time,
-            quality_code=observation.result_quality.quality_code if observation.result_quality else None,
-            result_qualifiers=observation.result_quality.result_qualifiers if observation.result_quality else []
-        )
+        try:
+            new_observation = Observation.objects.create(
+                datastream_id=observation.datastream.id,
+                phenomenon_time=observation.phenomenon_time,
+                result=observation.result if not math.isnan(observation.result) else datastream.no_data_value,
+                result_time=observation.result_time,
+                quality_code=observation.result_quality.quality_code if observation.result_quality else None,
+                result_qualifiers=observation.result_quality.result_qualifiers if observation.result_quality else []
+            )
+        except IntegrityError:
+            raise HttpError(409, 'Duplicate phenomenonTime found on this datastream.')
 
         self.update_value_count(datastream_id=observation.datastream.id)
 
@@ -154,7 +160,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         new_observations = []
 
         for datastream_id, observation_array in observations.items():
-            check_datastream_by_id(
+            datastream = get_datastream_by_id(
                 user=getattr(self, 'request').authenticated_user,
                 datastream_id=datastream_id,
                 require_ownership=True,
@@ -173,17 +179,21 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                     raise_http_errors=True
                 )
 
-            new_observations_for_datastream = Observation.objects.bulk_create([
-                Observation(
-                    datastream_id=observation.datastream.id,
-                    phenomenon_time=observation.phenomenon_time,
-                    result=observation.result,
-                    result_time=observation.result_time,
-                    quality_code=observation.result_quality.quality_code if observation.result_quality else None,
-                    result_qualifiers=observation.result_quality.result_qualifiers if observation.result_quality else []
-                )
-                for observation in observation_array
-            ])
+            try:
+                new_observations_for_datastream = Observation.objects.bulk_create([
+                    Observation(
+                        datastream_id=observation.datastream.id,
+                        phenomenon_time=observation.phenomenon_time,
+                        result=observation.result if not math.isnan(observation.result) else datastream.no_data_value,
+                        result_time=observation.result_time,
+                        quality_code=observation.result_quality.quality_code if observation.result_quality else None,
+                        result_qualifiers=observation.result_quality.result_qualifiers
+                        if observation.result_quality else []
+                    )
+                    for observation in observation_array
+                ])
+            except IntegrityError:
+                raise HttpError(409, 'Duplicate phenomenonTime found on this datastream.')
 
             new_observations.extend(new_observations_for_datastream)
 
