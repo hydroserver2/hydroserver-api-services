@@ -5,7 +5,6 @@ from typing import List, Optional
 from uuid import UUID
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from accounts.schemas import OrganizationFields, UserFields
 from core.models import Person, ProcessingLevel
 from .schemas import ProcessingLevelFields
 
@@ -118,13 +117,7 @@ def get_processing_level_by_id(
 def build_processing_level_response(processing_level):
     return {
         'id': processing_level.id,
-        'owner': {
-            'organization': {
-                **{field: getattr(processing_level.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()}
-            } if processing_level.person.organization else None,
-            **{field: getattr(processing_level.person, field) for field in UserFields.__fields__.keys()}
-        } if processing_level.person else None,
+        'owner': processing_level.person.email if processing_level.person else None,
         **{field: getattr(processing_level, field) for field in ProcessingLevelFields.__fields__.keys()},
     }
 

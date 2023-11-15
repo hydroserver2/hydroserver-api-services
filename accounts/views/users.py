@@ -32,7 +32,10 @@ def get_user(request: HttpRequest):
 
 @user_router.post(
     '/user',
-    response=UserAuthResponse,
+        response={
+        409: str,
+        200: UserAuthResponse
+    },
     by_alias=True
 )
 def create_user(_: HttpRequest, data: UserPostBody):
@@ -40,7 +43,7 @@ def create_user(_: HttpRequest, data: UserPostBody):
     user = user_model.objects.filter(username=data.email, is_verified=True).first()
 
     if user:
-        return None
+        return 409, 'Email already linked to an existing account.'
 
     user = user_model.objects.create_user(
         email=data.email,
@@ -62,7 +65,7 @@ def create_user(_: HttpRequest, data: UserPostBody):
 
     user.email = user.unverified_email
 
-    return {
+    return 200, {
         'access': str(getattr(jwt, 'access_token', '')),
         'refresh': str(jwt),
         'user': build_user_response(user)

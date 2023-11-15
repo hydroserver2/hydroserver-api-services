@@ -5,6 +5,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from uuid import UUID
 from typing import List, Optional
+from datetime import datetime
 from functools import reduce
 from core.models import Person, Datastream, ThingAssociation, Observation, ResultQualifier
 from core.endpoints.thing.utils import check_thing_by_id
@@ -60,6 +61,20 @@ def apply_datastream_auth_rules(
     return datastream_query, result_exists
 
 
+def apply_recent_datastream_filter(
+        datastream_query: QuerySet,
+        modified_since: datetime
+) -> QuerySet:
+
+    datastream_history_filter = Q(log__history_date__gt=modified_since)
+
+    datastream_query = datastream_query.filter(
+        datastream_history_filter
+    )
+
+    return datastream_query
+
+
 def query_datastreams(
         user: Optional[Person],
         check_result_exists: bool = False,
@@ -71,7 +86,8 @@ def query_datastreams(
         thing_ids: Optional[List[UUID]] = None,
         sensor_ids: Optional[List[UUID]] = None,
         data_source_ids: Optional[List[UUID]] = None,
-        observed_property_ids: Optional[List[UUID]] = None
+        observed_property_ids: Optional[List[UUID]] = None,
+        modified_since: Optional[datetime] = None
 ) -> (QuerySet, bool):
 
     datastream_query = Datastream.objects
@@ -94,6 +110,10 @@ def query_datastreams(
     datastream_query = datastream_query.select_related(
         'processing_level', 'unit', 'intended_time_spacing_units', 'time_aggregation_interval_units'
     )
+
+    if modified_since:
+        datastream_query = datastream_query.prefetch_related('log')
+        datastream_query = apply_recent_datastream_filter(datastream_query, modified_since)
 
     datastream_query, result_exists = apply_datastream_auth_rules(
         user=user,
@@ -177,60 +197,60 @@ def build_datastream_response(datastream):
     }
 
 
-def check_related_fields(user, data):
+def check_related_fields(user, metadata):
 
-    if data.thing_id:
+    if metadata.thing_id:
         check_thing_by_id(
             user=user,
-            thing_id=data.thing_id,
+            thing_id=metadata.thing_id,
             require_ownership=True,
             raise_http_errors=True
         )
 
-    if data.sensor_id:
+    if metadata.sensor_id:
         check_sensor_by_id(
             user=user,
-            sensor_id=data.sensor_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.observed_property_id:
-        check_observed_property_by_id(
-            user=user,
-            observed_property_id=data.observed_property_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.processing_level_id:
-        check_processing_level_by_id(
-            user=user,
-            processing_level_id=data.processing_level_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.unit_id:
-        check_unit_by_id(
-            user=user,
-            unit_id=data.unit_id,
-            require_ownership=True,
-            raise_http_errors=True
-        )
-
-    if data.time_aggregation_interval_units_id:
-        check_unit_by_id(
-            user=user,
-            unit_id=data.time_aggregation_interval_units_id,
+            sensor_id=metadata.sensor_id,
             require_ownership_or_unowned=True,
             raise_http_errors=True
         )
 
-    if data.intended_time_spacing_units_id:
+    if metadata.observed_property_id:
+        check_observed_property_by_id(
+            user=user,
+            observed_property_id=metadata.observed_property_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.processing_level_id:
+        check_processing_level_by_id(
+            user=user,
+            processing_level_id=metadata.processing_level_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.unit_id:
         check_unit_by_id(
             user=user,
-            unit_id=data.intended_time_spacing_units_id,
+            unit_id=metadata.unit_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.time_aggregation_interval_units_id:
+        check_unit_by_id(
+            user=user,
+            unit_id=metadata.time_aggregation_interval_units_id,
+            require_ownership_or_unowned=True,
+            raise_http_errors=True
+        )
+
+    if metadata.intended_time_spacing_units_id:
+        check_unit_by_id(
+            user=user,
+            unit_id=metadata.intended_time_spacing_units_id,
             require_ownership_or_unowned=True,
             raise_http_errors=True
         )

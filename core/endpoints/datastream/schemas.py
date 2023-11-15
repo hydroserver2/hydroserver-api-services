@@ -1,9 +1,13 @@
 from ninja import Schema
 from pydantic import Field
-from typing import Union
+from typing import Union, List
 from uuid import UUID
 from datetime import datetime
 from sensorthings.validators import allow_partial
+from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
+from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
+from core.endpoints.unit.schemas import UnitGetResponse
+from core.endpoints.sensor.schemas import SensorGetResponse
 
 
 class DatastreamID(Schema):
@@ -15,13 +19,13 @@ class DatastreamFields(Schema):
     description: str
     observation_type: str = Field(..., alias='observationType')
     sampled_medium: str = Field(..., alias='sampledMedium')
-    no_data_value: str = Field(..., alias='noDataValue')
+    no_data_value: float = Field(..., alias='noDataValue')
     aggregation_statistic: str = Field(..., alias='aggregationStatistic')
-    time_aggregation_interval: str = Field(..., alias='timeAggregationInterval')
+    time_aggregation_interval: float = Field(..., alias='timeAggregationInterval')
     status: str = None
-    result_type: str = Field(None, alias='resultType')
-    value_count: str = Field(None, alias='valueCount')
-    intended_time_spacing: str = Field(None, alias='intendedTimeSpacing')
+    result_type: str = Field(..., alias='resultType')
+    value_count: int = Field(None, alias='valueCount')
+    intended_time_spacing: float = Field(None, alias='intendedTimeSpacing')
     phenomenon_begin_time: datetime = Field(None, alias='phenomenonBeginTime')
     phenomenon_end_time: datetime = Field(None, alias='phenomenonEndTime')
     result_begin_time: datetime = Field(None, alias='resultBeginTime')
@@ -51,3 +55,13 @@ class DatastreamPostBody(DatastreamFields):
 @allow_partial
 class DatastreamPatchBody(DatastreamFields):
     thing_id: UUID = Field(..., alias='thingId')
+
+
+class DatastreamMetadataGetResponse(Schema):
+    units: List[UnitGetResponse]
+    sensors: List[SensorGetResponse]
+    processing_levels: List[ProcessingLevelGetResponse] = Field(..., alias='processingLevels')
+    observed_properties: List[ObservedPropertyGetResponse] = Field(..., alias='observedProperties')
+
+    class Config:
+        allow_population_by_field_name = True

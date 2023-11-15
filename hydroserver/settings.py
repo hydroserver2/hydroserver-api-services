@@ -3,10 +3,11 @@ import os
 import socket
 import dj_database_url
 from pathlib import Path
-
+from uuid import UUID
 from corsheaders.defaults import default_headers
 from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
 from typing import Union
+from ninja.types import DictStrAny
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
 
@@ -64,6 +65,8 @@ INSTALLED_APPS = [
     'django_ses',
     'sensorthings',
     'ninja_extra',
+    'simple_history',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -75,7 +78,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'sensorthings.middleware.SensorThingsMiddleware'
+    'sensorthings.middleware.SensorThingsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware'
 ]
 
 ROOT_URLCONF = 'hydroserver.urls'
@@ -106,7 +110,7 @@ os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DI
 
 DATABASES = {
     'default': dj_database_url.config(
-        conn_max_age=config('CONN_MAX_AGE', default=600),
+        conn_max_age=config('CONN_MAX_AGE', default=0),
         conn_health_checks=config('CONN_HEALTH_CHECKS', default=True, cast=bool),
         ssl_require=config('SSL_REQUIRED', default=False, cast=bool)
     )
@@ -158,10 +162,21 @@ DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+AWS_LOCATION = 'static'
 
 if DEPLOYED:
-    AWS_LOCATION = 'static/'
-    AWS_S3_CUSTOM_DOMAIN = PROXY_BASE_URL
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "AWS_S3_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
+                "AWS_S3_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
+                "AWS_STORAGE_BUCKET_NAME": AWS_STORAGE_BUCKET_NAME,
+                "AWS_S3_CUSTOM_DOMAIN": PROXY_BASE_URL,
+                "AWS_LOCATION": AWS_LOCATION
+            }
+        },
+    }
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
@@ -190,3 +205,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SensorThings Configuration
 
 ST_API_PREFIX = 'api/sensorthings'
+ST_API_ID_QUALIFIER = "'"
+ST_API_ID_TYPE = UUID
+
+
+# # We need to patch Django Ninja's OpenAPISchema "methods" method to create a unique operationId for endpoints
+# # that allow multiple methods on the same view function (such as GET and HEAD in this case). Without this patch,
+# # our GET and HEAD methods in the Swagger docs will have the same ID and behave inconsistently. This is probably an
+# # unintentional bug with the Django Ninja router.api_operation method when using it for multiple HTTP methods.
+#
+# from ninja.openapi.schema import OpenAPISchema
+#
+#
+# def _methods_patch(self, operations: list) -> DictStrAny:
+#     result = {}
+#     for op in operations:
+#         if op.include_in_schema:
+#             operation_details = self.operation_details(op)
+#             for method in op.methods:
+#                 # Update the operationId of HEAD methods to avoid conflict with corresponding GET methods.
+#                 # Original code:
+#                 # result[method.lower()] = operation_details
+#                 result[method.lower()] = {
+#                     **operation_details,
+#                     'operationId': operation_details['operationId'] + '_head'
+#                     if method.lower() == 'head' else operation_details['operationId']
+#                 }
+#     return result
+#
+#
+# OpenAPISchema.methods = _methods_patch

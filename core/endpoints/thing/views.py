@@ -1,7 +1,9 @@
 from ninja import Path
-from typing import List
+from typing import List, Optional
 from uuid import UUID
+from datetime import datetime
 from django.db import transaction, IntegrityError
+from django.db.models import Q
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
@@ -24,14 +26,14 @@ router = DataManagementRouter(tags=['Things'])
 
 
 @router.dm_list('', response=ThingGetResponse)
-def get_things(request):
+def get_things(request, modified_since: Optional[datetime] = None):
     """
     Get a list of Things
 
     This endpoint returns a list of public Things and Things owned by the authenticated user if there is one.
     """
 
-    thing_query, _ = query_things(user=request.authenticated_user)
+    thing_query, _ = query_things(user=request.authenticated_user, modified_since=modified_since)
 
     return [
         build_thing_response(request.authenticated_user, thing) for thing in thing_query.all()
@@ -346,10 +348,22 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
         if associate.is_primary_owner is True
     ]), None)
 
-    units, _ = query_units(user=primary_owner, require_ownership=True)
-    sensors, _ = query_sensors(user=primary_owner, require_ownership=True)
-    processing_levels, _ = query_processing_levels(user=primary_owner, require_ownership=True)
-    observed_properties, _ = query_observed_properties(user=primary_owner, require_ownership=True)
+    units, _ = query_units(user=primary_owner, require_ownership_or_unowned=True)
+    sensors, _ = query_sensors(user=primary_owner, require_ownership_or_unowned=True)
+    processing_levels, _ = query_processing_levels(user=primary_owner, require_ownership_or_unowned=True)
+    observed_properties, _ = query_observed_properties(user=primary_owner, require_ownership_or_unowned=True)
+
+    units = units.filter(
+        ~Q(person=None) |
+        Q(datastreams__thing__id__in=[thing_id]) |
+        Q(intended_time_spacing_units__thing__id__in=[thing_id]) |
+        Q(time_aggregation_interval_units__thing__id__in=[thing_id])
+    ).distinct()
+    sensors = sensors.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
+    processing_levels = processing_levels.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
+    observed_properties = observed_properties.filter(
+        ~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])
+    ).distinct()
 
     unit_data = [build_unit_response(unit) for unit in units.all()]
     sensor_data = [build_sensor_response(sensor) for sensor in sensors.all()]

@@ -33,7 +33,7 @@ class LocationFields(Schema):
 
 
 class OrganizationFields(Schema):
-    organization_name: Optional[str] = Field(None, alias='organizationName')
+    name: Optional[str] = Field(None, alias='organizationName')
 
 
 class AssociationFields(Schema):
