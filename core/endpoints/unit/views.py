@@ -39,7 +39,6 @@ def get_unit(request, unit_id: UUID = Path(...)):
     unit = get_unit_by_id(
         user=request.authenticated_user,
         unit_id=unit_id,
-        require_ownership_or_unowned=True,
         raise_http_errors=True
     )
 

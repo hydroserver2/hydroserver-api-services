@@ -40,7 +40,6 @@ def get_result_qualifier(request, result_qualifier_id: UUID = Path(...)):
     result_qualifier = get_result_qualifier_by_id(
         user=request.authenticated_user,
         result_qualifier_id=result_qualifier_id,
-        require_ownership_or_unowned=True,
         raise_http_errors=True
     )
 

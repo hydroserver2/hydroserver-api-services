@@ -40,7 +40,6 @@ def get_processing_level(request, processing_level_id: UUID = Path(...)):
     processing_level = get_processing_level_by_id(
         user=request.authenticated_user,
         processing_level_id=processing_level_id,
-        require_ownership_or_unowned=True,
         raise_http_errors=True
     )
 

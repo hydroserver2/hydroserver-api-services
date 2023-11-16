@@ -40,7 +40,6 @@ def get_observed_property(request, observed_property_id: UUID = Path(...)):
     observed_property = get_observed_property_by_id(
         user=request.authenticated_user,
         observed_property_id=observed_property_id,
-        require_ownership_or_unowned=True,
         raise_http_errors=True
     )
 
