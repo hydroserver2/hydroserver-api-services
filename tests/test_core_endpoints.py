@@ -189,7 +189,7 @@ def test_core_patch_endpoints(
 @pytest.mark.parametrize('endpoint, response_code', [
     ('things/9344a3d4-a45a-4529-b731-b51149b4d1b8', 204),
     ('things/0c04fcdc-3876-429e-8260-14b7baca0231', 403),
-    ('things/ab6d5d46-1ded-4ac6-8da8-0203df67950b', 403),
+    ('things/ab6d5d46-1ded-4ac6-8da8-0203df67950b', 204),
     ('things/00000000-0000-0000-0000-000000000000', 404),
     ('sensors/27fb4b01-478a-4ba8-a309-21ea49057704', 204),
     ('sensors/90d7f4a5-2042-4840-9bb4-b991f49cb8ed', 409),
