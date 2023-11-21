@@ -135,7 +135,7 @@ def delete_thing(request, thing_id: UUID = Path(...)):
     thing = get_thing_by_id(
         user=request.authenticated_user,
         thing_id=thing_id,
-        require_primary_ownership=True,
+        require_ownership=True,
         raise_http_errors=True
     )
 
