@@ -87,9 +87,9 @@ def query_observations(
     if feature_of_interest_ids:
         observation_query = observation_query.filter(feature_of_interest_id__in=feature_of_interest_ids)
 
-    observation_query = observation_query.select_related(
-        'datastream', 'feature_of_interest'
-    )
+    # observation_query = observation_query.select_related(
+    #     'datastream', 'feature_of_interest'
+    # )
 
     observation_query, result_exists = apply_observation_auth_rules(
         user=user,
