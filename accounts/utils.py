@@ -75,7 +75,7 @@ def send_password_reset_confirmation_email(user, uid, token):
         'uid': uid,
         'token': token,
         'domain': 'hydroserver.ciroh.org',
-        'proxy_base_url': settings.PROXY_BASE_URL
+        'app_client_url': settings.APP_CLIENT_URL
     }
 
     html_message = render_to_string('reset_password_email.html', context)
