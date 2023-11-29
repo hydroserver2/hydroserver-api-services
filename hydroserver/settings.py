@@ -30,12 +30,11 @@ if DEPLOYED:
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
+    CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:8000' #'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
-
-CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 
 LOGIN_REDIRECT_URL = 'sites'
 LOGOUT_REDIRECT_URL = 'home'
