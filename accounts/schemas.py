@@ -27,6 +27,7 @@ class UserFields(Schema):
     type: str = None
     link: str = None
     organization: OrganizationFields = None
+    hydroshare_connected: bool = Field(default=False, alias="hydroShareConnected")
 
     class Config:
         allow_population_by_field_name = True
