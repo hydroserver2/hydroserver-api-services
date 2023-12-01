@@ -408,3 +408,16 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
     return [
         build_datastream_response(datastream) for datastream in datastream_query.all()
     ]
+
+
+@router.post(
+    '{thing_id}/archive',
+    auth=[JWTAuth(), BasicAuth()],
+    response={
+        201: None
+    }
+)
+def archive_thing(request, thing_id: UUID = Path(...)):
+    """"""
+
+    return None
