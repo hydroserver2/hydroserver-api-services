@@ -52,6 +52,10 @@ class PersonFields(Schema):
 class OwnerFields(AssociationFields, OrganizationFields, PersonFields):
     pass
 
+class TagFields(Schema):
+    id: UUID
+    key: str
+    value: str
 
 class ThingGetResponse(LocationFields, ThingFields, ThingID):
     is_private: bool = Field(..., alias='isPrivate')
@@ -59,6 +63,7 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
     owns_thing: bool = Field(..., alias='ownsThing')
     follows_thing: bool = Field(..., alias='followsThing')
     owners: List[OwnerFields]
+    tags: List[TagFields]
 
     class Config:
         allow_population_by_field_name = True

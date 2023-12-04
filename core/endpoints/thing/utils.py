@@ -184,12 +184,15 @@ def build_thing_response(user, thing):
         associate for associate in thing.associates.all() if user and associate.person.id == user.id
     ]), None)
 
+    tags = [{'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()]
+    
     return {
         'id': thing.id,
         'is_private': thing.is_private,
         'is_primary_owner': getattr(thing_association, 'is_primary_owner', False),
         'owns_thing': getattr(thing_association, 'owns_thing', False),
         'follows_thing': getattr(thing_association, 'follows_thing', False),
+        'tags': tags,
         'owners': [{
             **{field: getattr(associate, field) for field in AssociationFields.__fields__.keys()},
             **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},
