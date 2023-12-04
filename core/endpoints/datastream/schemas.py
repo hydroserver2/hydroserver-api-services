@@ -33,6 +33,7 @@ class DatastreamFields(Schema):
     data_source_id: UUID = Field(None, alias='dataSourceId')
     data_source_column: str = Field(None, alias='dataSourceColumn')
     is_visible: bool = Field(True, alias='isVisible')
+    is_data_visible: bool = Field(True, alias='isDataVisible')
     thing_id: UUID = Field(..., alias='thingId')
     sensor_id: UUID = Field(..., alias='sensorId')
     observed_property_id: UUID = Field(..., alias='observedPropertyId')
