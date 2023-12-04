@@ -1,9 +1,13 @@
+import os
+import hsclient
+import tempfile
 from ninja import Path
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.db.models import Q
+from hsmodels.schemas.fields import PointCoverage
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
@@ -14,12 +18,13 @@ from core.endpoints.observedproperty.utils import query_observed_properties, bui
     transfer_observed_property_ownership
 from core.endpoints.processinglevel.utils import query_processing_levels, build_processing_level_response, \
     transfer_processing_level_ownership
-from core.endpoints.datastream.utils import query_datastreams, build_datastream_response
+from core.endpoints.datastream.utils import query_datastreams, build_datastream_response, generate_csv
 from core.endpoints.datastream.schemas import DatastreamGetResponse
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
-    ThingMetadataGetResponse, LocationFields, ThingFields
+    ThingMetadataGetResponse, LocationFields, ThingFields, ThingArchiveBody
 from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id
+from hydroserver import settings
 
 
 router = DataManagementRouter(tags=['Things'])
@@ -414,10 +419,92 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
     '{thing_id}/archive',
     auth=[JWTAuth(), BasicAuth()],
     response={
-        201: None
+        201: str,
+        401: str,
+        403: str,
+        404: str
     }
 )
-def archive_thing(request, thing_id: UUID = Path(...)):
+def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
     """"""
 
-    return None
+    authenticated_user = request.authenticated_user
+
+    thing = get_thing_by_id(
+        user=authenticated_user,
+        thing_id=thing_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
+
+    if thing.hydroshare_archive_link is not None:
+        return 403, 'This site has already been archived to HydroShare.'
+
+    if authenticated_user.hydroshare_token is None:
+        return 403, 'You have not linked a HydroShare account to your HydroServer account.'
+
+    datastream_query, _ = query_datastreams(
+        user=request.authenticated_user,
+        thing_ids=[thing_id],
+    )
+
+    datastreams = datastream_query.all()
+
+    if data.datastreams:
+        datastreams = [
+            datastream for datastream in datastreams if datastream.id in datastreams
+        ]
+
+    hydroshare_service = hsclient.HydroShare(
+        client_id=settings.AUTHLIB_OAUTH_CLIENTS['hydroshare']['client_id'],
+        token={
+            'access_token': authenticated_user.hydroshare_token['access_token'],
+            'token_type': authenticated_user.hydroshare_token['token_type'],
+            'scope': authenticated_user.hydroshare_token['scope'],
+            'state': '',
+            'expires_in': authenticated_user.hydroshare_token['expires_in'],
+            'refresh_token': authenticated_user.hydroshare_token['refresh_token']
+        }
+    )
+
+    archive_resource = hydroshare_service.create()
+    archive_resource.metadata.title = data.resource_title
+    archive_resource.metadata.abstract = data.resource_abstract
+    archive_resource.metadata.subjects = data.resource_keywords
+    archive_resource.set_sharing_status(data.public_resource)
+    archive_resource.metadata.spatial_coverage = PointCoverage(
+        name=thing.location.name,
+        north=thing.location.latitude,
+        east=thing.location.longitude,
+        projection='WGS 84 EPSG:4326',
+        type='point',
+        units='Decimal degrees'
+    )
+    archive_resource.metadata.additional_metadata = {
+        'Sampling Feature Type': thing.sampling_feature_type,
+        'Sampling Feature Code': thing.sampling_feature_code,
+        'Site Type': thing.site_type
+    }
+
+    if thing.data_disclaimer:
+        archive_resource.metadata.additional_metadata['Data Disclaimer'] = thing.data_disclaimer
+
+    archive_resource.save()
+
+    datastream_file_names = []
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for datastream in datastreams:
+            temp_file_name = f'{datastream.description}.csv'
+            temp_file_index = 2
+            while temp_file_name in datastream_file_names:
+                temp_file_name = f'{datastream.description} - {str(temp_file_index)}.csv'
+                temp_file_index += 1
+            datastream_file_names.append(temp_file_name)
+            temp_file_path = os.path.join(temp_dir, temp_file_name)
+            with open(temp_file_path, 'w') as csv_file:
+                for line in generate_csv(datastream):
+                    csv_file.write(line)
+            archive_resource.file_upload(temp_file_path)
+
+    return 201, archive_resource.resource_id

@@ -104,3 +104,11 @@ class ThingMetadataGetResponse(Schema):
 
     class Config:
         allow_population_by_field_name = True
+
+
+class ThingArchiveBody(Schema):
+    resource_title: str = Field(..., alias='resourceTitle')
+    resource_abstract: str = Field(..., alias='resourceAbstract')
+    resource_keywords: List[str] = Field(None, alias='resourceKeywords')
+    public_resource: bool = Field(False, alias='publicResource')
+    datastreams: List[UUID] = Field(None, alias='datastreams')
