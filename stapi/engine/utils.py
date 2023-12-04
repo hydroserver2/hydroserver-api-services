@@ -150,7 +150,7 @@ class SensorThingsUtils:
     def apply_rank(component, queryset, partition_field, filter_ids, max_records=100):
         """"""
 
-        total_query_limit = 10000  # TODO: Find a location in settings for this variable.
+        total_query_limit = 100000  # TODO: Find a location in settings for this variable.
 
         ranked_queryset = queryset.filter(
             **{f'{partition_field}__in': filter_ids}
