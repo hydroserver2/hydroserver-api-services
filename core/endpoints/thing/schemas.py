@@ -8,6 +8,7 @@ from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
 from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
+from core.endpoints.tags.schemas import TagGetResponse
 
 
 class ThingID(Schema):
@@ -52,10 +53,6 @@ class PersonFields(Schema):
 class OwnerFields(AssociationFields, OrganizationFields, PersonFields):
     pass
 
-class TagFields(Schema):
-    id: UUID
-    key: str
-    value: str
 
 class ThingGetResponse(LocationFields, ThingFields, ThingID):
     is_private: bool = Field(..., alias='isPrivate')
@@ -63,7 +60,7 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
     owns_thing: bool = Field(..., alias='ownsThing')
     follows_thing: bool = Field(..., alias='followsThing')
     owners: List[OwnerFields]
-    tags: List[TagFields]
+    tags: List[TagGetResponse]
 
     class Config:
         allow_population_by_field_name = True
