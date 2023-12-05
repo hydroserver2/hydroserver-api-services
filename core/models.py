@@ -46,6 +46,17 @@ class Thing(models.Model):
         db_table = 'Thing'
 
 
+class Tag(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    thing = models.ForeignKey('Thing', related_name='tags', on_delete=models.CASCADE, db_column='thingId')
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'Tag'
+        unique_together = ('thing', 'key', 'value')
+
+
 class HistoricalLocation(models.Model):
     thing = models.ForeignKey('Thing', on_delete=models.CASCADE, db_column='thingId')
     time = models.DateTimeField()

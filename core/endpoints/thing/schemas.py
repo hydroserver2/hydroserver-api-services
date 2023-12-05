@@ -8,6 +8,7 @@ from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
 from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
+from core.endpoints.tags.schemas import TagGetResponse
 
 
 class ThingID(Schema):
@@ -59,6 +60,7 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
     owns_thing: bool = Field(..., alias='ownsThing')
     follows_thing: bool = Field(..., alias='followsThing')
     owners: List[OwnerFields]
+    tags: List[TagGetResponse]
 
     class Config:
         allow_population_by_field_name = True
