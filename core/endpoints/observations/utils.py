@@ -34,6 +34,7 @@ def apply_observation_auth_rules(
             ))
         else:
             auth_filters.append(Q(datastream__thing__is_private=False))
+            auth_filters.append(Q(datastream__is_data_visible=True))
 
     if require_ownership:
         auth_filters.append(
