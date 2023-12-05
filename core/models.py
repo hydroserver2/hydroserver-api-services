@@ -223,6 +223,7 @@ class Datastream(models.Model):
     phenomenon_end_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonEndTime')
 
     is_visible = models.BooleanField(default=True)
+    is_data_visible = models.BooleanField(default=True)
     data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
     data_source_column = models.CharField(max_length=255, null=True, blank=True)
 
