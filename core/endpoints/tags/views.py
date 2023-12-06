@@ -5,17 +5,44 @@ from django.db import transaction, IntegrityError
 from core.models import Tag
 from core.router import DataManagementRouter
 from core.endpoints.tags.schemas import TagFields, TagGetResponse, TagPostBody, TagPatchBody
-from core.endpoints.thing.utils import get_thing_by_id, check_thing_by_id
+from core.endpoints.thing.utils import get_thing_by_id, check_thing_by_id, query_things
 from core.endpoints.tags.utils import build_tag_response
 
 
-router = DataManagementRouter(tags=['Things'])
+router = DataManagementRouter(tags=['Tags'])
+user_tag_router = DataManagementRouter(tags=['Tags'])
+
+
+@user_tag_router.dm_list('', response=TagGetResponse)
+def get_tags(request):
+    """
+    Get a list of Tags associated with a user
+
+    This endpoint returns a list of Tags used by the authenticated user.
+    """
+
+    try:
+        thing_query, _ = query_things(
+            user=request.authenticated_user,
+            require_ownership=True,
+            prefetch_tags=True
+        )
+    except HttpError:
+        return 200, []
+
+    user_tags = [tag for tags in [
+        thing.tags.all() for thing in thing_query.all()
+    ] for tag in tags]
+
+    return 200, [
+        build_tag_response(tag) for tag in user_tags
+    ]
 
 
 @router.dm_list('', response=TagGetResponse)
-def get_tags(request, thing_id: UUID = Path(...)):
+def get_thing_tags(request, thing_id: UUID = Path(...)):
     """
-    Get a list of Tags
+    Get a list of Tags for a Thing
 
     This endpoint returns a list of Tags for a Thing owned by the authenticated user if there is one.
     """
