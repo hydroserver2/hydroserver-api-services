@@ -7,7 +7,6 @@ from uuid import UUID
 from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.db.models import Q
-from hsmodels.schemas.fields import PointCoverage
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
@@ -23,7 +22,8 @@ from core.endpoints.datastream.schemas import DatastreamGetResponse
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
     ThingMetadataGetResponse, LocationFields, ThingFields, ThingArchiveBody
-from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id
+from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id, \
+    create_hydroshare_archive_resource
 from hydroserver import settings
 
 
@@ -437,23 +437,20 @@ def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
         raise_http_errors=True
     )
 
-    if thing.hydroshare_archive_link is not None:
-        return 403, 'This site has already been archived to HydroShare.'
-
-    if authenticated_user.hydroshare_token is None:
-        return 403, 'You have not linked a HydroShare account to your HydroServer account.'
-
     datastream_query, _ = query_datastreams(
         user=request.authenticated_user,
-        thing_ids=[thing_id],
+        thing_ids=[thing_id]
     )
 
-    datastreams = datastream_query.all()
+    datastreams = datastream_query.select_related('processing_level').select_related('observed_property').all()
 
     if data.datastreams:
         datastreams = [
             datastream for datastream in datastreams if datastream.id in datastreams
         ]
+
+    if authenticated_user.hydroshare_token is None:
+        return 403, 'You have not linked a HydroShare account to your HydroServer account.'
 
     hydroshare_service = hsclient.HydroShare(
         client_id=settings.AUTHLIB_OAUTH_CLIENTS['hydroshare']['client_id'],
@@ -467,44 +464,49 @@ def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
         }
     )
 
-    archive_resource = hydroshare_service.create()
-    archive_resource.metadata.title = data.resource_title
-    archive_resource.metadata.abstract = data.resource_abstract
-    archive_resource.metadata.subjects = data.resource_keywords
-    archive_resource.set_sharing_status(data.public_resource)
-    archive_resource.metadata.spatial_coverage = PointCoverage(
-        name=thing.location.name,
-        north=thing.location.latitude,
-        east=thing.location.longitude,
-        projection='WGS 84 EPSG:4326',
-        type='point',
-        units='Decimal degrees'
-    )
-    archive_resource.metadata.additional_metadata = {
-        'Sampling Feature Type': thing.sampling_feature_type,
-        'Sampling Feature Code': thing.sampling_feature_code,
-        'Site Type': thing.site_type
-    }
+    if thing.hydroshare_archive_resource_id:
+        try:
+            archive_resource = hydroshare_service.resource(thing.hydroshare_archive_resource_id)
+        except (Exception,):  # hsclient just raises a generic exception if the resource doesn't exist.
+            archive_resource = None
+    else:
+        archive_resource = None
 
-    if thing.data_disclaimer:
-        archive_resource.metadata.additional_metadata['Data Disclaimer'] = thing.data_disclaimer
-
-    archive_resource.save()
+    if not archive_resource:
+        archive_resource = create_hydroshare_archive_resource(
+            hydroshare_service=hydroshare_service,
+            resource_title=data.resource_title,
+            resource_abstract=data.resource_abstract,
+            resource_keywords=data.resource_keywords,
+            public_resource=data.public_resource,
+            thing=thing,
+        )
 
     datastream_file_names = []
+    processing_levels = list(set([
+        datastream.processing_level.definition for datastream in datastreams
+    ]))
 
     with tempfile.TemporaryDirectory() as temp_dir:
+        for processing_level in processing_levels:
+            try:
+                archive_resource.folder_delete(processing_level)
+            except (Exception,):
+                pass
+            archive_resource.folder_create(processing_level)
+            os.mkdir(os.path.join(temp_dir, processing_level))
         for datastream in datastreams:
-            temp_file_name = f'{datastream.description}.csv'
+            temp_file_name = datastream.observed_property.code
             temp_file_index = 2
-            while temp_file_name in datastream_file_names:
-                temp_file_name = f'{datastream.description} - {str(temp_file_index)}.csv'
+            while f'{datastream.processing_level.definition}_{temp_file_name}' in datastream_file_names:
+                temp_file_name = f'{datastream.observed_property.code} - {str(temp_file_index)}'
                 temp_file_index += 1
-            datastream_file_names.append(temp_file_name)
-            temp_file_path = os.path.join(temp_dir, temp_file_name)
+            datastream_file_names.append(f'{datastream.processing_level.definition}_{temp_file_name}')
+            temp_file_name = f'{temp_file_name}.csv'
+            temp_file_path = os.path.join(temp_dir, datastream.processing_level.definition, temp_file_name)
             with open(temp_file_path, 'w') as csv_file:
                 for line in generate_csv(datastream):
                     csv_file.write(line)
-            archive_resource.file_upload(temp_file_path)
+            archive_resource.file_upload(temp_file_path, destination_path=datastream.processing_level.definition)
 
     return 201, archive_resource.resource_id

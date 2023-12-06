@@ -39,7 +39,9 @@ class Thing(models.Model):
     site_type = models.CharField(max_length=200, db_column='siteType')
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
-    hydroshare_archive_link = models.CharField(max_length=500, blank=True, null=True, db_column='hydroshareArchiveLink')
+    hydroshare_archive_resource_id = models.CharField(
+        max_length=500, blank=True, null=True, db_column='hydroshareArchiveResourceId'
+    )
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
     history = HistoricalRecords(custom_model_name='ThingChangeLog', related_name='log')
 

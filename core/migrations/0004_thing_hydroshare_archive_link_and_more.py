@@ -12,12 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='thing',
-            name='hydroshare_archive_link',
-            field=models.CharField(blank=True, db_column='hydroshareArchiveLink', max_length=500, null=True),
+            name='hydroshare_archive_resource_id',
+            field=models.CharField(blank=True, db_column='hydroshareArchiveResourceId', max_length=500, null=True),
         ),
         migrations.AddField(
             model_name='thingchangelog',
-            name='hydroshare_archive_link',
-            field=models.CharField(blank=True, db_column='hydroshareArchiveLink', max_length=500, null=True),
+            name='hydroshare_archive_resource_id',
+            field=models.CharField(blank=True, db_column='hydroshareArchiveResourceId', max_length=500, null=True),
         ),
     ]
