@@ -16,7 +16,7 @@ hydroshare_router = Router(tags=['HydroShare OAuth 2.0'])
 
 
 @hydroshare_router.get(
-    '/connect',
+    '/login',
     auth=[JWTAuth(), BasicAuth()],
 )
 def hydroshare_connect(request):
@@ -48,3 +48,16 @@ def hydroshare_auth(request):
     user.save()
 
     # return redirect(settings.APP_CLIENT_URL + '/callback?t=' + access_token + '&rt=' + refresh_token)
+
+
+@hydroshare_router.get(
+    '/disconnect',
+    auth=[JWTAuth(), BasicAuth()]
+)
+def hydroshare_disconnect(request):
+
+    user = request.authenticated_user
+    user.hydroshare_token = None
+    user.save()
+
+    return 200, None
