@@ -29,9 +29,9 @@ def orcid_login(request):
 
 @orcid_router.get('/auth')
 def orcid_auth(request):
-
     token = oauth.orcid.authorize_access_token(request)
     user_id = token.get('userinfo', {}).get('sub')
+    create = False
 
     try:
         user = user_model.objects.get(orcid=user_id)
@@ -41,10 +41,16 @@ def orcid_auth(request):
             orcid=user_id,
             first_name=token.get('userinfo', {}).get('given_name'),
             last_name=token.get('userinfo', {}).get('family_name'),
+            type='other',
         )
+        create = True
 
     jwt = RefreshToken.for_user(user)
-
     access_token = str(getattr(jwt, 'access_token', ''))
     refresh_token = str(jwt)
-    return redirect(settings.APP_CLIENT_URL + '/callback?t=' + access_token + '&rt=' + refresh_token)
+
+    if create:
+        return redirect(f"{settings.APP_CLIENT_URL}/complete-profile?t={access_token}&rt={refresh_token}")
+
+    return redirect(f"{settings.APP_CLIENT_URL}/login?t={access_token}&rt={refresh_token}")
+
