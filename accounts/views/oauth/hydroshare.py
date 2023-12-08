@@ -1,4 +1,5 @@
-from ninja import Router
+import base64
+from ninja import Router, Query
 from urllib.parse import urlsplit, parse_qs
 from hydroserver import settings
 from django.shortcuts import redirect
@@ -6,6 +7,7 @@ from accounts.views.oauth.client import oauth
 from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.models import Person
+from accounts.utils import account_verification_token
 
 
 oauth.register(
@@ -16,10 +18,25 @@ hydroshare_router = Router(tags=['HydroShare OAuth 2.0'])
 
 
 @hydroshare_router.get(
-    '/login',
-    auth=[JWTAuth(), BasicAuth()],
+    '/connect',
+    auth=[JWTAuth(), BasicAuth()]
 )
-def hydroshare_connect(request):
+def hydroshare_verify(request):
+    uid = base64.urlsafe_b64encode(bytes(request.authenticated_user.email, 'utf-8'))
+    token = account_verification_token.make_token(request.authenticated_user)
+
+    return 200, {'uid': str(uid.decode('utf-8')), 'token': token}
+
+
+@hydroshare_router.get(
+    '/login'
+)
+def hydroshare_connect(request, uid: str = Query(...), token: str = Query(...)):
+
+    user = Person.objects.get(email=base64.b64decode(uid).decode('utf-8'))
+    if not account_verification_token.check_token(user, token):
+        return 400, 'Invalid or expired token'
+
     if settings.DEPLOYED is True:
         redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/hydroshare/auth'
     else:
@@ -29,11 +46,9 @@ def hydroshare_connect(request):
     # if 'X-Forwarded-Proto' in request.headers:
     #     redirect_uri = redirect_uri.replace('https:', request.headers['X-Forwarded-Proto'] + ':')
 
-    request.session['_hydroshare_connect_{}'] = str(getattr(request, 'authenticated_user'))
-
     authorized_redirect = oauth.hydroshare.authorize_redirect(request, redirect_uri)
     state = dict(parse_qs(urlsplit(authorized_redirect.url).query))['state'][0]
-    request.session[f'_hydroshare_connect_{state}'] = str(getattr(request, 'authenticated_user'))
+    request.session[f'_hydroshare_connect_{state}'] = str(user)
 
     return authorized_redirect
 
@@ -47,7 +62,7 @@ def hydroshare_auth(request):
     user.hydroshare_token = token
     user.save()
 
-    # return redirect(settings.APP_CLIENT_URL + '/callback?t=' + access_token + '&rt=' + refresh_token)
+    return redirect(settings.APP_CLIENT_URL + '/profile?refresh=true')
 
 
 @hydroshare_router.get(
