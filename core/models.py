@@ -49,6 +49,17 @@ class Thing(models.Model):
         db_table = 'Thing'
 
 
+class Tag(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    thing = models.ForeignKey('Thing', related_name='tags', on_delete=models.CASCADE, db_column='thingId')
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'Tag'
+        unique_together = ('thing', 'key', 'value')
+
+
 class HistoricalLocation(models.Model):
     thing = models.ForeignKey('Thing', on_delete=models.CASCADE, db_column='thingId')
     time = models.DateTimeField()
@@ -226,6 +237,7 @@ class Datastream(models.Model):
     phenomenon_end_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonEndTime')
 
     is_visible = models.BooleanField(default=True)
+    is_data_visible = models.BooleanField(default=True)
     data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
     data_source_column = models.CharField(max_length=255, null=True, blank=True)
 

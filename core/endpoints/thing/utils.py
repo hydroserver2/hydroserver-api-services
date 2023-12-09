@@ -78,6 +78,7 @@ def query_things(
         thing_ids: Optional[List[UUID]] = None,
         prefetch_photos: bool = False,
         prefetch_datastreams: bool = False,
+        prefetch_tags: bool = False,
         modified_since: Optional[datetime] = None
 ) -> (QuerySet, bool):
 
@@ -97,6 +98,9 @@ def query_things(
 
     if prefetch_datastreams:
         thing_query = thing_query.prefetch_related('datastreams')
+
+    if prefetch_tags:
+        thing_query = thing_query.prefetch_related('tags')
 
     if modified_since:
         thing_query = thing_query.prefetch_related('log')
@@ -154,6 +158,7 @@ def get_thing_by_id(
         ignore_privacy: bool = False,
         prefetch_photos: bool = False,
         prefetch_datastreams: bool = False,
+        prefetch_tags: bool = False,
         raise_http_errors: bool = True
 ):
 
@@ -166,6 +171,7 @@ def get_thing_by_id(
         ignore_privacy=ignore_privacy,
         prefetch_photos=prefetch_photos,
         prefetch_datastreams=prefetch_datastreams,
+        prefetch_tags=prefetch_tags,
         check_result_exists=True
     )
 
@@ -185,12 +191,15 @@ def build_thing_response(user, thing):
         associate for associate in thing.associates.all() if user and associate.person.id == user.id
     ]), None)
 
+    tags = [{'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()]
+    
     return {
         'id': thing.id,
         'is_private': thing.is_private,
         'is_primary_owner': getattr(thing_association, 'is_primary_owner', False),
         'owns_thing': getattr(thing_association, 'owns_thing', False),
         'follows_thing': getattr(thing_association, 'follows_thing', False),
+        'tags': tags,
         'owners': [{
             **{field: getattr(associate, field) for field in AssociationFields.__fields__.keys()},
             **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},

@@ -6,6 +6,8 @@ from core.endpoints.observedproperty.views import router as observed_property_ro
 from core.endpoints.processinglevel.views import router as processing_level_router
 from core.endpoints.unit.views import router as unit_router
 from core.endpoints.photo.views import router as photo_router
+from core.endpoints.tags.views import router as tag_router
+from core.endpoints.tags.views import user_tag_router
 from core.endpoints.datastream.views import router as datastream_router
 from core.endpoints.resultqualifier.views import router as result_qualifier_router
 from core.endpoints.dataloader.views import router as data_loader_router
@@ -18,7 +20,9 @@ api = NinjaAPI(
 )
 
 thing_router.add_router('/{thing_id}/photos', photo_router)
+thing_router.add_router('/{thing_id}/tags', tag_router)
 api.add_router('/things', thing_router)
+api.add_router('/tags', user_tag_router)
 api.add_router('/datastreams', datastream_router)
 api.add_router('/observed-properties', observed_property_router)
 api.add_router('/processing-levels', processing_level_router)
