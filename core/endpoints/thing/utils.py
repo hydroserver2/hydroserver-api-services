@@ -216,7 +216,6 @@ def create_hydroshare_archive_resource(
         resource_title,
         resource_abstract,
         resource_keywords,
-        public_resource,
         thing
 ):
 
@@ -224,7 +223,6 @@ def create_hydroshare_archive_resource(
     archive_resource.metadata.title = resource_title
     archive_resource.metadata.abstract = resource_abstract
     archive_resource.metadata.subjects = resource_keywords
-    archive_resource.set_sharing_status(public_resource)
     archive_resource.metadata.spatial_coverage = PointCoverage(
         name=thing.location.name,
         north=thing.location.latitude,

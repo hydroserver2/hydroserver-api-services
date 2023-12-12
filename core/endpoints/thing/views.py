@@ -446,7 +446,7 @@ def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
 
     if data.datastreams:
         datastreams = [
-            datastream for datastream in datastreams if datastream.id in datastreams
+            datastream for datastream in datastreams if datastream.id in data.datastreams
         ]
 
     if authenticated_user.hydroshare_token is None:
@@ -478,9 +478,11 @@ def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
             resource_title=data.resource_title,
             resource_abstract=data.resource_abstract,
             resource_keywords=data.resource_keywords,
-            public_resource=data.public_resource,
             thing=thing,
         )
+        set_sharing_status = True
+    else:
+        set_sharing_status = False
 
     datastream_file_names = []
     processing_levels = list(set([
@@ -508,5 +510,12 @@ def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
                 for line in generate_csv(datastream):
                     csv_file.write(line)
             archive_resource.file_upload(temp_file_path, destination_path=datastream.processing_level.definition)
+
+        if set_sharing_status:
+            try:
+                archive_resource.set_sharing_status(data.public_resource)
+                archive_resource.save()
+            except (Exception,):
+                pass
 
     return 201, archive_resource.resource_id

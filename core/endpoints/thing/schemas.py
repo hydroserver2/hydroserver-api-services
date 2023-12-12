@@ -22,6 +22,7 @@ class ThingFields(Schema):
     sampling_feature_code: str = Field(alias='samplingFeatureCode')
     site_type: str = Field(alias='siteType')
     data_disclaimer: str = Field(None, alias='dataDisclaimer')
+    hydroshare_archive_resource_id: str = Field(None, alias='hydroShareArchiveResourceId')
 
 
 class LocationFields(Schema):
