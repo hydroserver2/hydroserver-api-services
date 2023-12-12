@@ -22,12 +22,12 @@ def apply_unit_auth_rules(
     if not user and require_ownership is True:
         raise HttpError(403, 'You are not authorized to access this Unit.')
     elif user and require_ownership_or_unowned is True:
-        unit_query = unit_query.filter(Q(person=user) | Q(person=None))
+        unit_query = unit_query.filter((Q(person=user) & Q(person__is_active=True)) | Q(person=None))
     elif not user and require_ownership_or_unowned is True:
         unit_query = unit_query.filter(Q(person=None))
 
     if user and require_ownership is True:
-        unit_query = unit_query.filter(Q(person=user))
+        unit_query = unit_query.filter(Q(person=user) & Q(person__is_active=True))
 
     return unit_query, result_exists
 

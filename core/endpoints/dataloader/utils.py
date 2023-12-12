@@ -20,7 +20,7 @@ def apply_data_loader_auth_rules(
         raise HttpError(403, 'You are not authorized to access this Data Loader.')
 
     if user and require_ownership is True:
-        data_loader_query = data_loader_query.filter(Q(person=user))
+        data_loader_query = data_loader_query.filter((Q(person=user) & Q(person__is_active=True)))
 
     return data_loader_query, result_exists
 
