@@ -153,6 +153,12 @@
     code: RESULTQUALIFIER2
     description: A test result qualifier.
     person: 1_000_000_001
+- model: core.resultqualifier
+  pk: 8dc7b570-0247-4ccf-a5f2-0831546571cf
+  fields:
+    code: RESULTQUALIFIER5
+    description: A test result qualifier.
+    person: 1_000_000_001
 
 - model: core.dataloader
   pk: 94af2e5f-da4f-4152-8f50-171566c9d327
