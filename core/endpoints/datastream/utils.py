@@ -31,7 +31,10 @@ def apply_datastream_auth_rules(
 
     result_exists = datastream_query.exists() if check_result is True else None
 
-    auth_filters = []
+    auth_filters = [
+        ~(Q(thing__associates__is_primary_owner=True) &
+          Q(thing__associates__person__is_active=False))
+    ]
 
     if ignore_privacy is False:
         if user:

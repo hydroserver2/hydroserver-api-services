@@ -23,9 +23,11 @@ def apply_processing_level_auth_rules(
         raise HttpError(403, 'You are not authorized to access this Processing Level.')
 
     if user and require_ownership is True:
-        processing_level_query = processing_level_query.filter(Q(person=user))
+        processing_level_query = processing_level_query.filter((Q(person=user) & Q(person__is_active=True)))
     elif user and require_ownership_or_unowned is True:
-        processing_level_query = processing_level_query.filter(Q(person=user) | Q(person=None))
+        processing_level_query = processing_level_query.filter(
+            (Q(person=user) & Q(person__is_active=True)) | Q(person=None)
+        )
     elif not user and require_ownership_or_unowned is True:
         processing_level_query = processing_level_query.filter(Q(person=None))
 

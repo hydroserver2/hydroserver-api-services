@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate
 class BasicAuth(HttpBasicAuth):
     def authenticate(self, request, username, password, *args, **kwargs):
         user = authenticate(email=username, password=password)
-        if user and user.is_authenticated:
+        if user and user.is_authenticated and user.is_active:
             request.authenticated_user = user
             return user
         elif username or password:

@@ -18,6 +18,6 @@ class JWTAuth(JWTBaseAuthentication, HttpBearer):
         except AuthenticationFailed:
             user = None
 
-        if user and user.is_authenticated:
+        if user and user.is_authenticated and user.is_active:
             request.authenticated_user = user
             return user

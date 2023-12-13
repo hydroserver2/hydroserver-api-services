@@ -21,9 +21,11 @@ def apply_result_qualifier_auth_rules(
         raise HttpError(403, 'You are not authorized to access this Result Qualifier.')
 
     if user and require_ownership is True:
-        result_qualifier_query = result_qualifier_query.filter(Q(person=user))
+        result_qualifier_query = result_qualifier_query.filter((Q(person=user) & Q(person__is_active=True)))
     elif user and require_ownership_or_unowned is True:
-        result_qualifier_query = result_qualifier_query.filter(Q(person=user) | Q(person=None))
+        result_qualifier_query = result_qualifier_query.filter(
+            (Q(person=user) & Q(person__is_active=True)) | Q(person=None)
+        )
     elif not user and require_ownership_or_unowned is True:
         result_qualifier_query = result_qualifier_query.filter(Q(person=None))
 

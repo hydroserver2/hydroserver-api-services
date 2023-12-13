@@ -26,7 +26,9 @@ def apply_thing_auth_rules(
 
     result_exists = thing_query.exists() if check_result is True else None
 
-    auth_filters = []
+    auth_filters = [
+        ~(Q(associates__is_primary_owner=True) & Q(associates__person__is_active=False))
+    ]
 
     if ignore_privacy is False:
         if user:
@@ -205,7 +207,7 @@ def build_thing_response(user, thing):
             **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},
             **{field: getattr(associate.person.organization, field, None)
                for field in OrganizationFields.__fields__.keys()},
-        } for associate in thing.associates.all() if associate.owns_thing is True],
+        } for associate in thing.associates.all() if associate.owns_thing is True and associate.person.is_active],
         **{field: getattr(thing, field) for field in ThingFields.__fields__.keys()},
         **{field: getattr(thing.location, field) for field in LocationFields.__fields__.keys()}
     }
