@@ -24,7 +24,10 @@ def apply_observation_auth_rules(
 
     result_exists = observation_query.exists() if check_result is True else None
 
-    auth_filters = []
+    auth_filters = [
+        ~(Q(datastream__thing__associates__is_primary_owner=True) &
+          Q(datastream__thing__associates__person__is_active=False))
+    ]
 
     if ignore_privacy is False:
         if user:
@@ -34,6 +37,7 @@ def apply_observation_auth_rules(
             ))
         else:
             auth_filters.append(Q(datastream__thing__is_private=False))
+            auth_filters.append(Q(datastream__is_data_visible=True))
 
     if require_ownership:
         auth_filters.append(
@@ -87,9 +91,9 @@ def query_observations(
     if feature_of_interest_ids:
         observation_query = observation_query.filter(feature_of_interest_id__in=feature_of_interest_ids)
 
-    observation_query = observation_query.select_related(
-        'datastream', 'feature_of_interest'
-    )
+    # observation_query = observation_query.select_related(
+    #     'datastream', 'feature_of_interest'
+    # )
 
     observation_query, result_exists = apply_observation_auth_rules(
         user=user,

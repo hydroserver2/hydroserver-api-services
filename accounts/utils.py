@@ -75,7 +75,7 @@ def send_password_reset_confirmation_email(user, uid, token):
         'uid': uid,
         'token': token,
         'domain': 'hydroserver.ciroh.org',
-        'proxy_base_url': settings.PROXY_BASE_URL
+        'app_client_url': settings.APP_CLIENT_URL
     }
 
     html_message = render_to_string('reset_password_email.html', context)
@@ -97,6 +97,10 @@ def build_user_response(user):
             **{field: getattr(user.organization, field, None)
                for field in OrganizationFields.__fields__.keys()}
         },
-        **{field: getattr(user, field) for field in UserFields.__fields__.keys()},
+        **{
+            field: getattr(user, field) for field in UserFields.__fields__.keys()
+            if field != 'hydroshare_connected'
+        },
         'email': user.email if user.is_verified is True else user.unverified_email,
+        'hydroShareConnected': True if user.hydroshare_token is not None else False
     }

@@ -30,12 +30,11 @@ if DEPLOYED:
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
+    CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:8000' #'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
-
-CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 
 LOGIN_REDIRECT_URL = 'sites'
 LOGOUT_REDIRECT_URL = 'home'
@@ -146,6 +145,13 @@ AUTHLIB_OAUTH_CLIENTS = {
         'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
         'client_secret': config('OAUTH_GOOGLE_SECRET', default=''),
         'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
+    },
+    'hydroshare': {
+        'client_id': config('OAUTH_HYDROSHARE_CLIENT', default=''),
+        'client_secret': config('OAUTH_HYDROSHARE_SECRET', default=''),
+        'api_base_url': 'https://www.hydroshare.org',
+        'authorize_url': 'https://www.hydroshare.org/o/authorize/',
+        'access_token_url': 'https://www.hydroshare.org/o/token/'
     }
 }
 

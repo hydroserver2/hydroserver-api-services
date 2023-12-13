@@ -65,6 +65,8 @@ class Person(AbstractUser):
     link = models.URLField(max_length=2000, blank=True, null=True)
     organization = models.OneToOneField(Organization, related_name='person', on_delete=models.SET_NULL,  
                                         db_column='organizationId', blank=True, null=True)
+    hydroshare_token = models.JSONField(blank=True, null=True)
+
     objects = PersonManager()
 
     USERNAME_FIELD = 'email'

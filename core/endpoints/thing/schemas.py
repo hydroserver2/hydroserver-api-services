@@ -8,6 +8,7 @@ from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
 from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
+from core.endpoints.tags.schemas import TagGetResponse
 
 
 class ThingID(Schema):
@@ -21,6 +22,7 @@ class ThingFields(Schema):
     sampling_feature_code: str = Field(alias='samplingFeatureCode')
     site_type: str = Field(alias='siteType')
     data_disclaimer: str = Field(None, alias='dataDisclaimer')
+    hydroshare_archive_resource_id: str = Field(None, alias='hydroShareArchiveResourceId')
 
 
 class LocationFields(Schema):
@@ -59,6 +61,7 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
     owns_thing: bool = Field(..., alias='ownsThing')
     follows_thing: bool = Field(..., alias='followsThing')
     owners: List[OwnerFields]
+    tags: List[TagGetResponse]
 
     class Config:
         allow_population_by_field_name = True
@@ -104,3 +107,11 @@ class ThingMetadataGetResponse(Schema):
 
     class Config:
         allow_population_by_field_name = True
+
+
+class ThingArchiveBody(Schema):
+    resource_title: str = Field(..., alias='resourceTitle')
+    resource_abstract: str = Field(..., alias='resourceAbstract')
+    resource_keywords: List[str] = Field(None, alias='resourceKeywords')
+    public_resource: bool = Field(False, alias='publicResource')
+    datastreams: List[UUID] = Field(None, alias='datastreams')

@@ -1,6 +1,6 @@
 from ninja import Schema, Field
 from typing import Optional, Literal, Union
-from pydantic import AnyHttpUrl, conint
+from pydantic import AnyHttpUrl, conint, validator
 from datetime import datetime
 from uuid import UUID
 from sensorthings.validators import allow_partial
@@ -13,7 +13,7 @@ class DataSourceID(Schema):
 class DataSourceFields(Schema):
     name: str
     path: Optional[str]
-    url: Optional[AnyHttpUrl]
+    url: Optional[str]
     header_row: Optional[conint(gt=0)] = Field(None, alias='headerRow')
     data_start_row: Optional[conint(gt=0)] = Field(1, alias='dataStartRow')
     delimiter: Optional[str] = ','
@@ -34,6 +34,16 @@ class DataSourceFields(Schema):
     last_sync_message: Optional[str] = Field(None, alias='lastSyncMessage')
     last_synced: Optional[datetime] = Field(None, alias='lastSynced')
     next_sync: Optional[datetime] = Field(None, alias='nextSync')
+
+    @validator('crontab')
+    def whitespace_to_none(cls, value):
+        if isinstance(value, str):
+            if value == '' or value.isspace():
+                value = None
+            else:
+                value = value.strip()
+
+        return value
 
 
 class DataSourceGetResponse(DataSourceFields, DataSourceID):

@@ -1,3 +1,6 @@
+import os
+import hsclient
+import tempfile
 from ninja import Path
 from typing import List, Optional
 from uuid import UUID
@@ -14,12 +17,14 @@ from core.endpoints.observedproperty.utils import query_observed_properties, bui
     transfer_observed_property_ownership
 from core.endpoints.processinglevel.utils import query_processing_levels, build_processing_level_response, \
     transfer_processing_level_ownership
-from core.endpoints.datastream.utils import query_datastreams, build_datastream_response
+from core.endpoints.datastream.utils import query_datastreams, build_datastream_response, generate_csv
 from core.endpoints.datastream.schemas import DatastreamGetResponse
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response, transfer_sensor_ownership
 from .schemas import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, ThingPrivacyPatchBody, \
-    ThingMetadataGetResponse, LocationFields, ThingFields
-from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id
+    ThingMetadataGetResponse, LocationFields, ThingFields, ThingArchiveBody
+from .utils import query_things, get_thing_by_id, build_thing_response, check_thing_by_id, \
+    create_hydroshare_archive_resource
+from hydroserver import settings
 
 
 router = DataManagementRouter(tags=['Things'])
@@ -135,7 +140,7 @@ def delete_thing(request, thing_id: UUID = Path(...)):
     thing = get_thing_by_id(
         user=request.authenticated_user,
         thing_id=thing_id,
-        require_primary_ownership=True,
+        require_ownership=True,
         raise_http_errors=True
     )
 
@@ -408,3 +413,109 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
     return [
         build_datastream_response(datastream) for datastream in datastream_query.all()
     ]
+
+
+@router.post(
+    '{thing_id}/archive',
+    auth=[JWTAuth(), BasicAuth()],
+    response={
+        201: str,
+        401: str,
+        403: str,
+        404: str
+    }
+)
+def archive_thing(request, data: ThingArchiveBody, thing_id: UUID = Path(...)):
+    """"""
+
+    authenticated_user = request.authenticated_user
+
+    thing = get_thing_by_id(
+        user=authenticated_user,
+        thing_id=thing_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
+
+    datastream_query, _ = query_datastreams(
+        user=request.authenticated_user,
+        thing_ids=[thing_id]
+    )
+
+    datastreams = datastream_query.select_related('processing_level').select_related('observed_property').all()
+
+    if data.datastreams:
+        datastreams = [
+            datastream for datastream in datastreams if datastream.id in data.datastreams
+        ]
+
+    if authenticated_user.hydroshare_token is None:
+        return 403, 'You have not linked a HydroShare account to your HydroServer account.'
+
+    hydroshare_service = hsclient.HydroShare(
+        client_id=settings.AUTHLIB_OAUTH_CLIENTS['hydroshare']['client_id'],
+        token={
+            'access_token': authenticated_user.hydroshare_token['access_token'],
+            'token_type': authenticated_user.hydroshare_token['token_type'],
+            'scope': authenticated_user.hydroshare_token['scope'],
+            'state': '',
+            'expires_in': authenticated_user.hydroshare_token['expires_in'],
+            'refresh_token': authenticated_user.hydroshare_token['refresh_token']
+        }
+    )
+
+    if thing.hydroshare_archive_resource_id:
+        try:
+            archive_resource = hydroshare_service.resource(thing.hydroshare_archive_resource_id)
+        except (Exception,):  # hsclient just raises a generic exception if the resource doesn't exist.
+            archive_resource = None
+    else:
+        archive_resource = None
+
+    if not archive_resource:
+        archive_resource = create_hydroshare_archive_resource(
+            hydroshare_service=hydroshare_service,
+            resource_title=data.resource_title,
+            resource_abstract=data.resource_abstract,
+            resource_keywords=data.resource_keywords,
+            thing=thing,
+        )
+        set_sharing_status = True
+    else:
+        set_sharing_status = False
+
+    datastream_file_names = []
+    processing_levels = list(set([
+        datastream.processing_level.definition for datastream in datastreams
+    ]))
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for processing_level in processing_levels:
+            try:
+                archive_resource.folder_delete(processing_level)
+            except (Exception,):
+                pass
+            archive_resource.folder_create(processing_level)
+            os.mkdir(os.path.join(temp_dir, processing_level))
+        for datastream in datastreams:
+            temp_file_name = datastream.observed_property.code
+            temp_file_index = 2
+            while f'{datastream.processing_level.definition}_{temp_file_name}' in datastream_file_names:
+                temp_file_name = f'{datastream.observed_property.code} - {str(temp_file_index)}'
+                temp_file_index += 1
+            datastream_file_names.append(f'{datastream.processing_level.definition}_{temp_file_name}')
+            temp_file_name = f'{temp_file_name}.csv'
+            temp_file_path = os.path.join(temp_dir, datastream.processing_level.definition, temp_file_name)
+            with open(temp_file_path, 'w') as csv_file:
+                for line in generate_csv(datastream):
+                    csv_file.write(line)
+            archive_resource.file_upload(temp_file_path, destination_path=datastream.processing_level.definition)
+
+        if set_sharing_status:
+            try:
+                archive_resource.set_sharing_status(data.public_resource)
+                archive_resource.save()
+            except (Exception,):
+                pass
+
+    return 201, archive_resource.resource_id

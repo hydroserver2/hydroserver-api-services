@@ -2,7 +2,7 @@ import uuid
 import pytz
 import boto3
 from datetime import datetime
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models import ForeignKey
 from django.db.models.signals import pre_delete
 from django.contrib.postgres.fields import ArrayField
@@ -39,11 +39,25 @@ class Thing(models.Model):
     site_type = models.CharField(max_length=200, db_column='siteType')
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
+    hydroshare_archive_resource_id = models.CharField(
+        max_length=500, blank=True, null=True, db_column='hydroshareArchiveResourceId'
+    )
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
     history = HistoricalRecords(custom_model_name='ThingChangeLog', related_name='log')
 
     class Meta:
         db_table = 'Thing'
+
+
+class Tag(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    thing = models.ForeignKey('Thing', related_name='tags', on_delete=models.CASCADE, db_column='thingId')
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'Tag'
+        unique_together = ('thing', 'key', 'value')
 
 
 class HistoricalLocation(models.Model):
@@ -223,6 +237,7 @@ class Datastream(models.Model):
     phenomenon_end_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonEndTime')
 
     is_visible = models.BooleanField(default=True)
+    is_data_visible = models.BooleanField(default=True)
     data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
     data_source_column = models.CharField(max_length=255, null=True, blank=True)
 
@@ -269,6 +284,14 @@ class ResultQualifier(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
                                blank=True, db_column='personId')
     history = HistoricalRecords(custom_model_name='ResultQualifierChangeLog', related_name='log')
+
+    def delete(self, using=None, keep_parents=False):
+        if Observation.objects.filter(result_qualifiers__contains=[self.id]).exists():
+            raise IntegrityError(
+                f'Cannot delete result qualifier {str(self.id)} because it is referenced by one or more observations.'
+            )
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
 
     class Meta:
         db_table = 'ResultQualifier'

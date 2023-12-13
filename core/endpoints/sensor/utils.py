@@ -23,11 +23,11 @@ def apply_sensor_auth_rules(
         raise HttpError(403, 'You are not authorized to access this Sensor.')
 
     if user and require_ownership is True:
-        sensor_query = sensor_query.filter(Q(person=user))
+        sensor_query = sensor_query.filter((Q(person=user) & Q(person__is_active=True)))
     elif user and require_ownership_or_unowned is True:
-        sensor_query = sensor_query.filter(Q(person=user) | Q(person=None))
+        sensor_query = sensor_query.filter((Q(person=user) & Q(person__is_active=True)) | Q(person=None))
     elif not user and require_ownership_or_unowned is True:
-        sensor_query = sensor_query.filter(Q(person=None))
+        sensor_query = sensor_query.filter((Q(person=user) & Q(person__is_active=True)))
 
     return sensor_query, result_exists
 

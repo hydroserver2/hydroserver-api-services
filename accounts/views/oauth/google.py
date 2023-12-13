@@ -32,20 +32,28 @@ def google_login(request):
 def google_auth(request):
     token = oauth.google.authorize_access_token(request)
     user_email = token.get('userinfo', {}).get('email')
+    create = False
 
     try:
         user = user_model.objects.get(email=user_email)
 
-    except user_model.DoesNotExist:
+    except user_model.DoesNotExist:      
         user = user_model.objects.create_user(
             email=user_email,
             first_name=token.get('userinfo', {}).get('given_name'),
-            last_name=token.get('userinfo', {}).get('family_name')
+            last_name=token.get('userinfo', {}).get('family_name'),
+            type='other'
         )
 
         user = update_account_to_verified(user)
+        create = True
+    
     jwt = RefreshToken.for_user(user)
     access_token = str(getattr(jwt, 'access_token', ''))
     refresh_token = str(jwt)
+    
+    if create:
+        return redirect(f"{settings.APP_CLIENT_URL}/complete-profile?t={access_token}&rt={refresh_token}")
 
-    return redirect(settings.APP_CLIENT_URL + '/callback?t=' + access_token + '&rt=' + refresh_token)
+    return redirect(f"{settings.APP_CLIENT_URL}/login?t={access_token}&rt={refresh_token}")
+
