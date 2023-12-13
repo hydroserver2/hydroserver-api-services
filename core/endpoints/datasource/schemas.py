@@ -1,6 +1,6 @@
 from ninja import Schema, Field
 from typing import Optional, Literal, Union
-from pydantic import AnyHttpUrl, conint
+from pydantic import AnyHttpUrl, conint, validator
 from datetime import datetime
 from uuid import UUID
 from sensorthings.validators import allow_partial
@@ -34,6 +34,16 @@ class DataSourceFields(Schema):
     last_sync_message: Optional[str] = Field(None, alias='lastSyncMessage')
     last_synced: Optional[datetime] = Field(None, alias='lastSynced')
     next_sync: Optional[datetime] = Field(None, alias='nextSync')
+
+    @validator('crontab')
+    def whitespace_to_none(cls, value):
+        if isinstance(value, str):
+            if value == '' or value.isspace():
+                value = None
+            else:
+                value = value.strip()
+
+        return value
 
 
 class DataSourceGetResponse(DataSourceFields, DataSourceID):
