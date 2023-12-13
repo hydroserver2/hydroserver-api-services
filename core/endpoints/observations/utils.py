@@ -24,7 +24,10 @@ def apply_observation_auth_rules(
 
     result_exists = observation_query.exists() if check_result is True else None
 
-    auth_filters = []
+    auth_filters = [
+        ~(Q(datastream__thing__associates__is_primary_owner=True) &
+          Q(datastream__thing__associates__person__is_active=False))
+    ]
 
     if ignore_privacy is False:
         if user:

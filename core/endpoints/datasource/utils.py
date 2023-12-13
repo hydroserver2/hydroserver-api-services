@@ -20,7 +20,7 @@ def apply_data_source_auth_rules(
         raise HttpError(403, 'You are not authorized to access this Data Source.')
 
     if user and require_ownership is True:
-        data_source_query = data_source_query.filter(Q(person=user))
+        data_source_query = data_source_query.filter((Q(person=user) & Q(person__is_active=True)))
 
     return data_source_query, result_exists
 

@@ -110,6 +110,22 @@ def update_user(request: HttpRequest, data: UserPatchBody):
     return build_user_response(user)
 
 
+@user_router.delete(
+    '/user',
+    response={
+        204: None
+    },
+    auth=[JWTAuth(), BasicAuth()],
+)
+def delete_user(request: HttpRequest):
+
+    user = getattr(request, 'authenticated_user', None)
+    user.is_active = False
+    user.save()
+
+    return 204, None
+
+
 @user_router.post(
     '/send-verification-email',
     auth=JWTAuth(),

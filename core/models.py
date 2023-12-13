@@ -2,7 +2,7 @@ import uuid
 import pytz
 import boto3
 from datetime import datetime
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models import ForeignKey
 from django.db.models.signals import pre_delete
 from django.contrib.postgres.fields import ArrayField
@@ -39,6 +39,9 @@ class Thing(models.Model):
     site_type = models.CharField(max_length=200, db_column='siteType')
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
+    hydroshare_archive_resource_id = models.CharField(
+        max_length=500, blank=True, null=True, db_column='hydroshareArchiveResourceId'
+    )
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
     history = HistoricalRecords(custom_model_name='ThingChangeLog', related_name='log')
 
@@ -281,6 +284,14 @@ class ResultQualifier(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
                                blank=True, db_column='personId')
     history = HistoricalRecords(custom_model_name='ResultQualifierChangeLog', related_name='log')
+
+    def delete(self, using=None, keep_parents=False):
+        if Observation.objects.filter(result_qualifiers__contains=[self.id]).exists():
+            raise IntegrityError(
+                f'Cannot delete result qualifier {str(self.id)} because it is referenced by one or more observations.'
+            )
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
 
     class Meta:
         db_table = 'ResultQualifier'

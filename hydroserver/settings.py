@@ -145,6 +145,13 @@ AUTHLIB_OAUTH_CLIENTS = {
         'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
         'client_secret': config('OAUTH_GOOGLE_SECRET', default=''),
         'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
+    },
+    'hydroshare': {
+        'client_id': config('OAUTH_HYDROSHARE_CLIENT', default=''),
+        'client_secret': config('OAUTH_HYDROSHARE_SECRET', default=''),
+        'api_base_url': 'https://www.hydroshare.org',
+        'authorize_url': 'https://www.hydroshare.org/o/authorize/',
+        'access_token_url': 'https://www.hydroshare.org/o/token/'
     }
 }
 

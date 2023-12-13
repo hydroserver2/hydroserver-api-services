@@ -13,7 +13,7 @@ class DataSourceID(Schema):
 class DataSourceFields(Schema):
     name: str
     path: Optional[str]
-    url: Optional[AnyHttpUrl]
+    url: Optional[str]
     header_row: Optional[conint(gt=0)] = Field(None, alias='headerRow')
     data_start_row: Optional[conint(gt=0)] = Field(1, alias='dataStartRow')
     delimiter: Optional[str] = ','

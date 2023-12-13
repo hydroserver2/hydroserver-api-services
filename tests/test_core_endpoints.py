@@ -18,7 +18,7 @@ def base_url():
     ('sensors', {}, 200, 3, 4),
     ('things', {'modified_since': '2090-01-01T11:11:11Z'}, 200, 0, 4),
     ('units', {}, 200, 3, 4),
-    ('result-qualifiers', {}, 200, 2, 4)
+    ('result-qualifiers', {}, 200, 3, 4)
 ])
 @pytest.mark.django_db()
 def test_core_list_endpoints(
@@ -207,7 +207,8 @@ def test_core_patch_endpoints(
     ('processing-levels/83fdb8ba-5db4-4f31-b1fa-e68478a4be13', 409),
     ('processing-levels/7e57d004-2b97-44e7-8f03-713f25415a10', 403),
     ('processing-levels/00000000-0000-0000-0000-000000000000', 404),
-    ('result-qualifiers/93ccb684-2921-49df-a6cf-2f0dea8eb210', 204),
+    ('result-qualifiers/8dc7b570-0247-4ccf-a5f2-0831546571cf', 204),
+    ('result-qualifiers/93ccb684-2921-49df-a6cf-2f0dea8eb210', 409),
     ('result-qualifiers/369c1e3e-e465-41bc-9b13-933d81d50d0d', 403),
     ('result-qualifiers/00000000-0000-0000-0000-000000000000', 404),
     ('datastreams/ca999458-d644-44b0-b678-09a892fd54ac', 204),
