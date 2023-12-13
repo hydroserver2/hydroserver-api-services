@@ -2,7 +2,7 @@ import uuid
 import pytz
 import boto3
 from datetime import datetime
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models import ForeignKey
 from django.db.models.signals import pre_delete
 from django.contrib.postgres.fields import ArrayField
@@ -284,6 +284,14 @@ class ResultQualifier(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
                                blank=True, db_column='personId')
     history = HistoricalRecords(custom_model_name='ResultQualifierChangeLog', related_name='log')
+
+    def delete(self, using=None, keep_parents=False):
+        if Observation.objects.filter(result_qualifiers__contains=[self.id]).exists():
+            raise IntegrityError(
+                f'Cannot delete result qualifier {str(self.id)} because it is referenced by one or more observations.'
+            )
+        else:
+            super().delete(using=using, keep_parents=keep_parents)
 
     class Meta:
         db_table = 'ResultQualifier'
