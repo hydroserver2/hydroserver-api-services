@@ -6,6 +6,7 @@ from django.db.models.query import QuerySet
 from uuid import UUID
 from typing import List, Optional
 from functools import reduce
+from hsmodels.schemas.fields import PointCoverage
 from core.models import Person, Thing, ThingAssociation
 from .schemas import AssociationFields, PersonFields, OrganizationFields, ThingFields, LocationFields
 
@@ -208,3 +209,40 @@ def build_thing_response(user, thing):
         **{field: getattr(thing, field) for field in ThingFields.__fields__.keys()},
         **{field: getattr(thing.location, field) for field in LocationFields.__fields__.keys()}
     }
+
+
+def create_hydroshare_archive_resource(
+        hydroshare_service,
+        resource_title,
+        resource_abstract,
+        resource_keywords,
+        thing
+):
+
+    archive_resource = hydroshare_service.create()
+    archive_resource.metadata.title = resource_title
+    archive_resource.metadata.abstract = resource_abstract
+    archive_resource.metadata.subjects = resource_keywords
+    archive_resource.metadata.spatial_coverage = PointCoverage(
+        name=thing.location.name,
+        north=thing.location.latitude,
+        east=thing.location.longitude,
+        projection='WGS 84 EPSG:4326',
+        type='point',
+        units='Decimal degrees'
+    )
+    archive_resource.metadata.additional_metadata = {
+        'Sampling Feature Type': thing.sampling_feature_type,
+        'Sampling Feature Code': thing.sampling_feature_code,
+        'Site Type': thing.site_type
+    }
+
+    if thing.data_disclaimer:
+        archive_resource.metadata.additional_metadata['Data Disclaimer'] = thing.data_disclaimer
+
+    archive_resource.save()
+
+    thing.hydroshare_archive_resource_id = archive_resource.resource_id
+    thing.save()
+
+    return archive_resource
