@@ -12,6 +12,12 @@ class Command(BaseCommand):
             help='Create the observations table without installing TimescaleDB or creating a hypertable.'
         )
 
+        parser.add_argument(
+            '--partition-interval-days',
+            default=7,
+            help='Set the observations hypertable partition interval value in days.'
+        )
+
     def handle(self, *args, **options):
 
         db_settings = settings.DATABASES['default']
@@ -49,5 +55,10 @@ class Command(BaseCommand):
                         "CREATE EXTENSION IF NOT EXISTS timescaledb;"
                     )
                     cursor.execute(
-                        "SELECT create_hypertable('\"Observation\"', 'phenomenonTime', if_not_exists => TRUE);"
+                        f"SELECT create_hypertable("
+                        f"'\"Observation\"', "
+                        f"'phenomenonTime', "
+                        f"chunk_time_interval => INTERVAL '{options['partition_interval_days']} day', "
+                        f"if_not_exists => TRUE"
+                        f");"
                     )
