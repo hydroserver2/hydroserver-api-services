@@ -164,6 +164,7 @@ def delete_thing(request, thing_id: UUID = Path(...)):
         401: str,
         403: str,
         404: str,
+        422: str,
         500: str
     },
     by_alias=True
