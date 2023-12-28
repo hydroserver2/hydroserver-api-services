@@ -38,7 +38,11 @@ def get_things(request, modified_since: Optional[datetime] = None):
     This endpoint returns a list of public Things and Things owned by the authenticated user if there is one.
     """
 
-    thing_query, _ = query_things(user=request.authenticated_user, modified_since=modified_since)
+    thing_query, _ = query_things(
+        user=request.authenticated_user,
+        modified_since=modified_since,
+        prefetch_tags=True
+    )
 
     return [
         build_thing_response(request.authenticated_user, thing) for thing in thing_query.all()
