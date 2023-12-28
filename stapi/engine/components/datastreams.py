@@ -103,11 +103,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'no_data_value': datastream.no_data_value,
                     'processing_level_code': datastream.processing_level.code,
                     'intended_time_spacing': datastream.intended_time_spacing,
-                    'intended_time_spacing_units': {
-                        'name': datastream.intended_time_spacing_units.name,
-                        'symbol': datastream.intended_time_spacing_units.symbol,
-                        'definition': datastream.intended_time_spacing_units.definition.split(';')[0]
-                    } if datastream.intended_time_spacing_units is not None else None,
+                    'intended_time_spacing_units':  datastream.intended_time_spacing_units,
                     'aggregation_statistic': datastream.aggregation_statistic,
                     'time_aggregation_interval': datastream.time_aggregation_interval,
                     'time_aggregation_interval_units': {

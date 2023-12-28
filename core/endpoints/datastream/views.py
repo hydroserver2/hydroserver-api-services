@@ -215,7 +215,6 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
         units = units.filter(
             ~Q(person=None) |
             Q(datastreams__id__in=[datastream_id]) |
-            Q(intended_time_spacing_units__id__in=[datastream_id]) |
             Q(time_aggregation_interval_units__id__in=[datastream_id])
         )
         sensors = sensors.filter(~Q(person=None) | Q(datastreams__id__in=[datastream_id]))

@@ -237,9 +237,7 @@ class Datastream(models.Model):
     value_count = models.IntegerField(null=True, blank=True, db_column='valueCount')
     no_data_value = models.FloatField(db_column='noDataValue')
     intended_time_spacing = models.FloatField(null=True, blank=True, db_column='intendedTimeSpacing')
-    intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                    related_name='intended_time_spacing_units',
-                                                    db_column='intendedTimeSpacingUnitsId')
+    intended_time_spacing_units = models.CharField(max_length=255, null=True, blank=True, db_column='intendedTimeSpacingUnits')
     aggregation_statistic = models.CharField(max_length=255, db_column='aggregationStatistic')
     time_aggregation_interval = models.FloatField(db_column='timeAggregationInterval')
     time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.PROTECT,

@@ -78,10 +78,7 @@ class SensorThingsUtils:
                     'properties__noDataValue': 'no_data_value',
                     'properties__processingLevelCode': 'processing_level__code',
                     'properties__intendedTimeSpacing': 'intended_time_spacing',
-                    'properties__intendedTimeSpacingUnitOfMeasurement__name': 'intended_time_spacing_unit__name',
-                    'properties__intendedTimeSpacingUnitOfMeasurement__symbol': 'intended_time_spacing_unit__symbol',
-                    'properties__intendedTimeSpacingUnitOfMeasurement__definition':
-                        'intended_time_spacing_unit__definition',
+                    'properties__intendedTimeSpacingUnitOfMeasurement': 'intended_time_spacing_units',
                     'properties__aggregationStatistic': 'aggregation_statistic',
                     'properties__timeAggregationInterval': 'time_aggregation_interval',
                     'properties__timeAggregationIntervalUnitOfMeasurement__name':

@@ -110,9 +110,7 @@ def query_datastreams(
     if data_source_ids:
         datastream_query = datastream_query.filter(data_source_id__in=data_source_ids)
 
-    datastream_query = datastream_query.select_related(
-        'processing_level', 'unit', 'intended_time_spacing_units', 'time_aggregation_interval_units'
-    )
+    datastream_query = datastream_query.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
 
     if modified_since:
         datastream_query = datastream_query.prefetch_related('log')
@@ -250,14 +248,6 @@ def check_related_fields(user, metadata):
             raise_http_errors=True
         )
 
-    if metadata.intended_time_spacing_units_id:
-        check_unit_by_id(
-            user=user,
-            unit_id=metadata.intended_time_spacing_units_id,
-            require_ownership_or_unowned=True,
-            raise_http_errors=True
-        )
-
 
 def get_organization_info(owner):
     if not owner.organization:
@@ -338,7 +328,7 @@ def generate_csv(datastream):
 # ValueCount: {datastream.value_count}
 # NoDataValue: {datastream.no_data_value}
 # IntendedTimeSpacing: {datastream.intended_time_spacing}
-# IntendedTimeSpacingUnitsName: {getattr(datastream.intended_time_spacing_units, 'name', None)}
+# IntendedTimeSpacingUnits: {datastream.intended_time_spacing_units}
 # AggregationStatistic: {datastream.aggregation_statistic}
 # TimeAggregationInterval: {datastream.time_aggregation_interval}
 # TimeAggregationIntervalUnitsName: {datastream.time_aggregation_interval_units.name}

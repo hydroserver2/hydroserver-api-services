@@ -366,7 +366,6 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
     units = units.filter(
         ~Q(person=None) |
         Q(datastreams__thing__id__in=[thing_id]) |
-        Q(intended_time_spacing_units__thing__id__in=[thing_id]) |
         Q(time_aggregation_interval_units__thing__id__in=[thing_id])
     ).distinct()
     sensors = sensors.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()
