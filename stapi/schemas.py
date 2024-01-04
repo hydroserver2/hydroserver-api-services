@@ -13,9 +13,7 @@ class DatastreamProperties(Schema):
     no_data_value: float = Field(..., alias='noDataValue')
     processing_level_code: str = Field(..., alias='processingLevelCode')
     intended_time_spacing: Union[float, None] = Field(None, alias='intendedTimeSpacing')
-    intended_time_spacing_units: Union[st_components.UnitOfMeasurement, None] = Field(
-        None, alias='intendedTimeSpacingUnitOfMeasurement'
-    )
+    intended_time_spacing_units: Union[str, None] = Field(None, alias='intendedTimeSpacingUnitOfMeasurement')
     aggregation_statistic: Union[str, None] = Field(None, alias='aggregationStatistic')
     time_aggregation_interval: float = Field(None, alias='timeAggregationInterval')
     time_aggregation_interval_units: Union[st_components.UnitOfMeasurement, None] = Field(

@@ -14,8 +14,8 @@
     sampled_medium: Medium
     value_count: 0
     no_data_value: -9999.0
-    intended_time_spacing: 0.0
-    intended_time_spacing_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    intended_time_spacing: 15.0
+    intended_time_spacing_units: minutes
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
