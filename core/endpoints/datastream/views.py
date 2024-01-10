@@ -34,7 +34,8 @@ def get_datastreams(request, modified_since: datetime = None, exclude_unowned: b
     datastream_query, _ = query_datastreams(
         user=request.authenticated_user,
         modified_since=modified_since,
-        require_ownership=exclude_unowned
+        require_ownership=exclude_unowned,
+        raise_http_errors=False
     )
 
     return [

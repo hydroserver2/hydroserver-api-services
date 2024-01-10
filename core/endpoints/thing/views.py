@@ -31,7 +31,7 @@ router = DataManagementRouter(tags=['Things'])
 
 
 @router.dm_list('', response=ThingGetResponse)
-def get_things(request, modified_since: Optional[datetime] = None):
+def get_things(request, modified_since: Optional[datetime] = None, exclude_unowned: Optional[bool] = False):
     """
     Get a list of Things
 
@@ -41,7 +41,9 @@ def get_things(request, modified_since: Optional[datetime] = None):
     thing_query, _ = query_things(
         user=request.authenticated_user,
         modified_since=modified_since,
-        prefetch_tags=True
+        require_ownership=exclude_unowned,
+        prefetch_tags=True,
+        raise_http_errors=False
     )
 
     return [

@@ -1,5 +1,6 @@
 from ninja import Path
 from uuid import UUID
+from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ProcessingLevel
@@ -12,7 +13,7 @@ router = DataManagementRouter(tags=['Processing Levels'])
 
 
 @router.dm_list('', response=ProcessingLevelGetResponse)
-def get_processing_levels(request):
+def get_processing_levels(request, exclude_unowned: Optional[bool] = False):
     """
     Get a list of Processing Levels
 
@@ -21,7 +22,9 @@ def get_processing_levels(request):
 
     processing_level_query, _ = query_processing_levels(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership_or_unowned=True
+        require_ownership=exclude_unowned,
+        require_ownership_or_unowned=True,
+        raise_http_errors=False
     )
 
     return [

@@ -1,5 +1,6 @@
 from ninja import Path
 from uuid import UUID
+from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ResultQualifier
@@ -12,7 +13,7 @@ router = DataManagementRouter(tags=['Result Qualifiers'])
 
 
 @router.dm_list('', response=ResultQualifierGetResponse)
-def get_result_qualifiers(request):
+def get_result_qualifiers(request, exclude_unowned: Optional[bool] = False):
     """
     Get a list of Result Qualifiers
 
@@ -21,7 +22,9 @@ def get_result_qualifiers(request):
 
     result_qualifier_query, _ = query_result_qualifiers(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership_or_unowned=True
+        require_ownership=exclude_unowned,
+        require_ownership_or_unowned=True,
+        raise_http_errors=False
     )
 
     return [

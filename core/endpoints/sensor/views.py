@@ -1,5 +1,6 @@
 from ninja import Path
 from uuid import UUID
+from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import Sensor
@@ -11,7 +12,7 @@ router = DataManagementRouter(tags=['Sensors'])
 
 
 @router.dm_list('', response=SensorGetResponse)
-def get_sensors(request):
+def get_sensors(request, exclude_unowned: Optional[bool] = False):
     """
     Get a list of Sensors
 
@@ -22,7 +23,9 @@ def get_sensors(request):
 
     sensor_query, _ = query_sensors(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=True
+        require_ownership=exclude_unowned,
+        require_ownership_or_unowned=True,
+        raise_http_errors=False
     )
 
     return [

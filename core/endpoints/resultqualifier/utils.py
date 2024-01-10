@@ -12,13 +12,17 @@ def apply_result_qualifier_auth_rules(
         result_qualifier_query: QuerySet,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
-        check_result: bool = False
+        check_result: bool = False,
+        raise_http_errors: bool = True
 ) -> (QuerySet, bool):
 
     result_exists = result_qualifier_query.exists() if check_result is True else None
 
     if not user and require_ownership is True:
-        raise HttpError(403, 'You are not authorized to access this Result Qualifier.')
+        if raise_http_errors is True:
+            raise HttpError(403, 'You are not authorized to access this Result Qualifier.')
+        else:
+            return result_qualifier_query.none(), result_exists
 
     if user and require_ownership is True:
         result_qualifier_query = result_qualifier_query.filter((Q(person=user) & Q(person__is_active=True)))
@@ -38,7 +42,8 @@ def query_result_qualifiers(
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
         result_qualifier_ids: Optional[List[UUID]] = None,
-        datastream_ids: Optional[List[UUID]] = None
+        datastream_ids: Optional[List[UUID]] = None,
+        raise_http_errors: Optional[bool] = True
 ):
 
     result_qualifier_query = ResultQualifier.objects
@@ -56,7 +61,8 @@ def query_result_qualifiers(
         result_qualifier_query=result_qualifier_query,
         require_ownership=require_ownership,
         require_ownership_or_unowned=require_ownership_or_unowned,
-        check_result=check_result_exists
+        check_result=check_result_exists,
+        raise_http_errors=raise_http_errors
     )
 
     return result_qualifier_query, result_exists
