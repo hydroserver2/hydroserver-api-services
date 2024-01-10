@@ -1,6 +1,7 @@
 from ninja import Path
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
 from django.db.models import Q
@@ -24,7 +25,12 @@ router = DataManagementRouter(tags=['Datastreams'])
 
 
 @router.dm_list('', response=DatastreamGetResponse)
-def get_datastreams(request, modified_since: datetime = None, exclude_unowned: bool = False):
+def get_datastreams(
+        request,
+        modified_since: datetime = None,
+        owned_only: Optional[bool] = False,
+        primary_owned_only: Optional[bool] = False
+):
     """
     Get a list of Datastreams
 
@@ -34,7 +40,8 @@ def get_datastreams(request, modified_since: datetime = None, exclude_unowned: b
     datastream_query, _ = query_datastreams(
         user=request.authenticated_user,
         modified_since=modified_since,
-        require_ownership=exclude_unowned,
+        require_primary_ownership=primary_owned_only,
+        require_ownership=owned_only,
         raise_http_errors=False
     )
 

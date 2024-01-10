@@ -12,7 +12,7 @@ router = DataManagementRouter(tags=['Sensors'])
 
 
 @router.dm_list('', response=SensorGetResponse)
-def get_sensors(request, exclude_unowned: Optional[bool] = False):
+def get_sensors(request, owned: Optional[bool] = None):
     """
     Get a list of Sensors
 
@@ -23,13 +23,14 @@ def get_sensors(request, exclude_unowned: Optional[bool] = False):
 
     sensor_query, _ = query_sensors(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=exclude_unowned,
-        require_ownership_or_unowned=True,
+        require_ownership=True if owned is True else False,
+        require_ownership_or_unowned=True if owned is None else False,
         raise_http_errors=False
     )
 
     return [
         build_sensor_response(sensor) for sensor in sensor_query.all()
+        if owned is None or owned is True or (owned is False and sensor.person is None)
     ]
 
 

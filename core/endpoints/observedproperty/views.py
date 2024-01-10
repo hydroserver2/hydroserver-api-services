@@ -13,7 +13,7 @@ router = DataManagementRouter(tags=['Observed Properties'])
 
 
 @router.dm_list('', response=ObservedPropertyGetResponse)
-def get_observed_properties(request, exclude_unowned: Optional[bool] = False):
+def get_observed_properties(request, owned: Optional[bool] = None):
     """
     Get a list of Observed Properties
 
@@ -22,13 +22,14 @@ def get_observed_properties(request, exclude_unowned: Optional[bool] = False):
 
     observed_property_query, _ = query_observed_properties(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=exclude_unowned,
-        require_ownership_or_unowned=True,
+        require_ownership=True if owned is True else False,
+        require_ownership_or_unowned=True if owned is None else False,
         raise_http_errors=False
     )
 
     return [
         build_observed_property_response(observed_property) for observed_property in observed_property_query.all()
+        if owned is None or owned is True or (owned is False and observed_property.person is None)
     ]
 
 
