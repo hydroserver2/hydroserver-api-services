@@ -22,7 +22,7 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
         observed_properties, _ = query_observed_properties(
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             observed_property_ids=observed_property_ids,
-            require_ownership_or_unowned=not expanded
+            require_ownership_or_unowned=False if observed_property_ids is not None or not expanded else True
         )
 
         if filters:
