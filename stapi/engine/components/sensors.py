@@ -21,7 +21,7 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
         sensors, _ = query_sensors(
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             sensor_ids=sensor_ids,
-            require_ownership_or_unowned=not expanded
+            require_ownership_or_unowned=False if sensor_ids is not None or not expanded else True
         )
 
         if filters:
