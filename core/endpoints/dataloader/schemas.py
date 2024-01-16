@@ -1,6 +1,7 @@
 from ninja import Schema
 from uuid import UUID
 from sensorthings.validators import allow_partial
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class DataLoaderID(Schema):
@@ -18,10 +19,10 @@ class DataLoaderGetResponse(DataLoaderFields, DataLoaderID):
         allow_population_by_field_name = True
 
 
-class DataLoaderPostBody(DataLoaderFields):
+class DataLoaderPostBody(BasePostBody, DataLoaderFields):
     pass
 
 
 @allow_partial
-class DataLoaderPatchBody(DataLoaderFields):
+class DataLoaderPatchBody(BasePatchBody, DataLoaderFields):
     pass
