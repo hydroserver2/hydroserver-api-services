@@ -18,13 +18,17 @@ def apply_thing_auth_rules(
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
         ignore_privacy: bool = False,
-        check_result: bool = False
+        check_result: bool = False,
+        raise_http_errors: bool = True
 ) -> (QuerySet, bool):
 
-    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
-        raise HttpError(403, 'You are not authorized to access this Thing.')
-
     result_exists = thing_query.exists() if check_result is True else None
+
+    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
+        if raise_http_errors is True:
+            raise HttpError(403, 'You do not have permission to perform this action on this Thing.')
+        else:
+            return thing_query.none(), result_exists
 
     auth_filters = [
         ~(Q(associates__is_primary_owner=True) & Q(associates__person__is_active=False))
@@ -81,7 +85,8 @@ def query_things(
         prefetch_photos: bool = False,
         prefetch_datastreams: bool = False,
         prefetch_tags: bool = False,
-        modified_since: Optional[datetime] = None
+        modified_since: Optional[datetime] = None,
+        raise_http_errors: Optional[bool] = True
 ) -> (QuerySet, bool):
 
     thing_query = Thing.objects
@@ -115,7 +120,8 @@ def query_things(
         require_primary_ownership=require_primary_ownership,
         require_unaffiliated=require_unaffiliated,
         ignore_privacy=ignore_privacy,
-        check_result=check_result_exists
+        check_result=check_result_exists,
+        raise_http_errors=raise_http_errors
     )
 
     return thing_query, result_exists

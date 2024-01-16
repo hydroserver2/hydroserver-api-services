@@ -23,13 +23,17 @@ def apply_datastream_auth_rules(
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
         ignore_privacy: bool = False,
-        check_result: bool = False
+        check_result: bool = False,
+        raise_http_errors: bool = True
 ) -> (QuerySet, bool):
 
-    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
-        raise HttpError(403, 'You do not have permission to perform this action on this Datastream.')
-
     result_exists = datastream_query.exists() if check_result is True else None
+
+    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
+        if raise_http_errors is True:
+            raise HttpError(403, 'You do not have permission to perform this action on this Datastream.')
+        else:
+            return datastream_query.none(), result_exists
 
     auth_filters = [
         ~(Q(thing__associates__is_primary_owner=True) &
@@ -90,7 +94,8 @@ def query_datastreams(
         sensor_ids: Optional[List[UUID]] = None,
         data_source_ids: Optional[List[UUID]] = None,
         observed_property_ids: Optional[List[UUID]] = None,
-        modified_since: Optional[datetime] = None
+        modified_since: Optional[datetime] = None,
+        raise_http_errors: Optional[bool] = True
 ) -> (QuerySet, bool):
 
     datastream_query = Datastream.objects
@@ -123,7 +128,8 @@ def query_datastreams(
         require_primary_ownership=require_primary_ownership,
         require_unaffiliated=require_unaffiliated,
         ignore_privacy=ignore_privacy,
-        check_result=check_result_exists
+        check_result=check_result_exists,
+        raise_http_errors=raise_http_errors
     )
 
     return datastream_query, result_exists

@@ -14,13 +14,17 @@ def apply_sensor_auth_rules(
         sensor_query: QuerySet,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
-        check_result: bool = False
+        check_result: bool = False,
+        raise_http_errors: bool = True
 ) -> (QuerySet, bool):
 
     result_exists = sensor_query.exists() if check_result is True else None
 
     if not user and require_ownership is True:
-        raise HttpError(403, 'You are not authorized to access this Sensor.')
+        if raise_http_errors is True:
+            raise HttpError(403, 'You are not authorized to access this Sensor.')
+        else:
+            return sensor_query.none(), result_exists
 
     if user and require_ownership is True:
         sensor_query = sensor_query.filter((Q(person=user) & Q(person__is_active=True)))
@@ -38,7 +42,8 @@ def query_sensors(
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
         sensor_ids: Optional[List[UUID]] = None,
-        datastream_ids: Optional[List[UUID]] = None
+        datastream_ids: Optional[List[UUID]] = None,
+        raise_http_errors: Optional[bool] = True
 ):
 
     sensor_query = Sensor.objects
@@ -56,7 +61,8 @@ def query_sensors(
         sensor_query=sensor_query,
         require_ownership=require_ownership,
         require_ownership_or_unowned=require_ownership_or_unowned,
-        check_result=check_result_exists
+        check_result=check_result_exists,
+        raise_http_errors=raise_http_errors
     )
 
     return sensor_query, result_exists
