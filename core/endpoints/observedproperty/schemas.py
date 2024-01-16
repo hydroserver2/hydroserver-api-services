@@ -2,6 +2,7 @@ from ninja import Schema
 from uuid import UUID
 from typing import Optional
 from sensorthings.validators import allow_partial
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class ObservedPropertyID(Schema):
@@ -23,10 +24,10 @@ class ObservedPropertyGetResponse(ObservedPropertyFields, ObservedPropertyID):
         allow_population_by_field_name = True
 
 
-class ObservedPropertyPostBody(ObservedPropertyFields):
+class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):
     pass
 
 
 @allow_partial
-class ObservedPropertyPatchBody(ObservedPropertyFields):
+class ObservedPropertyPatchBody(BasePatchBody, ObservedPropertyFields):
     pass

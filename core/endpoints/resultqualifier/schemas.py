@@ -2,6 +2,7 @@ from ninja import Schema
 from uuid import UUID
 from typing import Optional
 from sensorthings.validators import allow_partial
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class ResultQualifierID(Schema):
@@ -20,10 +21,10 @@ class ResultQualifierGetResponse(ResultQualifierFields, ResultQualifierID):
         allow_population_by_field_name = True
 
 
-class ResultQualifierPostBody(ResultQualifierFields):
+class ResultQualifierPostBody(BasePostBody, ResultQualifierFields):
     pass
 
 
 @allow_partial
-class ResultQualifierPatchBody(ResultQualifierFields):
+class ResultQualifierPatchBody(BasePatchBody, ResultQualifierFields):
     pass
