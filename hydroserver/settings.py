@@ -32,7 +32,7 @@ if DEPLOYED:
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
     CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 else:
-    PROXY_BASE_URL = 'http://127.0.0.1:8000' #'http://127.0.0.1:8000'
+    PROXY_BASE_URL = 'http://127.0.0.1:5173'  # 'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
 
@@ -105,7 +105,8 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+# os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'postgresql://admin:pass@timescaledb:5432/tsdb')
 
 DATABASES = {
     'default': dj_database_url.config(
