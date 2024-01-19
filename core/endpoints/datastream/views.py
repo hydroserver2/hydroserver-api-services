@@ -1,4 +1,5 @@
-from ninja import Path
+from ninja import Path, File
+from ninja.files import UploadedFile
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
@@ -158,6 +159,34 @@ def delete_datastream(request, datastream_id: UUID = Path(...)):
         return 409, str(e)
 
     return 204, None
+
+
+@router.post(
+    '{datastream_id}/csv',
+    auth=[JWTAuth(), BasicAuth()],
+    response={
+        201: None,
+        401: str,
+        403: str,
+        404: str
+    }
+)
+@transaction.atomic
+def upload_observations(request, datastream_id: UUID = Path(...), file: UploadedFile = File(...)):
+
+    datastream = get_datastream_by_id(
+        user=request.authenticated_user,
+        datastream_id=datastream_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
+
+    data = file.read()
+
+    print(datastream)
+    print(data)
+
+    return 201, None
 
 
 @router.get(
