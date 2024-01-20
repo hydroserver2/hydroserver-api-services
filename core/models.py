@@ -24,6 +24,7 @@ class Location(models.Model):
     elevation_datum = models.CharField(max_length=255, null=True, blank=True, db_column='elevationDatum')
     state = models.CharField(max_length=200, null=True, blank=True)
     county = models.CharField(max_length=200, null=True, blank=True)
+    country = models.CharField(max_length=2, null=True, blank=True) 
     history = HistoricalRecords(custom_model_name='LocationChangeLog', related_name='log')
 
     class Meta:
