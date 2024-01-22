@@ -1,7 +1,8 @@
+import polars as pl
 from ninja import Path, File
 from ninja.files import UploadedFile
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
@@ -10,7 +11,7 @@ from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
 from core.router import DataManagementRouter
-from core.models import Datastream
+from core.models import Datastream, Observation
 from core.endpoints.thing.utils import get_thing_by_id
 from core.endpoints.unit.utils import query_units, build_unit_response
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response
@@ -181,10 +182,38 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
         raise_http_errors=True
     )
 
-    data = file.read()
+    dataframe = pl.read_csv(file.read(), dtypes=[pl.Datetime, pl.Float64, pl.String])
 
-    print(datastream)
-    print(data)
+    print(dataframe)
+
+    dataframe = dataframe.select([
+        pl.col('ResultTime').cast(pl.Datetime).dt.replace_time_zone('UTC'),
+        pl.col('Result'),
+        pl.col('ResultQualifiers')
+    ])
+
+    print(dataframe)
+
+    # try:
+    #     Observation.objects.bulk_create([
+    #         Observation(
+    #             datastream_id=observation.datastream.id,
+    #             phenomenon_time=observation.phenomenon_time,
+    #             result=observation.result if not math.isnan(observation.result) else datastream.no_data_value,
+    #             result_time=observation.result_time,
+    #             quality_code=observation.result_quality.quality_code if observation.result_quality else None,
+    #             result_qualifiers=observation.result_quality.result_qualifiers
+    #             if observation.result_quality else []
+    #         )
+    #         for observation in observation_array
+    #     ])
+    # except IntegrityError:
+    #     raise HttpError(409, 'Duplicate phenomenonTime found on this datastream.')
+
+    # data = pl.read_csv(file, dtypes=[pl.Datetime, pl.Float64, pl.String])
+
+
+
 
     return 201, None
 

@@ -30,3 +30,4 @@ dependencies:
       - django-simple-history==3.4.0
       - hsclient==0.3.3
       - hsmodels==0.5.8
+      - polars==0.20.5
