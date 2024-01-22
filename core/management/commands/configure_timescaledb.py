@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
         parser.add_argument(
             '--partition-interval-days',
-            default=7,
+            default=365,
             help='Set the observations hypertable partition interval value in days.'
         )
 
@@ -36,9 +36,9 @@ class Command(BaseCommand):
                         "id" uuid NOT NULL,
                         "datastreamId" uuid NOT NULL,
                         "featureOfInterestId" uuid NULL,
-                        "phenomenonTime" timestamp NOT NULL,
+                        "phenomenonTime" timestamptz NOT NULL,
                         "result" float8 NOT NULL,
-                        "resultTime" timestamp NULL,
+                        "resultTime" timestamptz NULL,
                         "qualityCode" varchar(255) NULL,
                         "resultQualifiers" uuid[] NULL,
                         CONSTRAINT "_datastream_uuid_phenomenon_time_uc" UNIQUE ("datastreamId", "phenomenonTime"),

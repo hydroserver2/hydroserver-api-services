@@ -9,7 +9,7 @@ from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
 from core.endpoints.tags.schemas import TagGetResponse
-
+from country_list import countries_for_language
 
 class ThingID(Schema):
     id: UUID
@@ -25,6 +25,9 @@ class ThingFields(Schema):
     hydroshare_archive_resource_id: str = Field(None, alias='hydroShareArchiveResourceId')
 
 
+# Get a list of all ISO 3166-1 alpha-2 country codes
+valid_country_codes = [code for code, _ in countries_for_language('en')]
+
 class LocationFields(Schema):
     latitude: float
     longitude: float
@@ -32,6 +35,14 @@ class LocationFields(Schema):
     elevation_datum: str = Field(None, alias='elevationDatum')
     state: str = None
     county: str = None
+    country: str = None
+
+    @pydantic.root_validator
+    def check_country_code(cls, values):
+        country_code = values.get('country')
+        if country_code and country_code.upper() not in valid_country_codes:
+            raise ValueError(f'Invalid country code: {country_code}. Must be an ISO 3166-1 alpha-2 country code.')
+        return values
 
 
 class OrganizationFields(Schema):
