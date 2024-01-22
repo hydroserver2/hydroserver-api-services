@@ -1,8 +1,9 @@
 import polars as pl
+import math
 from ninja import Path, File
 from ninja.files import UploadedFile
 from uuid import UUID
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
@@ -17,6 +18,7 @@ from core.endpoints.unit.utils import query_units, build_unit_response
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response
 from core.endpoints.observedproperty.utils import query_observed_properties, build_observed_property_response
 from core.endpoints.processinglevel.utils import query_processing_levels, build_processing_level_response
+from sensorthings.extras.iso_types import ISOTime
 from .schemas import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody, \
      DatastreamMetadataGetResponse
 from .utils import query_datastreams, get_datastream_by_id, build_datastream_response, check_related_fields, \
@@ -167,9 +169,11 @@ def delete_datastream(request, datastream_id: UUID = Path(...)):
     auth=[JWTAuth(), BasicAuth()],
     response={
         201: None,
+        400: str,
         401: str,
         403: str,
-        404: str
+        404: str,
+        409: str
     }
 )
 @transaction.atomic
@@ -182,38 +186,34 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
         raise_http_errors=True
     )
 
-    dataframe = pl.read_csv(file.read(), dtypes=[pl.Datetime, pl.Float64, pl.String])
+    dataframe = pl.read_csv(file.read(), dtypes=[pl.String, pl.Float64, pl.String])
 
-    print(dataframe)
+    try:
+        dataframe = dataframe.with_columns([(pl.col('ResultTime').apply(
+            lambda x: ISOTime.validate(x)
+        ).alias('ISOResultTime'))])
+    except pl.exceptions.PolarsPanicError:
+        return 400, 'Failed to parse uploaded CSV file.'
 
     dataframe = dataframe.select([
-        pl.col('ResultTime').cast(pl.Datetime).dt.replace_time_zone('UTC'),
+        pl.col('ISOResultTime'),
         pl.col('Result'),
         pl.col('ResultQualifiers')
     ])
 
-    print(dataframe)
-
-    # try:
-    #     Observation.objects.bulk_create([
-    #         Observation(
-    #             datastream_id=observation.datastream.id,
-    #             phenomenon_time=observation.phenomenon_time,
-    #             result=observation.result if not math.isnan(observation.result) else datastream.no_data_value,
-    #             result_time=observation.result_time,
-    #             quality_code=observation.result_quality.quality_code if observation.result_quality else None,
-    #             result_qualifiers=observation.result_quality.result_qualifiers
-    #             if observation.result_quality else []
-    #         )
-    #         for observation in observation_array
-    #     ])
-    # except IntegrityError:
-    #     raise HttpError(409, 'Duplicate phenomenonTime found on this datastream.')
-
-    # data = pl.read_csv(file, dtypes=[pl.Datetime, pl.Float64, pl.String])
-
-
-
+    try:
+        Observation.objects.bulk_create([
+            Observation(
+                datastream_id=datastream.id,
+                phenomenon_time=observation['ISOResultTime'],
+                result=observation['Result'] if not math.isnan(observation['Result']) else datastream.no_data_value,
+                result_qualifiers=observation['ResultQualifiers'].split(',')
+                if observation['ResultQualifiers'] else None
+            )
+            for observation in dataframe.rows(named=True)
+        ])
+    except IntegrityError:
+        return 409, 'Duplicate phenomenonTime found on this datastream.'
 
     return 201, None
 
