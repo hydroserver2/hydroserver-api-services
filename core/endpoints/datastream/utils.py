@@ -378,7 +378,7 @@ def generate_csv(datastream):
 # =============================================================================
 '''
 
-    yield "ResultTime,Result,Result Qualifiers\n"
+    yield "ResultTime,Result,ResultQualifiers\n"
 
     qualifiers = ResultQualifier.objects.filter(person=primary_owner)
     qualifier_code_map = {qualifier.id: qualifier.code for qualifier in qualifiers}
