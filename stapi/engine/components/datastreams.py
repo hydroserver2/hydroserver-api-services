@@ -78,7 +78,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
         return [
             {
                 'id': datastream.id,
-                'name': str(datastream.name),
+                'name': datastream.name,
                 'description': datastream.description,
                 'thing_id': datastream.thing_id,
                 'sensor_id': datastream.sensor_id,
