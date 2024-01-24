@@ -15,7 +15,7 @@
     value_count: 0
     no_data_value: -9999.0
     intended_time_spacing: 0.0
-    intended_time_spacing_units: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
+    intended_time_spacing_units: minutes
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9

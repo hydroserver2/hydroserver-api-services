@@ -1,6 +1,6 @@
 from ninja import Schema
 from pydantic import Field
-from typing import Union, List
+from typing import Optional, Literal, Union, List
 from uuid import UUID
 from datetime import datetime
 from sensorthings.validators import allow_partial
@@ -26,7 +26,6 @@ class DatastreamFields(Schema):
     status: str = None
     result_type: str = Field(..., alias='resultType')
     value_count: int = Field(None, alias='valueCount')
-    intended_time_spacing: float = Field(None, alias='intendedTimeSpacing')
     phenomenon_begin_time: datetime = Field(None, alias='phenomenonBeginTime')
     phenomenon_end_time: datetime = Field(None, alias='phenomenonEndTime')
     result_begin_time: datetime = Field(None, alias='resultBeginTime')
@@ -41,7 +40,9 @@ class DatastreamFields(Schema):
     processing_level_id: UUID = Field(..., alias='processingLevelId')
     unit_id: UUID = Field(..., alias='unitId')
     time_aggregation_interval_units_id: UUID = Field(..., alias='timeAggregationIntervalUnitsId')
-    intended_time_spacing_units_id: UUID = Field(None, alias='intendedTimeSpacingUnitsId')
+    intended_time_spacing: float = Field(None, alias='intendedTimeSpacing')
+    intended_time_spacing_units: Optional[Literal['seconds', 'minutes', 'hours', 'days']] = \
+        Field(None, alias='intendedTimeSpacingUnits')
 
 
 class DatastreamGetResponse(DatastreamFields, DatastreamID):

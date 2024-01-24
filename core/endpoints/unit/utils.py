@@ -14,13 +14,17 @@ def apply_unit_auth_rules(
         unit_query: QuerySet,
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
-        check_result: bool = False
+        check_result: bool = False,
+        raise_http_errors: bool = True
 ) -> (QuerySet, bool):
 
     result_exists = unit_query.exists() if check_result is True else None
 
     if not user and require_ownership is True:
-        raise HttpError(403, 'You are not authorized to access this Unit.')
+        if raise_http_errors is True:
+            raise HttpError(403, 'You are not authorized to access this Unit.')
+        else:
+            return unit_query.none(), result_exists
     elif user and require_ownership_or_unowned is True:
         unit_query = unit_query.filter((Q(person=user) & Q(person__is_active=True)) | Q(person=None))
     elif not user and require_ownership_or_unowned is True:
@@ -38,7 +42,8 @@ def query_units(
         require_ownership: bool = False,
         require_ownership_or_unowned: bool = False,
         unit_ids: Optional[List[UUID]] = None,
-        datastream_ids: Optional[List[UUID]] = None
+        datastream_ids: Optional[List[UUID]] = None,
+        raise_http_errors: Optional[bool] = True
 ):
 
     unit_query = Unit.objects
@@ -49,7 +54,6 @@ def query_units(
     if datastream_ids:
         unit_query = unit_query.filter(
             Q(datastreams__id__in=datastream_ids) |
-            Q(intended_time_spacing_units__id__in=datastream_ids) |
             Q(time_aggregation_interval_units__id__in=datastream_ids)
         )
 
@@ -60,7 +64,8 @@ def query_units(
         unit_query=unit_query,
         require_ownership=require_ownership,
         require_ownership_or_unowned=require_ownership_or_unowned,
-        check_result=check_result_exists
+        check_result=check_result_exists,
+        raise_http_errors=raise_http_errors
     )
 
     return unit_query, result_exists

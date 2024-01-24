@@ -53,7 +53,7 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 'name': sensor.name,
                 'description': sensor.description,
                 'encoding_type': sensor.encoding_type,
-                'metadata': {
+                'sensor_metadata': {
                     'method_code': sensor.method_code,
                     'method_type': sensor.method_type,
                     'method_link': sensor.method_link,

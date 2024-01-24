@@ -1,5 +1,6 @@
 from ninja import Path
 from uuid import UUID
+from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import Unit
@@ -11,7 +12,7 @@ router = DataManagementRouter(tags=['Units'])
 
 
 @router.dm_list('', response=UnitGetResponse)
-def get_units(request):
+def get_units(request, owned: Optional[bool] = None):
     """
     Get a list of Units
 
@@ -20,11 +21,14 @@ def get_units(request):
 
     unit_query, _ = query_units(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership_or_unowned=True
+        require_ownership=True if owned is True else False,
+        require_ownership_or_unowned=True if owned is None else False,
+        raise_http_errors=False
     )
 
     return [
         build_unit_response(unit) for unit in unit_query.all()
+        if owned is None or owned is True or (owned is False and unit.person is None)
     ]
 
 

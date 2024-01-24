@@ -24,6 +24,7 @@ class Location(models.Model):
     elevation_datum = models.CharField(max_length=255, null=True, blank=True, db_column='elevationDatum')
     state = models.CharField(max_length=200, null=True, blank=True)
     county = models.CharField(max_length=200, null=True, blank=True)
+    country = models.CharField(max_length=2, null=True, blank=True) 
     history = HistoricalRecords(custom_model_name='LocationChangeLog', related_name='log')
 
     class Meta:
@@ -177,8 +178,11 @@ class Unit(models.Model):
 class DataLoader(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_loaders')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_loaders', db_column='personId')
     history = HistoricalRecords(custom_model_name='DataLoaderChangeLog', related_name='log')
+
+    class Meta:
+        db_table = 'DataLoader'
 
 
 class DataSource(models.Model):
@@ -186,27 +190,32 @@ class DataSource(models.Model):
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255, null=True, blank=True)
     url = models.CharField(max_length=255, null=True, blank=True)
-    header_row = models.PositiveIntegerField(null=True, blank=True)
-    data_start_row = models.PositiveIntegerField(null=True, blank=True)
+    header_row = models.PositiveIntegerField(null=True, blank=True, db_column='headerRow')
+    data_start_row = models.PositiveIntegerField(null=True, blank=True, db_column='dataStartRow')
     delimiter = models.CharField(max_length=1, null=True, blank=True)
-    quote_char = models.CharField(max_length=1, null=True, blank=True)
+    quote_char = models.CharField(max_length=1, null=True, blank=True, db_column='quoteChar')
     interval = models.PositiveIntegerField(null=True, blank=True)
-    interval_units = models.CharField(max_length=255, null=True, blank=True)
+    interval_units = models.CharField(max_length=255, null=True, blank=True, db_column='intervalUnits')
     crontab = models.CharField(max_length=255, null=True, blank=True)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateTimeField(null=True, blank=True, db_column='startTime')
+    end_time = models.DateTimeField(null=True, blank=True, db_column='endTime')
     paused = models.BooleanField()
-    timestamp_column = models.CharField(max_length=255, null=True, blank=True)
-    timestamp_format = models.CharField(max_length=255, null=True, blank=True)
-    timestamp_offset = models.CharField(max_length=255, null=True, blank=True)
-    data_loader = models.ForeignKey(DataLoader, on_delete=models.SET_NULL, null=True, blank=True)
-    data_source_thru = models.DateTimeField(null=True, blank=True)
-    last_sync_successful = models.BooleanField(null=True, blank=True)
-    last_sync_message = models.TextField(null=True, blank=True)
-    last_synced = models.DateTimeField(null=True, blank=True)
-    next_sync = models.DateTimeField(null=True, blank=True)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_sources')
+    timestamp_column = models.CharField(max_length=255, null=True, blank=True, db_column='timestampColumn')
+    timestamp_format = models.CharField(max_length=255, null=True, blank=True, db_column='timestampFormat')
+    timestamp_offset = models.CharField(max_length=255, null=True, blank=True, db_column='timestampOffset')
+    data_loader = models.ForeignKey(
+        DataLoader, on_delete=models.SET_NULL, null=True, blank=True, db_column='dataLoaderId'
+    )
+    data_source_thru = models.DateTimeField(null=True, blank=True, db_column='dataSourceThru')
+    last_sync_successful = models.BooleanField(null=True, blank=True, db_column='lastSyncSuccessful')
+    last_sync_message = models.TextField(null=True, blank=True, db_column='lastSyncMessage')
+    last_synced = models.DateTimeField(null=True, blank=True, db_column='lastSynced')
+    next_sync = models.DateTimeField(null=True, blank=True, db_column='nextSync')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_sources', db_column='personId')
     history = HistoricalRecords(custom_model_name='DataSourceChangeLog', related_name='log')
+
+    class Meta:
+        db_table = 'DataSource'
 
 
 class Datastream(models.Model):
@@ -215,19 +224,21 @@ class Datastream(models.Model):
     description = models.TextField()
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, db_column='thingId', related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, db_column='sensorId', related_name='datastreams')
-    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.PROTECT, db_column='observedPropertyId', related_name='datastreams')
+    observed_property = models.ForeignKey(
+        ObservedProperty, on_delete=models.PROTECT, db_column='observedPropertyId', related_name='datastreams'
+    )
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT, db_column='unitId', related_name='datastreams')
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.PROTECT, db_column='processingLevelId', related_name='datastreams')
+    processing_level = models.ForeignKey(
+        ProcessingLevel, on_delete=models.PROTECT, db_column='processingLevelId', related_name='datastreams'
+    )
     observation_type = models.CharField(max_length=255, db_column='observationType')
     result_type = models.CharField(max_length=255, db_column='resultType')
     status = models.CharField(max_length=255, null=True, blank=True)
     sampled_medium = models.CharField(max_length=255, db_column='sampledMedium')
     value_count = models.IntegerField(null=True, blank=True, db_column='valueCount')
     no_data_value = models.FloatField(db_column='noDataValue')
-    intended_time_spacing = models.FloatField(null=True, blank=True)
-    intended_time_spacing_units = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True,
-                                                    related_name='intended_time_spacing_units',
-                                                    db_column='intendedTimeSpacingUnitsId')
+    intended_time_spacing = models.FloatField(null=True, blank=True, db_column='intendedTimeSpacing')
+    intended_time_spacing_units = models.CharField(max_length=255, null=True, blank=True, db_column='intendedTimeSpacingUnits')
     aggregation_statistic = models.CharField(max_length=255, db_column='aggregationStatistic')
     time_aggregation_interval = models.FloatField(db_column='timeAggregationInterval')
     time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.PROTECT,
@@ -236,13 +247,15 @@ class Datastream(models.Model):
     phenomenon_begin_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonBeginTime')
     phenomenon_end_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonEndTime')
 
-    is_visible = models.BooleanField(default=True)
-    is_data_visible = models.BooleanField(default=True)
-    data_source = models.ForeignKey(DataSource, on_delete=models.SET_NULL, null=True, blank=True)
-    data_source_column = models.CharField(max_length=255, null=True, blank=True)
+    is_visible = models.BooleanField(default=True, db_column='isVisible')
+    is_data_visible = models.BooleanField(default=True, db_column='isDataVisible')
+    data_source = models.ForeignKey(
+        DataSource, on_delete=models.SET_NULL, null=True, blank=True, db_column='dataSourceId'
+    )
+    data_source_column = models.CharField(max_length=255, null=True, blank=True, db_column='dataSourceColumn')
 
     # In the data model, not implemented for now
-    observed_area = models.CharField(max_length=255, null=True, blank=True)
+    observed_area = models.CharField(max_length=255, null=True, blank=True, db_column='observedArea')
     result_end_time = models.DateTimeField(null=True, blank=True, db_column='resultEndTime')
     result_begin_time = models.DateTimeField(null=True, blank=True, db_column='resultBeginTime')
     history = HistoricalRecords(custom_model_name='DatastreamChangeLog', related_name='log')

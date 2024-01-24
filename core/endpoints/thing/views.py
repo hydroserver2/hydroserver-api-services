@@ -31,14 +31,26 @@ router = DataManagementRouter(tags=['Things'])
 
 
 @router.dm_list('', response=ThingGetResponse)
-def get_things(request, modified_since: Optional[datetime] = None):
+def get_things(
+        request,
+        modified_since: Optional[datetime] = None,
+        owned_only: Optional[bool] = False,
+        primary_owned_only: Optional[bool] = False
+):
     """
     Get a list of Things
 
     This endpoint returns a list of public Things and Things owned by the authenticated user if there is one.
     """
 
-    thing_query, _ = query_things(user=request.authenticated_user, modified_since=modified_since)
+    thing_query, _ = query_things(
+        user=request.authenticated_user,
+        modified_since=modified_since,
+        require_primary_ownership=primary_owned_only,
+        require_ownership=owned_only,
+        prefetch_tags=True,
+        raise_http_errors=False
+    )
 
     return [
         build_thing_response(request.authenticated_user, thing) for thing in thing_query.all()
@@ -160,6 +172,7 @@ def delete_thing(request, thing_id: UUID = Path(...)):
         401: str,
         403: str,
         404: str,
+        422: str,
         500: str
     },
     by_alias=True
@@ -361,7 +374,6 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
     units = units.filter(
         ~Q(person=None) |
         Q(datastreams__thing__id__in=[thing_id]) |
-        Q(intended_time_spacing_units__thing__id__in=[thing_id]) |
         Q(time_aggregation_interval_units__thing__id__in=[thing_id])
     ).distinct()
     sensors = sensors.filter(~Q(person=None) | Q(datastreams__thing__id__in=[thing_id])).distinct()

@@ -23,13 +23,17 @@ def apply_datastream_auth_rules(
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
         ignore_privacy: bool = False,
-        check_result: bool = False
+        check_result: bool = False,
+        raise_http_errors: bool = True
 ) -> (QuerySet, bool):
 
-    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
-        raise HttpError(403, 'You do not have permission to perform this action on this Datastream.')
-
     result_exists = datastream_query.exists() if check_result is True else None
+
+    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
+        if raise_http_errors is True:
+            raise HttpError(403, 'You do not have permission to perform this action on this Datastream.')
+        else:
+            return datastream_query.none(), result_exists
 
     auth_filters = [
         ~(Q(thing__associates__is_primary_owner=True) &
@@ -90,7 +94,8 @@ def query_datastreams(
         sensor_ids: Optional[List[UUID]] = None,
         data_source_ids: Optional[List[UUID]] = None,
         observed_property_ids: Optional[List[UUID]] = None,
-        modified_since: Optional[datetime] = None
+        modified_since: Optional[datetime] = None,
+        raise_http_errors: Optional[bool] = True
 ) -> (QuerySet, bool):
 
     datastream_query = Datastream.objects
@@ -110,9 +115,7 @@ def query_datastreams(
     if data_source_ids:
         datastream_query = datastream_query.filter(data_source_id__in=data_source_ids)
 
-    datastream_query = datastream_query.select_related(
-        'processing_level', 'unit', 'intended_time_spacing_units', 'time_aggregation_interval_units'
-    )
+    datastream_query = datastream_query.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
 
     if modified_since:
         datastream_query = datastream_query.prefetch_related('log')
@@ -125,7 +128,8 @@ def query_datastreams(
         require_primary_ownership=require_primary_ownership,
         require_unaffiliated=require_unaffiliated,
         ignore_privacy=ignore_privacy,
-        check_result=check_result_exists
+        check_result=check_result_exists,
+        raise_http_errors=raise_http_errors
     )
 
     return datastream_query, result_exists
@@ -250,14 +254,6 @@ def check_related_fields(user, metadata):
             raise_http_errors=True
         )
 
-    if metadata.intended_time_spacing_units_id:
-        check_unit_by_id(
-            user=user,
-            unit_id=metadata.intended_time_spacing_units_id,
-            require_ownership_or_unowned=True,
-            raise_http_errors=True
-        )
-
 
 def get_organization_info(owner):
     if not owner.organization:
@@ -338,7 +334,7 @@ def generate_csv(datastream):
 # ValueCount: {datastream.value_count}
 # NoDataValue: {datastream.no_data_value}
 # IntendedTimeSpacing: {datastream.intended_time_spacing}
-# IntendedTimeSpacingUnitsName: {getattr(datastream.intended_time_spacing_units, 'name', None)}
+# IntendedTimeSpacingUnits: {datastream.intended_time_spacing_units}
 # AggregationStatistic: {datastream.aggregation_statistic}
 # TimeAggregationInterval: {datastream.time_aggregation_interval}
 # TimeAggregationIntervalUnitsName: {datastream.time_aggregation_interval_units.name}
@@ -382,7 +378,7 @@ def generate_csv(datastream):
 # =============================================================================
 '''
 
-    yield "ResultTime,Result,Result Qualifiers\n"
+    yield "ResultTime,Result,ResultQualifiers\n"
 
     qualifiers = ResultQualifier.objects.filter(person=primary_owner)
     qualifier_code_map = {qualifier.id: qualifier.code for qualifier in qualifiers}

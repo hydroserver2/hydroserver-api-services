@@ -1,6 +1,10 @@
-from ninja import Path
+import polars as pl
+import math
+from ninja import Path, File
+from ninja.files import UploadedFile
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
 from django.db.models import Q
@@ -8,12 +12,13 @@ from accounts.auth.jwt import JWTAuth
 from accounts.auth.basic import BasicAuth
 from accounts.auth.anonymous import anonymous_auth
 from core.router import DataManagementRouter
-from core.models import Datastream
+from core.models import Datastream, Observation
 from core.endpoints.thing.utils import get_thing_by_id
 from core.endpoints.unit.utils import query_units, build_unit_response
 from core.endpoints.sensor.utils import query_sensors, build_sensor_response
 from core.endpoints.observedproperty.utils import query_observed_properties, build_observed_property_response
 from core.endpoints.processinglevel.utils import query_processing_levels, build_processing_level_response
+from sensorthings.extras.iso_types import ISOTime
 from .schemas import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody, \
      DatastreamMetadataGetResponse
 from .utils import query_datastreams, get_datastream_by_id, build_datastream_response, check_related_fields, \
@@ -24,7 +29,12 @@ router = DataManagementRouter(tags=['Datastreams'])
 
 
 @router.dm_list('', response=DatastreamGetResponse)
-def get_datastreams(request, modified_since: datetime = None, exclude_unowned: bool = False):
+def get_datastreams(
+        request,
+        modified_since: datetime = None,
+        owned_only: Optional[bool] = False,
+        primary_owned_only: Optional[bool] = False
+):
     """
     Get a list of Datastreams
 
@@ -34,7 +44,9 @@ def get_datastreams(request, modified_since: datetime = None, exclude_unowned: b
     datastream_query, _ = query_datastreams(
         user=request.authenticated_user,
         modified_since=modified_since,
-        require_ownership=exclude_unowned
+        require_primary_ownership=primary_owned_only,
+        require_ownership=owned_only,
+        raise_http_errors=False
     )
 
     return [
@@ -152,6 +164,60 @@ def delete_datastream(request, datastream_id: UUID = Path(...)):
     return 204, None
 
 
+@router.post(
+    '{datastream_id}/csv',
+    auth=[JWTAuth(), BasicAuth()],
+    response={
+        201: None,
+        400: str,
+        401: str,
+        403: str,
+        404: str,
+        409: str
+    }
+)
+@transaction.atomic
+def upload_observations(request, datastream_id: UUID = Path(...), file: UploadedFile = File(...)):
+
+    datastream = get_datastream_by_id(
+        user=request.authenticated_user,
+        datastream_id=datastream_id,
+        require_ownership=True,
+        raise_http_errors=True
+    )
+
+    dataframe = pl.read_csv(file.read(), dtypes=[pl.String, pl.Float64, pl.String])
+
+    try:
+        dataframe = dataframe.with_columns([(pl.col('ResultTime').apply(
+            lambda x: ISOTime.validate(x)
+        ).alias('ISOResultTime'))])
+    except pl.exceptions.PolarsPanicError:
+        return 400, 'Failed to parse uploaded CSV file.'
+
+    dataframe = dataframe.select([
+        pl.col('ISOResultTime'),
+        pl.col('Result'),
+        pl.col('ResultQualifiers')
+    ])
+
+    try:
+        Observation.objects.bulk_create([
+            Observation(
+                datastream_id=datastream.id,
+                phenomenon_time=observation['ISOResultTime'],
+                result=observation['Result'] if not math.isnan(observation['Result']) else datastream.no_data_value,
+                result_qualifiers=observation['ResultQualifiers'].split(',')
+                if observation['ResultQualifiers'] else None
+            )
+            for observation in dataframe.rows(named=True)
+        ])
+    except IntegrityError:
+        return 409, 'Duplicate phenomenonTime found on this datastream.'
+
+    return 201, None
+
+
 @router.get(
     '{datastream_id}/csv',
     auth=[JWTAuth(), BasicAuth(), anonymous_auth],
@@ -215,7 +281,6 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
         units = units.filter(
             ~Q(person=None) |
             Q(datastreams__id__in=[datastream_id]) |
-            Q(intended_time_spacing_units__id__in=[datastream_id]) |
             Q(time_aggregation_interval_units__id__in=[datastream_id])
         )
         sensors = sensors.filter(~Q(person=None) | Q(datastreams__id__in=[datastream_id]))

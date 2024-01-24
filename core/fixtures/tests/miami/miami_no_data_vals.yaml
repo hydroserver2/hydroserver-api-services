@@ -1,0 +1,605 @@
+- model: core.datastream
+  pk: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+  fields:
+    unit: baf27e36-4b49-472d-9e08-1d3d3fcb04fe # Degree Celsius from Paul's list
+    thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8 # Site in Miami
+    sensor: 0afabdbd-9257-4e0a-8d47-76c98fe8a513 # YSI: EXO2 Multiparameter Sonde
+    observed_property: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4 # Temperature
+    processing_level: 3b6284d9-7163-4b9a-9482-5c08e45e7b83 # RAW
+    name: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    description: A test datastream generated with a sinusoidal pattern to simulate temperature.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Complete
+    sampled_medium: Liquid aqueous
+    value_count: 100
+    no_data_value: -9999.0
+    intended_time_spacing: 30.0
+    intended_time_spacing_units: minutes
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: b05a2bc8-a349-4d33-a761-9cfe9eb65c0a
+    phenomenon_begin_time: 2023-10-23 08:00:00+00:00
+    phenomenon_end_time: 2023-10-25 10:00:00+00:00
+    data_source_id: c145427e-2ce4-4713-8847-18466e0f8f1d
+    data_source_column: VALUE1
+
+- model: core.observation
+  pk: d48bcab5-5a77-4447-be08-2521b7bed335
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.718181789516809
+    phenomenon_time: 2023-10-25 10:00:00+00:00
+- model: core.observation
+  pk: 24d9b4e5-871d-4b1d-8240-3703514afa15
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.62542352954546
+    phenomenon_time: 2023-10-25 09:30:00+00:00
+- model: core.observation
+  pk: a8e1c257-ef28-4da5-a113-7d76fb0ce2cd
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.925159006025778
+    phenomenon_time: 2023-10-25 09:00:00+00:00
+- model: core.observation
+  pk: 6953d328-9a5a-4c06-b3d8-cdcb4d6df905
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.509581323837748
+    phenomenon_time: 2023-10-25 08:30:00+00:00
+
+# Data GAP
+
+- model: core.observation
+  pk: 47362700-ac96-4cb0-a630-b632ff8409b0
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.852039143336386
+    phenomenon_time: 2023-10-25 06:00:00+00:00
+- model: core.observation
+  pk: de732fe2-d857-4e58-9246-abf1d1f4b60a
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.648482010455448
+    phenomenon_time: 2023-10-25 05:30:00+00:00
+- model: core.observation
+  pk: 779ded97-4950-4017-9d2e-b40a31ee55f5
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.83092194834084
+    phenomenon_time: 2023-10-25 05:00:00+00:00
+- model: core.observation
+  pk: 07773048-a77a-4bbe-af4b-0fb9d50320d8
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.955460992982406
+    phenomenon_time: 2023-10-25 04:30:00+00:00
+- model: core.observation
+  pk: 2e06d941-cc4f-41fc-9b3a-c1d1af809a4c
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.89361400936211
+    phenomenon_time: 2023-10-25 04:00:00+00:00
+- model: core.observation
+  pk: 62b231a8-d6a6-4983-a466-0443a48c6196
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.90312479587348
+    phenomenon_time: 2023-10-25 03:30:00+00:00
+- model: core.observation
+  pk: aed95827-9e15-43db-85fe-7d7aff92f405
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.81343504714418
+    phenomenon_time: 2023-10-25 03:00:00+00:00
+- model: core.observation
+  pk: a81efc11-0002-4daf-9b31-569e12542c09
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.66729570710425
+    phenomenon_time: 2023-10-25 02:30:00+00:00
+- model: core.observation
+  pk: 4c304f3a-b81b-4fa3-ac97-8051884e5b18
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.647362873481518
+    phenomenon_time: 2023-10-25 02:00:00+00:00
+- model: core.observation
+  pk: 8f284c87-2541-416e-bd72-4b8bf229734c
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.676353749880429
+    phenomenon_time: 2023-10-25 01:30:00+00:00
+- model: core.observation
+  pk: e9a51d40-9e60-4bbd-b603-b501c6e3e6c3
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.808986108446494
+    phenomenon_time: 2023-10-25 01:00:00+00:00
+- model: core.observation
+  pk: 5df86bf8-b05f-43ec-9eee-cadad84c0db6
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.69137726774226
+    phenomenon_time: 2023-10-25 00:30:00+00:00
+- model: core.observation
+  pk: d74b56a0-0ccb-4d58-888f-7cde9462ac3a
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-25 00:00:00+00:00
+- model: core.observation
+  pk: c2ed2a77-7c9d-424b-ac24-f99195001238
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.845631166424006
+    phenomenon_time: 2023-10-24 23:30:00+00:00
+- model: core.observation
+  pk: 7b15f6b4-9139-4d13-b9b9-f721a9c535dc
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.613720089780255
+    phenomenon_time: 2023-10-24 23:00:00+00:00
+- model: core.observation
+  pk: 677b4af6-0a89-443d-ae89-a7a4b40eb4aa
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.858852130809984
+    phenomenon_time: 2023-10-24 22:30:00+00:00
+- model: core.observation
+  pk: 8544b75a-84a9-4771-973f-ac8117ad9d51
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.580261101916216
+    phenomenon_time: 2023-10-24 22:00:00+00:00
+- model: core.observation
+  pk: 930716e3-ecf3-4b73-8813-568064837886
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.642436060464096
+    phenomenon_time: 2023-10-24 21:30:00+00:00
+- model: core.observation
+  pk: 9906d369-b583-4243-ab54-567173f15db0
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.959258743061204
+    phenomenon_time: 2023-10-24 21:00:00+00:00
+- model: core.observation
+  pk: dd432c82-2933-4b3a-a4e6-d5f0ed027c7b
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.997471667807366
+    phenomenon_time: 2023-10-24 20:30:00+00:00
+- model: core.observation
+  pk: 14e6f5a2-384c-426a-a765-789f9204f5ea
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.723152055420297
+    phenomenon_time: 2023-10-24 20:00:00+00:00
+- model: core.observation
+  pk: 326c3d44-98b9-4742-85b0-48c10b31cfd3
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.665461789691593
+    phenomenon_time: 2023-10-24 19:30:00+00:00
+- model: core.observation
+  pk: 04a2ad58-b370-4f2b-bb73-f3751b6a6162
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.993916738525895
+    phenomenon_time: 2023-10-24 19:00:00+00:00
+- model: core.observation
+  pk: 531a6ac8-ce93-4fb5-a3dd-481037d8411c
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.60695675929973
+    phenomenon_time: 2023-10-24 18:30:00+00:00
+- model: core.observation
+  pk: fbf9a4ee-3a84-4d85-b81b-9dcc00d17983
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.694541808858787
+    phenomenon_time: 2023-10-24 18:00:00+00:00
+- model: core.observation
+  pk: 0df8c245-7172-42d5-880a-c474a0989767
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.899285894830648
+    phenomenon_time: 2023-10-24 17:30:00+00:00
+- model: core.observation
+  pk: 1bf67a2a-0425-4120-b28b-f36381ca50e0
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.57704472900093
+    phenomenon_time: 2023-10-24 17:00:00+00:00
+- model: core.observation
+  pk: 8bed396f-c1a3-49d2-9544-f33ee87fbd07
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.951280099587521
+    phenomenon_time: 2023-10-24 16:30:00+00:00
+- model: core.observation
+  pk: 7db539fa-e259-4760-a84e-e326c5f82aa6
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.517976409793299
+    phenomenon_time: 2023-10-24 16:00:00+00:00
+- model: core.observation
+  pk: ece7e682-c3e6-4847-9b39-234562fde261
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.827525528346472
+    phenomenon_time: 2023-10-24 15:30:00+00:00
+- model: core.observation
+  pk: 7e9038fc-8947-4a01-8e0c-26c417c8ce3b
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.540925947044519
+    phenomenon_time: 2023-10-24 15:00:00+00:00
+- model: core.observation
+  pk: 95372415-de2f-40b4-aee5-36a5ba6e5487
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.913619517716473
+    phenomenon_time: 2023-10-24 14:30:00+00:00
+- model: core.observation
+  pk: 2c562d69-ab21-4541-a63a-a2bf4c316156
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.9050347596823
+    phenomenon_time: 2023-10-24 14:00:00+00:00
+- model: core.observation
+  pk: 0cf2d1f9-0290-46fa-8f81-43c0d1591778
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.791574419573003
+    phenomenon_time: 2023-10-24 13:30:00+00:00
+- model: core.observation
+  pk: c4ce55c6-da60-44d9-af57-08230ef00fe4
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.535173137967812
+    phenomenon_time: 2023-10-24 13:00:00+00:00
+- model: core.observation
+  pk: a4693103-e05a-49a7-8fc8-354531ae6609
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-24 12:30:00+00:00
+- model: core.observation
+  pk: 3cdae44a-3dc1-4c33-9b04-018dec173896
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-24 12:00:00+00:00
+- model: core.observation
+  pk: 176eda59-48ae-41c3-ba3f-dd971dfdb843
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-24 11:30:00+00:00
+- model: core.observation
+  pk: b83b078d-4809-488f-8d62-8b8caf08af84
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-24 11:00:00+00:00
+- model: core.observation
+  pk: 015979dc-00a4-434e-89c2-1e9f26e9897b
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-24 10:30:00+00:00
+- model: core.observation
+  pk: f25c587b-49a9-4179-a2b5-a3bcf5576520
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-24 10:00:00+00:00
+- model: core.observation
+  pk: ae888904-7613-40ca-b66f-3d7b3791c2b3
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.626212438271304
+    phenomenon_time: 2023-10-24 09:30:00+00:00
+- model: core.observation
+  pk: 33c84ee9-8768-48e0-9637-393255e1fcb6
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.586768543239769
+    phenomenon_time: 2023-10-24 09:00:00+00:00
+- model: core.observation
+  pk: 48c1745a-571b-407c-b802-6069aa6ebb8b
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.678219902548689
+    phenomenon_time: 2023-10-24 08:30:00+00:00
+- model: core.observation
+  pk: 81142fe3-f823-4a26-8b27-5db3379384b7
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.890901292970964
+    phenomenon_time: 2023-10-24 08:00:00+00:00
+- model: core.observation
+  pk: 68d0ea3b-994f-447e-9698-f5ea7cf3fa36
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.993148621145682
+    phenomenon_time: 2023-10-24 07:30:00+00:00
+- model: core.observation
+  pk: b364abb2-6403-4d6f-94fc-2ca87907e49f
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.593549637602239
+    phenomenon_time: 2023-10-24 07:00:00+00:00
+- model: core.observation
+  pk: 7c0b84ee-2c07-4c5e-a522-6da685d353fd
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.596246388229366
+    phenomenon_time: 2023-10-24 06:30:00+00:00
+- model: core.observation
+  pk: 26b57451-4ef3-40eb-9da1-fc4148a5be00
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.788271488635546
+    phenomenon_time: 2023-10-24 06:00:00+00:00
+- model: core.observation
+  pk: fbe44219-7a7e-45a2-bdb6-94a74f97f200
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.893844722746202
+    phenomenon_time: 2023-10-24 05:30:00+00:00
+- model: core.observation
+  pk: b73917d0-7c1e-4508-be20-9ee12cf3dc41
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.529859923578032
+    phenomenon_time: 2023-10-24 05:00:00+00:00
+- model: core.observation
+  pk: 2866bde6-7367-4640-a822-8a7d653947f6
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.578019378774997
+    phenomenon_time: 2023-10-24 04:30:00+00:00
+- model: core.observation
+  pk: 8b489c10-cb7c-424e-bd96-65166284fba4
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.557053157406296
+    phenomenon_time: 2023-10-24 04:00:00+00:00
+- model: core.observation
+  pk: c7d8b198-07bc-4a86-b40b-6265d568dbcb
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.753766891492557
+    phenomenon_time: 2023-10-24 03:30:00+00:00
+- model: core.observation
+  pk: 8293f027-b3e2-4113-8694-84151cf81bd6
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.700963671434682
+    phenomenon_time: 2023-10-24 03:00:00+00:00
+- model: core.observation
+  pk: 461eefe2-7b51-42de-a3ad-9fa7c3309117
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.65964620018876
+    phenomenon_time: 2023-10-24 02:30:00+00:00
+- model: core.observation
+  pk: 56c6d38c-f342-460d-af39-f4abf9114a09
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.6438776923962
+    phenomenon_time: 2023-10-24 02:00:00+00:00
+- model: core.observation
+  pk: 0a93f600-6da1-47c5-9943-142c0f732040
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.586594996235247
+    phenomenon_time: 2023-10-24 01:30:00+00:00
+- model: core.observation
+  pk: b45ce688-1fd5-4680-8ae2-e17137acf533
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.839671084988463
+    phenomenon_time: 2023-10-24 01:00:00+00:00
+- model: core.observation
+  pk: fca2d31f-0074-4ab8-826e-81676e50cde2
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.794819776413048
+    phenomenon_time: 2023-10-24 00:30:00+00:00
+- model: core.observation
+  pk: 1160a6f6-be2e-4179-bae4-3b6436c7fc41
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.739192128414716
+    phenomenon_time: 2023-10-24 00:00:00+00:00
+- model: core.observation
+  pk: 582642be-06b8-47bd-a535-0c55663ce87c
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-23 23:30:00+00:00
+- model: core.observation
+  pk: 10ef5463-090f-4e9e-8886-1504f2899c9f
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-23 23:00:00+00:00
+- model: core.observation
+  pk: 9df4635d-9e57-4fa0-9d90-5a29b277ca69
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-23 22:30:00+00:00
+- model: core.observation
+  pk: 6f1c6a4b-58f4-40ab-a6c3-504e186afa13
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-23 22:00:00+00:00
+- model: core.observation
+  pk: 26934698-d801-4048-9192-8d07e1e489e9
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.681073189307167
+    phenomenon_time: 2023-10-23 21:30:00+00:00
+- model: core.observation
+  pk: 085e6395-27c6-4548-8fd5-3311efb0e19a
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.724142971903543
+    phenomenon_time: 2023-10-23 21:00:00+00:00
+- model: core.observation
+  pk: 3384cd79-bc49-42b9-8904-0fb1adb7a564
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.899056528448305
+    phenomenon_time: 2023-10-23 20:30:00+00:00
+- model: core.observation
+  pk: 3de11136-aff2-4e78-9703-a0ce196f2225
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.59628852027397
+    phenomenon_time: 2023-10-23 20:00:00+00:00
+- model: core.observation
+  pk: 5dfbee89-c395-405a-8389-f0eb4c06167b
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.56550718361649
+    phenomenon_time: 2023-10-23 19:30:00+00:00
+- model: core.observation
+  pk: ec3b67e9-9e3f-4f52-b507-a93d1f502a5b
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.996015702113327
+    phenomenon_time: 2023-10-23 19:00:00+00:00
+- model: core.observation
+  pk: 2b7fa4c2-c783-4163-8c9f-77c309db76c8
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.992143805010752
+    phenomenon_time: 2023-10-23 18:30:00+00:00
+- model: core.observation
+  pk: 14a18c79-c2b6-4177-b92e-522d26a977c5
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.523211005325136
+    phenomenon_time: 2023-10-23 18:00:00+00:00
+- model: core.observation
+  pk: 0f329d0c-5443-41aa-9826-a48a439139fc
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.610854334753308
+    phenomenon_time: 2023-10-23 17:30:00+00:00
+- model: core.observation
+  pk: 78777002-bbfe-4a3c-88ff-4eff25e65a46
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.525119477717714
+    phenomenon_time: 2023-10-23 17:00:00+00:00
+- model: core.observation
+  pk: ac68836a-4c5e-4b20-b662-b40a08a245c9
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.617081072507002
+    phenomenon_time: 2023-10-23 16:30:00+00:00
+- model: core.observation
+  pk: d19a90ed-f054-48ac-b9f4-6195489df0ba
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.545398137471663
+    phenomenon_time: 2023-10-23 16:00:00+00:00
+- model: core.observation
+  pk: 74013ead-386a-4b98-8433-f807c3823fbe
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.654752194409612
+    phenomenon_time: 2023-10-23 15:30:00+00:00
+- model: core.observation
+  pk: 3634109d-63d8-4fcc-826f-e798bac37e8a
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.936640282038807
+    phenomenon_time: 2023-10-23 15:00:00+00:00
+- model: core.observation
+  pk: a832f504-b9ea-441c-bd42-2d1c3e2ef837
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.547652074618826
+    phenomenon_time: 2023-10-23 14:30:00+00:00
+- model: core.observation
+  pk: 970ba687-e010-4e2d-8f86-9cae54c1cc42
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.928834959722021
+    phenomenon_time: 2023-10-23 14:00:00+00:00
+- model: core.observation
+  pk: 340798b7-90d3-409d-9d2f-7b61ba4eee81
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.916161653590928
+    phenomenon_time: 2023-10-23 13:30:00+00:00
+- model: core.observation
+  pk: fbceac09-7c71-44fb-ad75-a9d4980f31bb
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.533100915604754
+    phenomenon_time: 2023-10-23 13:00:00+00:00
+- model: core.observation
+  pk: 1f0c56fb-19de-4e67-962b-223bf318a55a
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.976620708102748
+    phenomenon_time: 2023-10-23 12:30:00+00:00
+- model: core.observation
+  pk: 47576895-e8c8-401e-8509-0a280677d58d
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.946264642481257
+    phenomenon_time: 2023-10-23 12:00:00+00:00
+- model: core.observation
+  pk: bd45656c-7de2-4846-8bb0-08bc9450daa7
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.995855561765147
+    phenomenon_time: 2023-10-23 11:30:00+00:00
+- model: core.observation
+  pk: 73e6fb35-2ac3-4cf2-a720-11f3a6114c12
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.926565107475255
+    phenomenon_time: 2023-10-23 11:00:00+00:00
+- model: core.observation
+  pk: 35eedaa0-c32a-4d01-b4f7-5bc507e43d89
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.820349115035787
+    phenomenon_time: 2023-10-23 10:30:00+00:00
+- model: core.observation
+  pk: 96d1324b-03dc-4b55-8cb3-13fe5550a649
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.876552859411442
+    phenomenon_time: 2023-10-23 10:00:00+00:00
+- model: core.observation
+  pk: 38f6d06f-4086-4acd-9fdb-b6823d663e52
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-23 09:30:00+00:00
+- model: core.observation
+  pk: 10a29993-1ea5-444a-80c6-2bc3d10777b3
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: -9999.0
+    phenomenon_time: 2023-10-23 09:00:00+00:00
+- model: core.observation
+  pk: 1513c730-cbce-4287-8e40-1a34d8f87065
+  fields:
+    datastream: 10ab62a4-1908-410c-91d2-2d99d6fec1e8
+    result: 9.699237428206818
+    phenomenon_time: 2023-10-23 08:30:00+00:00
