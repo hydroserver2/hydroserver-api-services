@@ -1,9 +1,10 @@
 from ninja import Schema, Field
 from typing import Optional, Literal, Union
-from pydantic import AnyHttpUrl, conint, validator
+from pydantic import conint
 from datetime import datetime
 from uuid import UUID
 from sensorthings.validators import allow_partial
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class DataSourceID(Schema):
@@ -35,16 +36,6 @@ class DataSourceFields(Schema):
     last_synced: Optional[datetime] = Field(None, alias='lastSynced')
     next_sync: Optional[datetime] = Field(None, alias='nextSync')
 
-    @validator('crontab')
-    def whitespace_to_none(cls, value):
-        if isinstance(value, str):
-            if value == '' or value.isspace():
-                value = None
-            else:
-                value = value.strip()
-
-        return value
-
 
 class DataSourceGetResponse(DataSourceFields, DataSourceID):
     pass
@@ -53,10 +44,10 @@ class DataSourceGetResponse(DataSourceFields, DataSourceID):
         allow_population_by_field_name = True
 
 
-class DataSourcePostBody(DataSourceFields):
+class DataSourcePostBody(BasePostBody, DataSourceFields):
     pass
 
 
 @allow_partial
-class DataSourcePatchBody(DataSourceFields):
+class DataSourcePatchBody(BasePatchBody, DataSourceFields):
     pass

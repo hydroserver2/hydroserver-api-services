@@ -4,6 +4,7 @@ from typing import List
 from uuid import UUID
 from datetime import datetime
 from sensorthings.validators import allow_partial
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class ObservationID(Schema):
@@ -26,10 +27,10 @@ class ObservationGetResponse(ObservationFields, ObservationID):
         allow_population_by_field_name = True
 
 
-class ObservationPostBody(ObservationFields):
+class ObservationPostBody(BasePostBody, ObservationFields):
     pass
 
 
 @allow_partial
-class ObservationPatchBody(ObservationFields):
+class ObservationPatchBody(BasePatchBody, ObservationFields):
     pass

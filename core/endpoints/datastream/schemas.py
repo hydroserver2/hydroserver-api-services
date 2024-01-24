@@ -8,6 +8,7 @@ from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
 from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class DatastreamID(Schema):
@@ -50,12 +51,12 @@ class DatastreamGetResponse(DatastreamFields, DatastreamID):
         allow_population_by_field_name = True
 
 
-class DatastreamPostBody(DatastreamFields):
+class DatastreamPostBody(BasePostBody, DatastreamFields):
     pass
 
 
 @allow_partial
-class DatastreamPatchBody(DatastreamFields):
+class DatastreamPatchBody(BasePatchBody, DatastreamFields):
     thing_id: UUID = Field(..., alias='thingId')
 
 

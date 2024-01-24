@@ -3,6 +3,7 @@ from pydantic import Field
 from uuid import UUID
 from typing import Optional
 from sensorthings.validators import allow_partial
+from core.schemas import BasePostBody, BasePatchBody
 
 
 class SensorID(Schema):
@@ -28,10 +29,10 @@ class SensorGetResponse(SensorFields, SensorID):
         allow_population_by_field_name = True
 
 
-class SensorPostBody(SensorFields):
+class SensorPostBody(BasePostBody, SensorFields):
     pass
 
 
 @allow_partial
-class SensorPatchBody(SensorFields):
+class SensorPatchBody(BasePatchBody, SensorFields):
     pass

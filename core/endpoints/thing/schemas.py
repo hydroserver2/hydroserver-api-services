@@ -9,7 +9,9 @@ from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
 from core.endpoints.tags.schemas import TagGetResponse
+from core.schemas import BasePostBody, BasePatchBody
 from country_list import countries_for_language
+
 
 class ThingID(Schema):
     id: UUID
@@ -78,12 +80,12 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
         allow_population_by_field_name = True
 
 
-class ThingPostBody(ThingFields, LocationFields):
+class ThingPostBody(BasePostBody, ThingFields, LocationFields):
     pass
 
 
 @allow_partial
-class ThingPatchBody(ThingFields, LocationFields):
+class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
     pass
 
 
