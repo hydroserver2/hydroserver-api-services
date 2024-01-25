@@ -221,9 +221,7 @@ class DataSource(models.Model):
 class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=500)
-    use_default_name = models.BooleanField(default=True, db_column='useDefaultName')
     description = models.TextField()
-    use_default_description = models.BooleanField(default=True, db_column='useDefaultDescription')
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, db_column='thingId', related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, db_column='sensorId', related_name='datastreams')
     observed_property = models.ForeignKey(

@@ -16,9 +16,7 @@ class DatastreamID(Schema):
 
 class DatastreamFields(Schema):
     name: str
-    use_default_name: bool = Field(True, alias='useDefaultName')
     description: str
-    use_default_description: bool = Field(True, alias='useDefaultDescription')
     observation_type: str = Field(..., alias='observationType')
     sampled_medium: str = Field(..., alias='sampledMedium')
     no_data_value: float = Field(..., alias='noDataValue')
