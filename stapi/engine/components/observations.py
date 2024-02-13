@@ -20,7 +20,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if observation_ids:
@@ -63,7 +64,10 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             order_by=ordering
         )
 
-        count = observations.count()
+        if get_count:
+            count = observations.count()
+        else:
+            count = None
 
         if datastream_ids:
             observations = self.apply_rank(
