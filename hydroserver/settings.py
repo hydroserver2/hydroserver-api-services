@@ -31,6 +31,7 @@ if DEPLOYED:
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
     CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
+    USE_X_FORWARDED_HOST=True
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:3030'  # 'http://127.0.0.1:8000'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
