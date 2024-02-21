@@ -12,7 +12,8 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if sensor_ids:
@@ -38,7 +39,10 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = sensors.count()
+        if get_count:
+            count = sensors.count()
+        else:
+            count = None
 
         if pagination:
             sensors = self.apply_pagination(

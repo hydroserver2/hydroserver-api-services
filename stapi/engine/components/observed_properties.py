@@ -13,7 +13,8 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if observed_property_ids:
@@ -39,7 +40,10 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = observed_properties.count()
+        if get_count:
+            count = observed_properties.count()
+        else:
+            count = None
 
         if pagination:
             observed_properties = self.apply_pagination(

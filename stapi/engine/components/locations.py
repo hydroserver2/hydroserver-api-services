@@ -13,7 +13,8 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if location_ids:
@@ -42,7 +43,10 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = things.count()
+        if get_count:
+            count = things.count()
+        else:
+            count = None
 
         if pagination:
             things = self.apply_pagination(

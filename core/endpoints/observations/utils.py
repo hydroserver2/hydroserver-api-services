@@ -1,11 +1,9 @@
-import operator
 from ninja.errors import HttpError
-from django.db.models import Q, Count
+from django.db.models import Q, Subquery
 from django.db.models.query import QuerySet
 from uuid import UUID
 from typing import List, Optional
-from functools import reduce
-from core.models import Person, Observation
+from core.models import Person, Observation, ThingAssociation
 from core.endpoints.datastream.utils import check_datastream_by_id
 
 
@@ -24,46 +22,31 @@ def apply_observation_auth_rules(
 
     result_exists = observation_query.exists() if check_result is True else None
 
-    auth_filters = [
-        ~(Q(datastream__thing__associates__is_primary_owner=True) &
-          Q(datastream__thing__associates__person__is_active=False))
-    ]
+    auth_query = ThingAssociation.objects.values('thing__datastreams__id')
+    auth_filters = Q(~(Q(is_primary_owner=True) & Q(person__is_active=False)))
 
     if ignore_privacy is False:
         if user:
-            auth_filters.append((
-                Q(datastream__thing__is_private=False) |
-                (Q(datastream__thing__associates__person=user) & Q(datastream__thing__associates__owns_thing=True))
-            ))
+            auth_filters.add(Q(thing__is_private=False) | (Q(person=user) & Q(owns_thing=True)), Q.AND)
         else:
-            auth_filters.append(Q(datastream__thing__is_private=False))
-            auth_filters.append(Q(datastream__is_data_visible=True))
+            auth_filters.add(Q(thing__is_private=False), Q.AND)
 
     if require_ownership:
-        auth_filters.append(
-            Q(datastream__thing__associates__person=user) &
-            Q(datastream__thing__associates__owns_thing=True)
-    )
+        auth_filters.add(Q(person=user), Q.AND)
+        auth_filters.add(Q(owns_thing=True), Q.AND)
 
     if require_primary_ownership:
-        auth_filters.append(
-            Q(datastream__thing__associates__person=user) &
-            Q(datastream__thing__associates__is_primary_owner=True)
-        )
+        auth_filters.add(Q(person=user) & Q(is_primary_owner=True), Q.AND)
 
     if require_unaffiliated:
-        auth_filters.append(
-            Q(datastream__thing__associates__person=user) &
-            Q(datastream__thing__associates__owns_thing=False)
-        )
+        auth_filters.add(Q(person=user) & Q(owns_thing=False), Q.AND)
 
-    observation_query = observation_query.annotate(
-        associates_count=Count(
-            'datastream__thing__associates', filter=reduce(operator.and_, auth_filters) if auth_filters else None
-        )
-    ).filter(
-        associates_count__gt=0
-    )
+    if require_ownership or require_primary_ownership:
+        auth_query = auth_query.filter(auth_filters).distinct()
+        observation_query = observation_query.filter(datastream_id__in=Subquery(auth_query))
+    else:
+        auth_query = auth_query.exclude(auth_filters).distinct()
+        observation_query = observation_query.filter(~Q(datastream_id__in=Subquery(auth_query)))
 
     return observation_query, result_exists
 

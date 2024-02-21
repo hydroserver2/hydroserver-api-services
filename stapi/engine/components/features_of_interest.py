@@ -13,9 +13,16 @@ class FeatureOfInterestEngine(FeatureOfInterestBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
-        return [], 0
+
+        if get_count:
+            count = 0
+        else:
+            count = None
+
+        return [], count
 
     def create_feature_of_interest(
             self,

@@ -16,7 +16,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if datastream_ids:
@@ -42,7 +43,10 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = datastreams.count()
+        if get_count:
+            count = datastreams.count()
+        else:
+            count = None
 
         if thing_ids:
             datastreams = self.apply_rank(
