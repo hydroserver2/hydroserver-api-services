@@ -69,7 +69,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                         {
                             'first_name': thing_association.person.first_name,
                             'last_name': thing_association.person.last_name,
-                            'email': thing_association.person.email
+                            'email': thing_association.person.email,
+                            'organization_name': getattr(thing_association.person.organization, 'name', None)
                         } for thing_association in thing.associates.all()
                     ]
                 },
