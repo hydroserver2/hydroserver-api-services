@@ -30,6 +30,7 @@ if DEPLOYED:
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:3030'  # 'http://127.0.0.1:8000'
