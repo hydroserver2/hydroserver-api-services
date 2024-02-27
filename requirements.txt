@@ -1,4 +1,4 @@
-django==4.1
+django==4.2
 django-ninja==0.20.0
 django-ninja-jwt==5.2.5
 hydroserver-sensorthings==0.2.10
