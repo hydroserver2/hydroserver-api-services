@@ -33,7 +33,7 @@ if DEPLOYED:
     CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 else:
-    PROXY_BASE_URL = 'http://127.0.0.1:3030'  # 'http://127.0.0.1:8000'
+    PROXY_BASE_URL = 'http://127.0.0.1:3030'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
 
@@ -106,7 +106,6 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
 os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'postgresql://admin:pass@timescaledb:5432/tsdb')
 
 DATABASES = {
@@ -160,30 +159,20 @@ AUTHLIB_OAUTH_CLIENTS = {
 APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
-# Email Backend Settings
 
-EMAIL_BACKEND = 'django_ses.SESBackend'
-DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
-
-# AWS Settings
+# AWS Storages and Email Settings
 
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_LOCATION = 'static'
+
+EMAIL_BACKEND = 'django_ses.SESBackend'
+DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
 
 if DEPLOYED:
     STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                "AWS_S3_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
-                "AWS_S3_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
-                "AWS_STORAGE_BUCKET_NAME": AWS_STORAGE_BUCKET_NAME,
-                "AWS_S3_CUSTOM_DOMAIN": PROXY_BASE_URL,
-                "AWS_LOCATION": AWS_LOCATION
-            }
-        },
+        'default': {'BACKEND': 'storages.backends.s3.S3Storage', 'OPTIONS': {'location': 'photos'}},
+        'staticfiles': {'BACKEND': 'storages.backends.s3boto3.S3StaticStorage', 'OPTIONS': {'location': 'static'}}
     }
 
 # Internationalization
@@ -199,10 +188,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-if DEPLOYED:
-    STORAGES = {'staticfiles': {'BACKEND': 'storages.backends.s3boto3.S3StaticStorage'}}
-
 STATIC_ROOT = 'staticfiles'
 
 # Default primary key field type
