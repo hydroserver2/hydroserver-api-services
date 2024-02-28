@@ -10,6 +10,7 @@ from typing import Union
 from ninja.types import DictStrAny
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
+from urllib.parse import urlparse
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -165,7 +166,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_S3_CUSTOM_DOMAIN = PROXY_BASE_URL
+AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
 DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
