@@ -36,6 +36,7 @@ if DEPLOYED:
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:3030'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
 
 LOGIN_REDIRECT_URL = 'sites'
