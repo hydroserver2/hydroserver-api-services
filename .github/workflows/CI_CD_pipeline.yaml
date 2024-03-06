@@ -43,7 +43,7 @@ jobs:
             --cov=core \
             --cov=accounts \
             --cov=stapi \
-            --cov-report=coverage.json \
+            --cov-report=json:coverage.json \
             --import-mode=append tests/
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
