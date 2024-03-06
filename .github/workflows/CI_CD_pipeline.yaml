@@ -50,12 +50,18 @@ jobs:
           LOCAL_CSV_STORAGE: ~/
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
-      - name: Read coverage report
-        id: read_coverage
-        run: |
-          echo "::set-output name=coverage::$(cat coverage.json)"
-
       - name: Check coverage
+        run: |
+          if ! jq -e . coverage.json > /dev/null; then
+            echo "Error: Invalid JSON format in coverage.json"
+            exit 1
+          fi
+
+      - name: Read coverage JSON file
+        id: read_coverage
+        run: echo "::set-output name=coverage::$(cat coverage.json)"
+
+      - name: Fail if coverage is below 80%
         run: |
           echo "${{ steps.read_coverage.outputs.coverage }}" | jq '.totals.percent_covered' | awk '$1 < 80 {exit 1}'
 
