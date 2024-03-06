@@ -43,27 +43,22 @@ jobs:
             --cov=core \
             --cov=accounts \
             --cov=stapi \
-            --cov-report=json:coverage.json \
+            --cov-report=text:coverage.txt \
             --import-mode=append tests/
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
           LOCAL_CSV_STORAGE: ~/
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
-      - name: Check coverage
+      - name: Parse Coverage Report
+        id: coverage
         run: |
-          if ! jq -e . coverage.json > /dev/null; then
-            echo "Error: Invalid JSON format in coverage.json"
+          coverage=$(awk '/TOTAL/ {print $4}' coverage.txt | sed 's/%//')
+          if (( $(echo "$coverage < 80" | bc -l) )); then
+            echo "Coverage is below 80%: $coverage%"
             exit 1
           fi
-
-      - name: Read coverage JSON file
-        id: read_coverage
-        run: echo "::set-output name=coverage::$(cat coverage.json)"
-
-      - name: Fail if coverage is below 80%
-        run: |
-          echo "${{ steps.read_coverage.outputs.coverage }}" | jq '.totals.percent_covered' | awk '$1 < 80 {exit 1}'
+          echo "Coverage is $coverage%"
 
   Deploy-Dev:
     name: Deploy to AWS S3 Dev
