@@ -8,6 +8,8 @@ staticfiles/
 *test.ipynb
 *test.yaml
 **/launch.json
+.coverage
+coverage.json
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
