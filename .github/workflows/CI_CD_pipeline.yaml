@@ -43,14 +43,14 @@ jobs:
             --cov=core \
             --cov=accounts \
             --cov=stapi \
-            --cov-report=text:coverage.txt \
+            --cov-report=term > coverage.txt \
             --import-mode=append tests/
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
           LOCAL_CSV_STORAGE: ~/
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-
-      - name: Parse Coverage Report
+    
+      - name: Parse coverage report
         id: coverage
         run: |
           coverage=$(awk '/TOTAL/ {print $4}' coverage.txt | sed 's/%//')
