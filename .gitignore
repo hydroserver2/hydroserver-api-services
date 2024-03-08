@@ -9,7 +9,7 @@ staticfiles/
 *test.yaml
 **/launch.json
 .coverage
-coverage.json
+coverage.txt
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

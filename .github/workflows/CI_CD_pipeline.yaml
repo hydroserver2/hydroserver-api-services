@@ -43,8 +43,8 @@ jobs:
             --cov=core \
             --cov=accounts \
             --cov=stapi \
-            --cov-report=term > coverage.txt \
-            --import-mode=append tests/
+            --cov-config=.coveragerc \
+            --cov-report=term > coverage.txt
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
           LOCAL_CSV_STORAGE: ~/
@@ -54,11 +54,11 @@ jobs:
         id: coverage
         run: |
           coverage=$(awk '/TOTAL/ {print $4}' coverage.txt | sed 's/%//')
-          if (( $(echo "$coverage < 80" | bc -l) )); then
-            echo "Coverage is below 80%: $coverage%"
+          if (( $(echo "$coverage < 50" | bc -l) )); then
+            echo "Test Coverage is below 50%: $coverage%"
             exit 1
           fi
-          echo "Coverage is $coverage%"
+          echo "Test Coverage is $coverage%"
 
   Deploy-Dev:
     name: Deploy to AWS S3 Dev

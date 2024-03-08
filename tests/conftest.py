@@ -37,3 +37,9 @@ def auth_headers(django_jwt_auth):
     return {
         'HTTP_AUTHORIZATION': 'Bearer ' + str(django_jwt_auth)
     }
+
+
+@pytest.fixture(autouse=True)
+def enable_db_access_for_all_tests(db):
+    pass
+
