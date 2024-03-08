@@ -3,6 +3,10 @@ run-name: Running CI/CD Pipeline
 
 on: [push, pull_request]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   Run-Tests:
     runs-on: ubuntu-latest
