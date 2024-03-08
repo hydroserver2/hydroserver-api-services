@@ -1,7 +1,7 @@
 import base64
 from ninja import Schema
 from pydantic import Field
-from pydantic import validator
+from pydantic import validator, EmailStr
 from sensorthings.validators import allow_partial
 
 
@@ -20,7 +20,7 @@ class OrganizationFields(Schema):
 class UserFields(Schema):
     first_name: str = Field(alias="firstName")
     last_name: str = Field(alias="lastName")
-    email: str = None
+    email: EmailStr = None
     middle_name: str = Field(default=None, alias="middleName")
     phone: str = None
     address: str = None

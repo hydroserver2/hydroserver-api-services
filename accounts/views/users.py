@@ -32,7 +32,7 @@ def get_user(request: HttpRequest):
 
 @user_router.post(
     '/user',
-        response={
+    response={
         409: str,
         200: UserAuthResponse
     },

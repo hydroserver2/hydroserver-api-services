@@ -98,8 +98,8 @@ class Command(BaseCommand):
                                         'coordinates', json_build_array(
                                             "sl"."latitude",
                                             "sl"."longitude"
-                                        ) 
-                                    ) 
+                                        )
+                                    )
                                ) AS "LOCATION",
                                NULL AS "GEOM",
                                NULL AS "GEN_FOI_ID"
