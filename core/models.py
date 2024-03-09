@@ -58,7 +58,7 @@ class Tag(models.Model):
 
     class Meta:
         db_table = 'Tag'
-        unique_together = ('thing', 'key', 'value')
+        unique_together = ('thing', 'key')
 
 
 class HistoricalLocation(models.Model):
