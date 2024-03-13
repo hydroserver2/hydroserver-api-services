@@ -1,6 +1,7 @@
 from django.urls import path
 from ninja_extra import NinjaExtraAPI
 from accounts.views.users import user_router
+from accounts.views.api_keys import api_key_router
 from accounts.views.oauth.google import google_router
 from accounts.views.oauth.orcid import orcid_router
 from accounts.views.oauth.hydroshare import hydroshare_router
@@ -15,6 +16,7 @@ accounts_api = NinjaExtraAPI(
 
 
 accounts_api.add_router(prefix='', router=user_router)
+accounts_api.add_router(prefix='api-keys', router=api_key_router)
 accounts_api.register_controllers(HydroServerJWTController)
 accounts_api.add_router(prefix='google', router=google_router)
 accounts_api.add_router(prefix='orcid', router=orcid_router)

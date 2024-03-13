@@ -104,3 +104,13 @@ def build_user_response(user):
         'email': user.email if user.is_verified is True else user.unverified_email,
         'hydroShareConnected': True if user.hydroshare_token is not None else False
     }
+
+
+def build_api_key_response(api_key, api_key_value=None):
+    return {
+        'id': api_key.id,
+        'name': api_key.name,
+        'scope': api_key.scope,
+        'permissions': api_key.permissions,
+        **({'key': api_key_value} if api_key_value is not None else {})
+    }

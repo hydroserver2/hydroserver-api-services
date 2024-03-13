@@ -46,6 +46,7 @@ AUTH_USER_MODEL = 'accounts.Person'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
     'accounts.auth.backends.UnverifiedUserBackend'
 ]
 
@@ -65,6 +66,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'accounts.apps.AccountsConfig',
     'django_ses',
+    'guardian',
     'sensorthings',
     'ninja_extra',
     'simple_history',

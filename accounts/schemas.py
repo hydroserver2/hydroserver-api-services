@@ -1,7 +1,9 @@
 import base64
 from ninja import Schema
-from pydantic import Field
-from pydantic import validator, EmailStr
+from datetime import datetime
+from typing import Optional
+from pydantic import Field, validator, EmailStr
+from uuid import UUID
 from sensorthings.validators import allow_partial
 
 
@@ -74,3 +76,27 @@ class ResetPasswordPostBody(Schema):
     uid: str
     token: str
     password: str
+
+
+class APIKeyFields(Schema):
+    name: str
+    scope: str
+    permissions: Optional[dict]
+    expires: Optional[datetime]
+
+
+class APIKeyGetResponse(APIKeyFields):
+    id: UUID
+
+
+class APIKeyPostBody(APIKeyFields):
+    pass
+
+
+@allow_partial
+class APIKeyPatchBody(APIKeyFields):
+    pass
+
+
+class APIKeyPostResponse(APIKeyGetResponse):
+    key: str

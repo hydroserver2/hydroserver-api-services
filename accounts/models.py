@@ -1,8 +1,10 @@
 import uuid
+import hashlib
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from datetime import timedelta
 
 
@@ -80,3 +82,25 @@ class PasswordReset(models.Model):
 
     def is_valid(self):
         return timezone.now() - self.timestamp <= timedelta(days=1)
+
+
+class APIKey(models.Model):
+    SCOPE_CHOICES = [
+        ('custom', 'Custom'),
+        ('dataLoader', 'Data Loader'),
+    ]
+
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    name = models.CharField(max_length=255)
+    key = models.CharField(max_length=64, null=True, blank=True)
+    expires = models.DateTimeField(null=True, blank=True)
+    scope = models.CharField(max_length=20, choices=SCOPE_CHOICES)
+    permissions = models.JSONField(null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+
+    def generate_token(self, override=False):
+        if not self.key or override is True:
+            key = get_random_string(length=32)
+            self.key = hashlib.sha256(key.encode('utf-8')).hexdigest()
+            self.save()
+            return key
