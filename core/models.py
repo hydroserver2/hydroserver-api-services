@@ -220,7 +220,7 @@ class DataSource(models.Model):
 
 class Datastream(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.UUIDField()
+    name = models.CharField(max_length=255)
     description = models.TextField()
     thing = models.ForeignKey(Thing, on_delete=models.CASCADE, db_column='thingId', related_name='datastreams')
     sensor = models.ForeignKey(Sensor, on_delete=models.PROTECT, db_column='sensorId', related_name='datastreams')
@@ -259,11 +259,6 @@ class Datastream(models.Model):
     result_end_time = models.DateTimeField(null=True, blank=True, db_column='resultEndTime')
     result_begin_time = models.DateTimeField(null=True, blank=True, db_column='resultBeginTime')
     history = HistoricalRecords(custom_model_name='DatastreamChangeLog', related_name='log')
-
-    def save(self, *args, **kwargs):
-        self.name = str(self.id)
-        self.description = f'{self.observed_property.name} at {self.thing.name} - {self.processing_level.code}'
-        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'Datastream'
