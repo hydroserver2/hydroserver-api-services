@@ -13,7 +13,7 @@ router = DataManagementRouter(tags=['Processing Levels'])
 
 
 @router.dm_list('', response=ProcessingLevelGetResponse)
-def get_processing_levels(request, owned: Optional[bool] = None):
+def get_processing_levels(request, include_unowned: Optional[bool] = False, templates_only: Optional[bool] = False):
     """
     Get a list of Processing Levels
 
@@ -22,14 +22,16 @@ def get_processing_levels(request, owned: Optional[bool] = None):
 
     processing_level_query, _ = query_processing_levels(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=True if owned is True else False,
-        require_ownership_or_unowned=True if owned is None else False,
+        require_ownership=include_unowned is False and templates_only is False,
+        require_ownership_or_unowned=templates_only is True,
         raise_http_errors=False
     )
 
     return [
         build_processing_level_response(processing_level) for processing_level in processing_level_query.all()
-        if owned is None or owned is True or (owned is False and processing_level.person is None)
+        if (templates_only is False and include_unowned is False)
+        or (templates_only is False and processing_level.person is not None)
+        or (templates_only is True and processing_level.person is None)
     ]
 
 
