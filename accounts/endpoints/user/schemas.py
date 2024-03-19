@@ -1,22 +1,8 @@
 import base64
 from ninja import Schema
-from datetime import datetime
-from typing import Optional
 from pydantic import Field, validator, EmailStr
-from uuid import UUID
 from sensorthings.validators import allow_partial
-
-
-class OrganizationFields(Schema):
-    code: str
-    name: str
-    description: str = None
-    type: str
-    link: str = None
-
-    @classmethod
-    def is_empty(cls, obj):
-        return not (obj.name and obj.code and obj.type)
+from accounts.endpoints.organization.schemas import OrganizationFields, OrganizationPatchBody
 
 
 class UserFields(Schema):
@@ -50,11 +36,6 @@ class UserPostBody(UserFields):
 
 
 @allow_partial
-class OrganizationPatchBody(OrganizationFields):
-    pass
-
-
-@allow_partial
 class UserPatchBody(UserFields):
     organization: OrganizationPatchBody = None
 
@@ -76,27 +57,3 @@ class ResetPasswordPostBody(Schema):
     uid: str
     token: str
     password: str
-
-
-class APIKeyFields(Schema):
-    name: str
-    scope: str
-    permissions: Optional[dict]
-    expires: Optional[datetime]
-
-
-class APIKeyGetResponse(APIKeyFields):
-    id: UUID
-
-
-class APIKeyPostBody(APIKeyFields):
-    pass
-
-
-@allow_partial
-class APIKeyPatchBody(APIKeyFields):
-    pass
-
-
-class APIKeyPostResponse(APIKeyGetResponse):
-    key: str

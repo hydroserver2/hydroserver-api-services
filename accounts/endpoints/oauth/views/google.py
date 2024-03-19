@@ -37,7 +37,7 @@ def google_auth(request):
     try:
         user = user_model.objects.get(email=user_email)
 
-    except user_model.DoesNotExist:      
+    except user_model.DoesNotExist:
         user = user_model.objects.create_user(
             email=user_email,
             first_name=token.get('userinfo', {}).get('given_name'),
@@ -47,11 +47,11 @@ def google_auth(request):
 
         user = update_account_to_verified(user)
         create = True
-    
+
     jwt = RefreshToken.for_user(user)
     access_token = str(getattr(jwt, 'access_token', ''))
     refresh_token = str(jwt)
-    
+
     if create:
         return redirect(f"{settings.APP_CLIENT_URL}/complete-profile?t={access_token}&rt={refresh_token}")
 

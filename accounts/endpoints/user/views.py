@@ -18,7 +18,7 @@ user_model = get_user_model()
 @user_router.get(
     '/user',
     auth=[JWTAuth(), BasicAuth()],
-    response=UserGetResponse, 
+    response=UserGetResponse,
     by_alias=True
 )
 def get_user(request: HttpRequest):

@@ -86,7 +86,8 @@ def query_things(
         prefetch_datastreams: bool = False,
         prefetch_tags: bool = False,
         modified_since: Optional[datetime] = None,
-        raise_http_errors: Optional[bool] = True
+        raise_http_errors: Optional[bool] = True,
+        permissions: Optional[dict] = None,
 ) -> (QuerySet, bool):
 
     thing_query = Thing.objects
@@ -134,7 +135,8 @@ def check_thing_by_id(
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
         ignore_privacy: bool = False,
-        raise_http_errors: bool = False
+        raise_http_errors: bool = False,
+        permissions: Optional[dict] = None
 ) -> bool:
 
     thing_query, thing_exists = query_things(
