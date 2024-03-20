@@ -1,7 +1,9 @@
 from typing import List
 from ninja.errors import HttpError
 from core.endpoints.sensor.utils import query_sensors
+from django.db.models import Prefetch
 from sensorthings.components.sensors.engine import SensorBaseEngine
+from core.models import Sensor
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -23,6 +25,10 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             sensor_ids=sensor_ids,
             require_ownership_or_unowned=False if sensor_ids is not None or not expanded else True
+        )
+
+        sensors = sensors.prefetch_related(
+            Prefetch('log', queryset=Sensor.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -65,7 +71,8 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                         'sensor_model_name': sensor.model,
                         'sensor_model_url': sensor.model_link,
                         'sensor_manufacturer': sensor.manufacturer
-                    }
+                    },
+                    'last_updated': getattr(next(iter(sensor.ordered_log), None), 'history_date', None)
                 },
                 'properties': {}
             } for sensor in sensors.all() if sensor_ids is None or sensor.id in sensor_ids

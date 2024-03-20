@@ -1,7 +1,8 @@
 from uuid import UUID
 from ninja import Schema, Field
 from pydantic import HttpUrl
-from typing import List, Literal, Union
+from typing import List, Literal, Union, Optional
+from datetime import datetime
 from sensorthings import components as st_components
 
 
@@ -19,6 +20,7 @@ class DatastreamProperties(Schema):
     time_aggregation_interval_units: Union[st_components.UnitOfMeasurement, None] = Field(
         None, alias='timeAggregationIntervalUnitOfMeasurement'
     )
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -34,6 +36,7 @@ class LocationProperties(Schema):
     county: Union[str, None] = None
     elevation_m: Union[float, None] = None
     elevation_datum: Union[str, None] = Field(None, alias='elevationDatum')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -46,6 +49,7 @@ class LocationResponse(Schema):
 class ObservedPropertyProperties(Schema):
     variable_code: str = Field(..., alias='variableCode')
     variable_type: str = Field(..., alias='variableType')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -78,6 +82,7 @@ class SensorProperties(Schema):
     method_type: str = Field(..., alias='methodType')
     method_link: Union[HttpUrl, None] = Field(None, alias='methodLink')
     sensor_model: SensorModel = Field(..., alias='sensorModel')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -103,6 +108,7 @@ class ThingProperties(Schema):
     sampling_feature_code: str = Field(..., alias='samplingFeatureCode')
     site_type: str = Field(..., alias='siteType')
     contact_people: List[ContactPerson] = Field(..., alias='contactPeople')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
