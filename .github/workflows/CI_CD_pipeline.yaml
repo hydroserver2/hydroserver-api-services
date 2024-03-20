@@ -43,7 +43,12 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest
+          python -m pytest \
+            --cov=core \
+            --cov=accounts \
+            --cov=stapi \
+            --cov-config=.coveragerc \
+            --cov-report=term > coverage.txt
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
           LOCAL_CSV_STORAGE: ~/
