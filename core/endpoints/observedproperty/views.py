@@ -4,6 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ObservedProperty
+from core.schemas import metadataOwnerOptions
 from .schemas import ObservedPropertyGetResponse, ObservedPropertyPostBody, ObservedPropertyPatchBody, \
     ObservedPropertyFields
 from .utils import query_observed_properties, get_observed_property_by_id, build_observed_property_response
@@ -13,7 +14,7 @@ router = DataManagementRouter(tags=['Observed Properties'])
 
 
 @router.dm_list('', response=ObservedPropertyGetResponse)
-def get_observed_properties(request, include_unowned: Optional[bool] = False, templates_only: Optional[bool] = False):
+def get_observed_properties(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUser'):
     """
     Get a list of Observed Properties
 
@@ -22,16 +23,16 @@ def get_observed_properties(request, include_unowned: Optional[bool] = False, te
 
     observed_property_query, _ = query_observed_properties(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=include_unowned is False and templates_only is False,
-        require_ownership_or_unowned=templates_only is True,
+        require_ownership=True if owner == 'currentUser' else False,
+        require_ownership_or_unowned=True if owner == 'currentUserOrNoUser' else False,
         raise_http_errors=False
     )
 
     return [
         build_observed_property_response(observed_property) for observed_property in observed_property_query.all()
-        if (templates_only is False and include_unowned is False)
-        or (templates_only is False and observed_property.person is not None)
-        or (templates_only is True and observed_property.person is None)
+        if owner in ['currentUser', 'currentUserOrNoUser', 'anyUserOrNoUser']
+        or (owner == 'noUser' and observed_property.person is None)
+        or (owner == 'anyUser' and observed_property.person is not None)
     ]
 
 

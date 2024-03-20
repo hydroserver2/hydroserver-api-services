@@ -4,6 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ResultQualifier
+from core.schemas import metadataOwnerOptions
 from .schemas import ResultQualifierGetResponse, ResultQualifierPostBody, ResultQualifierPatchBody, \
     ResultQualifierFields
 from .utils import query_result_qualifiers, get_result_qualifier_by_id, build_result_qualifier_response
@@ -13,7 +14,7 @@ router = DataManagementRouter(tags=['Result Qualifiers'])
 
 
 @router.dm_list('', response=ResultQualifierGetResponse)
-def get_result_qualifiers(request, include_unowned: Optional[bool] = False, templates_only: Optional[bool] = False):
+def get_result_qualifiers(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUser'):
     """
     Get a list of Result Qualifiers
 
@@ -22,16 +23,16 @@ def get_result_qualifiers(request, include_unowned: Optional[bool] = False, temp
 
     result_qualifier_query, _ = query_result_qualifiers(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=include_unowned is False and templates_only is False,
-        require_ownership_or_unowned=templates_only is True,
+        require_ownership=True if owner == 'currentUser' else False,
+        require_ownership_or_unowned=True if owner == 'currentUserOrNoUser' else False,
         raise_http_errors=False
     )
 
     return [
         build_result_qualifier_response(result_qualifier) for result_qualifier in result_qualifier_query.all()
-        if (templates_only is False and include_unowned is False)
-        or (templates_only is False and result_qualifier.person is not None)
-        or (templates_only is True and result_qualifier.person is None)
+        if owner in ['currentUser', 'currentUserOrNoUser', 'anyUserOrNoUser']
+        or (owner == 'noUser' and result_qualifier.person is None)
+        or (owner == 'anyUser' and result_qualifier.person is not None)
     ]
 
 
