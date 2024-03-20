@@ -1,6 +1,8 @@
 from typing import List
 from ninja.errors import HttpError
+from django.db.models import Prefetch
 from core.endpoints.thing.utils import query_things
+from core.models import Thing
 from sensorthings.components.locations.engine import LocationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -27,6 +29,10 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             thing_ids=thing_ids,
             ignore_privacy=expanded
+        )
+
+        things = things.prefetch_related(
+            Prefetch('log', queryset=Thing.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -76,7 +82,8 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                     'elevation_m': thing.location.elevation_m,
                     'elevation_datum': thing.location.elevation_datum,
                     'state': thing.location.state,
-                    'county': thing.location.county
+                    'county': thing.location.county,
+                    'last_updated': getattr(next(iter(thing.ordered_log), None), 'history_date', None)
                 },
                 'thing_ids': [thing.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids

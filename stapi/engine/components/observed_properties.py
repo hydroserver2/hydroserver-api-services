@@ -1,7 +1,9 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
+from django.db.models import Prefetch
 from core.endpoints.observedproperty.utils import query_observed_properties
+from core.models import ObservedProperty
 from sensorthings.components.observedproperties.engine import ObservedPropertyBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -24,6 +26,10 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             observed_property_ids=observed_property_ids,
             require_ownership_or_unowned=False if observed_property_ids is not None or not expanded else True
+        )
+
+        observed_properties = observed_properties.prefetch_related(
+            Prefetch('log', queryset=ObservedProperty.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -61,6 +67,7 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 'properties': {
                     'variable_code': observed_property.code,
                     'variable_type': observed_property.type,
+                    'last_updated': getattr(next(iter(observed_property.ordered_log), None), 'history_date', None)
                 }
             } for observed_property in observed_properties.all()
             if observed_property_ids is None or observed_property.id in observed_property_ids
