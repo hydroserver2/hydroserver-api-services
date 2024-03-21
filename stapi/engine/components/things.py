@@ -1,7 +1,9 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
+from django.db.models import Prefetch
 from core.endpoints.thing.utils import query_things
+from core.models import Thing
 from sensorthings.components.things.engine import ThingBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -28,6 +30,10 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             thing_ids=thing_ids,
             ignore_privacy=expanded
+        )
+
+        things = things.prefetch_related(
+            Prefetch('log', queryset=Thing.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -72,7 +78,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                             'email': thing_association.person.email,
                             'organization_name': getattr(thing_association.person.organization, 'name', None)
                         } for thing_association in thing.associates.all()
-                    ]
+                    ],
+                    'last_updated': getattr(next(iter(thing.ordered_log), None), 'history_date', None)
                 },
                 'location_ids': [thing.location.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids

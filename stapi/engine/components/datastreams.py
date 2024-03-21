@@ -1,7 +1,9 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
+from django.db.models import Prefetch
 from core.endpoints.datastream.utils import query_datastreams, get_datastream_by_id
+from core.models import Datastream
 from sensorthings.components.datastreams.engine import DatastreamBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -27,6 +29,10 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
             datastream_ids=datastream_ids,
             ignore_privacy=expanded
+        )
+
+        datastreams = datastreams.prefetch_related(
+            Prefetch('log', queryset=Datastream.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -114,7 +120,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                         'name': datastream.time_aggregation_interval_units.name,
                         'symbol': datastream.time_aggregation_interval_units.symbol,
                         'definition': datastream.time_aggregation_interval_units.definition.split(';')[0]
-                    }
+                    },
+                    'last_updated': getattr(next(iter(datastream.ordered_log), None), 'history_date', None)
                 }
             } for datastream in datastreams
         ], count
