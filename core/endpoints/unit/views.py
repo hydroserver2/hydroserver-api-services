@@ -4,6 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import Unit
+from core.schemas import metadataOwnerOptions
 from .schemas import UnitGetResponse, UnitPostBody, UnitPatchBody, UnitFields
 from .utils import query_units, get_unit_by_id, build_unit_response
 
@@ -12,7 +13,7 @@ router = DataManagementRouter(tags=['Units'])
 
 
 @router.dm_list('', response=UnitGetResponse)
-def get_units(request, owned: Optional[bool] = None):
+def get_units(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUser'):
     """
     Get a list of Units
 
@@ -21,14 +22,16 @@ def get_units(request, owned: Optional[bool] = None):
 
     unit_query, _ = query_units(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=True if owned is True else False,
-        require_ownership_or_unowned=True if owned is None else False,
+        require_ownership=True if owner == 'currentUser' else False,
+        require_ownership_or_unowned=True if owner == 'currentUserOrNoUser' else False,
         raise_http_errors=False
     )
 
     return [
         build_unit_response(unit) for unit in unit_query.all()
-        if owned is None or owned is True or (owned is False and unit.person is None)
+        if owner in ['currentUser', 'currentUserOrNoUser', 'anyUserOrNoUser']
+        or (owner == 'noUser' and unit.person is None)
+        or (owner == 'anyUser' and unit.person is not None)
     ]
 
 

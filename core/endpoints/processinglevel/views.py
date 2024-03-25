@@ -4,6 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ProcessingLevel
+from core.schemas import metadataOwnerOptions
 from .schemas import ProcessingLevelGetResponse, ProcessingLevelPostBody, ProcessingLevelPatchBody, \
     ProcessingLevelFields
 from .utils import query_processing_levels, get_processing_level_by_id, build_processing_level_response
@@ -13,7 +14,7 @@ router = DataManagementRouter(tags=['Processing Levels'])
 
 
 @router.dm_list('', response=ProcessingLevelGetResponse)
-def get_processing_levels(request, owned: Optional[bool] = None):
+def get_processing_levels(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUser'):
     """
     Get a list of Processing Levels
 
@@ -22,14 +23,16 @@ def get_processing_levels(request, owned: Optional[bool] = None):
 
     processing_level_query, _ = query_processing_levels(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=True if owned is True else False,
-        require_ownership_or_unowned=True if owned is None else False,
+        require_ownership=True if owner == 'currentUser' else False,
+        require_ownership_or_unowned=True if owner == 'currentUserOrNoUser' else False,
         raise_http_errors=False
     )
 
     return [
         build_processing_level_response(processing_level) for processing_level in processing_level_query.all()
-        if owned is None or owned is True or (owned is False and processing_level.person is None)
+        if owner in ['currentUser', 'currentUserOrNoUser', 'anyUserOrNoUser']
+        or (owner == 'noUser' and processing_level.person is None)
+        or (owner == 'anyUser' and processing_level.person is not None)
     ]
 
 
