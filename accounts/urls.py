@@ -5,6 +5,7 @@ from accounts.views.oauth.google import google_router
 from accounts.views.oauth.orcid import orcid_router
 from accounts.views.oauth.hydroshare import hydroshare_router
 from accounts.views.jwt import HydroServerJWTController
+from hydroserver import settings
 
 
 accounts_api = NinjaExtraAPI(
@@ -16,9 +17,15 @@ accounts_api = NinjaExtraAPI(
 
 accounts_api.add_router(prefix='', router=user_router)
 accounts_api.register_controllers(HydroServerJWTController)
-accounts_api.add_router(prefix='google', router=google_router)
-accounts_api.add_router(prefix='orcid', router=orcid_router)
-accounts_api.add_router(prefix='hydroshare', router=hydroshare_router)
+
+if settings.AUTHLIB_OAUTH_CLIENTS.get('google', {}).get('client_id'):
+    accounts_api.add_router(prefix='google', router=google_router)
+
+if settings.AUTHLIB_OAUTH_CLIENTS.get('orcid', {}).get('client_id'):
+    accounts_api.add_router(prefix='orcid', router=orcid_router)
+
+if settings.AUTHLIB_OAUTH_CLIENTS.get('hydroshare', {}).get('client_id'):
+    accounts_api.add_router(prefix='hydroshare', router=hydroshare_router)
 
 urlpatterns = [
     path('', accounts_api.urls),
