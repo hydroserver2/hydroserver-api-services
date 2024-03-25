@@ -25,6 +25,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-zw@4h#ol@0)5fxy=ib6(t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 DEPLOYED = config('DEPLOYED', default=False, cast=bool)
+DISABLE_ACCOUNT_CREATION = config('DISABLE_ACCOUNT_CREATION', default=False, cast=bool)
 
 if DEPLOYED:
     hostname = socket.gethostname()
