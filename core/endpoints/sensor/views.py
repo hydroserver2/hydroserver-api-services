@@ -4,6 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import Sensor
+from core.schemas import metadataOwnerOptions
 from .schemas import SensorGetResponse, SensorPostBody, SensorPatchBody, SensorFields
 from .utils import query_sensors, get_sensor_by_id, build_sensor_response
 
@@ -12,7 +13,7 @@ router = DataManagementRouter(tags=['Sensors'])
 
 
 @router.dm_list('', response=SensorGetResponse)
-def get_sensors(request, owned: Optional[bool] = None):
+def get_sensors(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUser'):
     """
     Get a list of Sensors
 
@@ -23,14 +24,16 @@ def get_sensors(request, owned: Optional[bool] = None):
 
     sensor_query, _ = query_sensors(
         user=getattr(request, 'authenticated_user', None),
-        require_ownership=True if owned is True else False,
-        require_ownership_or_unowned=True if owned is None else False,
+        require_ownership=True if owner == 'currentUser' else False,
+        require_ownership_or_unowned=True if owner == 'currentUserOrNoUser' else False,
         raise_http_errors=False
     )
 
     return [
         build_sensor_response(sensor) for sensor in sensor_query.all()
-        if owned is None or owned is True or (owned is False and sensor.person is None)
+        if owner in ['currentUser', 'currentUserOrNoUser', 'anyUserOrNoUser']
+        or (owner == 'noUser' and sensor.person is None)
+        or (owner == 'anyUser' and sensor.person is not None)
     ]
 
 

@@ -25,6 +25,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-zw@4h#ol@0)5fxy=ib6(t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 DEPLOYED = config('DEPLOYED', default=False, cast=bool)
+DISABLE_ACCOUNT_CREATION = config('DISABLE_ACCOUNT_CREATION', default=False, cast=bool)
 
 if DEPLOYED:
     hostname = socket.gethostname()
@@ -65,8 +66,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'core.apps.CoreConfig',
     'accounts.apps.AccountsConfig',
-    'django_ses',
-    'guardian',
     'sensorthings',
     'ninja_extra',
     'simple_history',
@@ -164,6 +163,17 @@ APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 
+# Email Settings
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = config('EMAIL_HOST', default=None)
+EMAIL_PORT = config('EMAIL_PORT', default=None)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
+DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default=None)
+
+
 # AWS Storages and Email Settings
 
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
@@ -171,8 +181,6 @@ AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
 AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
 
-EMAIL_BACKEND = 'django_ses.SESBackend'
-DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
 
 if DEPLOYED:
     STORAGES = {
