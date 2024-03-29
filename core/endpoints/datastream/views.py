@@ -8,9 +8,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
 from django.db.models import Q
-from accounts.auth.jwt import JWTAuth
-from accounts.auth.basic import BasicAuth
-from accounts.auth.anonymous import anonymous_auth
+from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream, Observation
 from core.endpoints.thing.utils import get_thing_by_id
@@ -43,6 +41,7 @@ def get_datastreams(
 
     datastream_query, _ = query_datastreams(
         user=request.authenticated_user,
+        method='GET',
         modified_since=modified_since,
         require_primary_ownership=primary_owned_only,
         require_ownership=owned_only,
@@ -64,6 +63,7 @@ def get_datastream(request, datastream_id: UUID = Path(...)):
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='GET',
         datastream_id=datastream_id,
         raise_http_errors=True
     )
@@ -94,12 +94,15 @@ def create_datastream(request, data: DatastreamPostBody):
 
     check_related_fields(primary_owner, data)
 
+    return 201, None
+
     datastream = Datastream.objects.create(
         **data.dict(include=set(DatastreamFields.__fields__.keys()))
     )
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='GET',
         datastream_id=datastream.id,
     )
 
@@ -117,6 +120,7 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='PATCH',
         datastream_id=datastream_id,
         require_ownership=True,
         raise_http_errors=True
@@ -136,7 +140,7 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
 
     datastream.save()
 
-    datastream = get_datastream_by_id(user=request.authenticated_user, datastream_id=datastream.id)
+    datastream = get_datastream_by_id(user=request.authenticated_user, method='GET', datastream_id=datastream.id)
 
     return 203, build_datastream_response(datastream)
 
@@ -151,6 +155,7 @@ def delete_datastream(request, datastream_id: UUID = Path(...)):
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='DELETE',
         datastream_id=datastream_id,
         require_primary_ownership=True,
         raise_http_errors=True
@@ -181,6 +186,7 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='POST',
         datastream_id=datastream_id,
         require_ownership=True,
         raise_http_errors=True
@@ -231,6 +237,7 @@ def get_datastream_csv(request, datastream_id: UUID = Path(...)):
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='GET',
         datastream_id=datastream_id,
         raise_http_errors=True
     )
@@ -255,6 +262,7 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
 
     datastream = get_datastream_by_id(
         user=request.authenticated_user,
+        method='GET',
         datastream_id=datastream_id,
         raise_http_errors=True
     )

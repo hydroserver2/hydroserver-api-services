@@ -4,7 +4,7 @@ from typing import List
 from uuid import UUID
 from datetime import datetime
 from sensorthings.validators import allow_partial
-from core.schemas import BasePostBody, BasePatchBody
+from core.schemas_old import BasePostBody, BasePatchBody
 
 
 class ObservationID(Schema):

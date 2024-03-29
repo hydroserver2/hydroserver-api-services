@@ -1,11 +1,11 @@
 from django.urls import path
 from ninja_extra import NinjaExtraAPI
-from accounts.views.users import user_router
-from accounts.views.api_keys import api_key_router
-from accounts.views.oauth.google import google_router
-from accounts.views.oauth.orcid import orcid_router
-from accounts.views.oauth.hydroshare import hydroshare_router
-from accounts.views.jwt import HydroServerJWTController
+from accounts.endpoints.user.views import user_router
+from accounts.endpoints.apikey.views import api_key_router
+from accounts.endpoints.oauth.views.google import google_router
+from accounts.endpoints.oauth.views.orcid import orcid_router
+from accounts.endpoints.oauth.views.hydroshare import hydroshare_router
+from accounts.endpoints.jwt.views import HydroServerJWTController
 from hydroserver import settings
 
 

@@ -4,7 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ResultQualifier
-from core.schemas import metadataOwnerOptions
+from core.schemas_old import metadataOwnerOptions
 from .schemas import ResultQualifierGetResponse, ResultQualifierPostBody, ResultQualifierPatchBody, \
     ResultQualifierFields
 from .utils import query_result_qualifiers, get_result_qualifier_by_id, build_result_qualifier_response

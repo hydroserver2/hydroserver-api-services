@@ -4,7 +4,7 @@ from pydantic import conint
 from datetime import datetime
 from uuid import UUID
 from sensorthings.validators import allow_partial
-from core.schemas import BasePostBody, BasePatchBody
+from core.schemas_old import BasePostBody, BasePatchBody
 
 
 class DataSourceID(Schema):

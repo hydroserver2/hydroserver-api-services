@@ -3,10 +3,10 @@ from ninja_jwt.tokens import RefreshToken
 from django.http import HttpRequest
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from accounts.schemas import *
-from accounts.utils import account_verification_token, update_account_to_verified, send_verification_email, \
+from accounts.endpoints.user.schemas import *
+from accounts.endpoints.user.utils import account_verification_token, update_account_to_verified, send_verification_email, \
      send_password_reset_confirmation_email, build_user_response
-from accounts.auth import JWTAuth, BasicAuth
+from hydroserver.auth import JWTAuth, BasicAuth
 from accounts.models import PasswordReset, Organization
 from hydroserver import settings
 

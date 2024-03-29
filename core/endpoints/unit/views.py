@@ -4,7 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import Unit
-from core.schemas import metadataOwnerOptions
+from core.schemas_old import metadataOwnerOptions
 from .schemas import UnitGetResponse, UnitPostBody, UnitPatchBody, UnitFields
 from .utils import query_units, get_unit_by_id, build_unit_response
 

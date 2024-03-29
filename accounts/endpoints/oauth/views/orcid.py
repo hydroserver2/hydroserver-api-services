@@ -2,7 +2,7 @@ from ninja import Router
 from ninja_jwt.tokens import RefreshToken
 from hydroserver import settings
 from django.shortcuts import redirect
-from accounts.views.oauth.client import oauth, user_model
+from accounts.endpoints.oauth.client import oauth, user_model
 
 oauth.register(
     name='orcid',

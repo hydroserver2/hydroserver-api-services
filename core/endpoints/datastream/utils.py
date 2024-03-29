@@ -16,8 +16,25 @@ from core.endpoints.unit.utils import check_unit_by_id
 from .schemas import DatastreamFields
 
 
+def build_permission_filters(method, permissions):
+    permission_filters = []
+    for permission in permissions.get(model='Datastream', method=method):
+        for resource in permission.resources:
+            if resource.model == 'Datastream':
+                permission_filters.append(Q(id__in=resource.ids))
+            elif resource.model == 'Thing':
+                permission_filters.append(Q(thing_id__in=resource.ids))
+            elif resource.model == 'DataSource':
+                permission_filters.append(Q(data_source_id__in=resource.ids))
+            elif resource.model == 'DataLoader':
+                permission_filters.append(Q(data_source__data_loader_id__in=resource.ids))
+
+    return reduce(lambda q1, q2: q1 | q2, permission_filters) if permission_filters else Q(id__isnull=True)
+
+
 def apply_datastream_auth_rules(
         user: Optional[Person],
+        method: str,
         datastream_query: QuerySet,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -29,7 +46,8 @@ def apply_datastream_auth_rules(
 
     result_exists = datastream_query.exists() if check_result is True else None
 
-    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
+    if (not user or not user.permissions.is_allowed(method, 'Datastream')) and \
+            (require_ownership or require_unaffiliated or require_primary_ownership):
         if raise_http_errors is True:
             raise HttpError(403, 'You do not have permission to perform this action on this Datastream.')
         else:
@@ -41,7 +59,16 @@ def apply_datastream_auth_rules(
     ]
 
     if ignore_privacy is False:
-        if user:
+        if user.permissions.enabled():
+            ownership_filter = (
+                Q(thing__associates__person=user) & Q(thing__associates__owns_thing=True) &
+                build_permission_filters(method, user.permissions)
+            )
+            if method == 'GET':
+                auth_filters.append((Q(thing__is_private=False) | ownership_filter))
+            else:
+                auth_filters.append(ownership_filter)
+        elif user:
             auth_filters.append((
                 Q(thing__is_private=False) | (Q(thing__associates__person=user) & Q(thing__associates__owns_thing=True))
             ))
@@ -84,6 +111,7 @@ def apply_recent_datastream_filter(
 
 def query_datastreams(
         user: Optional[Person],
+        method: str,
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -123,6 +151,7 @@ def query_datastreams(
 
     datastream_query, result_exists = apply_datastream_auth_rules(
         user=user,
+        method=method,
         datastream_query=datastream_query,
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
@@ -137,6 +166,7 @@ def query_datastreams(
 
 def check_datastream_by_id(
         user: Optional[Person],
+        method: str,
         datastream_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -147,6 +177,7 @@ def check_datastream_by_id(
 
     datastream_query, datastream_exists = query_datastreams(
         user=user,
+        method=method,
         datastream_ids=[datastream_id],
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
@@ -167,6 +198,7 @@ def check_datastream_by_id(
 
 def get_datastream_by_id(
         user: Optional[Person],
+        method: str,
         datastream_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -177,6 +209,7 @@ def get_datastream_by_id(
 
     datastream_query, datastream_exists = query_datastreams(
         user=user,
+        method=method,
         datastream_ids=[datastream_id],
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,

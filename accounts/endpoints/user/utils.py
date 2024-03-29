@@ -4,7 +4,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from accounts.schemas import UserFields, OrganizationFields
+from accounts.endpoints.user.schemas import UserFields, OrganizationFields
 import urllib.parse
 
 

@@ -4,7 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ObservedProperty
-from core.schemas import metadataOwnerOptions
+from core.schemas_old import metadataOwnerOptions
 from .schemas import ObservedPropertyGetResponse, ObservedPropertyPostBody, ObservedPropertyPatchBody, \
     ObservedPropertyFields
 from .utils import query_observed_properties, get_observed_property_by_id, build_observed_property_response

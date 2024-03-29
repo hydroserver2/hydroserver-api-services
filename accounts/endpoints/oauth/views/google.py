@@ -2,8 +2,8 @@ from ninja import Router
 from ninja_jwt.tokens import RefreshToken
 from hydroserver import settings
 from django.shortcuts import redirect
-from accounts.views.oauth.client import oauth, user_model
-from accounts.utils import update_account_to_verified
+from accounts.endpoints.oauth.client import oauth, user_model
+from accounts.endpoints.user.utils import update_account_to_verified
 
 oauth.register(
     name='google',

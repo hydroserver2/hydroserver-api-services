@@ -3,7 +3,7 @@ from pydantic import Field
 from uuid import UUID
 from typing import Optional
 from sensorthings.validators import allow_partial
-from core.schemas import BasePostBody, BasePatchBody
+from core.schemas_old import BasePostBody, BasePatchBody
 
 
 class SensorID(Schema):

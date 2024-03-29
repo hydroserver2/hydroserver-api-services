@@ -11,9 +11,18 @@ from core.models import Person, Thing, ThingAssociation
 from .schemas import AssociationFields, PersonFields, OrganizationFields, ThingFields, LocationFields
 
 
+def build_permission_filters(method, permissions):
+    print('*****')
+    for permission in permissions.get(model='Thing', method=method):
+        print(permission.resources)
+
+    return Q() | Q()
+
+
 def apply_thing_auth_rules(
         user: Optional[Person],
         thing_query: QuerySet,
+        method: str,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
@@ -24,7 +33,8 @@ def apply_thing_auth_rules(
 
     result_exists = thing_query.exists() if check_result is True else None
 
-    if not user and (require_ownership or require_unaffiliated or require_primary_ownership):
+    if (not user or not user.permissions.is_allowed(method, 'Thing')) and \
+            (require_ownership or require_unaffiliated or require_primary_ownership):
         if raise_http_errors is True:
             raise HttpError(403, 'You do not have permission to perform this action on this Thing.')
         else:
@@ -35,7 +45,14 @@ def apply_thing_auth_rules(
     ]
 
     if ignore_privacy is False:
-        if user:
+        if user.permissions.enabled():
+            auth_filters.append((
+                Q(is_private=False) | (
+                    Q(associates__person=user) & Q(associates__owns_thing=True) &
+                    build_permission_filters(method, user.permissions)
+                )
+            ))
+        elif user:
             auth_filters.append((
                 Q(is_private=False) | (Q(associates__person=user) & Q(associates__owns_thing=True))
             ))
@@ -76,6 +93,7 @@ def apply_recent_thing_filter(
 
 def query_things(
         user: Optional[Person],
+        method: str,
         check_result_exists: bool = False,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -87,7 +105,6 @@ def query_things(
         prefetch_tags: bool = False,
         modified_since: Optional[datetime] = None,
         raise_http_errors: Optional[bool] = True,
-        permissions: Optional[dict] = None,
 ) -> (QuerySet, bool):
 
     thing_query = Thing.objects
@@ -116,6 +133,7 @@ def query_things(
 
     thing_query, result_exists = apply_thing_auth_rules(
         user=user,
+        method=method,
         thing_query=thing_query,
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
@@ -130,17 +148,18 @@ def query_things(
 
 def check_thing_by_id(
         user: Optional[Person],
+        method: str,
         thing_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
         require_unaffiliated: bool = False,
         ignore_privacy: bool = False,
         raise_http_errors: bool = False,
-        permissions: Optional[dict] = None
 ) -> bool:
 
     thing_query, thing_exists = query_things(
         user=user,
+        method=method,
         thing_ids=[thing_id],
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,
@@ -161,6 +180,7 @@ def check_thing_by_id(
 
 def get_thing_by_id(
         user: Optional[Person],
+        method: str,
         thing_id: UUID,
         require_ownership: bool = False,
         require_primary_ownership: bool = False,
@@ -169,11 +189,12 @@ def get_thing_by_id(
         prefetch_photos: bool = False,
         prefetch_datastreams: bool = False,
         prefetch_tags: bool = False,
-        raise_http_errors: bool = True
+        raise_http_errors: bool = True,
 ):
 
     thing_query, thing_exists = query_things(
         user=user,
+        method=method,
         thing_ids=[thing_id],
         require_ownership=require_ownership,
         require_primary_ownership=require_primary_ownership,

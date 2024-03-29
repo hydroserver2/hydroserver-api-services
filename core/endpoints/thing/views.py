@@ -7,9 +7,7 @@ from uuid import UUID
 from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.db.models import Q
-from accounts.auth.jwt import JWTAuth
-from accounts.auth.basic import BasicAuth
-from accounts.auth.anonymous import anonymous_auth
+from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
 from core.models import Thing, Location, ThingAssociation, Person
 from core.router import DataManagementRouter
 from core.endpoints.unit.utils import query_units, build_unit_response, transfer_unit_ownership
@@ -45,11 +43,12 @@ def get_things(
 
     thing_query, _ = query_things(
         user=request.authenticated_user,
+        method='GET',
         modified_since=modified_since,
         require_primary_ownership=primary_owned_only,
         require_ownership=owned_only,
         prefetch_tags=True,
-        raise_http_errors=False
+        raise_http_errors=False,
     )
 
     return [
@@ -65,7 +64,7 @@ def get_thing(request, thing_id: UUID = Path(...)):
     This endpoint returns details for a Thing given a Thing ID.
     """
 
-    thing = get_thing_by_id(user=request.authenticated_user, thing_id=thing_id, raise_http_errors=True)
+    thing = get_thing_by_id(user=request.authenticated_user, method='GET', thing_id=thing_id, raise_http_errors=True)
 
     return 200, build_thing_response(request.authenticated_user, thing)
 
@@ -114,6 +113,7 @@ def update_thing(request, data: ThingPatchBody, thing_id: UUID = Path(...)):
 
     thing = get_thing_by_id(
         user=request.authenticated_user,
+        method='PATCH',
         thing_id=thing_id,
         require_ownership=True,
         raise_http_errors=True

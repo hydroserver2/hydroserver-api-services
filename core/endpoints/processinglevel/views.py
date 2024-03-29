@@ -4,7 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import ProcessingLevel
-from core.schemas import metadataOwnerOptions
+from core.schemas_old import metadataOwnerOptions
 from .schemas import ProcessingLevelGetResponse, ProcessingLevelPostBody, ProcessingLevelPatchBody, \
     ProcessingLevelFields
 from .utils import query_processing_levels, get_processing_level_by_id, build_processing_level_response

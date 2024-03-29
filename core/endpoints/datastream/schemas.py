@@ -8,7 +8,7 @@ from core.endpoints.observedproperty.schemas import ObservedPropertyGetResponse
 from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
-from core.schemas import BasePostBody, BasePatchBody
+from core.schemas_old import BasePostBody, BasePatchBody
 
 
 class DatastreamID(Schema):

@@ -2,12 +2,11 @@ import base64
 from ninja import Router, Query
 from urllib.parse import urlsplit, parse_qs
 from hydroserver import settings
+from hydroserver.auth import JWTAuth, BasicAuth
 from django.shortcuts import redirect
-from accounts.views.oauth.client import oauth
-from accounts.auth.jwt import JWTAuth
-from accounts.auth.basic import BasicAuth
+from accounts.endpoints.oauth.client import oauth
 from accounts.models import Person
-from accounts.utils import account_verification_token
+from accounts.endpoints.user.utils import account_verification_token
 
 
 oauth.register(

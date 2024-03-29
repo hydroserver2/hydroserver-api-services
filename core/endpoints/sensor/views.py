@@ -4,7 +4,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from core.router import DataManagementRouter
 from core.models import Sensor
-from core.schemas import metadataOwnerOptions
+from core.schemas_old import metadataOwnerOptions
 from .schemas import SensorGetResponse, SensorPostBody, SensorPatchBody, SensorFields
 from .utils import query_sensors, get_sensor_by_id, build_sensor_response
 

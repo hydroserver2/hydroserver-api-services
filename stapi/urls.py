@@ -2,9 +2,7 @@ from django.urls import path
 from sensorthings import SensorThingsAPI, SensorThingsEndpoint
 from stapi import schemas
 from stapi.engine import HydroServerSensorThingsEngine
-from accounts.auth.jwt import JWTAuth
-from accounts.auth.basic import BasicAuth
-from accounts.auth.anonymous import anonymous_auth
+from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
 
 
 st_api_1_1 = SensorThingsAPI(

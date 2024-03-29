@@ -8,6 +8,28 @@ from django.utils.crypto import get_random_string
 from datetime import timedelta
 
 
+class PermissionChecker:
+    def __init__(self, permissions=None):
+        self._permissions = permissions
+
+    def __repr__(self):
+        return self._permissions
+
+    def enabled(self):
+        return self._permissions is not None
+
+    def is_allowed(self, method: str, model: str):
+        return self._permissions is None or any(
+            permission.model == model and method in permission.methods for permission in self._permissions
+        )
+
+    def get(self, method: str, model: str):
+        return [
+            permission for permission in self._permissions
+            if permission.model == model and method in permission.methods
+        ]
+
+
 class PersonManager(BaseUserManager):
     def create_user(self, email=None, password=None, **extra_fields):
 
@@ -71,6 +93,14 @@ class Person(AbstractUser):
 
     objects = PersonManager()
 
+    @property
+    def permissions(self):
+        return getattr(self, '_permissions', PermissionChecker())
+
+    @permissions.setter
+    def permissions(self, permissions: PermissionChecker):
+        self._permissions = permissions
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
@@ -96,6 +126,8 @@ class APIKey(models.Model):
     expires = models.DateTimeField(null=True, blank=True)
     scope = models.CharField(max_length=20, choices=SCOPE_CHOICES)
     permissions = models.JSONField(null=True, blank=True)
+    enabled = models.BooleanField()
+    last_used = models.DateTimeField(null=True, blank=True)
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
     def generate_token(self, override=False):

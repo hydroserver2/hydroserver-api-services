@@ -1,11 +1,12 @@
+import json
 from ninja import Router, Path
 from typing import List
 from uuid import UUID
 from django.http import HttpRequest
-from accounts.auth import JWTAuth, BasicAuth
+from hydroserver.auth import JWTAuth, BasicAuth
 from accounts.models import APIKey
-from accounts.schemas import APIKeyGetResponse, APIKeyPostResponse, APIKeyPatchBody, APIKeyPostBody
-from accounts.utils import build_api_key_response
+from accounts.endpoints.apikey.schemas import APIKeyGetResponse, APIKeyPostResponse, APIKeyPatchBody, APIKeyPostBody
+from accounts.endpoints.apikey.utils import build_api_key_response
 
 
 api_key_router = Router(tags=['API Keys'])
@@ -76,8 +77,9 @@ def create_api_key(request: HttpRequest, data: APIKeyPostBody):
     api_key = APIKey.objects.create(
         name=data.name,
         scope=data.scope,
-        permissions=data.permissions,
+        permissions=json.dumps([permission.dict(exclude_unset=True) for permission in data.permissions]),
         expires=data.expires,
+        enabled=data.enabled,
         person=user
     )
 
@@ -113,7 +115,13 @@ def update_api_key(request: HttpRequest, data: APIKeyPatchBody, api_key_id: UUID
     api_key_data = data.dict(exclude_unset=True)
 
     for field in api_key_data:
-        setattr(api_key, field, getattr(data, field))
+        if field == 'permissions':
+            api_key.permissions = json.dumps(
+                [permission.dict(exclude_unset=True) for permission in data.permissions],
+                default=str
+            )
+        else:
+            setattr(api_key, field, getattr(data, field))
 
     api_key.save()
 

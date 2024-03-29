@@ -9,7 +9,7 @@ from core.endpoints.processinglevel.schemas import ProcessingLevelGetResponse
 from core.endpoints.unit.schemas import UnitGetResponse
 from core.endpoints.sensor.schemas import SensorGetResponse
 from core.endpoints.tags.schemas import TagGetResponse
-from core.schemas import BasePostBody, BasePatchBody
+from core.schemas_old import BasePostBody, BasePatchBody
 from country_list import countries_for_language
 
 
