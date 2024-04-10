@@ -1,0 +1,43 @@
+# System Observed Property
+- model: core.observedproperty
+  pk: 11e37e36-3d65-497a-b432-e238ec45195b
+  fields:
+    name: Temperature
+    person: null
+    definition: http://www.example.com/temperature
+    description: A test property.
+    type: Variable
+    code: TEMP
+
+# Alice Observed Property
+- model: core.observedproperty
+  pk: cda18a59-3f2c-4c09-976f-3eadc34423bb
+  fields:
+    name: Temperature
+    person: 1000000010
+    definition: http://www.example.com/temperature
+    description: A test property.
+    type: Variable
+    code: TEMP
+
+# Bob Observed Property
+- model: core.observedproperty
+  pk: c1479bbc-3d7e-449c-ad3a-0a1c7742b460
+  fields:
+    name: Temperature
+    person: 1000000011
+    definition: http://www.example.com/temperature
+    description: A test property.
+    type: Variable
+    code: TEMP
+
+# Emily Observed Property - Inactive
+- model: core.observedproperty
+  pk: b6bfee6e-b8d6-46cd-972a-bdd56bd41bd1
+  fields:
+    name: Temperature
+    person: 1000000014
+    definition: http://www.example.com/temperature
+    description: A test property.
+    type: Variable
+    code: TEMP

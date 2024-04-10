@@ -1,0 +1,132 @@
+# Public Datastream with public Thing
+- model: core.datastream
+  pk: bf5542df-5500-45b4-aabc-4835534880ff
+  fields:
+    name: TSC Temperature
+    description: Temperature measured at the TSC.
+    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: true
+    is_data_visible: true
+    data_source: 2c95bd7c-68f7-424e-920c-bd2e0ccc7717
+
+# Public Datastream with public Thing No Observations
+- model: core.datastream
+  pk: c9ef4139-66c6-4eee-ab7e-a4c12111f498
+  fields:
+    name: TSC Temperature - Empty
+    description: Temperature measured at the TSC.
+    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: true
+    is_data_visible: true
+
+# Private Datastream with public Thing multiple owners
+- model: core.datastream
+  pk: b2529f8b-488a-4b11-b18d-7fa4eadd62cd
+  fields:
+    name: UWRL Temperature
+    description: Temperature measured at the UWRL.
+    thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: true
+    is_data_visible: true
+
+# Private Datastream with public Thing one owner
+- model: core.datastream
+  pk: 1b98de60-0386-4d98-a933-b3cd0c09d98e
+  fields:
+    name: TSC Temperature - Private
+    description: Temperature measured at the TSC.
+    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: false
+    is_data_visible: false
+
+# Public Datastream with private Thing
+- model: core.datastream
+  pk: 61895e0e-5395-489e-845b-562d5b93db22
+  fields:
+    name: MAVST Temperature
+    description: Temperature measured at the MAVST.
+    thing: 80037b7c-f833-472a-a0d1-7bc40e015ea7
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: true
+    is_data_visible: true
+
+# Private Datastream with private Thing
+- model: core.datastream
+  pk: fd22da23-2291-4c14-bcbc-9fdb4671b2cb
+  fields:
+    name: MAVST Temperature - Private
+    description: Temperature measured at the MAVST.
+    thing: 80037b7c-f833-472a-a0d1-7bc40e015ea7
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: false
+    is_data_visible: false

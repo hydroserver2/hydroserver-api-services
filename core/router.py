@@ -8,7 +8,7 @@ class DataManagementRouter(Router):
         return super(DataManagementRouter, self).api_operation(
             ['GET'],  # ['GET', 'HEAD'],
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth()],
+            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth(), anonymous_auth],
             response={
                 200: List[response]
             },
@@ -19,7 +19,7 @@ class DataManagementRouter(Router):
         return super(DataManagementRouter, self).api_operation(
             ['GET'],  # ['GET', 'HEAD'],
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth()],
+            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth(), anonymous_auth],
             response={
                 200: response,
                 403: str,
@@ -34,7 +34,8 @@ class DataManagementRouter(Router):
             auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth()],
             response={
                 201: response,
-                401: str
+                401: str,
+                403: str
             },
             by_alias=True
         )

@@ -1,0 +1,37 @@
+# System Result Qualifier
+- model: core.resultqualifier
+  pk: 7a6a3957-f45f-4a00-9edf-d1e53a689538
+  fields:
+    code: ICE
+    description: Ice formed on the sensor.
+    person: null
+
+# Alice Result Qualifiers
+- model: core.resultqualifier
+  pk: 385e9c78-7618-453a-b8a0-6b4e927e6ae7
+  fields:
+    code: ICE
+    description: Ice formed on the sensor.
+    person: 1000000010
+- model: core.resultqualifier
+  pk: 7f2efa17-96f4-4fda-a9dc-fdcd9e553faa
+  fields:
+    code: PF
+    description: Power failure.
+    person: 1000000010
+
+# Bob Result Qualifier
+- model: core.resultqualifier
+  pk: 16508aef-ade0-43fb-9402-bee06974960b
+  fields:
+    code: ICE
+    description: Ice formed on the sensor.
+    person: 1000000011
+
+# Emily Result Qualifier
+- model: core.resultqualifier
+  pk: 72ce9a6d-3a8d-4a92-abb8-07924479193f
+  fields:
+    code: ICE
+    description: Ice formed on the sensor.
+    person: 1000000014

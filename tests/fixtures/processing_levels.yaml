@@ -1,0 +1,35 @@
+# System Processing Level
+- model: core.processinglevel
+  pk: caab642c-14f9-4823-8517-9b1bce59f626
+  fields:
+    person: null
+    code: 0
+    definition: Raw
+    explanation: Data is unprocessed.
+
+# Alice Processing Level
+- model: core.processinglevel
+  pk: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+  fields:
+    person: 1000000010
+    code: 0
+    definition: Raw
+    explanation: Data is unprocessed.
+
+# Bob Processing Level
+- model: core.processinglevel
+  pk: fac80ccb-7e0b-4b83-9d06-1e225b1cf6bd
+  fields:
+    person: 1000000011
+    code: 0
+    definition: Raw
+    explanation: Data is unprocessed.
+
+# Emily Processing Level - Inactive
+- model: core.processinglevel
+  pk: 2a92ca50-fe96-438b-bc1c-7efb09427383
+  fields:
+    person: 1000000014
+    code: 0
+    definition: Raw
+    explanation: Data is unprocessed.

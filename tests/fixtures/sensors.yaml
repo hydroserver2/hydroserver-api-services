@@ -1,0 +1,59 @@
+# System Sensor
+- model: core.sensor
+  pk: c45c6050-dc52-4a37-a562-66816a6ef1b5
+  fields:
+    person: null
+    name: Sensor
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_link: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD
+
+# Alice Sensor
+- model: core.sensor
+  pk: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+  fields:
+    person: 1000000010
+    name: Sensor
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_link: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD
+
+# Bob Sensor
+- model: core.sensor
+  pk: 5fbab69a-810b-4044-bfac-c40a05634c5c
+  fields:
+    person: 1000000011
+    name: test_sensor_2
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_link: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD
+
+# Emily Sensor - Inactive
+- model: core.sensor
+  pk: 41ebe791-3868-4c09-9744-f6954d295edc
+  fields:
+    person: 1000000014
+    name: test_sensor_2
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_link: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD

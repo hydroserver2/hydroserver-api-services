@@ -11,6 +11,9 @@ from django.db.models import Q
 
 class APIKeyAuthCheck:
     def authenticate(self, request, key, *args, **kwargs):
+        if not key:
+            return None
+
         try:
             api_key = APIKey.objects.select_related('person').filter(
                 Q(expires__isnull=True) | Q(expires__gt=timezone.now()),

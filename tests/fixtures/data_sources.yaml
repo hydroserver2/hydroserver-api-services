@@ -1,0 +1,19 @@
+# Alice Data Source
+- model: core.datasource
+  pk: 2c95bd7c-68f7-424e-920c-bd2e0ccc7717
+  fields:
+    name: Test Data Source
+    person: 1000000010
+    timestamp_column: A
+    data_loader: 9d571b4b-c986-4fa8-8933-0491ddad9e0e
+    paused: false
+
+# Bob Data Source
+- model: core.datasource
+  pk: f47a257f-8007-4a5a-86e1-19bbd6093d9b
+  fields:
+    name: Test Data Source
+    person: 1000000011
+    timestamp_column: A
+    data_loader: 9bcd1dbf-eb1e-47dd-8874-f0a65f16c709
+    paused: false

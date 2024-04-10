@@ -1,0 +1,13 @@
+# Alice Data Loader
+- model: core.dataloader
+  pk: 9d571b4b-c986-4fa8-8933-0491ddad9e0e
+  fields:
+    name: Alice's Streaming Data Loader
+    person: 1000000010
+
+# Bob Data Loader
+- model: core.dataloader
+  pk: 9bcd1dbf-eb1e-47dd-8874-f0a65f16c709
+  fields:
+    name: Bob's Streaming Data Loader
+    person: 1000000011
