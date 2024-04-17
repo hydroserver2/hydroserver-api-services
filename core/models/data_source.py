@@ -5,7 +5,6 @@ from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
 from accounts.models import Person
 from core.models import DataLoader
-from core.schemas.data_source import DataSourceFields
 
 
 class DataSourceQuerySet(models.QuerySet):
@@ -77,12 +76,6 @@ class DataSource(models.Model):
     history = HistoricalRecords(custom_model_name='DataSourceChangeLog', related_name='log')
 
     objects = DataSourceQuerySet.as_manager()
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            **{field: getattr(self, field) for field in DataSourceFields.__fields__.keys()},
-        }
 
     class Meta:
         db_table = 'DataSource'

@@ -40,7 +40,7 @@ def get_processing_levels(request, owner: Optional[metadataOwnerOptions] = 'anyU
     processing_level_query = processing_level_query.distinct()
 
     response = [
-        processing_level.serialize() for processing_level in processing_level_query.all()
+        ProcessingLevelGetResponse.serialize(processing_level) for processing_level in processing_level_query.all()
     ]
 
     return 200, response
@@ -61,7 +61,7 @@ def get_processing_level(request, processing_level_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, processing_level.serialize()
+    return 200, ProcessingLevelGetResponse.serialize(processing_level)
 
 
 @router.dm_post('', response=ProcessingLevelGetResponse)
@@ -79,7 +79,7 @@ def create_processing_level(request, data: ProcessingLevelPostBody):
         **data.dict(include=set(ProcessingLevelFields.__fields__.keys()))
     )
 
-    return 201, processing_level.serialize()
+    return 201, ProcessingLevelGetResponse.serialize(processing_level)
 
 
 @router.dm_patch('{processing_level_id}', response=ProcessingLevelGetResponse)
@@ -110,7 +110,7 @@ def update_processing_level(request, data: ProcessingLevelPatchBody, processing_
 
     processing_level.save()
 
-    return 203, processing_level.serialize()
+    return 203, ProcessingLevelGetResponse.serialize(processing_level)
 
 
 @router.dm_delete('{processing_level_id}')

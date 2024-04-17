@@ -13,7 +13,13 @@ class DataLoaderFields(Schema):
 
 
 class DataLoaderGetResponse(DataLoaderFields, DataLoaderID):
-    pass
+
+    @classmethod
+    def serialize(cls, data_loader):  # Temporary until after Pydantic v2 update
+        return {
+            'id': data_loader.id,
+            **{field: getattr(data_loader, field) for field in DataLoaderFields.__fields__.keys()},
+        }
 
     class Config:
         allow_population_by_field_name = True

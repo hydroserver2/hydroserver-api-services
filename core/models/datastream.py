@@ -1,4 +1,5 @@
 import uuid
+import copy
 from datetime import datetime
 from typing import Optional
 from django.db import models
@@ -6,7 +7,6 @@ from django.db.models import Q, Prefetch
 from ninja.errors import HttpError
 from simple_history.models import HistoricalRecords
 from core.models import Thing, Sensor, ObservedProperty, ProcessingLevel, Unit, DataSource
-from core.schemas.datastream import DatastreamFields
 
 
 class DatastreamQuerySet(models.QuerySet):
@@ -75,30 +75,36 @@ class DatastreamQuerySet(models.QuerySet):
            log__history_date__gt=modified
         ) if modified is not None else self
 
-    def get_by_id(self, datastream_id, user, method, raise_404=False):
+    def get_by_id(self, datastream_id, user, method, model='Datastream', raise_404=False, fetch=True):
         queryset = self.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
         queryset = queryset.prefetch_associates()  # noqa
         queryset = queryset.owner_is_active()
 
-        if method == 'GET':
+        if model in ['Datastream', 'Observation'] and method == 'GET':
             queryset = queryset.owner(user=user, include_public=True)
-        elif method == 'PATCH':
+        elif (model == 'Datastream' and method == 'PATCH') or \
+             (model == 'Observation' and method in ['POST', 'PATCH', 'DELETE']):
             queryset = queryset.owner(user=user)
         elif method == 'DELETE':
             queryset = queryset.primary_owner(user=user)
 
-        if user.permissions.enabled():
+        if user and user.permissions.enabled():
             queryset = queryset.apply_permissions(user=user, method=method)
 
-        try:
-            thing = queryset.distinct().get(pk=datastream_id)
-        except Thing.DoesNotExist:
-            if raise_404:
-                raise HttpError(404, 'Datastream not found.')
-            else:
-                return None
+        print(queryset.query)
 
-        return thing
+        try:
+            if fetch is True:
+                datastream = queryset.distinct().get(pk=datastream_id)
+            else:
+                datastream = queryset.distinct().filter(pk=datastream_id).exists()
+        except Datastream.DoesNotExist:
+            datastream = None
+
+        if not datastream and raise_404:
+            raise HttpError(404, 'Datastream not found.')
+
+        return datastream
 
 
 class Datastream(models.Model):
@@ -147,12 +153,45 @@ class Datastream(models.Model):
 
     objects = DatastreamQuerySet.as_manager()
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'thing_id': self.thing_id,
-            **{field: getattr(self, field) for field in DatastreamFields.__fields__.keys()},
+    @property
+    def primary_owner(self):
+        return self.thing.associates.get(is_primary_owner=True).person
+
+    def transfer_metadata_ownership(self, owner):
+
+        if self.primary_owner == owner:
+            return
+
+        metadata_models = {
+            'unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
+            'time_aggregation_interval_unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
+            'intended_time_spacing_unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
+            'sensor': {'name': 'Sensor', 'fields': ['name', 'description', 'encoding_type', 'manufacturer', 'model',
+                                                    'model_link', 'method_type', 'method_link', 'method_code']},
+            'processing_level': {'name': 'ProcessingLevel', 'fields': ['code', 'definition', 'explanation']},
+            'observed_property': {'name': 'ObservedProperty', 'fields': ['name', 'definition', 'description', 'type',
+                                                                         'code']}
         }
+
+        for related_name, model in metadata_models.items():
+            if not getattr(self, related_name):
+                continue
+
+            matching_objects = getattr(models, model['name']).objects.filter(
+                person=owner,
+                **{field: getattr(getattr(self, related_name), field) for field in model['fields']}
+            )
+
+            if matching_objects.exists():
+                setattr(self, related_name, matching_objects[0])
+            else:
+                new_object = copy.copy(getattr(self, related_name))
+                new_object.id = uuid.uuid4()
+                new_object.person = owner
+                new_object.save()
+                setattr(self, related_name, new_object)
+
+            self.save()
 
     class Meta:
         db_table = 'Datastream'

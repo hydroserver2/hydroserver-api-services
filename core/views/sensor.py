@@ -35,7 +35,7 @@ def get_sensors(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUse
     sensor_query = sensor_query.distinct()
 
     response = [
-        sensor.serialize() for sensor in sensor_query.all()
+        SensorGetResponse.serialize(sensor) for sensor in sensor_query.all()
     ]
 
     return 200, response
@@ -56,7 +56,7 @@ def get_sensor(request, sensor_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, sensor.serialize()
+    return 200, SensorGetResponse.serialize(sensor)
 
 
 @router.dm_post('', response=SensorGetResponse)
@@ -73,7 +73,7 @@ def create_sensor(request, data: SensorPostBody):
         **data.dict(include=set(SensorFields.__fields__.keys()))
     )
 
-    return 201, sensor.serialize()
+    return 201, SensorGetResponse.serialize(sensor)
 
 
 @router.dm_patch('{sensor_id}', response=SensorGetResponse)
@@ -103,7 +103,7 @@ def update_sensor(request, data: SensorPatchBody, sensor_id: UUID = Path(...)):
 
     sensor.save()
 
-    return 203, sensor.serialize()
+    return 203, SensorGetResponse.serialize(sensor)
 
 
 @router.dm_delete('{sensor_id}')

@@ -18,6 +18,14 @@ class ProcessingLevelFields(Schema):
 class ProcessingLevelGetResponse(ProcessingLevelFields, ProcessingLevelID):
     owner: Optional[str]
 
+    @classmethod
+    def serialize(cls, processing_level):  # Temporary until after Pydantic v2 update
+        return {
+            'id': processing_level.id,
+            'owner': processing_level.person.email if processing_level.person else None,
+            **{field: getattr(processing_level, field) for field in ProcessingLevelFields.__fields__.keys()},
+        }
+
     class Config:
         allow_population_by_field_name = True
 

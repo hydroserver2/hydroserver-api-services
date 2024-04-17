@@ -19,6 +19,14 @@ class UnitFields(Schema):
 class UnitGetResponse(UnitFields, UnitID):
     owner: Optional[str]
 
+    @classmethod
+    def serialize(cls, unit):  # Temporary until after Pydantic v2 update
+        return {
+            'id': unit.id,
+            'owner': unit.person.email if unit.person else None,
+            **{field: getattr(unit, field) for field in UnitFields.__fields__.keys()},
+        }
+
     class Config:
         allow_population_by_field_name = True
 

@@ -17,6 +17,14 @@ class ResultQualifierFields(Schema):
 class ResultQualifierGetResponse(ResultQualifierFields, ResultQualifierID):
     owner: Optional[str]
 
+    @classmethod
+    def serialize(cls, result_qualifier):  # Temporary until after Pydantic v2 update
+        return {
+            'id': result_qualifier.id,
+            'owner': result_qualifier.person.email if result_qualifier.person else None,
+            **{field: getattr(result_qualifier, field) for field in ResultQualifierFields.__fields__.keys()},
+        }
+
     class Config:
         allow_population_by_field_name = True
 

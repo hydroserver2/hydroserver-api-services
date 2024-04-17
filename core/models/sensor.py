@@ -4,7 +4,6 @@ from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
 from accounts.models import Person
-from core.schemas.sensor import SensorFields
 
 
 class SensorQuerySet(models.QuerySet):
@@ -27,11 +26,17 @@ class SensorQuerySet(models.QuerySet):
         queryset = self.select_related('person')
         queryset = queryset.filter(Q(person__isnull=True) | Q(person__is_active=True))
 
-        if method != 'GET':
+        if model == 'Sensor' and method in ['POST', 'PATCH', 'DELETE']:
             queryset = queryset.filter(person=user)
+        elif model == 'Datastream' and method in ['POST', 'PATCH']:
+            queryset = queryset.filter(person=user)
+        elif model == 'Sensor' and method == 'GET':
+            pass
+        else:
+            raise ValueError('Unsupported method or model provided.')
 
-            if user and user.permissions.enabled():
-                queryset = queryset.apply_permissions(user=user, method=method, model=model)  # noqa
+        if user and user.permissions.enabled():
+            queryset = queryset.apply_permissions(user=user, method=method, model=model)  # noqa
 
         try:
             if fetch is True:
@@ -62,13 +67,6 @@ class Sensor(models.Model):
     history = HistoricalRecords(custom_model_name='SensorChangeLog', related_name='log')
 
     objects = SensorQuerySet.as_manager()
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'owner': self.person.email if self.person else None,
-            **{field: getattr(self, field) for field in SensorFields.__fields__.keys()},
-        }
 
     def __str__(self):
         if self.method_type and self.method_type.strip().lower().replace(" ", "") == 'instrumentdeployment':

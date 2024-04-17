@@ -17,3 +17,13 @@
     timestamp_column: A
     data_loader: 9bcd1dbf-eb1e-47dd-8874-f0a65f16c709
     paused: false
+
+# Alice Data Source - Delete
+- model: core.datasource
+  pk: 91783bce-b13a-42f7-ab22-4282c6303c42
+  fields:
+    name: Test Data Source - Delete
+    person: 1000000010
+    timestamp_column: A
+    data_loader: 9d571b4b-c986-4fa8-8933-0491ddad9e0e
+    paused: false

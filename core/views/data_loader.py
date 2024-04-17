@@ -28,7 +28,7 @@ def get_data_loaders(request):
     data_loader_query = data_loader_query.distinct()
 
     response = [
-        data_loader.serialize() for data_loader in data_loader_query.all()
+        DataLoaderGetResponse.serialize(data_loader) for data_loader in data_loader_query.all()
     ]
 
     return 200, response
@@ -49,7 +49,7 @@ def get_data_loader(request, data_loader_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, data_loader.serialize()
+    return 200, DataLoaderGetResponse.serialize(data_loader)
 
 
 @router.dm_post('', response=DataLoaderGetResponse)
@@ -66,7 +66,7 @@ def create_data_loader(request, data: DataLoaderPostBody):
         **data.dict(include=set(DataLoaderFields.__fields__.keys()))
     )
 
-    return 201, data_loader.serialize()
+    return 201, DataLoaderGetResponse.serialize(data_loader)
 
 
 @router.dm_patch('{data_loader_id}', response=DataLoaderGetResponse)
@@ -98,7 +98,7 @@ def update_data_loader(request, data: DataLoaderPatchBody, data_loader_id: UUID 
 
     data_loader.save()
 
-    return 203, data_loader.serialize()
+    return 203, DataLoaderGetResponse.serialize(data_loader)
 
 
 @router.dm_delete('{data_loader_id}')
@@ -154,7 +154,7 @@ def get_data_loader_data_sources(request, data_loader_id: UUID = Path(...)):
     data_source_query = data_source_query.distinct()
 
     response = [
-        data_source.serialize() for data_source in data_source_query.all()
+        DataSourceGetResponse.serialize(data_source) for data_source in data_source_query.all()
     ]
 
     return 200, response

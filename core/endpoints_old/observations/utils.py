@@ -5,7 +5,6 @@ from uuid import UUID
 from typing import List, Optional
 from core.models import Observation, ThingAssociation
 from accounts.models import Person
-from core.endpoints.datastream.utils import check_datastream_by_id
 
 
 def apply_observation_auth_rules(

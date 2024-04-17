@@ -62,8 +62,8 @@
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
     time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
-    is_visible: true
-    is_data_visible: true
+    is_visible: false
+    is_data_visible: false
 
 # Private Datastream with public Thing one owner
 - model: core.datastream
@@ -130,3 +130,48 @@
     time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
     is_visible: false
     is_data_visible: false
+
+# Public Datastream with public Thing - Inactive
+- model: core.datastream
+  pk: 3a028176-ee60-47cc-a573-222dbfbe6b34
+  fields:
+    name: MAIN Temperature
+    description: Temperature measured at the MAIN.
+    thing: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: b6bfee6e-b8d6-46cd-972a-bdd56bd41bd1
+    unit: 20b29933-078d-48b9-95d2-d829ddecd5d8
+    processing_level: 2a92ca50-fe96-438b-bc1c-7efb09427383
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: e3b6c951-9b1b-4650-a309-5f08e352e801
+    is_visible: true
+    is_data_visible: true
+
+# Datastream - Delete
+- model: core.datastream
+  pk: 22074b3e-455a-4a4b-91c3-38e6cf85557d
+  fields:
+    name: TSC Temperature
+    description: Temperature measured at the TSC.
+    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
+    sensor: a9e79b5a-ae38-4314-abb0-604ee8d6049c
+    observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
+    unit: 967944cb-903b-4f96-afba-3b9e69722f8f
+    processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Time Series
+    status: Ongoing
+    sampled_medium: Air
+    no_data_value: -9999
+    aggregation_statistic: Continuous
+    time_aggregation_interval: 1
+    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    is_visible: true
+    is_data_visible: true
+    data_source: 2c95bd7c-68f7-424e-920c-bd2e0ccc7717

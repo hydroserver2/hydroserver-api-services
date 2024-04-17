@@ -35,3 +35,11 @@
     code: ICE
     description: Ice formed on the sensor.
     person: 1000000014
+
+# Alice Result Qualifier - Delete
+- model: core.resultqualifier
+  pk: 3064f342-f614-41a7-8748-246a711e5175
+  fields:
+    code: E
+    description: Estimated value.
+    person: 1000000010

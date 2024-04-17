@@ -33,3 +33,12 @@
     code: 0
     definition: Raw
     explanation: Data is unprocessed.
+
+# Alice Processing Level - Delete
+- model: core.processinglevel
+  pk: 57d48dd3-0fc7-4127-8e34-99c4441c7b68
+  fields:
+    person: 1000000010
+    code: 1
+    definition: Processed
+    explanation: Data is processed.

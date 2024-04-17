@@ -4,7 +4,6 @@ from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
 from accounts.models import Person
-from core.schemas.unit import UnitFields
 
 
 class UnitQuerySet(models.QuerySet):
@@ -27,11 +26,17 @@ class UnitQuerySet(models.QuerySet):
         queryset = self.select_related('person')
         queryset = queryset.filter(Q(person__isnull=True) | Q(person__is_active=True))
 
-        if method != 'GET':
+        if model == 'Unit' and method in ['POST', 'PATCH', 'DELETE']:
             queryset = queryset.filter(person=user)
+        elif model == 'Datastream' and method in ['POST', 'PATCH']:
+            queryset = queryset.filter(person=user)
+        elif model == 'Unit' and method == 'GET':
+            pass
+        else:
+            raise ValueError('Unsupported method or model provided.')
 
-            if user and user.permissions.enabled():
-                queryset = queryset.apply_permissions(user=user, method=method, model=model)  # noqa
+        if user and user.permissions.enabled():
+            queryset = queryset.apply_permissions(user=user, method=method, model=model)  # noqa
 
         try:
             if fetch is True:
@@ -57,13 +62,6 @@ class Unit(models.Model):
     history = HistoricalRecords(custom_model_name='UnitChangeLog', related_name='log')
 
     objects = UnitQuerySet.as_manager()
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'owner': self.person.email if self.person else None,
-            **{field: getattr(self, field) for field in UnitFields.__fields__.keys()},
-        }
 
     class Meta:
         db_table = 'Unit'

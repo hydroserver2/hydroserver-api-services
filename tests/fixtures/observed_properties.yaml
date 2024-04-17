@@ -41,3 +41,14 @@
     description: A test property.
     type: Variable
     code: TEMP
+
+# Alice Observed Property - Delete
+- model: core.observedproperty
+  pk: 2f89ca87-667f-4de9-b850-715db3cbf927
+  fields:
+    name: Velocity
+    person: 1000000010
+    definition: http://www.example.com/velocity
+    description: A test property.
+    type: Variable
+    code: VELO

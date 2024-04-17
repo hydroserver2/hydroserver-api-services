@@ -40,7 +40,7 @@ def get_observed_properties(request, owner: Optional[metadataOwnerOptions] = 'an
     observed_property_query = observed_property_query.distinct()
 
     response = [
-        observed_property.serialize() for observed_property in observed_property_query.all()
+        ObservedPropertyGetResponse.serialize(observed_property) for observed_property in observed_property_query.all()
     ]
 
     return 200, response
@@ -61,7 +61,7 @@ def get_observed_property(request, observed_property_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, observed_property.serialize()
+    return 200, ObservedPropertyGetResponse.serialize(observed_property)
 
 
 @router.dm_post('', response=ObservedPropertyGetResponse)
@@ -79,7 +79,7 @@ def create_observed_property(request, data: ObservedPropertyPostBody):
         **data.dict(include=set(ObservedPropertyFields.__fields__.keys()))
     )
 
-    return 201, observed_property.serialize()
+    return 201, ObservedPropertyGetResponse.serialize(observed_property)
 
 
 @router.dm_patch('{observed_property_id}', response=ObservedPropertyGetResponse)
@@ -110,7 +110,7 @@ def update_observed_property(request, data: ObservedPropertyPatchBody, observed_
 
     observed_property.save()
 
-    return 203, observed_property.serialize()
+    return 203, ObservedPropertyGetResponse.serialize(observed_property)
 
 
 @router.dm_delete('{observed_property_id}')

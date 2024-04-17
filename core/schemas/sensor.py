@@ -25,6 +25,14 @@ class SensorFields(Schema):
 class SensorGetResponse(SensorFields, SensorID):
     owner: Optional[str]
 
+    @classmethod
+    def serialize(cls, sensor):  # Temporary until after Pydantic v2 update
+        return {
+            'id': sensor.id,
+            'owner': sensor.person.email if sensor.person else None,
+            **{field: getattr(sensor, field) for field in SensorFields.__fields__.keys()},
+        }
+
     class Config:
         allow_population_by_field_name = True
 

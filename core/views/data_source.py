@@ -3,9 +3,10 @@ from uuid import UUID
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from core.router import DataManagementRouter
-from core.models import DataSource, DataLoader
+from core.models import DataSource, DataLoader, Datastream
 from core.schemas.data_source import DataSourceGetResponse, DataSourcePostBody, DataSourcePatchBody, \
     DataSourceFields
+from core.schemas.datastream import DatastreamGetResponse
 
 
 router = DataManagementRouter(tags=['Data Sources'])
@@ -27,7 +28,7 @@ def get_data_sources(request):
     data_source_query = data_source_query.distinct()
 
     response = [
-        data_source.serialize() for data_source in data_source_query.all()
+        DataSourceGetResponse.serialize(data_source) for data_source in data_source_query.all()
     ]
 
     return 200, response
@@ -48,7 +49,7 @@ def get_data_source(request, data_source_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, data_source.serialize()
+    return 200, DataSourceGetResponse.serialize(data_source)
 
 
 @router.dm_post('', response=DataSourceGetResponse)
@@ -75,7 +76,7 @@ def create_data_source(request, data: DataSourcePostBody):
         **data_source_data
     )
 
-    return 201, data_source.serialize()
+    return 201, DataSourceGetResponse.serialize(data_source)
 
 
 @router.dm_patch('{data_source_id}', response=DataSourceGetResponse)
@@ -115,7 +116,7 @@ def update_data_source(request, data: DataSourcePatchBody, data_source_id: UUID 
 
     data_source.save()
 
-    return 203, data_source.serialize()
+    return 203, DataSourceGetResponse.serialize(data_source)
 
 
 @router.dm_delete('{data_source_id}')
@@ -143,29 +144,37 @@ def delete_data_source(request, data_source_id: UUID = Path(...)):
     return 204, None
 
 
-# @router.dm_list(
-#     '{data_source_id}/datastreams',
-#     response=DatastreamGetResponse
-# )
-# def get_datasource_datastreams(request, data_source_id: UUID = Path(...)):
-#     """
-#     Get a list of Datastreams for a Data Source
-#
-#     This endpoint returns a list of public Datastreams and Datastreams owned by the authenticated user if there is one
-#     associated with the given Data Source ID.
-#     """
-#
-#     check_data_source_by_id(
-#         user=request.authenticated_user,
-#         data_source_id=data_source_id,
-#         raise_http_errors=True
-#     )
-#
-#     datastream_query, _ = query_datastreams(
-#         user=request.authenticated_user,
-#         data_source_ids=[data_source_id]
-#     )
-#
-#     return [
-#         build_datastream_response(datastream) for datastream in datastream_query.all()
-#     ]
+@router.dm_list(
+    '{data_source_id}/datastreams',
+    response=DatastreamGetResponse
+)
+def get_datasource_datastreams(request, data_source_id: UUID = Path(...)):
+    """
+    Get a list of Datastreams for a Data Source
+
+    This endpoint returns a list of public datastreams and datastreams owned by the authenticated user if there is one
+    associated with the given data source ID.
+    """
+
+    DataSource.objects.get_by_id(
+        data_source_id=data_source_id,
+        user=request.authenticated_user,
+        method='GET',
+        model='Datastream',
+        raise_404=True,
+        fetch=True
+    )
+
+    datastream_query = Datastream.objects.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+
+    if request.authenticated_user and request.authenticated_user.permissions.enabled():
+        datastream_query = datastream_query.apply_permissions(user=request.authenticated_user, method='GET')
+
+    datastream_query = datastream_query.filter(data_source_id=data_source_id)
+    datastream_query = datastream_query.distinct()
+
+    response = [
+        DatastreamGetResponse.serialize(datastream) for datastream in datastream_query.all()
+    ]
+
+    return 200, response

@@ -22,7 +22,13 @@ class TagFields(Schema):
 
 
 class TagGetResponse(TagFields, TagID):
-    pass
+    @classmethod
+    def serialize(cls, tag):  # Temporary until after Pydantic v2 update
+        return {
+            'id': tag.id,
+            'key': tag.key,
+            'value': tag.value
+        }
 
     class Config:
         allow_population_by_field_name = True
@@ -48,7 +54,14 @@ class PhotoFields(Schema):
 
 
 class PhotoGetResponse(PhotoFields, PhotoID):
-    pass
+    @classmethod
+    def serialize(cls, photo):  # Temporary until after Pydantic v2 update
+        return {
+            'id': photo.id,
+            'thing_id': photo.thing_id,
+            'file_path': photo.file_path,
+            'link': photo.link
+        }
 
     class Config:
         allow_population_by_field_name = True
@@ -117,6 +130,31 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
     follows_thing: bool = Field(..., alias='followsThing')
     owners: List[OwnerFields]
     tags: List[TagGetResponse]
+
+    @classmethod
+    def serialize(cls, thing, user):  # Temporary until after Pydantic v2 update
+        thing_association = next(iter([
+            associate for associate in thing.associates.all() if user and associate.person.id == user.id
+        ]), None)
+
+        return {
+            'id': thing.id,
+            'is_private': thing.is_private,
+            'is_primary_owner': getattr(thing_association, 'is_primary_owner', False),
+            'owns_thing': getattr(thing_association, 'owns_thing', False),
+            'follows_thing': getattr(thing_association, 'follows_thing', False),
+            'tags': [
+                {'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()
+            ],
+            'owners': [{
+                **{field: getattr(associate, field) for field in AssociationFields.__fields__.keys()},
+                **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},
+                **{field: getattr(associate.person.organization, field, None)
+                   for field in OrganizationFields.__fields__.keys()},
+            } for associate in thing.associates.all() if associate.owns_thing is True and associate.person.is_active],
+            **{field: getattr(thing, field) for field in ThingFields.__fields__.keys()},
+            **{field: getattr(thing.location, field) for field in LocationFields.__fields__.keys()}
+        }
 
     class Config:
         allow_population_by_field_name = True

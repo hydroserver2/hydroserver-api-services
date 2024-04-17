@@ -4,7 +4,6 @@ from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
 from accounts.models import Person
-from core.schemas.data_loader import DataLoaderFields
 
 
 class DataLoaderQuerySet(models.QuerySet):
@@ -51,12 +50,6 @@ class DataLoader(models.Model):
     history = HistoricalRecords(custom_model_name='DataLoaderChangeLog', related_name='log')
 
     objects = DataLoaderQuerySet.as_manager()
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            **{field: getattr(self, field) for field in DataLoaderFields.__fields__.keys()},
-        }
 
     class Meta:
         db_table = 'DataLoader'

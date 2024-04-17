@@ -4,7 +4,6 @@ from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
 from accounts.models import Person
-from core.schemas.processing_level import ProcessingLevelFields
 
 
 class ProcessingLevelQuerySet(models.QuerySet):
@@ -27,11 +26,17 @@ class ProcessingLevelQuerySet(models.QuerySet):
         queryset = self.select_related('person')
         queryset = queryset.filter(Q(person__isnull=True) | Q(person__is_active=True))
 
-        if method != 'GET':
+        if model == 'ProcessingLevel' and method in ['POST', 'PATCH', 'DELETE']:
             queryset = queryset.filter(person=user)
+        elif model == 'Datastream' and method in ['POST', 'PATCH']:
+            queryset = queryset.filter(person=user)
+        elif model == 'ProcessingLevel' and method == 'GET':
+            pass
+        else:
+            raise ValueError('Unsupported method or model provided.')
 
-            if user and user.permissions.enabled():
-                queryset = queryset.apply_permissions(user=user, method=method, model=model)  # noqa
+        if user and user.permissions.enabled():
+            queryset = queryset.apply_permissions(user=user, method=method, model=model)  # noqa
 
         try:
             if fetch is True:
@@ -57,13 +62,6 @@ class ProcessingLevel(models.Model):
     history = HistoricalRecords(custom_model_name='ProcessingLevelChangeLog', related_name='log')
 
     objects = ProcessingLevelQuerySet.as_manager()
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'owner': self.person.email if self.person else None,
-            **{field: getattr(self, field) for field in ProcessingLevelFields.__fields__.keys()},
-        }
 
     class Meta:
         db_table = 'ProcessingLevel'

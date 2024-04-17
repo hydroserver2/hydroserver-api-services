@@ -38,7 +38,13 @@ class DataSourceFields(Schema):
 
 
 class DataSourceGetResponse(DataSourceFields, DataSourceID):
-    pass
+
+    @classmethod
+    def serialize(cls, data_source):  # Temporary until after Pydantic v2 update
+        return {
+            'id': data_source.id,
+            **{field: getattr(data_source, field) for field in DataSourceFields.__fields__.keys()},
+        }
 
     class Config:
         allow_population_by_field_name = True

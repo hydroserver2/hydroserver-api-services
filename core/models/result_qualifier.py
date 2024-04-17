@@ -5,7 +5,6 @@ from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
 from accounts.models import Person
 from core.models import Observation
-from core.schemas.result_qualifier import ResultQualifierFields
 
 
 class ResultQualifierQuerySet(models.QuerySet):
@@ -65,13 +64,6 @@ class ResultQualifier(models.Model):
             )
         else:
             super().delete(using=using, keep_parents=keep_parents)
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'owner': self.person.email if self.person else None,
-            **{field: getattr(self, field) for field in ResultQualifierFields.__fields__.keys()},
-        }
 
     class Meta:
         db_table = 'ResultQualifier'

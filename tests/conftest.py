@@ -15,6 +15,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command('loaddata', 'tests/fixtures/api_keys.yaml')
         call_command('loaddata', 'tests/fixtures/things.yaml')
         call_command('loaddata', 'tests/fixtures/tags.yaml')
+        call_command('loaddata', 'tests/fixtures/photos.yaml')
         call_command('loaddata', 'tests/fixtures/units.yaml')
         call_command('loaddata', 'tests/fixtures/processing_levels.yaml')
         call_command('loaddata', 'tests/fixtures/sensors.yaml')

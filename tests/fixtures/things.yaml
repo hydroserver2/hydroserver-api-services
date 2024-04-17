@@ -166,3 +166,41 @@
     person: 1000000010
     owns_thing: true
     is_primary_owner: true
+
+# Private Thing - Alice/Bob - Delete
+- model: core.location
+  pk: 87cf9e5e-5b28-4610-9d13-96ea00a3d42f
+  fields:
+    name: Location for USU Technology Building
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.743243
+    longitude: -111.808352
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: e1f18e11-4130-485b-ad67-18f7f44187f8
+  fields:
+    name: USU Technology Building
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: TECH
+    site_type: Other
+    location: 87cf9e5e-5b28-4610-9d13-96ea00a3d42f
+    is_private: True
+- model: core.thingassociation
+  pk: 1100000107
+  fields:
+    thing: e1f18e11-4130-485b-ad67-18f7f44187f8
+    person: 1000000010
+    owns_thing: true
+    is_primary_owner: true
+- model: core.thingassociation
+  pk: 1100000108
+  fields:
+    thing: e1f18e11-4130-485b-ad67-18f7f44187f8
+    person: 1000000011
+    owns_thing: true
+    is_primary_owner: false

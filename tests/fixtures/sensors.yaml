@@ -57,3 +57,18 @@
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD
+
+# Alice Sensor - Delete
+- model: core.sensor
+  pk: a8617070-146a-4e82-8b4d-9a6563de6265
+  fields:
+    person: 1000000010
+    name: Sensor
+    description: A test sensor.
+    encoding_type: application/json
+    manufacturer: Sensor Manufacturer
+    model: Sensor Model
+    model_link: http://www.example.com/model
+    method_type: Method
+    method_link: http://www.example.com/method
+    method_code: METHOD

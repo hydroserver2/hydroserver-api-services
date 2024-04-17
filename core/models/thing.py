@@ -10,7 +10,6 @@ from ninja.errors import HttpError
 from simple_history.models import HistoricalRecords
 from botocore.exceptions import ClientError
 from core.models import Location
-from core.schemas.thing import AssociationFields, PersonFields, OrganizationFields, ThingFields, LocationFields
 from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
 
 
@@ -62,18 +61,23 @@ class ThingQuerySet(models.QuerySet):
            log__history_date__gt=modified
         ) if modified is not None else self
 
-    def get_by_id(self, thing_id, user, method, model='Thing', raise_404=False, fetch=True):
+    def get_by_id(self, thing_id, user, method, model='Thing', raise_404=False, fetch=True, prefetch=None):
         queryset = self.select_related('location')
         queryset = queryset.prefetch_associates()  # noqa
-        queryset = queryset.prefetch_related('tags')
+
+        if prefetch:
+            queryset = queryset.prefetch_related(*prefetch)
+
         queryset = queryset.owner_is_active()
 
-        if method == 'GET':
+        if model in ['Thing', 'Datastream'] and method == 'GET':
             queryset = queryset.owner(user=user, include_public=True)
-        elif method == 'PATCH':
+        elif (model == 'Thing' and method == 'PATCH') or (model == 'Datastream' and method in ['POST', 'PATCH']):
             queryset = queryset.owner(user=user)
-        elif method == 'DELETE':
+        elif model == 'Thing' and method == 'DELETE':
             queryset = queryset.primary_owner(user=user)
+        else:
+            raise ValueError('Unsupported method or model provided.')
 
         if user and user.permissions.enabled():
             queryset = queryset.apply_permissions(user=user, method=method, model=model)
@@ -90,6 +94,22 @@ class ThingQuerySet(models.QuerySet):
             raise HttpError(404, 'Thing not found.')
 
         return thing
+
+    # def get_primary_owner(self, thing_id, user=None, user_is_owner=False):
+    #     queryset = self.prefetch_associates()  # noqa
+    #     queryset = queryset.owner_is_active()
+    #
+    #     if user_is_owner is True:
+    #         queryset = queryset.owner(user=user)
+    #
+    #     try:
+    #         thing = queryset.distinct().get(pk=thing_id)
+    #     except Thing.DoesNotExist:
+    #         return None
+    #
+    #     primary_associate = thing.associates.get(is_primary_owner=True)
+    #
+    #     return primary_associate.person
 
 
 class Thing(models.Model):
@@ -109,29 +129,9 @@ class Thing(models.Model):
 
     objects = ThingQuerySet.as_manager()
 
-    def serialize(self, user):
-        thing_association = next(iter([
-            associate for associate in self.associates.all() if user and associate.person.id == user.id
-        ]), None)
-
-        return {
-            'id': self.id,
-            'is_private': self.is_private,
-            'is_primary_owner': getattr(thing_association, 'is_primary_owner', False),
-            'owns_thing': getattr(thing_association, 'owns_thing', False),
-            'follows_thing': getattr(thing_association, 'follows_thing', False),
-            'tags': [
-                {'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in self.tags.all()
-            ],
-            'owners': [{
-                **{field: getattr(associate, field) for field in AssociationFields.__fields__.keys()},
-                **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},
-                **{field: getattr(associate.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()},
-            } for associate in self.associates.all() if associate.owns_thing is True and associate.person.is_active],
-            **{field: getattr(self, field) for field in ThingFields.__fields__.keys()},
-            **{field: getattr(self.location, field) for field in LocationFields.__fields__.keys()}
-        }
+    @property
+    def primary_owner(self):
+        return self.associates.get(is_primary_owner=True).person
 
     class Meta:
         db_table = 'Thing'

@@ -40,7 +40,7 @@ def get_result_qualifiers(request, owner: Optional[metadataOwnerOptions] = 'anyU
     result_qualifier_query = result_qualifier_query.distinct()
 
     response = [
-        result_qualifier.serialize() for result_qualifier in result_qualifier_query.all()
+        ResultQualifierGetResponse.serialize(result_qualifier) for result_qualifier in result_qualifier_query.all()
     ]
 
     return 200, response
@@ -61,7 +61,7 @@ def get_result_qualifier(request, result_qualifier_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, result_qualifier.serialize()
+    return 200, ResultQualifierGetResponse.serialize(result_qualifier)
 
 
 @router.dm_post('', response=ResultQualifierGetResponse)
@@ -79,7 +79,7 @@ def create_result_qualifier(request, data: ResultQualifierPostBody):
         **data.dict(include=set(ResultQualifierFields.__fields__.keys()))
     )
 
-    return 201, result_qualifier.serialize()
+    return 201, ResultQualifierGetResponse.serialize(result_qualifier)
 
 
 @router.dm_patch('{result_qualifier_id}', response=ResultQualifierGetResponse)
@@ -110,7 +110,7 @@ def update_result_qualifier(request, data: ResultQualifierPatchBody, result_qual
 
     result_qualifier.save()
 
-    return 203, result_qualifier.serialize()
+    return 203, ResultQualifierGetResponse.serialize(result_qualifier)
 
 
 @router.dm_delete('{result_qualifier_id}')

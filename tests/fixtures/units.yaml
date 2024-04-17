@@ -38,6 +38,16 @@
     definition: http://www.example.com/celsius
     type: Unit
 
+# Bob Time Unit
+- model: core.unit
+  pk: 2d243a05-09b8-4dff-a329-738b4083dbce
+  fields:
+    name: Hour
+    person: 1000000011
+    symbol: C
+    definition: http://www.example.com/hour
+    type: Unit
+
 # Emily Unit - Inactive
 - model: core.unit
   pk: 20b29933-078d-48b9-95d2-d829ddecd5d8
@@ -46,4 +56,24 @@
     person: 1000000014
     symbol: C
     definition: http://www.example.com/celsius
+    type: Unit
+
+# Emily Time Unit - Inactive
+- model: core.unit
+  pk: e3b6c951-9b1b-4650-a309-5f08e352e801
+  fields:
+    name: Hour
+    person: 1000000014
+    symbol: H
+    definition: http://www.example.com/hour
+    type: Unit
+
+# Alice Unit - Delete
+- model: core.unit
+  pk: 23bd903d-36f2-4572-b2e2-fd0a55c00498
+  fields:
+    name: Feet per second
+    person: 1000000010
+    symbol: FPS
+    definition: http://www.example.com/feet-per-second
     type: Unit

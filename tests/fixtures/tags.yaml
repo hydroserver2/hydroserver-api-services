@@ -19,3 +19,11 @@
     key: Code
     value: 20
     thing: 80037b7c-f833-472a-a0d1-7bc40e015ea7
+
+# Tag - Delete
+- model: core.tag
+  pk: a12526b9-00c7-4cfd-a49a-d45514e74462
+  fields:
+    key: Code
+    value: 20
+    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d

@@ -224,7 +224,7 @@ def build_thing_response(user, thing):
     ]), None)
 
     tags = [{'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()]
-    
+
     return {
         'id': thing.id,
         'is_private': thing.is_private,
