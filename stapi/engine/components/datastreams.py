@@ -2,7 +2,6 @@ from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
 from django.db.models import Prefetch
-from core.endpoints.datastream.utils import query_datastreams, get_datastream_by_id
 from core.models import Datastream
 from sensorthings.components.datastreams.engine import DatastreamBaseEngine
 from stapi.engine.utils import SensorThingsUtils
@@ -25,11 +24,27 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
         if datastream_ids:
             datastream_ids = self.strings_to_uuids(datastream_ids)
 
-        datastreams, _ = query_datastreams(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            datastream_ids=datastream_ids,
-            ignore_privacy=expanded
-        )
+        datastreams = Datastream.objects
+
+        if datastream_ids:
+            datastreams = datastreams.filter(id__in=datastream_ids)
+
+        datastreams = datastreams.select_related(
+            'processing_level', 'unit', 'time_aggregation_interval_units'
+        ).owner_is_active()
+
+        if not expanded:
+            datastreams = datastreams.owner(
+                user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+                include_public=True
+            )
+
+            if getattr(getattr(self, 'request', None), 'authenticated_user', None) and \
+                    self.request.authenticated_user.permissions.enabled():  # noqa
+                datastreams = datastreams.apply_permissions(
+                    user=self.request.authenticated_user,  # noqa
+                    method='GET'
+                )
 
         datastreams = datastreams.prefetch_related(
             Prefetch('log', queryset=Datastream.history.order_by('-history_date'), to_attr='ordered_log')
@@ -138,11 +153,11 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             datastream
     ) -> None:
 
-        datastream_obj = get_datastream_by_id(
-            user=getattr(self, 'request').authenticated_user,
+        datastream_obj = Datastream.objects.get_by_id(
             datastream_id=datastream_id,
-            require_ownership=True,
-            raise_http_errors=True
+            user=getattr(self, 'request').authenticated_user,
+            method='PATCH',
+            raise_404=True
         )
 
         datastream_data = datastream.dict(exclude_unset=True)

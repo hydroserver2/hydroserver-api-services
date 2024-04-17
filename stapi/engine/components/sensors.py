@@ -1,6 +1,5 @@
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.sensor.utils import query_sensors
 from django.db.models import Prefetch
 from sensorthings.components.sensors.engine import SensorBaseEngine
 from core.models import Sensor
@@ -21,11 +20,10 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
         if sensor_ids:
             sensor_ids = self.strings_to_uuids(sensor_ids)
 
-        sensors, _ = query_sensors(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            sensor_ids=sensor_ids,
-            require_ownership_or_unowned=False if sensor_ids is not None or not expanded else True
-        )
+        sensors = Sensor.objects
+
+        if sensor_ids:
+            sensors = sensors.filter(id__in=sensor_ids)
 
         sensors = sensors.prefetch_related(
             Prefetch('log', queryset=Sensor.history.order_by('-history_date'), to_attr='ordered_log')

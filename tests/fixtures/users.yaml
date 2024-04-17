@@ -1,0 +1,85 @@
+# Primary Owner User
+- model: accounts.person
+  pk: 1000000010
+  fields:
+    password: pbkdf2_sha256$600000$q5cg671d2RiBgluanPAafu$YB21lYYz5GJkOOI3f+4mGxfcNjSsz8TuHAKEjskSN9w=  # alice
+    last_login: null
+    is_superuser: false
+    username: alice@example.com
+    first_name: Alice
+    last_name: Johnson
+    is_staff: false
+    is_active: true
+    email: alice@example.com
+    unverified_email: null
+    type: Other
+    is_verified: true
+    organization: d844cae9-d0bb-4f0c-88ca-9a4d52984920
+
+# Owner User
+- model: accounts.person
+  pk: 1000000011
+  fields:
+    password: pbkdf2_sha256$600000$E3EAqz8Ehc2hnFeIG3kkxf$lj9Cjikc1FfvzsOMBGPqigacNtjHnLIaVHZ5nJdRMio=  # bob
+    last_login: null
+    is_superuser: false
+    username: bob@example.com
+    first_name: Bob
+    last_name: Smith
+    is_staff: false
+    is_active: true
+    email: bob@example.com
+    unverified_email: null
+    type: Other
+    is_verified: true
+
+# Follower User
+- model: accounts.person
+  pk: 1000000012
+  fields:
+    password: pbkdf2_sha256$600000$lBM5rsaLhp8I3EEVL1z6WR$9PTfNLCBiKhRmf3xzlHwQ6YiwTJQCs3HxiQNwOsMlBM=  # carol
+    last_login: null
+    is_superuser: false
+    username: carol@example.com
+    first_name: Carol
+    last_name: Davis
+    is_staff: false
+    is_active: true
+    email: carol@example.com
+    unverified_email: null
+    type: Other
+    is_verified: true
+
+# Unverified User
+- model: accounts.person
+  pk: 1000000013
+  fields:
+    password: pbkdf2_sha256$600000$yF6rlVpBgv8cyUuNaNrfbo$Z+5OworWL3nlnop/2/Be9ghoXaWDNc4A2pXgk2xkWZs=  # dave
+    last_login: null
+    is_superuser: false
+    username: 539b2e56-9ccf-4a48-8fda-7726fd2a6bea@hydroserver-temp.org
+    first_name: Dave
+    last_name: Brown
+    is_staff: false
+    is_active: true
+    email: 539b2e56-9ccf-4a48-8fda-7726fd2a6bea@hydroserver-temp.org
+    unverified_email: dave@example.com
+    type: Other
+    is_verified: false
+
+# Inactive User
+- model: accounts.person
+  pk: 1000000014
+  fields:
+    password: pbkdf2_sha256$600000$YTACSUtly5YE3MpagfbPfI$rd7OJCckjvXQEEX1mIhFF+QuAI6E+1H3i0ZIxWQDlOI=  # emily
+    last_login: null
+    is_superuser: false
+    username: emily@example.com
+    first_name: Emily
+    last_name: Wilson
+    is_staff: false
+    is_active: false
+    email: emily@example.com
+    unverified_email: null
+    type: Other
+    is_verified: true

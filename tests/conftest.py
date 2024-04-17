@@ -10,32 +10,38 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command('migrate')
         call_command('configure_timescaledb', no_timescale=True)
 
-        call_command('loaddata', 'tests/people/paul.yaml')
-        call_command('loaddata', 'tests/people/john.yaml')
-        call_command('loaddata', 'tests/people/jane.yaml')
-
-        call_command('loaddata', 'tests/miami/thing.yaml')
-        call_command('loaddata', 'tests/lake_michigan/thing.yaml')
-        call_command('loaddata', 'tests/cheyenne_creek/thing.yaml')
-
-        call_command('loaddata', 'tests/miami/miami_72.yaml')
-        call_command('loaddata', 'tests/lake_michigan/lake_michigan_3.yaml')
-        call_command('loaddata', 'tests/cheyenne_creek/cheyenne_creek_0.yaml')
-        call_command('loaddata', 'tests/cheyenne_creek/cheyenne_creek_6.yaml')
+        call_command('loaddata', 'tests/fixtures/organizations.yaml')
+        call_command('loaddata', 'tests/fixtures/users.yaml')
+        call_command('loaddata', 'tests/fixtures/api_keys.yaml')
+        call_command('loaddata', 'tests/fixtures/things.yaml')
+        call_command('loaddata', 'tests/fixtures/tags.yaml')
+        call_command('loaddata', 'tests/fixtures/photos.yaml')
+        call_command('loaddata', 'tests/fixtures/units.yaml')
+        call_command('loaddata', 'tests/fixtures/processing_levels.yaml')
+        call_command('loaddata', 'tests/fixtures/sensors.yaml')
+        call_command('loaddata', 'tests/fixtures/observed_properties.yaml')
+        call_command('loaddata', 'tests/fixtures/result_qualifiers.yaml')
+        call_command('loaddata', 'tests/fixtures/data_loaders.yaml')
+        call_command('loaddata', 'tests/fixtures/data_sources.yaml')
+        call_command('loaddata', 'tests/fixtures/datastreams.yaml')
+        call_command('loaddata', 'tests/fixtures/observations.yaml')
 
 
 @pytest.fixture(scope='session')
-def django_jwt_auth(django_db_setup, django_db_blocker):
-    with django_db_blocker.unblock():
-        user = Person.objects.get(email='paul@example.com')
-        refresh = RefreshToken.for_user(user)
-        return getattr(refresh, 'access_token')
+def auth_headers(django_db_setup, django_db_blocker):
+    def get_auth_header(username):
+        with django_db_blocker.unblock():
+            user = Person.objects.get(email=username)
+            refresh = RefreshToken.for_user(user)
+            return {'HTTP_AUTHORIZATION': 'Bearer ' + str(getattr(refresh, 'access_token'))}
 
-
-@pytest.fixture
-def auth_headers(django_jwt_auth):
     return {
-        'HTTP_AUTHORIZATION': 'Bearer ' + str(django_jwt_auth)
+        'anonymous': {},
+        'alice': get_auth_header('alice@example.com'),
+        'bob': get_auth_header('bob@example.com'),
+        'carol': get_auth_header('carol@example.com'),
+        'dave': get_auth_header('539b2e56-9ccf-4a48-8fda-7726fd2a6bea@hydroserver-temp.org'),
+        'emily': get_auth_header('emily@example.com')
     }
 
 

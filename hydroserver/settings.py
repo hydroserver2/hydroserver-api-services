@@ -47,7 +47,7 @@ AUTH_USER_MODEL = 'accounts.Person'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'accounts.auth.backends.UnverifiedUserBackend'
+    'hydroserver.backends.UnverifiedUserBackend'
 ]
 
 NINJA_JWT = {

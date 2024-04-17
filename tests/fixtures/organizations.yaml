@@ -1,0 +1,7 @@
+- model: accounts.organization
+  pk: d844cae9-d0bb-4f0c-88ca-9a4d52984920
+  fields:
+    code: USU
+    name: Utah State University
+    type: Educational Institution
+    link: https://usu.edu
