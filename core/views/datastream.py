@@ -159,46 +159,43 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
     datastream_data = data.dict(include=set(DatastreamFields.__fields__.keys()), exclude_unset=True)
 
     if not datastream.primary_owner or (datastream_data.get('thing_id') and not Thing.objects.get_by_id(
-        thing_id=datastream_data['thing_id'], user=datastream.primary_owner, method='POST', model='Datastream',
+        thing_id=datastream_data['thing_id'], user=datastream.primary_owner, method='PATCH', model='Datastream',
         fetch=False
     )):
         return 403, 'You do not have permission to link a datastream to the given thing.'
 
     if datastream_data.get('sensor_id') and not Sensor.objects.get_by_id(
-        sensor_id=datastream_data['sensor_id'], user=datastream.primary_owner, method='POST', model='Datastream',
+        sensor_id=datastream_data['sensor_id'], user=datastream.primary_owner, method='PATCH', model='Datastream',
         fetch=False
     ):
         return 403, 'You do not have permission to link a datastream to the given sensor.'
 
     if datastream_data.get('observed_property_id') and not ObservedProperty.objects.get_by_id(
-        observed_property_id=datastream_data['observed_property_id'], user=datastream.primary_owner, method='POST',
+        observed_property_id=datastream_data['observed_property_id'], user=datastream.primary_owner, method='PATCH',
         model='Datastream', fetch=False
     ):
         return 403, 'You do not have permission to link a datastream to the given observed property.'
 
     if datastream_data.get('processing_level_id') and not ProcessingLevel.objects.get_by_id(
-        processing_level_id=datastream_data['processing_level_id'], user=datastream.primary_owner, method='POST',
+        processing_level_id=datastream_data['processing_level_id'], user=datastream.primary_owner, method='PATCH',
         model='Datastream', fetch=False
     ):
         return 403, 'You do not have permission to link a datastream to the given processing level.'
 
     if datastream_data.get('unit_id') and not Unit.objects.get_by_id(
-        unit_id=datastream_data['unit_id'], user=datastream.primary_owner, method='POST', model='Datastream',
+        unit_id=datastream_data['unit_id'], user=datastream.primary_owner, method='PATCH', model='Datastream',
         fetch=False
     ):
         return 403, 'You do not have permission to link a datastream to the given unit.'
 
     if datastream_data.get('time_aggregation_interval_units_id') and not Unit.objects.get_by_id(
-        unit_id=datastream_data['time_aggregation_interval_units_id'], user=datastream.primary_owner, method='POST',
+        unit_id=datastream_data['time_aggregation_interval_units_id'], user=datastream.primary_owner, method='PATCH',
+        model='Datastream', fetch=False
+    ) and not Unit.objects.get_by_id(
+        unit_id=datastream_data['time_aggregation_interval_units_id'], user=None, method='PATCH',
         model='Datastream', fetch=False
     ):
         return 403, 'You do not have permission to link a datastream to the given time aggregation interval unit.'
-
-    if datastream_data.get('intended_time_spacing_units_id') and not Unit.objects.get_by_id(
-        unit_id=datastream_data['intended_time_spacing_units_id'], user=datastream.primary_owner, method='POST',
-        model='Datastream', fetch=False
-    ):
-        return 403, 'You do not have permission to link a datastream to the given intended time spacing unit.'
 
     for field, value in datastream_data.items():
         setattr(datastream, field, value)

@@ -91,8 +91,6 @@ class DatastreamQuerySet(models.QuerySet):
         if user and user.permissions.enabled():
             queryset = queryset.apply_permissions(user=user, method=method)
 
-        print(queryset.query)
-
         try:
             if fetch is True:
                 datastream = queryset.distinct().get(pk=datastream_id)
