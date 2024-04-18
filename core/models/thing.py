@@ -121,9 +121,6 @@ class Thing(models.Model):
     site_type = models.CharField(max_length=200, db_column='siteType')
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
-    hydroshare_archive_resource_id = models.CharField(
-        max_length=500, blank=True, null=True, db_column='hydroshareArchiveResourceId'
-    )
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
     history = HistoricalRecords(custom_model_name='ThingChangeLog', related_name='log')
 
@@ -157,6 +154,17 @@ class Photo(models.Model):
 
     class Meta:
         db_table = 'Photo'
+
+
+class Archive(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    thing = models.OneToOneField('Thing', related_name='archive', on_delete=models.CASCADE, db_column='thingId')
+    link = models.URLField(max_length=255)
+    path = models.CharField(max_length=255)
+    frequency = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'Archive'
 
 
 @receiver(pre_delete, sender=Photo)
