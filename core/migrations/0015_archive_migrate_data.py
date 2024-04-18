@@ -9,6 +9,14 @@ def populate_archive_link(apps, schema_editor):
             Archive.objects.create(thing=thing, link=link, path='/', frequency=None)
 
 
+def reverse_populate_archive_link(apps, schema_editor):
+    for archive in Archive.objects.all():
+        thing = archive.thing
+        thing.hydroshare_archive_resource_id = archive.link.split('/')[-2]
+        thing.save()
+    Archive.objects.all().delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -16,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(populate_archive_link),
+        migrations.RunPython(populate_archive_link, reverse_code=reverse_populate_archive_link),
     ]
