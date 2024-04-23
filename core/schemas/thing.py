@@ -1,7 +1,7 @@
 import pydantic
 from ninja import Schema
 from pydantic import Field
-from typing import List, Optional
+from typing import List, Optional, Literal
 from uuid import UUID
 from sensorthings.validators import allow_partial
 from core.schemas.observed_property import ObservedPropertyGetResponse
@@ -10,6 +10,39 @@ from core.schemas.unit import UnitGetResponse
 from core.schemas.sensor import SensorGetResponse
 from core.schemas import BasePostBody, BasePatchBody
 from country_list import countries_for_language
+
+
+class ArchiveFields(Schema):
+    link: Optional[str] = Field(None, alias='resourceLink')
+    frequency: Optional[Literal['daily', 'weekly', 'monthly']]
+    path: str = Field(..., alias='folderName')
+    datastream_ids: List[UUID] = Field(..., alias='datastreamIds')
+
+
+class ArchiveGetResponse(ArchiveFields):
+    thing_id: UUID = Field(..., alias='thingId')
+    public_resource: bool = Field(..., alias='publicResource')
+
+    @classmethod
+    def serialize(cls, archive):  # Temporary until after Pydantic v2 update
+        return {
+            **{field: getattr(archive, field) for field in cls.__fields__.keys()}
+        }
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class ArchivePostBody(ArchiveFields):
+    resource_title: Optional[str] = Field(None, alias='resourceTitle')
+    resource_abstract: Optional[str] = Field(None, alias='resourceAbstract')
+    resource_keywords: Optional[List[str]] = Field(None, alias='resourceKeywords')
+    public_resource: Optional[bool] = Field(None, alias='publicResource')
+
+
+@allow_partial
+class ArchivePatchBody(ArchiveFields):
+    pass
 
 
 class TagID(Schema):
@@ -78,7 +111,6 @@ class ThingFields(Schema):
     sampling_feature_code: str = Field(alias='samplingFeatureCode')
     site_type: str = Field(alias='siteType')
     data_disclaimer: str = Field(None, alias='dataDisclaimer')
-    hydroshare_archive_resource_id: str = Field(None, alias='hydroShareArchiveResourceId')
 
 
 # Get a list of all ISO 3166-1 alpha-2 country codes
