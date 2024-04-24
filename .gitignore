@@ -10,6 +10,7 @@ staticfiles/
 **/launch.json
 .coverage
 coverage.txt
+photos/
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

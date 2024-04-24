@@ -1,16 +1,12 @@
 import os
-import uuid
-import boto3
 from ninja import File, Path
 from ninja.files import UploadedFile
 from ninja.errors import HttpError
 from typing import List
 from uuid import UUID
-from botocore.exceptions import ClientError
 from core.router import DataManagementRouter
 from core.models import Thing, Photo
 from core.schemas.thing import PhotoGetResponse
-from hydroserver.settings import PROXY_BASE_URL, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
 router = DataManagementRouter(tags=['Photos'])
@@ -77,25 +73,11 @@ def upload_photos(request, thing_id: UUID = Path(...), files: List[UploadedFile]
         fetch=False
     )
 
-    s3 = boto3.client(
-        's3',
-        region_name='us-east-1',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
-
     for file in files:
-        base, extension = os.path.splitext(file.name)
-        file_name = f'photos/{str(thing_id)}/{uuid.uuid4()}{extension}'
-        file_link = f'{PROXY_BASE_URL}/{file_name}'
-        try:
-            s3.upload_fileobj(file, AWS_STORAGE_BUCKET_NAME, file_name)
-        except ClientError as e:
-            print(f"Error uploading {file_name} to S3: {e}")
-            continue
-
-        photo = Photo(thing_id=str(thing_id), file_path='/', link=file_link)
-        photo.save()
+        photo = Photo.objects.create(
+            thing_id=thing_id,
+        )
+        photo.file_path.save(name=os.path.join(str(thing_id), file.name,), content=file)
 
     thing = Thing.objects.get_by_id(
         thing_id=thing_id,
@@ -128,6 +110,7 @@ def delete_photo(request, thing_id: UUID = Path(...), photo_id: UUID = Path(...)
 
     try:
         photo = Photo.objects.get(id=photo_id)
+        photo.file_path.delete()
         photo.delete()
     except Photo.DoesNotExist:
         raise HttpError(404, 'Photo with the given ID was not found.')

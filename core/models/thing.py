@@ -1,16 +1,13 @@
 import uuid
-import boto3
 from datetime import datetime
 from typing import Optional
 from django.db import models
 from django.db.models import Q, Prefetch
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
+from django.core.files.storage import get_storage_class
 from ninja.errors import HttpError
 from simple_history.models import HistoricalRecords
-from botocore.exceptions import ClientError
 from core.models import Location
-from hydroserver.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, PROXY_BASE_URL
+from hydroserver.settings import STORAGES, PROXY_BASE_URL
 
 
 class ThingQuerySet(models.QuerySet):
@@ -151,26 +148,14 @@ class Tag(models.Model):
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE, db_column='thingId')
-    file_path = models.CharField(max_length=1000, db_column='filePath')
-    link = models.URLField(max_length=2000)
+    file_path = models.FileField(
+        upload_to='photos', storage=get_storage_class(STORAGES['default']['BACKEND']), db_column='filePath'
+    )
     history = HistoricalRecords(custom_model_name='PhotoChangeLog', related_name='log')
+
+    @property
+    def link(self):
+        return f'{PROXY_BASE_URL}/{self.file_path}'
 
     class Meta:
         db_table = 'Photo'
-
-
-@receiver(pre_delete, sender=Photo)
-def delete_photo(sender, instance, **kwargs):
-    s3 = boto3.client(
-        's3',
-        region_name='us-east-1',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
-
-    file_name = instance.link.split(f'{PROXY_BASE_URL}/')[1]
-
-    try:
-        s3.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=file_name)
-    except ClientError as e:
-        print(f'Error deleting {file_name} from S3: {e}')
