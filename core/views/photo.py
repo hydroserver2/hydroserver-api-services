@@ -77,25 +77,32 @@ def upload_photos(request, thing_id: UUID = Path(...), files: List[UploadedFile]
         fetch=False
     )
 
-    s3 = boto3.client(
-        's3',
-        region_name='us-east-1',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
+    # s3 = boto3.client(
+    #     's3',
+    #     region_name='us-east-1',
+    #     aws_access_key_id=AWS_ACCESS_KEY_ID,
+    #     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    # )
 
     for file in files:
-        base, extension = os.path.splitext(file.name)
-        file_name = f'photos/{str(thing_id)}/{uuid.uuid4()}{extension}'
-        file_link = f'{PROXY_BASE_URL}/{file_name}'
-        try:
-            s3.upload_fileobj(file, AWS_STORAGE_BUCKET_NAME, file_name)
-        except ClientError as e:
-            print(f"Error uploading {file_name} to S3: {e}")
-            continue
+        photo = Photo.objects.create(
+            thing_id=thing_id,
+            file_path='TEST',
+            link='TEST'
+        )
+        photo.file.save(file.name, file)
 
-        photo = Photo(thing_id=str(thing_id), file_path='/', link=file_link)
-        photo.save()
+        # base, extension = os.path.splitext(file.name)
+        # file_name = f'photos/{str(thing_id)}/{uuid.uuid4()}{extension}'
+        # file_link = f'{PROXY_BASE_URL}/{file_name}'
+        # try:
+        #     s3.upload_fileobj(file, AWS_STORAGE_BUCKET_NAME, file_name)
+        # except ClientError as e:
+        #     print(f"Error uploading {file_name} to S3: {e}")
+        #     continue
+        #
+        # photo = Photo(thing_id=str(thing_id), file_path='/', link=file_link)
+        # photo.save()
 
     thing = Thing.objects.get_by_id(
         thing_id=thing_id,

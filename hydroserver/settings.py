@@ -24,10 +24,10 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-zw@4h#ol@0)5fxy=ib6(t
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
-DEPLOYED = config('DEPLOYED', default=False, cast=bool)
+DEPLOYMENT_BACKEND = config('DEPLOYMENT_BACKEND', default='local')
 DISABLE_ACCOUNT_CREATION = config('DISABLE_ACCOUNT_CREATION', default=False, cast=bool)
 
-if DEPLOYED:
+if DEPLOYMENT_BACKEND == 'aws':
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
@@ -173,18 +173,31 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
 DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default=None)
 
 
-# AWS Storages and Email Settings
-
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
-AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
-
-
-if DEPLOYED:
+if DEPLOYMENT_BACKEND == 'aws':
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+    AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
     STORAGES = {
-        'default': {'BACKEND': 'storages.backends.s3.S3Storage', 'OPTIONS': {'location': 'photos'}},
-        'staticfiles': {'BACKEND': 'storages.backends.s3boto3.S3StaticStorage', 'OPTIONS': {'location': 'static'}}
+        'default': {
+            'BACKEND': 'storages.backends.s3.S3Storage',
+            'OPTIONS': {'location': 'photos'}
+        },
+        'staticfiles': {
+            'BACKEND': 'storages.backends.s3boto3.S3StaticStorage',
+            'OPTIONS': {'location': 'static'}
+        }
+    }
+else:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+            'OPTIONS': {'location': 'photos'}
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+            'OPTIONS': {'location': 'static'}
+        },
     }
 
 # Internationalization
