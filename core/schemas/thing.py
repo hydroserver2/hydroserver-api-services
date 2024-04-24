@@ -59,7 +59,7 @@ class PhotoGetResponse(PhotoFields, PhotoID):
         return {
             'id': photo.id,
             'thing_id': photo.thing_id,
-            'file_path': photo.file_path,
+            'file_path': str(photo.file_path),
             'link': photo.link
         }
 
