@@ -2,28 +2,24 @@
 - model: core.photo
   pk: ada2c09b-27d7-4b57-87d4-a859c6d9368f
   fields:
-    file_path: /
-    link: https://www.example.com/photos/3b7818af-eff7-4149-8517-e5cad9dc22e1/ada2c09b-27d7-4b57-87d4-a859c6d9368f.jpeg
+    file_path: photos/3b7818af-eff7-4149-8517-e5cad9dc22e1/ada2c09b-27d7-4b57-87d4-a859c6d9368f.jpeg
     thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
 - model: core.photo
   pk: d42158a0-4eda-4542-88a1-21b622e5275e
   fields:
-    file_path: /
-    link: https://www.example.com/photos/3b7818af-eff7-4149-8517-e5cad9dc22e1/d42158a0-4eda-4542-88a1-21b622e5275e.jpeg
+    file_path: photos/3b7818af-eff7-4149-8517-e5cad9dc22e1/d42158a0-4eda-4542-88a1-21b622e5275e.jpeg
     thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
 
 # Private Thing with photo
 - model: core.photo
   pk: c74bf8cb-5855-49e6-97c9-546d2e8bc07f
   fields:
-    file_path: /
-    link: https://www.example.com/photos/80037b7c-f833-472a-a0d1-7bc40e015ea7/c74bf8cb-5855-49e6-97c9-546d2e8bc07f.jpeg
+    file_path: photos/80037b7c-f833-472a-a0d1-7bc40e015ea7/c74bf8cb-5855-49e6-97c9-546d2e8bc07f.jpeg
     thing: 80037b7c-f833-472a-a0d1-7bc40e015ea7
 
 # Photo - Delete
 - model: core.photo
   pk: a6360259-ba57-414d-84ab-22b5c64eb78d
   fields:
-    file_path: /
-    link: https://www.example.com/photos/76dadda5-224b-4e1f-8570-e385bd482b2d/a6360259-ba57-414d-84ab-22b5c64eb78d.jpeg
+    file_path: photos/76dadda5-224b-4e1f-8570-e385bd482b2d/a6360259-ba57-414d-84ab-22b5c64eb78d.jpeg
     thing: 76dadda5-224b-4e1f-8570-e385bd482b2d

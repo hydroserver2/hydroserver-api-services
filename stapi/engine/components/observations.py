@@ -80,6 +80,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         else:
             count = None
 
+        observations = observations.distinct()
+
         if datastream_ids:
             observations = self.apply_rank(
                 component='Observation',
