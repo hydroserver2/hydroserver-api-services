@@ -47,7 +47,7 @@ class Command(BaseCommand):
                                     'noDataValue', "sd"."no_data_value",
                                     'processingLevelCode', "sp"."processing_level_code",
                                     'intendedTimeSpacing', "sd"."intended_time_spacing",
-                                    'intendedTimeSpacingUnitsName', "stu"."name",
+                                    'intendedTimeSpacingUnits', "sd"."intended_time_spacing_units",
                                     'aggregationStatistic', "sd"."aggregation_statistic",
                                     'timeAggregationInterval', "sd"."time_aggregation_interval",
                                     'timeAggregationIntervalUnitsName', "sau"."name"
@@ -55,7 +55,6 @@ class Command(BaseCommand):
                         FROM sites_datastream sd
                         LEFT OUTER JOIN sites_unit su ON "sd"."unit_id" = "su"."id"
                         LEFT OUTER JOIN sites_processinglevel sp ON "sd"."processing_level_id" = "sp"."id"
-                        LEFT OUTER JOIN sites_unit stu ON "sd"."intended_time_spacing_units_id" = "stu"."id"
                         LEFT OUTER JOIN sites_unit sau ON "sd"."time_aggregation_interval_units_id" = "sau"."id"
                 """
 
@@ -99,8 +98,8 @@ class Command(BaseCommand):
                                         'coordinates', json_build_array(
                                             "sl"."latitude",
                                             "sl"."longitude"
-                                        ) 
-                                    ) 
+                                        )
+                                    )
                                ) AS "LOCATION",
                                NULL AS "GEOM",
                                NULL AS "GEN_FOI_ID"

@@ -1,0 +1,87 @@
+- model: accounts.apikey
+  pk: ba802221-0d79-4918-87c9-ba39193c7e9d
+  fields:
+    name: Alice - Data Loader Key
+    key: 8fd2cf493428683399f6d3cf8c7df3dd80e46d106d003e9dc4d77306d7c19fee  # sdl
+    expires: null
+    permissions: |
+      [
+        {
+          "model": "Datastream",
+          "methods": ["GET"],
+          "resources": [{
+            "model": "DataLoader",
+            "ids": ["9d571b4b-c986-4fa8-8933-0491ddad9e0e"]
+          }]
+        },
+        {
+          "model": "Observation",
+          "methods": ["GET", "POST"],
+          "resources": [{
+            "model": "DataLoader",
+            "ids": ["9d571b4b-c986-4fa8-8933-0491ddad9e0e"]
+          }]
+        },
+        {
+          "model": "DataSource",
+          "methods": ["GET", "PATCH"],
+          "resources": [{
+            "model": "DataLoader",
+            "ids": ["9d571b4b-c986-4fa8-8933-0491ddad9e0e"]
+          }]
+          "fields": ["dataSourceThru", "lastSyncSuccessful", "lastSyncMessage", "lastSynced", "nextSync"]
+        }
+      ]
+    person_id: 1000000010
+    enabled: true
+
+- model: accounts.apikey
+  pk: faef4759-2f67-4217-8441-b880e73f9952
+  fields:
+    name: Bob - API Key
+    key: 14c2529eb4498c5d1ffd6915d05bf58a91bdda796af59f41d480d11c099d0479  # api
+    expires: null
+    permissions: |
+      {}
+    person_id: 1000000011
+    enabled: true
+
+- model: accounts.apikey
+  pk: 67915a8a-4a2a-4932-8130-f2ee8ebcd6b0
+  fields:
+    name: Alice - Expired Key
+    key: fa64ea1e82e1206f828ab2a02917c7e92accb98e3b95881a1b4ad52b914b66e3  # expired
+    expires: 2000-01-01 10:00:00.000 -0700
+    permissions: |
+      [
+        {
+          "model": "Thing",
+          "methods": ["GET"],
+          "resources": [{
+            "model": "Thing",
+            "ids": ["80037b7c-f833-472a-a0d1-7bc40e015ea7"]
+          }]
+        }
+      ]
+    person_id: 1000000010
+    enabled: true
+
+- model: accounts.apikey
+  pk: 06bb1f74-ce37-419f-8550-4843e78f8c87
+  fields:
+    name: Alice - Disabled Key
+    key: 17eb3c0168d0d7b21ede5481150f17233427d89833ec121b4dbc4fb96cfab71e  # disabled
+    expires: null
+    permissions: |
+      [
+        {
+          "model": "Thing",
+          "methods": ["GET"],
+          "resources": [{
+            "model": "Thing",
+            "ids": ["80037b7c-f833-472a-a0d1-7bc40e015ea7"]
+          }]
+        }
+      ]
+    person_id: 1000000010
+    enabled: false

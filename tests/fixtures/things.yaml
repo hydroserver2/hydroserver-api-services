@@ -1,0 +1,206 @@
+# Public Thing - Alice/Bob
+- model: core.location
+  pk: 8a6f1578-060a-40d9-9064-f8c4af4da80d
+  fields:
+    name: Location for Utah Water Research Lab
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.739742
+    longitude: -111.793766
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: 3b7818af-eff7-4149-8517-e5cad9dc22e1
+  fields:
+    name: Utah Water Research Lab
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: UWRL
+    site_type: Other
+    location: 8a6f1578-060a-40d9-9064-f8c4af4da80d
+    is_private: False
+- model: core.thingassociation
+  pk: 1100000100
+  fields:
+    thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
+    person: 1000000010
+    owns_thing: true
+    is_primary_owner: true
+- model: core.thingassociation
+  pk: 1100000101
+  fields:
+    thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
+    person: 1000000011
+    owns_thing: true
+    is_primary_owner: false
+
+# Public Thing - Alice
+- model: core.location
+  pk: 5bba0397-096b-4d60-a3f0-c00f1e6e85da
+  fields:
+    name: Location for Taggart Student Center
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.743042
+    longitude: -111.813250
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: 76dadda5-224b-4e1f-8570-e385bd482b2d
+  fields:
+    name: Taggart Student Center
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: TSC
+    site_type: Other
+    location: 5bba0397-096b-4d60-a3f0-c00f1e6e85da
+    is_private: False
+- model: core.thingassociation
+  pk: 1100000102
+  fields:
+    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
+    person: 1000000010
+    owns_thing: true
+    is_primary_owner: true
+
+# Public Thing - Emily - Inactive
+- model: core.location
+  pk: a5247605-ca8a-4419-a24f-e030813c92db
+  fields:
+    name: Location for Old Main Building
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.740741
+    longitude: -111.813924
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
+  fields:
+    name: Old Main Building
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: MAIN
+    site_type: Other
+    location: a5247605-ca8a-4419-a24f-e030813c92db
+    is_private: False
+- model: core.thingassociation
+  pk: 1100000103
+  fields:
+    thing: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
+    person: 1000000014
+    owns_thing: true
+    is_primary_owner: true
+
+# Private Thing - Alice/Bob
+- model: core.location
+  pk: 286fc929-8d18-4993-8abd-5cdaaa28c60b
+  fields:
+    name: Location for Merrill-Cazier Library
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.742008
+    longitude: -111.809720
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: 819260c8-2543-4046-b8c4-7431243ed7c5
+  fields:
+    name: Merrill-Cazier Library
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: LIB
+    site_type: Other
+    location: 286fc929-8d18-4993-8abd-5cdaaa28c60b
+    is_private: True
+- model: core.thingassociation
+  pk: 1100000104
+  fields:
+    thing: 819260c8-2543-4046-b8c4-7431243ed7c5
+    person: 1_000_000_010
+    owns_thing: true
+    is_primary_owner: true
+- model: core.thingassociation
+  pk: 1100000105
+  fields:
+    thing: 819260c8-2543-4046-b8c4-7431243ed7c5
+    person: 1000000011
+    owns_thing: true
+    is_primary_owner: false
+
+# Private Thing - Alice
+- model: core.location
+  pk: 040416a9-fb07-460a-9fef-67d7bc8afe50
+  fields:
+    name: Location for Maverik Stadium
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.752026
+    longitude: -111.811572
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: 80037b7c-f833-472a-a0d1-7bc40e015ea7
+  fields:
+    name: Maverik Stadium
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: MAVST
+    site_type: Other
+    location: 040416a9-fb07-460a-9fef-67d7bc8afe50
+    is_private: True
+- model: core.thingassociation
+  pk: 1100000106
+  fields:
+    thing: 80037b7c-f833-472a-a0d1-7bc40e015ea7
+    person: 1000000010
+    owns_thing: true
+    is_primary_owner: true
+
+# Private Thing - Alice/Bob - Delete
+- model: core.location
+  pk: 87cf9e5e-5b28-4610-9d13-96ea00a3d42f
+  fields:
+    name: Location for USU Technology Building
+    description: A test location.
+    encoding_type: application/geo+json
+    latitude: 41.743243
+    longitude: -111.808352
+    elevation_m: 1
+    elevation_datum: WGS84
+    state: UT
+    county: Cache
+- model: core.thing
+  pk: e1f18e11-4130-485b-ad67-18f7f44187f8
+  fields:
+    name: USU Technology Building
+    description: A test thing.
+    sampling_feature_type: Site
+    sampling_feature_code: TECH
+    site_type: Other
+    location: 87cf9e5e-5b28-4610-9d13-96ea00a3d42f
+    is_private: True
+- model: core.thingassociation
+  pk: 1100000107
+  fields:
+    thing: e1f18e11-4130-485b-ad67-18f7f44187f8
+    person: 1000000010
+    owns_thing: true
+    is_primary_owner: true
+- model: core.thingassociation
+  pk: 1100000108
+  fields:
+    thing: e1f18e11-4130-485b-ad67-18f7f44187f8
+    person: 1000000011
+    owns_thing: true
+    is_primary_owner: false

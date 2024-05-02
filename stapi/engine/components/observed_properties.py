@@ -1,7 +1,8 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.observedproperty.utils import query_observed_properties
+from django.db.models import Prefetch
+from core.models import ObservedProperty
 from sensorthings.components.observedproperties.engine import ObservedPropertyBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -13,16 +14,20 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if observed_property_ids:
             observed_property_ids = self.strings_to_uuids(observed_property_ids)
 
-        observed_properties, _ = query_observed_properties(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            observed_property_ids=observed_property_ids,
-            require_ownership_or_unowned=not expanded
+        observed_properties = ObservedProperty.objects
+
+        if observed_property_ids:
+            observed_properties = observed_properties.filter(id__in=observed_property_ids)
+
+        observed_properties = observed_properties.prefetch_related(
+            Prefetch('log', queryset=ObservedProperty.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -39,7 +44,10 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = observed_properties.count()
+        if get_count:
+            count = observed_properties.count()
+        else:
+            count = None
 
         if pagination:
             observed_properties = self.apply_pagination(
@@ -57,6 +65,7 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 'properties': {
                     'variable_code': observed_property.code,
                     'variable_type': observed_property.type,
+                    'last_updated': getattr(next(iter(observed_property.ordered_log), None), 'history_date', None)
                 }
             } for observed_property in observed_properties.all()
             if observed_property_ids is None or observed_property.id in observed_property_ids

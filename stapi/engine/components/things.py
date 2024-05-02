@@ -1,7 +1,8 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.thing.utils import query_things
+from django.db.models import Prefetch
+from core.models import Thing
 from sensorthings.components.things.engine import ThingBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -14,7 +15,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if location_ids:
@@ -23,10 +25,28 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
         if thing_ids:
             thing_ids = self.strings_to_uuids(thing_ids)
 
-        things, _ = query_things(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            thing_ids=thing_ids,
-            ignore_privacy=expanded
+        things = Thing.objects
+
+        if thing_ids:
+            things = things.filter(id__in=thing_ids)
+
+        things = things.select_related('location').prefetch_associates().owner_is_active()
+
+        if not expanded:
+            things = things.owner(
+                user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+                include_public=True
+            )
+
+            if getattr(getattr(self, 'request', None), 'authenticated_user', None) and \
+                    self.request.authenticated_user.permissions.enabled():  # noqa
+                things = things.apply_permissions(
+                    user=self.request.authenticated_user,  # noqa
+                    method='GET'
+                )
+
+        things = things.prefetch_related(
+            Prefetch('log', queryset=Thing.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -43,7 +63,10 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = things.count()
+        if get_count:
+            count = things.count()
+        else:
+            count = None
 
         if pagination:
             things = self.apply_pagination(
@@ -65,9 +88,11 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                         {
                             'first_name': thing_association.person.first_name,
                             'last_name': thing_association.person.last_name,
-                            'email': thing_association.person.email
+                            'email': thing_association.person.email,
+                            'organization_name': getattr(thing_association.person.organization, 'name', None)
                         } for thing_association in thing.associates.all()
-                    ]
+                    ],
+                    'last_updated': getattr(next(iter(thing.ordered_log), None), 'history_date', None)
                 },
                 'location_ids': [thing.location.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids

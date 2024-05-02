@@ -1,6 +1,7 @@
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.thing.utils import query_things
+from django.db.models import Prefetch
+from core.models import Thing
 from sensorthings.components.locations.engine import LocationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -13,7 +14,8 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if location_ids:
@@ -22,10 +24,28 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
         if thing_ids:
             thing_ids = self.strings_to_uuids(thing_ids)
 
-        things, _ = query_things(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            thing_ids=thing_ids,
-            ignore_privacy=expanded
+        things = Thing.objects
+
+        if thing_ids:
+            things = things.filter(id__in=thing_ids)
+
+        things = things.select_related('location').prefetch_associates().owner_is_active()
+
+        if not expanded:
+            things = things.owner(
+                user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+                include_public=True
+            )
+
+            if getattr(getattr(self, 'request', None), 'authenticated_user', None) and \
+                    self.request.authenticated_user.permissions.enabled():  # noqa
+                things = things.apply_permissions(
+                    user=self.request.authenticated_user,  # noqa
+                    method='GET'
+                )
+
+        things = things.prefetch_related(
+            Prefetch('log', queryset=Thing.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -42,7 +62,10 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = things.count()
+        if get_count:
+            count = things.count()
+        else:
+            count = None
 
         if pagination:
             things = self.apply_pagination(
@@ -72,7 +95,8 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                     'elevation_m': thing.location.elevation_m,
                     'elevation_datum': thing.location.elevation_datum,
                     'state': thing.location.state,
-                    'county': thing.location.county
+                    'county': thing.location.county,
+                    'last_updated': getattr(next(iter(thing.ordered_log), None), 'history_date', None)
                 },
                 'thing_ids': [thing.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids

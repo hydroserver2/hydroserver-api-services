@@ -1,7 +1,8 @@
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.sensor.utils import query_sensors
+from django.db.models import Prefetch
 from sensorthings.components.sensors.engine import SensorBaseEngine
+from core.models import Sensor
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -12,16 +13,20 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if sensor_ids:
             sensor_ids = self.strings_to_uuids(sensor_ids)
 
-        sensors, _ = query_sensors(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            sensor_ids=sensor_ids,
-            require_ownership_or_unowned=not expanded
+        sensors = Sensor.objects
+
+        if sensor_ids:
+            sensors = sensors.filter(id__in=sensor_ids)
+
+        sensors = sensors.prefetch_related(
+            Prefetch('log', queryset=Sensor.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -38,7 +43,10 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = sensors.count()
+        if get_count:
+            count = sensors.count()
+        else:
+            count = None
 
         if pagination:
             sensors = self.apply_pagination(
@@ -53,7 +61,7 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 'name': sensor.name,
                 'description': sensor.description,
                 'encoding_type': sensor.encoding_type,
-                'metadata': {
+                'sensor_metadata': {
                     'method_code': sensor.method_code,
                     'method_type': sensor.method_type,
                     'method_link': sensor.method_link,
@@ -61,7 +69,8 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                         'sensor_model_name': sensor.model,
                         'sensor_model_url': sensor.model_link,
                         'sensor_manufacturer': sensor.manufacturer
-                    }
+                    },
+                    'last_updated': getattr(next(iter(sensor.ordered_log), None), 'history_date', None)
                 },
                 'properties': {}
             } for sensor in sensors.all() if sensor_ids is None or sensor.id in sensor_ids

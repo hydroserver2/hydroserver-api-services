@@ -1,0 +1,79 @@
+# System Unit
+- model: core.unit
+  pk: a1695fce-bbee-42eb-90da-44c951be7fbd
+  fields:
+    name: Celsius
+    person: null
+    symbol: C
+    definition: http://www.example.com/celsius
+    type: Unit
+
+# Alice Unit
+- model: core.unit
+  pk: 967944cb-903b-4f96-afba-3b9e69722f8f
+  fields:
+    name: Celsius
+    person: 1000000010
+    symbol: C
+    definition: http://www.example.com/celsius
+    type: Unit
+
+# Alice Time Unit
+- model: core.unit
+  pk: 71e03b54-7225-4a52-b663-3b7159307e6e
+  fields:
+    name: Hour
+    person: 1000000010
+    symbol: H
+    definition: http://www.example.com/hour
+    type: Unit
+
+# Bob Unit
+- model: core.unit
+  pk: 054ac53a-520f-4340-96f1-889ffa12874b
+  fields:
+    name: Celsius
+    person: 1000000011
+    symbol: C
+    definition: http://www.example.com/celsius
+    type: Unit
+
+# Bob Time Unit
+- model: core.unit
+  pk: 2d243a05-09b8-4dff-a329-738b4083dbce
+  fields:
+    name: Hour
+    person: 1000000011
+    symbol: C
+    definition: http://www.example.com/hour
+    type: Unit
+
+# Emily Unit - Inactive
+- model: core.unit
+  pk: 20b29933-078d-48b9-95d2-d829ddecd5d8
+  fields:
+    name: Celsius
+    person: 1000000014
+    symbol: C
+    definition: http://www.example.com/celsius
+    type: Unit
+
+# Emily Time Unit - Inactive
+- model: core.unit
+  pk: e3b6c951-9b1b-4650-a309-5f08e352e801
+  fields:
+    name: Hour
+    person: 1000000014
+    symbol: H
+    definition: http://www.example.com/hour
+    type: Unit
+
+# Alice Unit - Delete
+- model: core.unit
+  pk: 23bd903d-36f2-4572-b2e2-fd0a55c00498
+  fields:
+    name: Feet per second
+    person: 1000000010
+    symbol: FPS
+    definition: http://www.example.com/feet-per-second
+    type: Unit

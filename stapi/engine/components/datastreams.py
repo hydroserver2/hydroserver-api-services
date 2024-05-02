@@ -1,7 +1,8 @@
 from uuid import UUID
 from typing import List
 from ninja.errors import HttpError
-from core.endpoints.datastream.utils import query_datastreams, get_datastream_by_id
+from django.db.models import Prefetch
+from core.models import Datastream
 from sensorthings.components.datastreams.engine import DatastreamBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -16,16 +17,37 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if datastream_ids:
             datastream_ids = self.strings_to_uuids(datastream_ids)
 
-        datastreams, _ = query_datastreams(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            datastream_ids=datastream_ids,
-            ignore_privacy=expanded
+        datastreams = Datastream.objects
+
+        if datastream_ids:
+            datastreams = datastreams.filter(id__in=datastream_ids)
+
+        datastreams = datastreams.select_related(
+            'processing_level', 'unit', 'time_aggregation_interval_units'
+        ).owner_is_active()
+
+        if not expanded:
+            datastreams = datastreams.owner(
+                user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+                include_public=True
+            )
+
+            if getattr(getattr(self, 'request', None), 'authenticated_user', None) and \
+                    self.request.authenticated_user.permissions.enabled():  # noqa
+                datastreams = datastreams.apply_permissions(
+                    user=self.request.authenticated_user,  # noqa
+                    method='GET'
+                )
+
+        datastreams = datastreams.prefetch_related(
+            Prefetch('log', queryset=Datastream.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
         if filters:
@@ -42,7 +64,10 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
-        count = datastreams.count()
+        if get_count:
+            count = datastreams.count()
+        else:
+            count = None
 
         if thing_ids:
             datastreams = self.apply_rank(
@@ -103,18 +128,15 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'no_data_value': datastream.no_data_value,
                     'processing_level_code': datastream.processing_level.code,
                     'intended_time_spacing': datastream.intended_time_spacing,
-                    'intended_time_spacing_units': {
-                        'name': datastream.intended_time_spacing_units.name,
-                        'symbol': datastream.intended_time_spacing_units.symbol,
-                        'definition': datastream.intended_time_spacing_units.definition.split(';')[0]
-                    } if datastream.intended_time_spacing_units is not None else None,
+                    'intended_time_spacing_units':  datastream.intended_time_spacing_units,
                     'aggregation_statistic': datastream.aggregation_statistic,
                     'time_aggregation_interval': datastream.time_aggregation_interval,
                     'time_aggregation_interval_units': {
                         'name': datastream.time_aggregation_interval_units.name,
                         'symbol': datastream.time_aggregation_interval_units.symbol,
                         'definition': datastream.time_aggregation_interval_units.definition.split(';')[0]
-                    }
+                    },
+                    'last_updated': getattr(next(iter(datastream.ordered_log), None), 'history_date', None)
                 }
             } for datastream in datastreams
         ], count
@@ -131,11 +153,11 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             datastream
     ) -> None:
 
-        datastream_obj = get_datastream_by_id(
-            user=getattr(self, 'request').authenticated_user,
+        datastream_obj = Datastream.objects.get_by_id(
             datastream_id=datastream_id,
-            require_ownership=True,
-            raise_http_errors=True
+            user=getattr(self, 'request').authenticated_user,
+            method='PATCH',
+            raise_404=True
         )
 
         datastream_data = datastream.dict(exclude_unset=True)

@@ -3,10 +3,7 @@ from uuid import UUID
 from typing import List
 from django.db.utils import IntegrityError
 from ninja.errors import HttpError
-from core.endpoints.observations.utils import query_observations
-from core.endpoints.resultqualifier.utils import query_result_qualifiers, check_result_qualifier_by_id
-from core.endpoints.datastream.utils import get_datastream_by_id
-from core.models import Observation
+from core.models import Observation, ResultQualifier, Datastream
 from sensorthings.components.observations.engine import ObservationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
@@ -20,17 +17,32 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
-            expanded: bool = False
+            expanded: bool = False,
+            get_count: bool = False
     ) -> (List[dict], int):
 
         if observation_ids:
             observation_ids = self.strings_to_uuids(observation_ids)
 
-        observations, _ = query_observations(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            observation_ids=observation_ids,
-            ignore_privacy=expanded
-        )
+        observations = Observation.objects
+
+        if observation_ids:
+            observations = observations.filter(id__in=observation_ids)
+
+        observations = observations.owner_is_active()
+
+        if not expanded:
+            observations = observations.owner(
+                user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+                include_public=True
+            )
+
+            if getattr(getattr(self, 'request', None), 'authenticated_user', None) and \
+                    self.request.authenticated_user.permissions.enabled():  # noqa
+                observations = observations.apply_permissions(
+                    user=self.request.authenticated_user,  # noqa
+                    method='GET'
+                )
 
         if filters:
             observations = self.apply_filters(
@@ -63,7 +75,12 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             order_by=ordering
         )
 
-        count = observations.count()
+        if get_count:
+            count = observations.count()
+        else:
+            count = None
+
+        observations = observations.distinct()
 
         if datastream_ids:
             observations = self.apply_rank(
@@ -86,10 +103,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             observation.result_qualifiers for observation in observations if observation.result_qualifiers
         ] for rq_id in rq_ids]))
 
-        result_qualifiers, _ = query_result_qualifiers(
-            user=None,
-            result_qualifier_ids=result_qualifier_ids
-        )
+        result_qualifiers = ResultQualifier.objects.filter(id__in=result_qualifier_ids)
 
         result_qualifiers = {
             result_qualifier.id: result_qualifier
@@ -120,20 +134,22 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             observation
     ) -> UUID:
 
-        datastream = get_datastream_by_id(
-            user=getattr(self, 'request').authenticated_user,
+        datastream = Datastream.objects.get_by_id(
             datastream_id=observation.datastream.id,
-            require_ownership=True,
-            raise_http_errors=True
+            user=getattr(self, 'request').authenticated_user,
+            method='POST',
+            model='Observation',
+            raise_404=True
         )
 
         if observation.result_quality:
             for result_qualifier in observation.result_quality.result_qualifiers:
-                check_result_qualifier_by_id(
+                ResultQualifier.objects.get_by_id(
+                    result_qualifier_id=result_qualifier.id,
                     user=getattr(self, 'request').authenticated_user,
-                    result_qualifier_id=result_qualifier,
-                    require_ownership=True,
-                    raise_http_errors=True
+                    method='GET',
+                    fetch=False,
+                    raise_404=True
                 )
 
         try:
@@ -160,11 +176,12 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         new_observations = []
 
         for datastream_id, observation_array in observations.items():
-            datastream = get_datastream_by_id(
-                user=getattr(self, 'request').authenticated_user,
+            datastream = Datastream.objects.get_by_id(
                 datastream_id=datastream_id,
-                require_ownership=True,
-                raise_http_errors=True
+                user=getattr(self, 'request').authenticated_user,
+                method='POST',
+                model='Observation',
+                raise_404=True
             )
 
             for result_qualifier_id in list(set([result_qualifier for result_qualifiers in [
@@ -172,11 +189,12 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                 for observation in observation_array
                 if observation.result_quality and observation.result_quality.result_qualifiers
             ] for result_qualifier in result_qualifiers])):
-                check_result_qualifier_by_id(
-                    user=getattr(self, 'request').authenticated_user,
+                ResultQualifier.objects.get_by_id(
                     result_qualifier_id=result_qualifier_id,
-                    require_ownership=True,
-                    raise_http_errors=True
+                    user=getattr(self, 'request').authenticated_user,
+                    method='GET',
+                    fetch=False,
+                    raise_404=True
                 )
 
             try:
@@ -221,14 +239,16 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             datastream_id: UUID
     ) -> None:
 
-        observation_query, _ = query_observations(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            datastream_ids=[datastream_id]
-        )
-
-        datastream = get_datastream_by_id(
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+        observation_query = Observation.objects.filter(
             datastream_id=datastream_id
+        ).owner(user=getattr(getattr(self, 'request', None), 'authenticated_user', None))
+
+        datastream = Datastream.objects.get_by_id(
+            datastream_id=datastream_id,
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            method='PATCH',
+            model='Datastream',
+            raise_404=True
         )
 
         datastream.value_count = int(observation_query.count())

@@ -1,7 +1,8 @@
 from uuid import UUID
 from ninja import Schema, Field
 from pydantic import HttpUrl
-from typing import List, Literal, Union
+from typing import List, Literal, Union, Optional
+from datetime import datetime
 from sensorthings import components as st_components
 
 
@@ -13,14 +14,13 @@ class DatastreamProperties(Schema):
     no_data_value: float = Field(..., alias='noDataValue')
     processing_level_code: str = Field(..., alias='processingLevelCode')
     intended_time_spacing: Union[float, None] = Field(None, alias='intendedTimeSpacing')
-    intended_time_spacing_units: Union[st_components.UnitOfMeasurement, None] = Field(
-        None, alias='intendedTimeSpacingUnitOfMeasurement'
-    )
+    intended_time_spacing_units: Union[str, None] = Field(None, alias='intendedTimeSpacingUnitOfMeasurement')
     aggregation_statistic: Union[str, None] = Field(None, alias='aggregationStatistic')
     time_aggregation_interval: float = Field(None, alias='timeAggregationInterval')
     time_aggregation_interval_units: Union[st_components.UnitOfMeasurement, None] = Field(
         None, alias='timeAggregationIntervalUnitOfMeasurement'
     )
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -36,6 +36,7 @@ class LocationProperties(Schema):
     county: Union[str, None] = None
     elevation_m: Union[float, None] = None
     elevation_datum: Union[str, None] = Field(None, alias='elevationDatum')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -48,6 +49,7 @@ class LocationResponse(Schema):
 class ObservedPropertyProperties(Schema):
     variable_code: str = Field(..., alias='variableCode')
     variable_type: str = Field(..., alias='variableType')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -80,6 +82,7 @@ class SensorProperties(Schema):
     method_type: str = Field(..., alias='methodType')
     method_link: Union[HttpUrl, None] = Field(None, alias='methodLink')
     sensor_model: SensorModel = Field(..., alias='sensorModel')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True
@@ -94,6 +97,7 @@ class ContactPerson(Schema):
     first_name: str = Field(..., alias='firstName')
     last_name: str = Field(..., alias='lastName')
     email: str = Field(..., alias='email')
+    organization_name: str = Field(None, alias='organizationName')
 
     class Config:
         allow_population_by_field_name = True
@@ -104,6 +108,7 @@ class ThingProperties(Schema):
     sampling_feature_code: str = Field(..., alias='samplingFeatureCode')
     site_type: str = Field(..., alias='siteType')
     contact_people: List[ContactPerson] = Field(..., alias='contactPeople')
+    last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
         allow_population_by_field_name = True

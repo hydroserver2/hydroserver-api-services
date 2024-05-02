@@ -1,7 +1,8 @@
 from uuid import UUID
-from django.db.models import F, Window
+from django.db.models import F, Window, Prefetch
 from django.db.models.functions import DenseRank
 from django.core.exceptions import FieldError
+from django.db.models.query import prefetch_related_objects
 from ninja.errors import HttpError
 from odata_query.django.django_q import AstToDjangoQVisitor
 from core import models as core_models
@@ -78,10 +79,7 @@ class SensorThingsUtils:
                     'properties__noDataValue': 'no_data_value',
                     'properties__processingLevelCode': 'processing_level__code',
                     'properties__intendedTimeSpacing': 'intended_time_spacing',
-                    'properties__intendedTimeSpacingUnitOfMeasurement__name': 'intended_time_spacing_unit__name',
-                    'properties__intendedTimeSpacingUnitOfMeasurement__symbol': 'intended_time_spacing_unit__symbol',
-                    'properties__intendedTimeSpacingUnitOfMeasurement__definition':
-                        'intended_time_spacing_unit__definition',
+                    'properties__intendedTimeSpacingUnitOfMeasurement': 'intended_time_spacing_units',
                     'properties__aggregationStatistic': 'aggregation_statistic',
                     'properties__timeAggregationInterval': 'time_aggregation_interval',
                     'properties__timeAggregationIntervalUnitOfMeasurement__name':
@@ -164,10 +162,18 @@ class SensorThingsUtils:
 
         sql, params = ranked_queryset.query.sql_with_params()
 
-        query = getattr(core_models, component).objects.raw("""
+        query = list(getattr(core_models, component).objects.raw("""
             SELECT * FROM ({}) ranked_result
             WHERE rank <= %s
             LIMIT %s
-        """.format(sql), [*params, max_records, total_query_limit])
+        """.format(sql), [*params, max_records, total_query_limit]))
+
+        if hasattr(getattr(core_models, component), 'history'):
+            prefetch_related_objects(
+                query, Prefetch(
+                    'log',
+                    queryset=getattr(core_models, component).history.order_by('-history_date'), to_attr='ordered_log'
+                )
+            )
 
         return query

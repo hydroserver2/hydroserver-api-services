@@ -10,6 +10,7 @@ from typing import Union
 from ninja.types import DictStrAny
 from django.contrib.admin.views.decorators import staff_member_required
 from decouple import config, UndefinedValueError
+from urllib.parse import urlparse
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,17 +24,20 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-zw@4h#ol@0)5fxy=ib6(t
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
-DEPLOYED = config('DEPLOYED', default=False, cast=bool)
+DEPLOYMENT_BACKEND = config('DEPLOYMENT_BACKEND', default='local')
+DISABLE_ACCOUNT_CREATION = config('DISABLE_ACCOUNT_CREATION', default=False, cast=bool)
 
-if DEPLOYED:
+if DEPLOYMENT_BACKEND == 'aws':
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
 else:
-    PROXY_BASE_URL = 'http://127.0.0.1:8000' #'http://127.0.0.1:8000'
+    PROXY_BASE_URL = 'http://127.0.0.1:3030'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
 
 LOGIN_REDIRECT_URL = 'sites'
@@ -43,7 +47,7 @@ AUTH_USER_MODEL = 'accounts.Person'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'accounts.auth.backends.UnverifiedUserBackend'
+    'hydroserver.backends.UnverifiedUserBackend'
 ]
 
 NINJA_JWT = {
@@ -61,7 +65,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'core.apps.CoreConfig',
     'accounts.apps.AccountsConfig',
-    'django_ses',
     'sensorthings',
     'ninja_extra',
     'simple_history',
@@ -105,7 +108,7 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'postgresql://admin:pass@timescaledb:5432/tsdb')
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -158,29 +161,42 @@ AUTHLIB_OAUTH_CLIENTS = {
 APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
-# Email Backend Settings
 
-EMAIL_BACKEND = 'django_ses.SESBackend'
-DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default='')
+# Email Settings
 
-# AWS Settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = config('EMAIL_HOST', default=None)
+EMAIL_PORT = config('EMAIL_PORT', default=None)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
+DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default=None)
 
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
-AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
-AWS_LOCATION = 'static'
 
-if DEPLOYED:
+if DEPLOYMENT_BACKEND == 'aws':
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+    AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
     STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                "AWS_S3_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
-                "AWS_S3_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
-                "AWS_STORAGE_BUCKET_NAME": AWS_STORAGE_BUCKET_NAME,
-                "AWS_S3_CUSTOM_DOMAIN": PROXY_BASE_URL,
-                "AWS_LOCATION": AWS_LOCATION
-            }
+        'default': {
+            'BACKEND': 'storages.backends.s3.S3Storage',
+            'OPTIONS': {'location': 'photos'}
+        },
+        'staticfiles': {
+            'BACKEND': 'storages.backends.s3boto3.S3StaticStorage',
+            'OPTIONS': {'location': 'static'}
+        }
+    }
+else:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+            'OPTIONS': {'location': 'photos'}
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+            'OPTIONS': {'location': 'static'}
         },
     }
 
@@ -197,10 +213,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-if DEPLOYED:
-    STORAGES = {'staticfiles': {'BACKEND': 'storages.backends.s3boto3.S3StaticStorage'}}
-
 STATIC_ROOT = 'staticfiles'
 
 # Default primary key field type
