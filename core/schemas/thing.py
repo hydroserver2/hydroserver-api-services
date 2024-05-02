@@ -13,9 +13,9 @@ from country_list import countries_for_language
 
 
 class ArchiveFields(Schema):
-    link: Optional[str] = Field(None, alias='resourceLink')
+    link: Optional[str] = Field(None, alias='link')
     frequency: Optional[Literal['daily', 'weekly', 'monthly']]
-    path: str = Field(..., alias='folderName')
+    path: str = Field(..., alias='path')
     datastream_ids: List[UUID] = Field(..., alias='datastreamIds')
 
 

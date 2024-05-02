@@ -196,6 +196,7 @@ class ArchiveManager(models.Manager):
                 datastream.archived = True
             else:
                 datastream.archived = False
+            datastream.save()
 
         archive = self.create(
             thing=thing,

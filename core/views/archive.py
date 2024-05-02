@@ -2,8 +2,9 @@ import hsclient
 from uuid import UUID
 from ninja import Path
 from ninja.errors import HttpError
+from typing import Optional
 from django.db import transaction, IntegrityError
-from core.models import Thing, Archive, Datastream
+from core.models import Thing, Archive
 from core.router import DataManagementRouter
 from core.schemas.thing import ArchiveFields, ArchiveGetResponse, ArchivePostBody, ArchivePatchBody
 from hydroserver import settings
@@ -12,7 +13,7 @@ from hydroserver import settings
 router = DataManagementRouter(tags=['Archive'])
 
 
-@router.dm_get('', response=ArchiveGetResponse)
+@router.dm_get('', response=Optional[ArchiveGetResponse])
 def get_thing_archive(request, thing_id: UUID = Path(...)):
     """
     Get a list of Tags for a Thing
@@ -31,12 +32,7 @@ def get_thing_archive(request, thing_id: UUID = Path(...)):
     try:
         archive = Archive.objects.get(thing_id=thing_id)
     except Archive.DoesNotExist:
-        raise HttpError(404, 'Thing archive not found.')
-
-    archive.datastream_ids = [
-        datastream_id for row in Datastream.objects.filter(thing_id=thing_id).filter(archived=True).values_list('id')
-        for datastream_id in row
-    ]
+        return None
 
     return 200, ArchiveGetResponse.serialize(archive)
 
@@ -156,10 +152,41 @@ def update_archive(request, data: ArchivePatchBody, thing_id: UUID = Path(...)):
 
     archive_data = data.dict(include=set(ArchiveFields.__fields__.keys()), exclude_unset=True)
 
-    for field, value in archive_data.items():
-        setattr(thing.archive, field, value)
+    hydroshare_connection = hsclient.HydroShare(
+        client_id=settings.AUTHLIB_OAUTH_CLIENTS['hydroshare']['client_id'],
+        token={
+            'access_token': request.authenticated_user.hydroshare_token['access_token'],
+            'token_type': request.authenticated_user.hydroshare_token['token_type'],
+            'scope': request.authenticated_user.hydroshare_token['scope'],
+            'state': '',
+            'expires_in': request.authenticated_user.hydroshare_token['expires_in'],
+            'refresh_token': request.authenticated_user.hydroshare_token['refresh_token']
+        }
+    )
 
-    thing.archive.save()
+    if 'link' in archive_data.keys():
+        thing.archive.delete()
+        thing.archive = Archive.objects.create_or_link(
+            hs_connection=hydroshare_connection,
+            thing=thing,
+            **archive_data
+        )
+    else:
+        for field, value in archive_data.items():
+            if field == 'datastream_ids':
+                for datastream in thing.datastreams.all():
+                    if value and datastream.id in value:
+                        datastream.archived = True
+                    else:
+                        datastream.archived = False
+            else:
+                setattr(thing.archive, field, value)
+
+        thing.archive.save()
+
+    thing.archive.transfer_data(
+        hs_connection=hydroshare_connection,
+    )
 
     return 203, ArchiveGetResponse.serialize(thing.archive)
 
