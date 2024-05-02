@@ -16,7 +16,7 @@ google_router = Router(tags=['Google OAuth 2.0'])
 
 @google_router.get('/login')
 def google_login(request):
-    if settings.DEPLOYED is True:
+    if settings.DEPLOYMENT_BACKEND == 'aws':
         redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/google/auth'
     else:
         redirect_uri = request.build_absolute_uri('/api/account/google/auth')

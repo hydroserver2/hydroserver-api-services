@@ -8,7 +8,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0013_merge_20240320_2159'),
+        ('core', '0015_alter_photo_file_path_and_more'),
     ]
 
     operations = [

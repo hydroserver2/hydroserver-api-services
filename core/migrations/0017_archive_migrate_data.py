@@ -20,7 +20,7 @@ def reverse_populate_archive_link(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0014_archive'),
+        ('core', '0016_archive'),
     ]
 
     operations = [
