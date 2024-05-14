@@ -15,7 +15,7 @@ orcid_router = Router(tags=['ORCID OAuth 2.0'])
 
 @orcid_router.get('/login')
 def orcid_login(request):
-    if settings.DEPLOYED is True:
+    if settings.DEPLOYMENT_BACKEND in ['aws']:
         redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/orcid/auth'
     else:
         redirect_uri = request.build_absolute_uri('/api/account/orcid/auth')
