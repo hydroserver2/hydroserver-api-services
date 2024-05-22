@@ -142,6 +142,7 @@ class Datastream(models.Model):
         DataSource, on_delete=models.SET_NULL, null=True, blank=True, db_column='dataSourceId'
     )
     data_source_column = models.CharField(max_length=255, null=True, blank=True, db_column='dataSourceColumn')
+    archived = models.BooleanField(default=False)
 
     # In the data model, not implemented for now
     observed_area = models.CharField(max_length=255, null=True, blank=True, db_column='observedArea')

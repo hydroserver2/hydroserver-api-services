@@ -1,5 +1,5 @@
 from .location import Location
-from .thing import Thing, Photo, Tag
+from .thing import Thing, Photo, Tag, Archive
 from .thing_association import ThingAssociation
 from .historical_location import HistoricalLocation
 from .data_loader import DataLoader

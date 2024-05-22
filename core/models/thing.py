@@ -1,13 +1,18 @@
 import uuid
+import os
+import tempfile
+import requests
 from datetime import datetime
 from typing import Optional
 from django.db import models
 from django.db.models import Q, Prefetch
 from django.core.files.storage import get_storage_class
+from hsmodels.schemas.fields import PointCoverage
 from ninja.errors import HttpError
 from simple_history.models import HistoricalRecords
 from core.models import Location
 from hydroserver.settings import STORAGES, PROXY_BASE_URL
+from core.utils import generate_csv
 
 
 class ThingQuerySet(models.QuerySet):
@@ -92,22 +97,6 @@ class ThingQuerySet(models.QuerySet):
 
         return thing
 
-    # def get_primary_owner(self, thing_id, user=None, user_is_owner=False):
-    #     queryset = self.prefetch_associates()  # noqa
-    #     queryset = queryset.owner_is_active()
-    #
-    #     if user_is_owner is True:
-    #         queryset = queryset.owner(user=user)
-    #
-    #     try:
-    #         thing = queryset.distinct().get(pk=thing_id)
-    #     except Thing.DoesNotExist:
-    #         return None
-    #
-    #     primary_associate = thing.associates.get(is_primary_owner=True)
-    #
-    #     return primary_associate.person
-
 
 class Thing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -118,9 +107,6 @@ class Thing(models.Model):
     site_type = models.CharField(max_length=200, db_column='siteType')
     is_private = models.BooleanField(default=False, db_column='isPrivate')
     data_disclaimer = models.TextField(null=True, blank=True, db_column='dataDisclaimer')
-    hydroshare_archive_resource_id = models.CharField(
-        max_length=500, blank=True, null=True, db_column='hydroshareArchiveResourceId'
-    )
     location = models.OneToOneField(Location, related_name='thing', on_delete=models.CASCADE, db_column='locationId')
     history = HistoricalRecords(custom_model_name='ThingChangeLog', related_name='log')
 
@@ -159,3 +145,141 @@ class Photo(models.Model):
 
     class Meta:
         db_table = 'Photo'
+
+
+class ArchiveManager(models.Manager):
+    def create_or_link(
+            self,
+            hs_connection,
+            thing,
+            resource_title=None,
+            resource_abstract=None,
+            resource_keywords=None,
+            link=None,
+            path='/',
+            frequency=None,
+            datastream_ids=None,
+            public_resource=False
+    ):
+
+        if link:
+            try:
+                archive_resource = hs_connection.resource(link.split('/')[-2])
+            except (Exception,):  # hsclient just raises a generic exception if the resource doesn't exist.
+                raise HttpError(400, 'Provided HydroShare resource does not exist.')
+        else:
+            archive_resource = hs_connection.create()
+            archive_resource.metadata.title = resource_title
+            archive_resource.metadata.abstract = resource_abstract
+            archive_resource.metadata.subjects = resource_keywords
+            archive_resource.metadata.spatial_coverage = PointCoverage(
+                name=thing.location.name,
+                north=thing.location.latitude,
+                east=thing.location.longitude,
+                projection='WGS 84 EPSG:4326',
+                type='point',
+                units='Decimal degrees'
+            )
+            archive_resource.metadata.additional_metadata = {
+                'Sampling Feature Type': thing.sampling_feature_type,
+                'Sampling Feature Code': thing.sampling_feature_code,
+                'Site Type': thing.site_type
+            }
+
+            if thing.data_disclaimer:
+                archive_resource.metadata.additional_metadata['Data Disclaimer'] = thing.data_disclaimer
+
+            archive_resource.save()
+
+        for datastream in thing.datastreams.all():
+            if datastream_ids and datastream.id in datastream_ids:
+                datastream.archived = True
+            else:
+                datastream.archived = False
+            datastream.save()
+
+        archive = self.create(
+            thing=thing,
+            link=f'https://www.hydroshare.org/resource/{archive_resource.resource_id}/',
+            path=path,
+            frequency=frequency
+        )
+        archive.save()
+
+        return archive
+
+
+class Archive(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    thing = models.OneToOneField('Thing', related_name='archive', on_delete=models.CASCADE, db_column='thingId')
+    link = models.URLField(max_length=255)
+    path = models.CharField(max_length=255)
+    frequency = models.CharField(max_length=255, blank=True, null=True)
+
+    objects = ArchiveManager()
+
+    @property
+    def datastream_ids(self):
+        return [
+            datastream['id'] for datastream in self.thing.datastreams.filter(archived=True).values('id').all()
+        ]
+
+    @property
+    def public_resource(self):
+        response = requests.get(f'{self.link.replace("resource", "hsapi/resource")}/sysmeta/')
+        return response.status_code == 200
+
+    def transfer_data(self, hs_connection, make_public=False):
+        archive_resource = hs_connection.resource(self.link.split('/')[-2])
+        archive_folder = self.path
+
+        if not archive_folder.endswith('/'):
+            archive_folder += '/'
+
+        if archive_folder == '/':
+            archive_folder = ''
+
+        datastreams = self.thing.datastreams.filter(
+            Q(thing_id=self.thing_id) & Q(archived=True)
+        ).select_related('processing_level', 'observed_property').all()
+
+        datastream_file_names = []
+
+        processing_levels = list(set([
+            datastream.processing_level.definition for datastream in datastreams
+        ]))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for processing_level in processing_levels:
+                try:
+                    archive_resource.folder_delete(f'{archive_folder}{processing_level}')
+                except (Exception,):
+                    pass
+                archive_resource.folder_create(f'{archive_folder}{processing_level}')
+                os.mkdir(os.path.join(temp_dir, processing_level))
+            for datastream in datastreams:
+                temp_file_name = datastream.observed_property.code
+                temp_file_index = 2
+                while f'{datastream.processing_level.definition}_{temp_file_name}' in datastream_file_names:
+                    temp_file_name = f'{datastream.observed_property.code} - {str(temp_file_index)}'
+                    temp_file_index += 1
+                datastream_file_names.append(f'{datastream.processing_level.definition}_{temp_file_name}')
+                temp_file_name = f'{temp_file_name}.csv'
+                temp_file_path = os.path.join(temp_dir, datastream.processing_level.definition, temp_file_name)
+                with open(temp_file_path, 'w') as csv_file:
+                    for line in generate_csv(datastream):
+                        csv_file.write(line)
+                archive_resource.file_upload(
+                    temp_file_path,
+                    destination_path=f'{archive_folder}{datastream.processing_level.definition}'
+                )
+
+            if make_public is True:
+                try:
+                    archive_resource.set_sharing_status(public=True)
+                    archive_resource.save()
+                except (Exception,):
+                    pass
+
+    class Meta:
+        db_table = 'Archive'
