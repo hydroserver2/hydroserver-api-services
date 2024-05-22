@@ -4,8 +4,9 @@ from core.models import Thing, Archive
 
 def populate_archive_link(apps, schema_editor):
     for thing in Thing.objects.all():
-        if thing.hydroshare_archive_resource_id:
-            link = f"https://www.hydroshare.org/resource/{thing.hydroshare_archive_resource_id}/"
+        hydroshare_archive_resource_id = thing._meta.get_field('hydroshareArchiveResourceId').value_from_object(thing)
+        if hydroshare_archive_resource_id:
+            link = f"https://www.hydroshare.org/resource/{hydroshare_archive_resource_id}/"
             Archive.objects.create(thing=thing, link=link, path='/', frequency=None)
 
 
