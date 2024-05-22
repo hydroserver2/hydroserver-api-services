@@ -276,8 +276,8 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
                 thing_association.delete()
 
     thing.save()
-
-    return 203, thing.serialize(user=request.authenticated_user)
+    
+    return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
 
 
 # # @router.patch(
