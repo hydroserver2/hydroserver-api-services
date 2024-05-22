@@ -36,7 +36,7 @@ def hydroshare_connect(request, uid: str = Query(...), token: str = Query(...)):
     if not account_verification_token.check_token(user, token):
         return 400, 'Invalid or expired token'
 
-    if settings.DEPLOYMENT_BACKEND == 'aws':
+    if settings.DEPLOYMENT_BACKEND in ['aws']:
         redirect_uri = f'{settings.PROXY_BASE_URL}/api/account/hydroshare/auth'
     else:
         redirect_uri = request.build_absolute_uri('/api/account/hydroshare/auth')

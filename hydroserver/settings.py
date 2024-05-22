@@ -142,7 +142,7 @@ AUTHLIB_OAUTH_CLIENTS = {
     'orcid': {
         'client_id': config('OAUTH_ORCID_CLIENT', default=''),
         'client_secret': config('OAUTH_ORCID_SECRET', default=''),
-        'server_metadata_url': 'https://sandbox.orcid.org/.well-known/openid-configuration'
+        'server_metadata_url': 'https://www.orcid.org/.well-known/openid-configuration'
     },
     'google': {
         'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
