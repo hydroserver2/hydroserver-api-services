@@ -1,13 +1,17 @@
-from django.db import migrations
+from django.db import migrations, connection
 from core.models import Thing, Archive
 
 
 def populate_archive_link(apps, schema_editor):
     for thing in Thing.objects.all():
-        hydroshare_archive_resource_id = thing._meta.get_field('hydroshareArchiveResourceId').value_from_object(thing)
-        if hydroshare_archive_resource_id:
-            link = f"https://www.hydroshare.org/resource/{hydroshare_archive_resource_id}/"
-            Archive.objects.create(thing=thing, link=link, path='/', frequency=None)
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT \"hydroshareArchiveResourceId\" FROM \"Thing\" WHERE id = '{str(thing.id)}'")
+            row = cursor.fetchone()
+            if row is not None:
+                hydroshare_archive_resource_id = str(row[0])
+                if hydroshare_archive_resource_id:
+                    link = f"https://www.hydroshare.org/resource/{hydroshare_archive_resource_id}/"
+                    Archive.objects.create(thing=thing, link=link, path='/', frequency=None)
 
 
 def reverse_populate_archive_link(apps, schema_editor):
