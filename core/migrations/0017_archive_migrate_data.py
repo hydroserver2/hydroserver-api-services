@@ -7,7 +7,7 @@ def populate_archive_link(apps, schema_editor):
         with connection.cursor() as cursor:
             cursor.execute(f"SELECT \"hydroshareArchiveResourceId\" FROM \"Thing\" WHERE id = '{str(thing.id)}'")
             row = cursor.fetchone()
-            if row is not None:
+            if row and row[0]:
                 hydroshare_archive_resource_id = str(row[0])
                 if hydroshare_archive_resource_id:
                     link = f"https://www.hydroshare.org/resource/{hydroshare_archive_resource_id}/"
