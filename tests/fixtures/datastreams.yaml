@@ -9,6 +9,9 @@
     observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
     unit: 967944cb-903b-4f96-afba-3b9e69722f8f
     processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    phenomenon_begin_time: 2024-04-01 01:00:00.000 -0700
+    phenomenon_end_time: 2024-04-03 01:00:00.000 -0700
+    value_count: 3
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Time Series
     status: Ongoing
@@ -54,6 +57,9 @@
     observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
     unit: 967944cb-903b-4f96-afba-3b9e69722f8f
     processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    phenomenon_begin_time: 2024-04-01 01:00:00.000 -0700
+    phenomenon_end_time: 2024-04-02 01:00:00.000 -0700
+    value_count: 2
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Time Series
     status: Ongoing
@@ -76,6 +82,9 @@
     observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
     unit: 967944cb-903b-4f96-afba-3b9e69722f8f
     processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    phenomenon_begin_time: 2024-04-01 01:00:00.000 -0700
+    phenomenon_end_time: 2024-04-02 01:00:00.000 -0700
+    value_count: 2
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Time Series
     status: Ongoing
@@ -98,6 +107,9 @@
     observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
     unit: 967944cb-903b-4f96-afba-3b9e69722f8f
     processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    phenomenon_begin_time: 2024-04-01 01:00:00.000 -0700
+    phenomenon_end_time: 2024-04-02 01:00:00.000 -0700
+    value_count: 2
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Time Series
     status: Ongoing
@@ -120,6 +132,9 @@
     observed_property: cda18a59-3f2c-4c09-976f-3eadc34423bb
     unit: 967944cb-903b-4f96-afba-3b9e69722f8f
     processing_level: f2e18666-2a5c-4f75-b83b-aebfffc6a39f
+    phenomenon_begin_time: 2024-04-01 01:00:00.000 -0700
+    phenomenon_end_time: 2024-04-02 01:00:00.000 -0700
+    value_count: 2
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Time Series
     status: Ongoing

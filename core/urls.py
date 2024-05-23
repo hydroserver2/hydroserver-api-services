@@ -8,6 +8,7 @@ from core.views.unit import router as unit_router
 from core.views.photo import router as photo_router
 from core.views.tag import thing_tag_router as tag_router
 from core.views.tag import user_tag_router
+from core.views.archive import router as archive_router
 from core.views.datastream import router as datastream_router
 from core.views.result_qualifier import router as result_qualifier_router
 from core.views.data_loader import router as data_loader_router
@@ -21,6 +22,7 @@ api = NinjaAPI(
 
 thing_router.add_router('/{thing_id}/photos', photo_router)
 thing_router.add_router('/{thing_id}/tags', tag_router)
+thing_router.add_router('/{thing_id}/archive', archive_router)
 api.add_router('/things', thing_router)
 api.add_router('/tags', user_tag_router)
 api.add_router('/datastreams', datastream_router)

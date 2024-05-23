@@ -1,9 +1,7 @@
 import pandas as pd
-from hsmodels.schemas.fields import PointCoverage
 from collections import defaultdict
 from django.utils import timezone
 from django.http import StreamingHttpResponse
-from core.models import ThingAssociation, ResultQualifier, Thing, Observation
 
 
 def export_csv(request, thing_pk):
@@ -13,6 +11,8 @@ def export_csv(request, thing_pk):
     This iterates over the observations once, storing the observations in a dictionary, then yields the rows one by one.
     This algorithm is memory-efficient since it doesn't load the whole data into memory.
     """
+    from core.models import Thing, Observation
+
     thing = Thing.objects.get(id=thing_pk)
     response = StreamingHttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(thing.name)
@@ -38,6 +38,8 @@ def export_csv(request, thing_pk):
 
 
 def process_csv_file(file_path, sensor):
+    from core.models import Observation
+
     metadata = pd.read_csv(file_path, nrows=1, header=None).values.tolist()[0]
     df = pd.read_csv(file_path, header=1,
                      usecols=[datastream.observed_property.name for datastream in sensor.datastreams.all() if
@@ -59,43 +61,6 @@ def process_csv_file(file_path, sensor):
             observations.append(Observation(phenomenon_time=time, result=data[j], datastream=datastream))
 
         Observation.objects.bulk_create(observations)
-
-
-def create_hydroshare_archive_resource(
-        hydroshare_service,
-        resource_title,
-        resource_abstract,
-        resource_keywords,
-        thing
-):
-
-    archive_resource = hydroshare_service.create()
-    archive_resource.metadata.title = resource_title
-    archive_resource.metadata.abstract = resource_abstract
-    archive_resource.metadata.subjects = resource_keywords
-    archive_resource.metadata.spatial_coverage = PointCoverage(
-        name=thing.location.name,
-        north=thing.location.latitude,
-        east=thing.location.longitude,
-        projection='WGS 84 EPSG:4326',
-        type='point',
-        units='Decimal degrees'
-    )
-    archive_resource.metadata.additional_metadata = {
-        'Sampling Feature Type': thing.sampling_feature_type,
-        'Sampling Feature Code': thing.sampling_feature_code,
-        'Site Type': thing.site_type
-    }
-
-    if thing.data_disclaimer:
-        archive_resource.metadata.additional_metadata['Data Disclaimer'] = thing.data_disclaimer
-
-    archive_resource.save()
-
-    thing.hydroshare_archive_resource_id = archive_resource.resource_id
-    thing.save()
-
-    return archive_resource
 
 
 def get_organization_info(owner):
@@ -125,6 +90,7 @@ def get_site_owner_info(primary_owner):
 
 
 def generate_csv(datastream):
+    from core.models import ThingAssociation, ResultQualifier, Observation
 
     thing = datastream.thing
     location = thing.location
