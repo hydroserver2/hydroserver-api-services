@@ -1,5 +1,4 @@
 from uuid import UUID
-from typing import List
 from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import Datastream
@@ -10,16 +9,16 @@ from stapi.engine.utils import SensorThingsUtils
 class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
     def get_datastreams(
             self,
-            datastream_ids: List[UUID] = None,
-            observed_property_ids: List[UUID] = None,
-            sensor_ids: List[UUID] = None,
-            thing_ids: List[UUID] = None,
+            datastream_ids: list[UUID] = None,
+            observed_property_ids: list[UUID] = None,
+            sensor_ids: list[UUID] = None,
+            thing_ids: list[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (List[dict], int):
+    ) -> (dict[str, dict], int):
 
         if datastream_ids:
             datastream_ids = self.strings_to_uuids(datastream_ids)
@@ -100,8 +99,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 )
             datastreams = datastreams.all()
 
-        return [
-            {
+        return {
+            datastream.id: {
                 'id': datastream.id,
                 'name': str(datastream.name),
                 'description': datastream.description,
@@ -139,7 +138,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'last_updated': getattr(next(iter(datastream.ordered_log), None), 'history_date', None)
                 }
             } for datastream in datastreams
-        ], count
+        }, count
 
     def create_datastream(
             self,

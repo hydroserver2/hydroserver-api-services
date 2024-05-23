@@ -1,4 +1,3 @@
-from typing import List
 from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import Thing
@@ -9,14 +8,14 @@ from stapi.engine.utils import SensorThingsUtils
 class LocationEngine(LocationBaseEngine, SensorThingsUtils):
     def get_locations(
             self,
-            location_ids: List[str] = None,
-            thing_ids: List[str] = None,
+            location_ids: list[str] = None,
+            thing_ids: list[str] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (List[dict], int):
+    ) -> (dict[str, dict], int):
 
         if location_ids:
             location_ids = self.strings_to_uuids(location_ids)
@@ -74,8 +73,8 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return [
-            {
+        return {
+            thing.location.id: {
                 'id': thing.location.id,
                 'name': thing.location.name,
                 'description': thing.location.description,
@@ -100,7 +99,7 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 },
                 'thing_ids': [thing.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids
-        ], count
+        }, count
 
     def create_location(
             self,

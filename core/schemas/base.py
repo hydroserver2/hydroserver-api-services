@@ -1,7 +1,7 @@
 from ninja import Schema
 from typing import Literal
-from pydantic import validator
-from sensorthings.validators import whitespace_to_none
+from pydantic import field_validator
+from sensorthings.validators import remove_whitespace
 
 
 metadataOwnerOptions = Literal[
@@ -11,19 +11,15 @@ metadataOwnerOptions = Literal[
 
 class BasePostBody(Schema):
 
-    _whitespace_validator = validator(
+    _whitespace_validator = field_validator(
         '*',
-        allow_reuse=True,
-        check_fields=False,
-        pre=True
-    )(whitespace_to_none)
+        check_fields=False
+    )(remove_whitespace)
 
 
 class BasePatchBody(Schema):
 
-    _whitespace_validator = validator(
+    _whitespace_validator = field_validator(
         '*',
-        allow_reuse=True,
-        check_fields=False,
-        pre=True
-    )(whitespace_to_none)
+        check_fields=False
+    )(remove_whitespace)

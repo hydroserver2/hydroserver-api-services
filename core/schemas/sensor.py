@@ -2,7 +2,7 @@ from ninja import Schema
 from pydantic import Field
 from uuid import UUID
 from typing import Optional
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -30,7 +30,7 @@ class SensorGetResponse(SensorFields, SensorID):
         return {
             'id': sensor.id,
             'owner': sensor.person.email if sensor.person else None,
-            **{field: getattr(sensor, field) for field in SensorFields.__fields__.keys()},
+            **{field: getattr(sensor, field) for field in SensorFields.model_fields.keys()},
         }
 
     class Config:
@@ -41,6 +41,6 @@ class SensorPostBody(BasePostBody, SensorFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class SensorPatchBody(BasePatchBody, SensorFields):
     pass

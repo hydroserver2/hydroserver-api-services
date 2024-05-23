@@ -1,7 +1,7 @@
 from ninja import Schema
 from uuid import UUID
 from typing import Optional
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -24,7 +24,7 @@ class UnitGetResponse(UnitFields, UnitID):
         return {
             'id': unit.id,
             'owner': unit.person.email if unit.person else None,
-            **{field: getattr(unit, field) for field in UnitFields.__fields__.keys()},
+            **{field: getattr(unit, field) for field in UnitFields.model_fields.keys()},
         }
 
     class Config:
@@ -35,6 +35,6 @@ class UnitPostBody(BasePostBody, UnitFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class UnitPatchBody(BasePatchBody, UnitFields):
     pass

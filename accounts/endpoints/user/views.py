@@ -4,8 +4,9 @@ from django.http import HttpRequest
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from accounts.endpoints.user.schemas import *
-from accounts.endpoints.user.utils import account_verification_token, update_account_to_verified, send_verification_email, \
-     send_password_reset_confirmation_email, build_user_response
+from accounts.endpoints.user.utils import (account_verification_token, update_account_to_verified,
+                                           send_verification_email, send_password_reset_confirmation_email,
+                                           build_user_response)
 from hydroserver.auth import JWTAuth, BasicAuth
 from accounts.models import PasswordReset, Organization
 from hydroserver import settings
@@ -40,7 +41,7 @@ if not settings.DISABLE_ACCOUNT_CREATION:
         },
         by_alias=True
     )
-    def create_user(_: HttpRequest, data: UserPostBody):
+    def create_user(request: HttpRequest, data: UserPostBody):
 
         user = user_model.objects.filter(username=data.email, is_verified=True).first()
 
@@ -157,7 +158,7 @@ if not settings.DISABLE_ACCOUNT_CREATION:
         },
         by_alias=True
     )
-    def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
+    def activate_account(request: HttpRequest, data: VerifyAccountPostBody):
         user = user_model.objects.filter(
             username=data.uid,
             is_verified=False
@@ -189,7 +190,7 @@ if not settings.DISABLE_ACCOUNT_CREATION:
     }
 )
 def send_password_reset_email(
-        _: HttpRequest,
+        request: HttpRequest,
         data: PasswordResetRequestPostBody
 ):
     try:
@@ -221,7 +222,7 @@ def send_password_reset_email(
     }
 )
 def reset_password(
-        _: HttpRequest,
+        request: HttpRequest,
         data: ResetPasswordPostBody
 ):
     try:

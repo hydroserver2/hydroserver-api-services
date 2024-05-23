@@ -3,7 +3,7 @@ from typing import Optional, Literal, Union
 from pydantic import conint
 from datetime import datetime
 from uuid import UUID
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -43,7 +43,7 @@ class DataSourceGetResponse(DataSourceFields, DataSourceID):
     def serialize(cls, data_source):  # Temporary until after Pydantic v2 update
         return {
             'id': data_source.id,
-            **{field: getattr(data_source, field) for field in DataSourceFields.__fields__.keys()},
+            **{field: getattr(data_source, field) for field in DataSourceFields.model_fields.keys()},
         }
 
     class Config:
@@ -54,6 +54,6 @@ class DataSourcePostBody(BasePostBody, DataSourceFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class DataSourcePatchBody(BasePatchBody, DataSourceFields):
     pass

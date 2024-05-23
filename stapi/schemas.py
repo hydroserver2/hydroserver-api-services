@@ -1,9 +1,9 @@
 from uuid import UUID
 from ninja import Schema, Field
-from pydantic import HttpUrl
 from typing import List, Literal, Union, Optional
 from datetime import datetime
 from sensorthings import components as st_components
+from sensorthings.types import AnyHttpUrlString
 
 
 class DatastreamProperties(Schema):
@@ -23,12 +23,19 @@ class DatastreamProperties(Schema):
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
-class DatastreamResponse(Schema):
-    observation_type: str = Field(..., alias='observationType')
-    properties: DatastreamProperties
+class DatastreamGetResponse(st_components.DatastreamGetResponse):
+    observation_type: Optional[str] = Field(None, alias='observationType')
+    properties: Optional[DatastreamProperties] = None
+
+    class Config:
+        populate_by_name = True
+
+
+class DatastreamListResponse(st_components.DatastreamListResponse):
+    value: List[DatastreamGetResponse]
 
 
 class LocationProperties(Schema):
@@ -39,11 +46,15 @@ class LocationProperties(Schema):
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
-class LocationResponse(Schema):
-    properties: LocationProperties
+class LocationGetResponse(st_components.LocationGetResponse):
+    properties: Optional[LocationProperties] = None
+
+
+class LocationListResponse(st_components.LocationListResponse):
+    value: List[LocationGetResponse]
 
 
 class ObservedPropertyProperties(Schema):
@@ -52,21 +63,25 @@ class ObservedPropertyProperties(Schema):
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
-class ObservedPropertyResponse(Schema):
-    definition: str
-    properties: ObservedPropertyProperties
+class ObservedPropertyGetResponse(st_components.ObservedPropertyGetResponse):
+    definition: Optional[str] = None
+    properties: Optional[ObservedPropertyProperties] = None
+
+
+class ObservedPropertyListResponse(st_components.ObservedPropertyListResponse):
+    value: List[ObservedPropertyGetResponse]
 
 
 class SensorModel(Schema):
     sensor_model_name: str = Field(..., alias='sensorModelName')
-    sensor_model_url: Union[HttpUrl, None] = Field(None, alias='sensorModelURL')
+    sensor_model_url: Union[AnyHttpUrlString, None] = Field(None, alias='sensorModelURL')
     sensor_manufacturer: str = Field(..., alias='sensorManufacturer')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 sensorEncodingTypes = Literal[
@@ -80,27 +95,34 @@ sensorEncodingTypes = Literal[
 class SensorProperties(Schema):
     method_code: Union[str, None] = Field(None, alias='methodCode')
     method_type: str = Field(..., alias='methodType')
-    method_link: Union[HttpUrl, None] = Field(None, alias='methodLink')
+    method_link: Union[AnyHttpUrlString, None] = Field(None, alias='methodLink')
     sensor_model: SensorModel = Field(..., alias='sensorModel')
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
-class SensorResponse(Schema):
-    encoding_type: sensorEncodingTypes = Field(..., alias='encodingType')
-    sensor_metadata: SensorProperties = Field(..., alias='metadata')
+class SensorGetResponse(st_components.SensorGetResponse):
+    encoding_type: Optional[sensorEncodingTypes] = Field(None, alias='encodingType')
+    sensor_metadata: Optional[SensorProperties] = Field(None, alias='metadata')
+
+    class Config:
+        populate_by_name = True
+
+
+class SensorListResponse(st_components.SensorListResponse):
+    value: List[SensorGetResponse]
 
 
 class ContactPerson(Schema):
     first_name: str = Field(..., alias='firstName')
     last_name: str = Field(..., alias='lastName')
     email: str = Field(..., alias='email')
-    organization_name: str = Field(None, alias='organizationName')
+    organization_name: Optional[str] = Field(None, alias='organizationName')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class ThingProperties(Schema):
@@ -111,11 +133,15 @@ class ThingProperties(Schema):
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
-class ThingResponse(Schema):
-    properties: ThingProperties
+class ThingGetResponse(st_components.ThingGetResponse):
+    properties: Optional[ThingProperties] = None
+
+
+class ThingListResponse(st_components.ThingListResponse):
+    value: List[ThingGetResponse]
 
 
 class ResultQualifier(Schema):
@@ -123,22 +149,42 @@ class ResultQualifier(Schema):
     description: str
 
 
-class ObservationResultQualityResponse(Schema):
-    quality_code: str = Field(None, alias='qualityCode')
-    result_qualifiers: List[ResultQualifier] = Field(None, alias='resultQualifiers')
+class ResultQualityResponse(Schema):
+    quality_code: Optional[str] = Field(None, alias='qualityCode')
+    result_qualifiers: Optional[List[ResultQualifier]] = Field(None, alias='resultQualifiers')
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
-class ObservationResultQualityBody(Schema):
-    quality_code: str = Field(None, alias='qualityCode')
-    result_qualifiers: List[UUID] = Field(None, alias='resultQualifiers')
+class ResultQualityBody(Schema):
+    quality_code: Optional[str] = Field(None, alias='qualityCode')
+    result_qualifiers: Optional[List[UUID]] = Field(None, alias='resultQualifiers')
+
+    class Config:
+        populate_by_name = True
 
 
-class ObservationResponse(Schema):
-    result_quality: ObservationResultQualityResponse = Field(None, alias='resultQuality')
+class ObservationGetResponse(st_components.ObservationGetResponse):
+    result_quality: Optional[ResultQualityResponse] = Field(None, alias='resultQuality')
+
+    class Config:
+        populate_by_name = True
 
 
-class ObservationBody(Schema):
-    result_quality: ObservationResultQualityBody = Field(None, alias='resultQuality')
+class ObservationListResponse(st_components.ObservationListResponse):
+    value: List[ObservationGetResponse]
+
+
+class ObservationPostBody(st_components.ObservationPostBody):
+    result_quality: Optional[ResultQualityBody] = Field(None, alias='resultQuality')
+
+    class Config:
+        populate_by_name = True
+
+
+class ObservationPatchBody(st_components.ObservationPatchBody):
+    result_quality: Optional[ResultQualityBody] = Field(None, alias='resultQuality')
+
+    class Config:
+        populate_by_name = True

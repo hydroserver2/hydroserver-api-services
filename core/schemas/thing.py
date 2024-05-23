@@ -1,9 +1,8 @@
-import pydantic
 from ninja import Schema
-from pydantic import Field
+from pydantic import Field, ValidationInfo, field_validator, model_validator
 from typing import List, Optional
 from uuid import UUID
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -38,7 +37,7 @@ class TagPostBody(TagFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class TagPatchBody(TagFields):
     pass
 
@@ -94,12 +93,11 @@ class LocationFields(Schema):
     county: str = None
     country: str = None
 
-    @pydantic.root_validator
-    def check_country_code(cls, values):
-        country_code = values.get('country')
-        if country_code and country_code.upper() not in valid_country_codes:
-            raise ValueError(f'Invalid country code: {country_code}. Must be an ISO 3166-1 alpha-2 country code.')
-        return values
+    @field_validator('country')
+    def check_country_code(cls, value: str, info: ValidationInfo):
+        if value and value.upper() not in valid_country_codes:
+            raise ValueError(f'Invalid country code: {value}. Must be an ISO 3166-1 alpha-2 country code.')
+        return value
 
 
 class OrganizationFields(Schema):
@@ -147,13 +145,13 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
                 {'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()
             ],
             'owners': [{
-                **{field: getattr(associate, field) for field in AssociationFields.__fields__.keys()},
-                **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},
+                **{field: getattr(associate, field) for field in AssociationFields.model_fields.keys()},
+                **{field: getattr(associate.person, field) for field in PersonFields.model_fields.keys()},
                 **{field: getattr(associate.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()},
+                   for field in OrganizationFields.model_fields.keys()},
             } for associate in thing.associates.all() if associate.owns_thing is True and associate.person.is_active],
-            **{field: getattr(thing, field) for field in ThingFields.__fields__.keys()},
-            **{field: getattr(thing.location, field) for field in LocationFields.__fields__.keys()}
+            **{field: getattr(thing, field) for field in ThingFields.model_fields.keys()},
+            **{field: getattr(thing.location, field) for field in LocationFields.model_fields.keys()}
         }
 
     class Config:
@@ -164,7 +162,7 @@ class ThingPostBody(BasePostBody, ThingFields, LocationFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
     pass
 
@@ -175,8 +173,8 @@ class ThingOwnershipPatchBody(Schema):
     remove_owner: Optional[bool] = Field(False, alias='removeOwner')
     transfer_primary: Optional[bool] = Field(False, alias='transferPrimary')
 
-    @pydantic.root_validator()
-    def validate_only_one_method_allowed(cls, field_values):
+    @model_validator(mode='after')
+    def validate_only_one_method_allowed(self, field_values):
 
         assert [
                    field_values.get('make_owner', False),

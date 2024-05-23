@@ -5,7 +5,8 @@ import dj_database_url
 from pathlib import Path
 from uuid import UUID
 from corsheaders.defaults import default_headers
-from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
+from pydantic import PostgresDsn, EmailStr, HttpUrl
+from pydantic_settings import BaseSettings
 from typing import Union
 from ninja.types import DictStrAny
 from django.contrib.admin.views.decorators import staff_member_required

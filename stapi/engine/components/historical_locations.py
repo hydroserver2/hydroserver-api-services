@@ -1,4 +1,3 @@
-from typing import List
 from ninja.errors import HttpError
 from sensorthings.components.historicallocations.engine import HistoricalLocationBaseEngine
 from stapi.engine.utils import SensorThingsUtils
@@ -7,22 +6,22 @@ from stapi.engine.utils import SensorThingsUtils
 class HistoricalLocationEngine(HistoricalLocationBaseEngine, SensorThingsUtils):
     def get_historical_locations(
             self,
-            historical_location_ids: List[str] = None,
-            thing_ids: List[str] = None,
-            location_ids: List[str] = None,
+            historical_location_ids: list[str] = None,
+            thing_ids: list[str] = None,
+            location_ids: list[str] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (List[dict], int):
+    ) -> (dict[str, dict], int):
 
         if get_count:
             count = 0
         else:
             count = None
 
-        return [], count
+        return {}, count
 
     def create_historical_location(
             self,

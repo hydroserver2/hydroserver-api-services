@@ -3,7 +3,7 @@ from pydantic import Field
 from typing import Optional, Literal, Union, List
 from uuid import UUID
 from datetime import datetime
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -52,7 +52,7 @@ class DatastreamGetResponse(DatastreamFields, DatastreamID):
         return {
             'id': datastream.id,
             'thing_id': datastream.thing_id,
-            **{field: getattr(datastream, field) for field in DatastreamFields.__fields__.keys()},
+            **{field: getattr(datastream, field) for field in DatastreamFields.model_fields.keys()},
         }
 
     class Config:
@@ -63,7 +63,7 @@ class DatastreamPostBody(BasePostBody, DatastreamFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class DatastreamPatchBody(BasePatchBody, DatastreamFields):
     thing_id: UUID = Field(..., alias='thingId')
 

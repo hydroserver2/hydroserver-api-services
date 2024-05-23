@@ -1,4 +1,4 @@
-import polars as pl
+import pandas as pd
 import math
 from ninja import Path, File
 from ninja.files import UploadedFile
@@ -11,7 +11,7 @@ from django.db.models import Q
 from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream, Observation, Thing, Sensor, ObservedProperty, Unit, ProcessingLevel
-from sensorthings.extras.iso_types import ISOTime
+from sensorthings.types import ISOTimeString
 from core.schemas.datastream import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody, \
      DatastreamMetadataGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -87,7 +87,7 @@ def create_datastream(request, data: DatastreamPostBody):
     This endpoint will create a new datastream.
     """
 
-    datastream_data = data.dict(include=set(DatastreamFields.__fields__.keys()))
+    datastream_data = data.dict(include=set(DatastreamFields.model_fields.keys()))
 
     thing = Thing.objects.get_by_id(
         thing_id=datastream_data['thing_id'],
@@ -134,7 +134,7 @@ def create_datastream(request, data: DatastreamPostBody):
         return 403, 'You do not have permission to link a datastream to the given intended time spacing unit.'
 
     datastream = Datastream.objects.create(
-        **data.dict(include=set(DatastreamFields.__fields__.keys()))
+        **data.dict(include=set(DatastreamFields.model_fields.keys()))
     )
 
     return 201, DatastreamGetResponse.serialize(datastream)
@@ -156,7 +156,7 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
         raise_404=True
     )
 
-    datastream_data = data.dict(include=set(DatastreamFields.__fields__.keys()), exclude_unset=True)
+    datastream_data = data.dict(include=set(DatastreamFields.model_fields.keys()), exclude_unset=True)
 
     if not datastream.primary_owner or (datastream_data.get('thing_id') and not Thing.objects.get_by_id(
         thing_id=datastream_data['thing_id'], user=datastream.primary_owner, method='PATCH', model='Datastream',
@@ -250,20 +250,16 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
         raise_404=True
     )
 
-    dataframe = pl.read_csv(file.read(), dtypes=[pl.String, pl.Float64, pl.String])
+    dataframe = pd.read_csv(file, dtype={'ResultTime': str, 'Result': float, 'ResultQualifiers': str})
 
     try:
-        dataframe = dataframe.with_columns([(pl.col('ResultTime').apply(
-            lambda x: ISOTime.validate(x)
-        ).alias('ISOResultTime'))])
-    except pl.exceptions.PolarsPanicError:
+        dataframe['ISOResultTime'] = dataframe['ResultTime'].apply(
+            lambda x: ISOTimeString(x)
+        )
+    except ValueError:
         return 400, 'Failed to parse uploaded CSV file.'
 
-    dataframe = dataframe.select([
-        pl.col('ISOResultTime'),
-        pl.col('Result'),
-        pl.col('ResultQualifiers')
-    ])
+    dataframe = dataframe[['ISOResultTime', 'Result', 'ResultQualifiers']]
 
     try:
         Observation.objects.bulk_create([
@@ -271,10 +267,9 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
                 datastream_id=datastream.id,
                 phenomenon_time=observation['ISOResultTime'],
                 result=observation['Result'] if not math.isnan(observation['Result']) else datastream.no_data_value,
-                result_qualifiers=observation['ResultQualifiers'].split(',')
-                if observation['ResultQualifiers'] else None
+                result_qualifiers=observation['ResultQualifiers'].split(',') if observation['ResultQualifiers'] else None
             )
-            for observation in dataframe.rows(named=True)
+            for observation in dataframe.to_dict(orient='records')
         ])
     except IntegrityError:
         return 409, 'Duplicate phenomenonTime found on this datastream.'

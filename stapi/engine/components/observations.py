@@ -1,6 +1,5 @@
 import math
 from uuid import UUID
-from typing import List
 from django.db.utils import IntegrityError
 from ninja.errors import HttpError
 from core.models import Observation, ResultQualifier, Datastream
@@ -11,15 +10,15 @@ from stapi.engine.utils import SensorThingsUtils
 class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     def get_observations(
             self,
-            observation_ids: List[UUID] = None,
-            datastream_ids: List[UUID] = None,
-            feature_of_interest_ids: List[UUID] = None,
+            observation_ids: list[UUID] = None,
+            datastream_ids: list[UUID] = None,
+            feature_of_interest_ids: list[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (List[dict], int):
+    ) -> (dict[str, dict], int):
 
         if observation_ids:
             observation_ids = self.strings_to_uuids(observation_ids)
@@ -110,8 +109,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             for result_qualifier in result_qualifiers
         }
 
-        return [
-            {
+        return {
+            observation.id: {
                 'id': observation.id,
                 'phenomenon_time': str(observation.phenomenon_time),
                 'result': observation.result,
@@ -127,7 +126,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                     ] if observation.result_qualifiers is not None else []
                 }
             } for observation in observations
-        ], count
+        }, count
 
     def create_observation(
             self,
@@ -171,7 +170,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     def create_observation_bulk(
             self,
             observations
-    ) -> List[UUID]:
+    ) -> list[UUID]:
 
         new_observations = []
 

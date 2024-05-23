@@ -3,8 +3,8 @@ from pydantic import Field
 from typing import List
 from uuid import UUID
 from datetime import datetime
-from sensorthings.validators import allow_partial
-from core.schemas_old import BasePostBody, BasePatchBody
+from sensorthings.validators import disable_required_field_validation
+from core.schemas.base import BasePostBody, BasePatchBody
 
 
 class ObservationID(Schema):
@@ -31,6 +31,6 @@ class ObservationPostBody(BasePostBody, ObservationFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class ObservationPatchBody(BasePatchBody, ObservationFields):
     pass

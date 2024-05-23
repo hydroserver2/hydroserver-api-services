@@ -1,7 +1,7 @@
 from ninja import Schema
 from uuid import UUID
 from typing import Optional
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -25,7 +25,7 @@ class ObservedPropertyGetResponse(ObservedPropertyFields, ObservedPropertyID):
         return {
             'id': observed_property.id,
             'owner': observed_property.person.email if observed_property.person else None,
-            **{field: getattr(observed_property, field) for field in ObservedPropertyFields.__fields__.keys()},
+            **{field: getattr(observed_property, field) for field in ObservedPropertyFields.model_fields.keys()},
         }
 
     class Config:
@@ -36,6 +36,6 @@ class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class ObservedPropertyPatchBody(BasePatchBody, ObservedPropertyFields):
     pass

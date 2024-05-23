@@ -1,7 +1,7 @@
 import base64
 from ninja import Schema
 from pydantic import Field, validator, EmailStr
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from accounts.endpoints.organization.schemas import OrganizationFields, OrganizationPatchBody
 
 
@@ -35,7 +35,7 @@ class UserPostBody(UserFields):
     password: str
 
 
-@allow_partial
+@disable_required_field_validation
 class UserPatchBody(UserFields):
     organization: OrganizationPatchBody = None
 

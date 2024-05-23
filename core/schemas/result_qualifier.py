@@ -1,7 +1,7 @@
 from ninja import Schema
 from uuid import UUID
 from typing import Optional
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -22,7 +22,7 @@ class ResultQualifierGetResponse(ResultQualifierFields, ResultQualifierID):
         return {
             'id': result_qualifier.id,
             'owner': result_qualifier.person.email if result_qualifier.person else None,
-            **{field: getattr(result_qualifier, field) for field in ResultQualifierFields.__fields__.keys()},
+            **{field: getattr(result_qualifier, field) for field in ResultQualifierFields.model_fields.keys()},
         }
 
     class Config:
@@ -33,6 +33,6 @@ class ResultQualifierPostBody(BasePostBody, ResultQualifierFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class ResultQualifierPatchBody(BasePatchBody, ResultQualifierFields):
     pass

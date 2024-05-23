@@ -1,5 +1,4 @@
 from uuid import UUID
-from typing import List
 from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import Thing
@@ -10,14 +9,14 @@ from stapi.engine.utils import SensorThingsUtils
 class ThingEngine(ThingBaseEngine, SensorThingsUtils):
     def get_things(
             self,
-            thing_ids: List[UUID] = None,
-            location_ids: List[UUID] = None,
+            thing_ids: list[UUID] = None,
+            location_ids: list[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (List[dict], int):
+    ) -> (list[str, dict], int):
 
         if location_ids:
             location_ids = self.strings_to_uuids(location_ids)
@@ -75,8 +74,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return [
-            {
+        return {
+            thing.id: {
                 'id': thing.id,
                 'name': thing.name,
                 'description': thing.description,
@@ -96,7 +95,7 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 },
                 'location_ids': [thing.location.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids
-        ], count
+        }, count
 
     def create_thing(
             self,

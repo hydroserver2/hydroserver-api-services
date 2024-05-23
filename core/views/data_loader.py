@@ -63,7 +63,7 @@ def create_data_loader(request, data: DataLoaderPostBody):
 
     data_loader = DataLoader.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(DataLoaderFields.__fields__.keys()))
+        **data.dict(include=set(DataLoaderFields.model_fields.keys()))
     )
 
     return 201, DataLoaderGetResponse.serialize(data_loader)
@@ -86,7 +86,7 @@ def update_data_loader(request, data: DataLoaderPatchBody, data_loader_id: UUID 
         raise_404=True
     )
 
-    data_loader_data = data.dict(include=set(DataLoaderFields.__fields__.keys()), exclude_unset=True)
+    data_loader_data = data.dict(include=set(DataLoaderFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'DataLoader', fields=[*data_loader_data.keys()]

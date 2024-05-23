@@ -1,5 +1,4 @@
 from uuid import UUID
-from typing import List
 from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import ObservedProperty
@@ -10,13 +9,13 @@ from stapi.engine.utils import SensorThingsUtils
 class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
     def get_observed_properties(
             self,
-            observed_property_ids: List[UUID] = None,
+            observed_property_ids: list[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (List[dict], int):
+    ) -> (dict[str, dict], int):
 
         if observed_property_ids:
             observed_property_ids = self.strings_to_uuids(observed_property_ids)
@@ -56,8 +55,8 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return [
-            {
+        return {
+            observed_property.id: {
                 'id': observed_property.id,
                 'name': observed_property.name,
                 'description': observed_property.description,
@@ -69,7 +68,7 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 }
             } for observed_property in observed_properties.all()
             if observed_property_ids is None or observed_property.id in observed_property_ids
-        ], count
+        }, count
 
     def create_observed_property(
             self,

@@ -1,7 +1,7 @@
 from ninja import Schema
 from uuid import UUID
 from typing import Optional
-from sensorthings.validators import allow_partial
+from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -23,7 +23,7 @@ class ProcessingLevelGetResponse(ProcessingLevelFields, ProcessingLevelID):
         return {
             'id': processing_level.id,
             'owner': processing_level.person.email if processing_level.person else None,
-            **{field: getattr(processing_level, field) for field in ProcessingLevelFields.__fields__.keys()},
+            **{field: getattr(processing_level, field) for field in ProcessingLevelFields.model_fields.keys()},
         }
 
     class Config:
@@ -34,6 +34,6 @@ class ProcessingLevelPostBody(BasePostBody, ProcessingLevelFields):
     pass
 
 
-@allow_partial
+@disable_required_field_validation
 class ProcessingLevelPatchBody(BasePatchBody, ProcessingLevelFields):
     pass
