@@ -1,7 +1,7 @@
 import os
 import hsclient
 import tempfile
-from ninja import Path
+from ninja import Path, Query
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
@@ -369,7 +369,7 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
     },
     by_alias=True
 )
-def get_thing_metadata(request, thing_id: UUID = Path(...)):
+def get_thing_metadata(request, thing_id: UUID = Path(...), include_assignable_metadata: Optional[bool] = Query(False)):
     """
     Get metadata for a Thing
 
@@ -377,30 +377,46 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
     units, observed properties, sensors, and processing levels.
     """
 
-    Thing.objects.get_by_id(
+    thing = Thing.objects.get_by_id(
         thing_id=thing_id,
         user=request.authenticated_user,
         method='GET',
         raise_404=True,
-        fetch=False
     )
 
-    units = Unit.objects.filter(
-        Q(datastreams__thing_id=thing_id) |
-        Q(time_aggregation_interval_units__thing_id=thing_id)
-    ).select_related('person').distinct()
+    if include_assignable_metadata is True:
+        units = Unit.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
 
-    sensors = Sensor.objects.filter(
-        Q(datastreams__thing_id=thing_id)
-    ).select_related('person').distinct()
+        sensors = Sensor.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
 
-    processing_levels = ProcessingLevel.objects.filter(
-        Q(datastreams__thing_id=thing_id)
-    ).select_related('person').distinct()
+        processing_levels = ProcessingLevel.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
 
-    observed_properties = ObservedProperty.objects.filter(
-        Q(datastreams__thing_id=thing_id)
-    ).select_related('person').distinct()
+        observed_properties = ObservedProperty.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
+    else:
+        units = Unit.objects.filter(
+            Q(datastreams__thing_id=thing_id) |
+            Q(time_aggregation_interval_units__thing_id=thing_id)
+        ).select_related('person').distinct()
+
+        sensors = Sensor.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
+
+        processing_levels = ProcessingLevel.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
+
+        observed_properties = ObservedProperty.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
 
     return 200, {
         'units': [UnitGetResponse.serialize(unit) for unit in units.all()],

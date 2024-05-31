@@ -16,7 +16,7 @@ def base_url():
     ('things', {'owned_only': True}, 200, 0, 4, 'anonymous'),
     ('things', {'primary_owned_only': True}, 200, 5, 4, 'alice'),
     ('things', {'primary_owned_only': True}, 200, 0, 4, 'anonymous'),
-    ('things/76dadda5-224b-4e1f-8570-e385bd482b2d/metadata', {}, 200, 4, 5, 'anonymous'),
+    ('things/76dadda5-224b-4e1f-8570-e385bd482b2d/metadata', {}, 200, 4, 6, 'anonymous'),
     ('things/76dadda5-224b-4e1f-8570-e385bd482b2d/datastreams', {}, 200, 3, 4, 'anonymous'),
     ('things/76dadda5-224b-4e1f-8570-e385bd482b2d/datastreams', {}, 200, 4, 4, 'alice'),
     ('things/3b7818af-eff7-4149-8517-e5cad9dc22e1/tags', {}, 200, 2, 4, 'anonymous'),
