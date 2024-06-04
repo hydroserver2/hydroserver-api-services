@@ -18,7 +18,7 @@
     intended_time_spacing_units: minutes
     aggregation_statistic: Continuous
     time_aggregation_interval: 0.0
-    time_aggregation_interval_units: b05a2bc8-a349-4d33-a761-9cfe9eb65c0a
+    time_aggregation_interval_units: minutes
     phenomenon_begin_time: 2022-03-01 10:00:10+00:00
     phenomenon_end_time: 2022-04-05 03:15:10+00:00
     data_source_id: c145427e-2ce4-4713-8847-18466e0f8f1d

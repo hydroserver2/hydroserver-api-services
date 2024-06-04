@@ -76,7 +76,7 @@ class DatastreamQuerySet(models.QuerySet):
         ) if modified is not None else self
 
     def get_by_id(self, datastream_id, user, method, model='Datastream', raise_404=False, fetch=True):
-        queryset = self.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+        queryset = self.select_related('processing_level', 'unit')
         queryset = queryset.prefetch_associates()  # noqa
         queryset = queryset.owner_is_active()
 
@@ -130,9 +130,9 @@ class Datastream(models.Model):
     )
     aggregation_statistic = models.CharField(max_length=255, db_column='aggregationStatistic')
     time_aggregation_interval = models.FloatField(db_column='timeAggregationInterval')
-    time_aggregation_interval_units = models.ForeignKey(Unit, on_delete=models.PROTECT,
-                                                        related_name='time_aggregation_interval_units',
-                                                        db_column='timeAggregationIntervalUnitsId')
+    time_aggregation_interval_units = models.CharField(
+        max_length=255, db_column='timeAggregationIntervalUnits'
+    )
     phenomenon_begin_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonBeginTime')
     phenomenon_end_time = models.DateTimeField(null=True, blank=True, db_column='phenomenonEndTime')
 
@@ -163,8 +163,6 @@ class Datastream(models.Model):
 
         metadata_models = {
             'unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
-            'time_aggregation_interval_unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
-            'intended_time_spacing_unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
             'sensor': {'name': 'Sensor', 'fields': ['name', 'description', 'encoding_type', 'manufacturer', 'model',
                                                     'model_link', 'method_type', 'method_link', 'method_code']},
             'processing_level': {'name': 'ProcessingLevel', 'fields': ['code', 'definition', 'explanation']},
