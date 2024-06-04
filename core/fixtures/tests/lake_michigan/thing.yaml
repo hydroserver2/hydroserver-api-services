@@ -9,6 +9,8 @@
     elevation_datum: WGS84
     state: MI
     county: Berrien County
+    country: US
+
 - model: core.thing
   pk: ab6d5d46-1ded-4ac6-8da8-0203df67950b
   fields:
@@ -20,7 +22,7 @@
     location: a10a9b2f-7942-48aa-9cfc-fba55732fe39
     is_private: False
 
-- model: core.thingassociation
+- model: core.ThingAssociation
   pk: 1_100_000_002
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b
@@ -28,7 +30,7 @@
     owns_thing: true
     is_primary_owner: true
 
-- model: core.thingassociation
+- model: core.ThingAssociation
   pk: 1_100_000_003
   fields:
     thing: ab6d5d46-1ded-4ac6-8da8-0203df67950b

@@ -9,20 +9,33 @@
     elevation_datum: WGS84
     state: CO
     county: El Paso County
+    country: US
+
 - model: core.thing
   pk: 0c04fcdc-3876-429e-8260-14b7baca0231
   fields:
     name: South Cheyenne Creek
     description: Site at South Cheyenne Creek next to Seven Falls
     sampling_feature_type: Test Site
-    sampling_feature_code: SCC_1
+    sampling_feature_code: CHEY
     site_type: Stream
     location: e78380f8-bdb5-4f15-8f37-bde53a4dd5c3
     is_private: True
-- model: core.thingassociation
+
+# Jane is primary owner
+- model: core.ThingAssociation
   pk: 1_100_000_001
   fields:
     thing: 0c04fcdc-3876-429e-8260-14b7baca0231
     person: 1_000_000_002
     owns_thing: true
     is_primary_owner: true
+
+# Paul is secondary owner
+- model: core.ThingAssociation
+  pk: 1_100_000_004
+  fields:
+    thing: 0c04fcdc-3876-429e-8260-14b7baca0231
+    person: 1_000_000_001
+    owns_thing: true
+    is_primary_owner: false
