@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     output_file = 'output.yaml'
     observations = []
-    num_observations = 1000
+    num_observations = 2000
 
     PAUL_ICE = '565b2407-fc55-4e4a-bcd7-6e945860f11b'
     PAUL_MNT = '93ccb684-2921-49df-a6cf-2f0dea8eb210'
@@ -75,5 +75,5 @@ if __name__ == "__main__":
         outfile.writelines(observations)
 
     print(f"File '{output_file}' generated with {num_observations} observations.")
-    print(f"phenomenon_start_time = {start_time}")
+    print(f"phenomenon_begin_time = {start_time}")
     print(f"phenomenon_end_time = {end_time}")
