@@ -30,7 +30,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             datastreams = datastreams.filter(id__in=datastream_ids)
 
         datastreams = datastreams.select_related(
-            'processing_level', 'unit', 'time_aggregation_interval_units'
+            'processing_level', 'unit'
         ).owner_is_active()
 
         if not expanded:
@@ -131,11 +131,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'intended_time_spacing_units':  datastream.intended_time_spacing_units,
                     'aggregation_statistic': datastream.aggregation_statistic,
                     'time_aggregation_interval': datastream.time_aggregation_interval,
-                    'time_aggregation_interval_units': {
-                        'name': datastream.time_aggregation_interval_units.name,
-                        'symbol': datastream.time_aggregation_interval_units.symbol,
-                        'definition': datastream.time_aggregation_interval_units.definition.split(';')[0]
-                    },
+                    'time_aggregation_interval_units': datastream.time_aggregation_interval_units,
                     'last_updated': getattr(next(iter(datastream.ordered_log), None), 'history_date', None)
                 }
             } for datastream in datastreams

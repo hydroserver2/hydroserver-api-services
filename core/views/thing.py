@@ -402,8 +402,7 @@ def get_thing_metadata(request, thing_id: UUID = Path(...), include_assignable_m
         ).select_related('person').distinct()
     else:
         units = Unit.objects.filter(
-            Q(datastreams__thing_id=thing_id) |
-            Q(time_aggregation_interval_units__thing_id=thing_id)
+            Q(datastreams__thing_id=thing_id)
         ).select_related('person').distinct()
 
         sensors = Sensor.objects.filter(
@@ -451,7 +450,7 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
         fetch=False
     )
 
-    datastream_query = Datastream.objects.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+    datastream_query = Datastream.objects.select_related('processing_level', 'unit')
     datastream_query = datastream_query.owner(user=request.authenticated_user, include_public=True)
 
     if request.authenticated_user and request.authenticated_user.permissions.enabled():
