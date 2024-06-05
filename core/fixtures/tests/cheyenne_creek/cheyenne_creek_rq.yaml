@@ -1,0 +1,45 @@
+- model: core.datastream
+  pk: 4c8dfc06-6be5-0001-91e1-30b6d4463bcf
+  fields:
+    unit: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    thing: 0c04fcdc-3876-429e-8260-14b7baca0231
+    sensor: a1a67dd4-6129-4af8-bbcd-5c1ef88b142a
+    observed_property: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
+    processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
+    name: CHEY - test case for result qualifiers
+    description: A test datastream.
+    observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
+    result_type: Result
+    status: Status
+    sampled_medium: Medium
+    value_count: 3
+    no_data_value: -9999.0
+    intended_time_spacing: 15.0
+    intended_time_spacing_units: minutes
+    aggregation_statistic: TEST
+    time_aggregation_interval: 0.0
+    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    phenomenon_begin_time: 2024-06-02 10:00:00+00:00
+    phenomenon_end_time: 2024-06-02 10:30:00+00:00
+
+- model: core.observation
+  pk: 558bcab5-9999-4447-be08-2521b7bed335
+  fields:
+    datastream: 4c8dfc06-6be5-0001-91e1-30b6d4463bcf
+    result: 10
+    phenomenon_time: 2024-06-02 10:00:00+00:00
+    result_qualifiers: [b0df0deb-f340-482e-93c8-4d340cd49e6d]
+- model: core.observation
+  pk: 55d9b4e5-9999-4b5f-8240-3703514afa15
+  fields:
+    datastream: 4c8dfc06-6be5-0001-91e1-30b6d4463bcf
+    result: 8
+    phenomenon_time: 2024-06-02 10:15:00+00:00
+    result_qualifiers: [b0df0deb-f340-482e-93c8-4d340cd49e6d]
+- model: core.observation
+  pk: 55e1c257-9999-4fa1-a113-7d76fb0ce2cd
+  fields:
+    datastream: 4c8dfc06-6be5-0001-91e1-30b6d4463bcf
+    result: 9
+    phenomenon_time: 2024-06-02 10:30:00+00:00
+    result_qualifiers: [b0df0deb-f340-482e-93c8-4d340cd49e6d]

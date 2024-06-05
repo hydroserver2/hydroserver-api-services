@@ -25,6 +25,7 @@
     address: "789, West Street, City C"
     organization: c93a24c9-98d5-4db7-a9c6-5c2f6543e617
     type: "Post-Doctoral Fellow"
+
 - model: core.sensor
   pk: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
   fields:
@@ -51,42 +52,46 @@
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 1
-- model: core.observedproperty
+
+- model: core.ObservedProperty
   pk: 0e57c721-1b6d-47ec-aeb2-e63c94b9ccf3
   fields:
-    name: test_property_1
+    name: Oxygen, dissolved
     person: 1_000_000_002
     definition: http://www.example.com/property1
     description: A test property.
     type: Variable
     code: VARIABLE1
-- model: core.observedproperty
+- model: core.ObservedProperty
   pk: 4c310501-31f3-4954-80b0-2279eb049e39
   fields:
-    name: test_property_2
+    name: Oxygen, dissolved percent of saturation
     person: 1_000_000_002
     definition: http://www.example.com/property2
     description: A test property.
     type: Variable
     code: VARIABLE2
-- model: core.processinglevel
+
+- model: core.ProcessingLevel
   pk: 3c72a7e0-d7fd-4be4-9663-264e4634b020
   fields:
     person: 1_000_000_002
     code: test_processing_level_3
     definition: Processing level 3
     explanation: A processing level
+
 - model: core.unit
   pk: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
   fields:
-    name: test_unit_3
+    name: Milligrams per liter
     person: 1_000_000_002
-    symbol: T
+    symbol: mg/L
     definition: http://www.example.com/unit3
     type: Unit
-- model: core.resultqualifier
+
+- model: core.ResultQualifier
   pk: b0df0deb-f340-482e-93c8-4d340cd49e6d
   fields:
-    code: RESULTQUALIFIER3
-    description: A test result qualifier.
+    code: ICE
+    description: The sensor was affected by ice at this point
     person: 1_000_000_002
