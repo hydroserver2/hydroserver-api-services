@@ -165,7 +165,7 @@ def get_datasource_datastreams(request, data_source_id: UUID = Path(...)):
         fetch=True
     )
 
-    datastream_query = Datastream.objects.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+    datastream_query = Datastream.objects.select_related('processing_level', 'unit')
 
     if request.authenticated_user and request.authenticated_user.permissions.enabled():
         datastream_query = datastream_query.apply_permissions(user=request.authenticated_user, method='GET')

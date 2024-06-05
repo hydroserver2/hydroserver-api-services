@@ -61,13 +61,13 @@ def base_url():
     ('sensors', {'owner': 'currentUserOrNoUser'}, 200, 3, 3, 'alice'),
     ('sensors', {'owner': 'anyUser'}, 200, 3, 3, 'alice'),
     ('sensors', {'owner': 'anyUserOrNoUser'}, 200, 4, 3, 'alice'),
-    ('units', {}, 200, 6, 3, 'anonymous'),
-    ('units', {}, 200, 6, 3, 'alice'),
-    ('units', {'owner': 'currentUser'}, 200, 3, 3, 'alice'),
+    ('units', {}, 200, 4, 3, 'anonymous'),
+    ('units', {}, 200, 4, 3, 'alice'),
+    ('units', {'owner': 'currentUser'}, 200, 2, 3, 'alice'),
     ('units', {'owner': 'noUser'}, 200, 1, 3, 'alice'),
-    ('units', {'owner': 'currentUserOrNoUser'}, 200, 4, 3, 'alice'),
-    ('units', {'owner': 'anyUser'}, 200, 5, 3, 'alice'),
-    ('units', {'owner': 'anyUserOrNoUser'}, 200, 6, 3, 'alice'),
+    ('units', {'owner': 'currentUserOrNoUser'}, 200, 3, 3, 'alice'),
+    ('units', {'owner': 'anyUser'}, 200, 3, 3, 'alice'),
+    ('units', {'owner': 'anyUserOrNoUser'}, 200, 4, 3, 'alice'),
     ('data-loaders', {}, 200, 0, 3, 'anonymous'),
     ('data-loaders', {}, 200, 2, 3, 'alice'),
     ('data-loaders/9d571b4b-c986-4fa8-8933-0491ddad9e0e/data-sources', {}, 404, 1, 3, 'anonymous'),
@@ -248,7 +248,7 @@ def test_core_get_endpoints(
         'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
         'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
         'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 201, 'alice'),
     ('datastreams', {
         'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
@@ -256,7 +256,7 @@ def test_core_get_endpoints(
         'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
         'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
         'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 201, 'bob'),
     ('datastreams', {
         'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
@@ -264,7 +264,7 @@ def test_core_get_endpoints(
         'thingId': '76dadda5-224b-4e1f-8570-e385bd482b2d', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
         'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
         'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 404, 'bob'),
     ('datastreams', {
         'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
@@ -272,7 +272,7 @@ def test_core_get_endpoints(
         'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': '5fbab69a-810b-4044-bfac-c40a05634c5c',
         'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
         'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 403, 'bob'),
     ('datastreams', {
         'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
@@ -280,7 +280,7 @@ def test_core_get_endpoints(
         'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
         'observedPropertyId': 'c1479bbc-3d7e-449c-ad3a-0a1c7742b460',
         'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 403, 'bob'),
     ('datastreams', {
         'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
@@ -288,7 +288,7 @@ def test_core_get_endpoints(
         'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
         'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
         'processingLevelId': 'fac80ccb-7e0b-4b83-9d06-1e225b1cf6bd', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 403, 'bob'),
     ('datastreams', {
         'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
@@ -296,15 +296,7 @@ def test_core_get_endpoints(
         'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
         'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
         'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '054ac53a-520f-4340-96f1-889ffa12874b',
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
-    }, 403, 'bob'),
-    ('datastreams', {
-        'name': 'string', 'description': 'string', 'observationType': 'string', 'sampledMedium': 'string',
-        'noDataValue': 0, 'aggregationStatistic': 'string', 'timeAggregationInterval': 0, 'resultType': 'string',
-        'thingId': '3b7818af-eff7-4149-8517-e5cad9dc22e1', 'sensorId': 'a9e79b5a-ae38-4314-abb0-604ee8d6049c',
-        'observedPropertyId': 'cda18a59-3f2c-4c09-976f-3eadc34423bb',
-        'processingLevelId': 'f2e18666-2a5c-4f75-b83b-aebfffc6a39f', 'unitId': '967944cb-903b-4f96-afba-3b9e69722f8f',
-        'timeAggregationIntervalUnitsId': '2d243a05-09b8-4dff-a329-738b4083dbce'
+        'timeAggregationIntervalUnits': 'minutes'
     }, 403, 'bob'),
     ('datastreams', {}, 422, 'alice'),
     ('datastreams', {}, 401, 'anonymous'),
@@ -399,12 +391,6 @@ def test_core_post_endpoints(
     }, 203, 'alice'),
     ('datastreams/b2529f8b-488a-4b11-b18d-7fa4eadd62cd', {
         'unitId': '054ac53a-520f-4340-96f1-889ffa12874b'
-    }, 403, 'alice'),
-    ('datastreams/b2529f8b-488a-4b11-b18d-7fa4eadd62cd', {
-        'timeAggregationIntervalUnitsId': '71e03b54-7225-4a52-b663-3b7159307e6e'
-    }, 203, 'alice'),
-    ('datastreams/b2529f8b-488a-4b11-b18d-7fa4eadd62cd', {
-        'timeAggregationIntervalUnitsId': '2d243a05-09b8-4dff-a329-738b4083dbce'
     }, 403, 'alice'),
     ('datastreams/1b98de60-0386-4d98-a933-b3cd0c09d98e', {'name': 'TSC Temperature'}, 404, 'bob'),
     ('datastreams/1b98de60-0386-4d98-a933-b3cd0c09d98e', {'name': 'TSC Temperature'}, 401, 'anonymous'),
