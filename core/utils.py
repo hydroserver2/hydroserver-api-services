@@ -146,7 +146,7 @@ def generate_csv(datastream):
 # IntendedTimeSpacingUnits: {datastream.intended_time_spacing_units}
 # AggregationStatistic: {datastream.aggregation_statistic}
 # TimeAggregationInterval: {datastream.time_aggregation_interval}
-# TimeAggregationIntervalUnitsName: {datastream.time_aggregation_interval_units.name}
+# TimeAggregationIntervalUnitsName: {datastream.time_aggregation_interval_units}
 #
 # Method Information:
 # -------------------------------------
