@@ -3,7 +3,7 @@ from pydantic import Field
 from typing import List
 from uuid import UUID
 from datetime import datetime
-from sensorthings.validators import disable_required_field_validation
+# from sensorthings.validators import disable_required_field_validation
 from core.schemas.base import BasePostBody, BasePatchBody
 
 
@@ -31,6 +31,6 @@ class ObservationPostBody(BasePostBody, ObservationFields):
     pass
 
 
-@disable_required_field_validation
+# @disable_required_field_validation
 class ObservationPatchBody(BasePatchBody, ObservationFields):
     pass

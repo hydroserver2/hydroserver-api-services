@@ -2,7 +2,7 @@ from ninja import Schema
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 from typing import List, Optional, Literal
 from uuid import UUID
-from sensorthings.validators import disable_required_field_validation
+# from sensorthings.validators import disable_required_field_validation
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -39,7 +39,7 @@ class ArchivePostBody(ArchiveFields):
     public_resource: Optional[bool] = Field(None, alias='publicResource')
 
 
-@disable_required_field_validation
+# @disable_required_field_validation
 class ArchivePatchBody(ArchiveFields):
     pass
 
@@ -70,7 +70,7 @@ class TagPostBody(TagFields):
     pass
 
 
-@disable_required_field_validation
+# @disable_required_field_validation
 class TagPatchBody(TagFields):
     pass
 
@@ -194,7 +194,7 @@ class ThingPostBody(BasePostBody, ThingFields, LocationFields):
     pass
 
 
-@disable_required_field_validation
+# @disable_required_field_validation
 class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
     pass
 

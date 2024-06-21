@@ -1,8 +1,8 @@
 import base64
 from ninja import Schema
-from pydantic import Field, validator, EmailStr
-from sensorthings.validators import disable_required_field_validation
+from pydantic import Field, field_validator, EmailStr
 from accounts.endpoints.organization.schemas import OrganizationFields, OrganizationPatchBody
+from sensorthings.schemas import DisableRequiredFieldValidation
 
 
 class UserFields(Schema):
@@ -35,8 +35,7 @@ class UserPostBody(UserFields):
     password: str
 
 
-@disable_required_field_validation
-class UserPatchBody(UserFields):
+class UserPatchBody(UserFields, metaclass=DisableRequiredFieldValidation):
     organization: OrganizationPatchBody = None
 
 
@@ -44,7 +43,7 @@ class VerifyAccountPostBody(Schema):
     uid: str
     token: str
 
-    @validator('uid')
+    @field_validator('uid')
     def decode_uid(cls, v: str):
         return base64.b64decode(v).decode('utf-8')
 

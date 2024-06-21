@@ -95,10 +95,10 @@ def build_user_response(user):
         'isVerified': user.is_verified,
         'organization': {
             **{field: getattr(user.organization, field, None)
-               for field in OrganizationFields.__fields__.keys()}
+               for field in OrganizationFields.model_fields.keys()}
         },
         **{
-            field: getattr(user, field) for field in UserFields.__fields__.keys()
+            field: getattr(user, field) for field in UserFields.model_fields.keys()
             if field != 'hydroshare_connected'
         },
         'email': user.email if user.is_verified is True else user.unverified_email,

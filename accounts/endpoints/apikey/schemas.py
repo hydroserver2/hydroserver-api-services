@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, Literal, List
 from pydantic import Field
 from uuid import UUID
-from sensorthings.validators import disable_required_field_validation
+# from sensorthings.validators import disable_required_field_validation
 
 
 permissions_methods = Literal['GET', 'POST', 'PATCH', 'DELETE']
@@ -42,7 +42,7 @@ class APIKeyPostBody(APIKeyFields):
     pass
 
 
-@disable_required_field_validation
+# @disable_required_field_validation
 class APIKeyPatchBody(APIKeyFields):
     pass
 

@@ -4,6 +4,7 @@ from django.db.utils import IntegrityError
 from ninja.errors import HttpError
 from core.models import Observation, ResultQualifier, Datastream
 from sensorthings.components.observations.engine import ObservationBaseEngine
+from sensorthings.extensions.dataarray.engine import DataArrayBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -167,6 +168,41 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
         return new_observation.id
 
+    def update_observation(
+            self,
+            observation_id: str,
+            observation
+    ) -> None:
+        pass
+
+    def delete_observation(
+            self,
+            observation_id: str
+    ) -> None:
+        pass
+
+    def update_value_count(
+            self,
+            datastream_id: UUID
+    ) -> None:
+
+        observation_query = Observation.objects.filter(
+            datastream_id=datastream_id
+        ).owner(user=getattr(getattr(self, 'request', None), 'authenticated_user', None))
+
+        datastream = Datastream.objects.get_by_id(
+            datastream_id=datastream_id,
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            method='PATCH',
+            model='Datastream',
+            raise_404=True
+        )
+
+        datastream.value_count = int(observation_query.count())
+        datastream.save()
+
+
+class DataArrayEngine(DataArrayBaseEngine, SensorThingsUtils):
     def create_observation_bulk(
             self,
             observations
@@ -214,41 +250,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
             new_observations.extend(new_observations_for_datastream)
 
-            self.update_value_count(datastream_id=datastream_id)
+            # self.update_value_count(datastream_id=datastream_id)
 
         return [
             observation.id for observation in new_observations
         ]
-
-    def update_observation(
-            self,
-            observation_id: str,
-            observation
-    ) -> None:
-        pass
-
-    def delete_observation(
-            self,
-            observation_id: str
-    ) -> None:
-        pass
-
-    def update_value_count(
-            self,
-            datastream_id: UUID
-    ) -> None:
-
-        observation_query = Observation.objects.filter(
-            datastream_id=datastream_id
-        ).owner(user=getattr(getattr(self, 'request', None), 'authenticated_user', None))
-
-        datastream = Datastream.objects.get_by_id(
-            datastream_id=datastream_id,
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            method='PATCH',
-            model='Datastream',
-            raise_404=True
-        )
-
-        datastream.value_count = int(observation_query.count())
-        datastream.save()

@@ -110,7 +110,7 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_observation',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=[schemas.ObservationListResponse, schemas.st_components.ObservationDataArrayResponse]
+            response_schema=[schemas.ObservationListResponse]
         ),
         SensorThingsEndpoint(
             name='get_observation',

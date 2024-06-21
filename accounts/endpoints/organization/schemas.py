@@ -1,5 +1,5 @@
 from ninja import Schema
-from sensorthings.validators import disable_required_field_validation
+# from sensorthings.validators import disable_required_field_validation
 
 
 class OrganizationFields(Schema):
@@ -14,6 +14,6 @@ class OrganizationFields(Schema):
         return not (obj.name and obj.code and obj.type)
 
 
-@disable_required_field_validation
+# @disable_required_field_validation
 class OrganizationPatchBody(OrganizationFields):
     pass

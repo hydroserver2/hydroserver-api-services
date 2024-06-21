@@ -6,7 +6,7 @@ from django.db.models.query import prefetch_related_objects
 from ninja.errors import HttpError
 from odata_query.django.django_q import AstToDjangoQVisitor
 from core import models as core_models
-from sensorthings.utils import lookup_component
+# from sensorthings.utils import lookup_component
 
 
 class SensorThingsUtils:
