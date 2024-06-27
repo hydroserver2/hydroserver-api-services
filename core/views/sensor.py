@@ -70,7 +70,7 @@ def create_sensor(request, data: SensorPostBody):
 
     sensor = Sensor.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(SensorFields.__fields__.keys()))
+        **data.dict(include=set(SensorFields.model_fields.keys()))
     )
 
     return 201, SensorGetResponse.serialize(sensor)
@@ -91,7 +91,7 @@ def update_sensor(request, data: SensorPatchBody, sensor_id: UUID = Path(...)):
         method='PATCH',
         raise_404=True
     )
-    sensor_data = data.dict(include=set(SensorFields.__fields__.keys()), exclude_unset=True)
+    sensor_data = data.dict(include=set(SensorFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'Sensor', fields=[*sensor_data.keys()]

@@ -1,6 +1,6 @@
 from sensorthings import SensorThingsBaseEngine
 from stapi.engine.components import DatastreamEngine, FeatureOfInterestEngine, HistoricalLocationEngine, \
-     LocationEngine, ObservationEngine, ObservedPropertyEngine, SensorEngine, ThingEngine, DataArrayEngine
+     LocationEngine, ObservationEngine, ObservedPropertyEngine, SensorEngine, ThingEngine
 
 
 class HydroServerSensorThingsEngine(
@@ -12,7 +12,6 @@ class HydroServerSensorThingsEngine(
     ObservedPropertyEngine,
     SensorEngine,
     ThingEngine,
-    SensorThingsBaseEngine,
-    DataArrayEngine
+    SensorThingsBaseEngine
 ):
     pass

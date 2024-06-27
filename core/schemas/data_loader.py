@@ -1,6 +1,5 @@
 from ninja import Schema
 from uuid import UUID
-# from sensorthings.validators import disable_required_field_validation
 from core.schemas import BasePostBody, BasePatchBody
 
 
@@ -29,6 +28,5 @@ class DataLoaderPostBody(BasePostBody, DataLoaderFields):
     pass
 
 
-# @disable_required_field_validation
 class DataLoaderPatchBody(BasePatchBody, DataLoaderFields):
     pass

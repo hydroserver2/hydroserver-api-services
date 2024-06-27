@@ -1,7 +1,4 @@
-import os
-import hsclient
-import tempfile
-from ninja import Path
+from ninja import Path, Query
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
@@ -12,14 +9,12 @@ from accounts.models import Person
 from core.models import Thing, Location, ThingAssociation, Unit, Sensor, ProcessingLevel, ObservedProperty, Datastream
 from core.router import DataManagementRouter
 from core.schemas.thing import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, \
-    ThingPrivacyPatchBody, ThingFields, LocationFields, ThingMetadataGetResponse, ThingArchiveBody
+    ThingPrivacyPatchBody, ThingFields, LocationFields, ThingMetadataGetResponse
 from core.schemas.unit import UnitGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.sensor import SensorGetResponse
 from core.schemas.datastream import DatastreamGetResponse
-from core.utils import generate_csv
-from hydroserver import settings
 
 
 router = DataManagementRouter(tags=['Things'])
@@ -92,12 +87,12 @@ def create_thing(request, data: ThingPostBody):
         name=f'Location for {data.name}',
         description='location',
         encoding_type="application/geo+json",
-        **data.dict(include=set(LocationFields.__fields__.keys()))
+        **data.dict(include=set(LocationFields.model_fields.keys()))
     )
 
     thing = Thing.objects.create(
         location=location,
-        **data.dict(include=set(ThingFields.__fields__.keys()))
+        **data.dict(include=set(ThingFields.model_fields.keys()))
     )
 
     ThingAssociation.objects.create(
@@ -127,8 +122,8 @@ def update_thing(request, data: ThingPatchBody, thing_id: UUID = Path(...)):
     )
     location = thing.location
 
-    thing_data = data.dict(include=set(ThingFields.__fields__.keys()), exclude_unset=True)
-    location_data = data.dict(include=set(LocationFields.__fields__.keys()), exclude_unset=True)
+    thing_data = data.dict(include=set(ThingFields.model_fields.keys()), exclude_unset=True)
+    location_data = data.dict(include=set(LocationFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'Thing', fields=[*thing_data.keys(), *location_data.keys()]
@@ -280,55 +275,6 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
     return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
 
 
-# # @router.patch(
-# #     '{thing_id}/followership',
-# #     auth=[JWTAuth(), BasicAuth()],
-# #     response={
-# #         203: ThingGetResponse,
-# #         401: str,
-# #         403: str,
-# #         404: str,
-# #         500: str
-# #     },
-# #     by_alias=True
-# # )
-# # @transaction.atomic
-# # def update_thing_followership(request, thing_id: UUID = Path(...)):
-# #     """
-# #     Update a Thing's Follower Status
-#
-# #     This endpoint allows a user to follow or unfollow a public Thing. Users cannot follow Things they own.
-# #     """
-#
-# #     thing = get_thing_by_id(
-# #         user=request.authenticated_user,
-# #         thing_id=thing_id,
-# #         require_unaffiliated=True,
-# #         raise_http_errors=True
-# #     )
-#
-# #     user_association = next(iter([
-# #         associate for associate in thing.associates.all()
-# #         if associate.follows_thing is True and associate.person == request.authenticated_user
-# #     ]), None)
-#
-# #     if user_association:
-# #         user_association.delete()
-# #     else:
-# #         ThingAssociation.objects.create(
-# #             thing_id=thing_id,
-# #             person=request.authenticated_user,
-# #             follows_thing=True
-# #         )
-#
-# #     thing = get_thing_by_id(
-# #         user=request.authenticated_user,
-# #         thing_id=thing_id
-# #     )
-#
-# #     return 203, build_thing_response(request.authenticated_user, thing)
-
-
 # # @thing_ownership_required
 # # def upload_csv(request, pk):
 # #     thing = get_object_or_404(Thing, pk=pk)
@@ -369,7 +315,7 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
     },
     by_alias=True
 )
-def get_thing_metadata(request, thing_id: UUID = Path(...)):
+def get_thing_metadata(request, thing_id: UUID = Path(...), include_assignable_metadata: Optional[bool] = Query(False)):
     """
     Get metadata for a Thing
 
@@ -377,30 +323,45 @@ def get_thing_metadata(request, thing_id: UUID = Path(...)):
     units, observed properties, sensors, and processing levels.
     """
 
-    Thing.objects.get_by_id(
+    thing = Thing.objects.get_by_id(
         thing_id=thing_id,
         user=request.authenticated_user,
         method='GET',
         raise_404=True,
-        fetch=False
     )
 
-    units = Unit.objects.filter(
-        Q(datastreams__thing_id=thing_id) |
-        Q(time_aggregation_interval_units__thing_id=thing_id)
-    ).select_related('person').distinct()
+    if include_assignable_metadata is True:
+        units = Unit.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
 
-    sensors = Sensor.objects.filter(
-        Q(datastreams__thing_id=thing_id)
-    ).select_related('person').distinct()
+        sensors = Sensor.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
 
-    processing_levels = ProcessingLevel.objects.filter(
-        Q(datastreams__thing_id=thing_id)
-    ).select_related('person').distinct()
+        processing_levels = ProcessingLevel.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
 
-    observed_properties = ObservedProperty.objects.filter(
-        Q(datastreams__thing_id=thing_id)
-    ).select_related('person').distinct()
+        observed_properties = ObservedProperty.objects.filter(
+            Q(person=thing.primary_owner)
+        ).select_related('person').distinct()
+    else:
+        units = Unit.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
+
+        sensors = Sensor.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
+
+        processing_levels = ProcessingLevel.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
+
+        observed_properties = ObservedProperty.objects.filter(
+            Q(datastreams__thing_id=thing_id)
+        ).select_related('person').distinct()
 
     return 200, {
         'units': [UnitGetResponse.serialize(unit) for unit in units.all()],
@@ -435,7 +396,7 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
         fetch=False
     )
 
-    datastream_query = Datastream.objects.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+    datastream_query = Datastream.objects.select_related('processing_level', 'unit')
     datastream_query = datastream_query.owner(user=request.authenticated_user, include_public=True)
 
     if request.authenticated_user and request.authenticated_user.permissions.enabled():

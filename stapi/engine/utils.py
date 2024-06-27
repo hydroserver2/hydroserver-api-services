@@ -6,7 +6,6 @@ from django.db.models.query import prefetch_related_objects
 from ninja.errors import HttpError
 from odata_query.django.django_q import AstToDjangoQVisitor
 from core import models as core_models
-# from sensorthings.utils import lookup_component
 
 
 class SensorThingsUtils:
@@ -82,12 +81,7 @@ class SensorThingsUtils:
                     'properties__intendedTimeSpacingUnitOfMeasurement': 'intended_time_spacing_units',
                     'properties__aggregationStatistic': 'aggregation_statistic',
                     'properties__timeAggregationInterval': 'time_aggregation_interval',
-                    'properties__timeAggregationIntervalUnitOfMeasurement__name':
-                        'time_aggregation_interval_unit__name',
-                    'properties__timeAggregationIntervalUnitOfMeasurement__symbol':
-                        'time_aggregation_interval_unit__symbol',
-                    'properties__timeAggregationIntervalUnitOfMeasurement__definition':
-                        'time_aggregation_interval_unit__definition'
+                    'properties__timeAggregationIntervalUnitOfMeasurement': 'time_aggregation_interval_units',
                 }.get(prop, prop)
 
         elif component == 'FeatureOfInterest':

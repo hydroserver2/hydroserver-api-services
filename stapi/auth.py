@@ -2,7 +2,7 @@ from typing import Sequence
 from django.contrib.auth import authenticate
 from ninja.security import HttpBasicAuth
 from core.models import ThingAssociation
-from sensorthings import SensorThingsRequest
+from sensorthings.http import SensorThingsHttpRequest
 
 
 class BasicAuth(HttpBasicAuth):
@@ -12,7 +12,7 @@ class BasicAuth(HttpBasicAuth):
             return user
 
 
-def observation_authorization(request: SensorThingsRequest, **kwargs):
+def observation_authorization(request: SensorThingsHttpRequest, **kwargs):
     """
     Checks user authentication for observation resources.
 

@@ -3,8 +3,9 @@ import hashlib
 import json
 from ninja.security import APIKeyHeader, APIKeyQuery, APIKeyCookie
 from ninja.errors import HttpError
-from accounts.models import APIKey, PermissionChecker
-from accounts.endpoints.apikey.schemas import APIKeyPermissions
+from accounts.models import APIKey
+from accounts.models.apikey import PermissionChecker
+from accounts.schemas.apikey import APIKeyPermissions
 from django.utils import timezone
 from django.db.models import Q
 

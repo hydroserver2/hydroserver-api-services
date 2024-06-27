@@ -61,7 +61,7 @@ def create_data_source(request, data: DataSourcePostBody):
     This endpoint will create a new data source owned by the authenticated user and returns the created data source.
     """
 
-    data_source_data = data.dict(include=set(DataSourceFields.__fields__.keys()))
+    data_source_data = data.dict(include=set(DataSourceFields.model_fields.keys()))
 
     if data_source_data.get('data_loader_id') and not DataLoader.objects.get_by_id(
         data_loader_id=data_source_data['data_loader_id'],
@@ -96,7 +96,7 @@ def update_data_source(request, data: DataSourcePatchBody, data_source_id: UUID 
         raise_404=True
     )
 
-    data_source_data = data.dict(include=set(DataSourceFields.__fields__.keys()), exclude_unset=True)
+    data_source_data = data.dict(include=set(DataSourceFields.model_fields.keys()), exclude_unset=True)
 
     if data_source_data.get('data_loader_id') and not DataLoader.objects.get_by_id(
         data_loader_id=data_source_data['data_loader_id'],
@@ -165,7 +165,7 @@ def get_datasource_datastreams(request, data_source_id: UUID = Path(...)):
         fetch=True
     )
 
-    datastream_query = Datastream.objects.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+    datastream_query = Datastream.objects.select_related('processing_level', 'unit')
 
     if request.authenticated_user and request.authenticated_user.permissions.enabled():
         datastream_query = datastream_query.apply_permissions(user=request.authenticated_user, method='GET')

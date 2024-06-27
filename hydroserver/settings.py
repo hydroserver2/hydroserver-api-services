@@ -5,12 +5,11 @@ import dj_database_url
 from pathlib import Path
 from uuid import UUID
 from corsheaders.defaults import default_headers
-from pydantic import PostgresDsn, EmailStr, HttpUrl
-from pydantic_settings import BaseSettings
-from typing import Union
-from ninja.types import DictStrAny
-from django.contrib.admin.views.decorators import staff_member_required
-from decouple import config, UndefinedValueError
+# from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
+# from typing import Union
+# from ninja.types import DictStrAny
+# from django.contrib.admin.views.decorators import staff_member_required
+from decouple import config  #, UndefinedValueError
 from urllib.parse import urlparse
 
 
@@ -35,6 +34,10 @@ if DEPLOYMENT_BACKEND == 'aws':
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
     CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
+elif DEPLOYMENT_BACKEND == 'vm':
+    PROXY_BASE_URL = config('PROXY_BASE_URL')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',')
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
 else:
     PROXY_BASE_URL = 'http://127.0.0.1:3030'
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']

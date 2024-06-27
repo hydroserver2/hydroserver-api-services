@@ -3,7 +3,6 @@ from pydantic import Field
 from typing import Optional, Literal, Union, List
 from uuid import UUID
 from datetime import datetime
-# from sensorthings.validators import disable_required_field_validation
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -39,7 +38,8 @@ class DatastreamFields(Schema):
     observed_property_id: UUID = Field(..., alias='observedPropertyId')
     processing_level_id: UUID = Field(..., alias='processingLevelId')
     unit_id: UUID = Field(..., alias='unitId')
-    time_aggregation_interval_units_id: UUID = Field(..., alias='timeAggregationIntervalUnitsId')
+    time_aggregation_interval_units: Literal['seconds', 'minutes', 'hours', 'days'] = \
+        Field(..., alias='timeAggregationIntervalUnits')
     intended_time_spacing: float = Field(None, alias='intendedTimeSpacing')
     intended_time_spacing_units: Optional[Literal['seconds', 'minutes', 'hours', 'days']] = \
         Field(None, alias='intendedTimeSpacingUnits')
@@ -63,7 +63,6 @@ class DatastreamPostBody(BasePostBody, DatastreamFields):
     pass
 
 
-# @disable_required_field_validation
 class DatastreamPatchBody(BasePatchBody, DatastreamFields):
     thing_id: UUID = Field(..., alias='thingId')
 

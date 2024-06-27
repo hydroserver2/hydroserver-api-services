@@ -4,6 +4,7 @@ from ninja import Path
 from ninja.errors import HttpError
 from typing import Optional
 from django.db import transaction, IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 from core.models import Thing, Archive
 from core.router import DataManagementRouter
 from core.schemas.thing import ArchiveFields, ArchiveGetResponse, ArchivePostBody, ArchivePatchBody
@@ -31,7 +32,7 @@ def get_thing_archive(request, thing_id: UUID = Path(...)):
 
     try:
         archive = Archive.objects.get(thing_id=thing_id)
-    except Archive.DoesNotExist:
+    except ObjectDoesNotExist:
         return None
 
     return 200, ArchiveGetResponse.serialize(archive)
@@ -150,7 +151,7 @@ def update_archive(request, data: ArchivePatchBody, thing_id: UUID = Path(...)):
     if not thing.archive:
         raise HttpError(404, 'Archive for this thing not found.')
 
-    archive_data = data.dict(include=set(ArchiveFields.__fields__.keys()), exclude_unset=True)
+    archive_data = data.dict(include=set(ArchiveFields.model_fields.keys()), exclude_unset=True)
 
     hydroshare_connection = hsclient.HydroShare(
         client_id=settings.AUTHLIB_OAUTH_CLIENTS['hydroshare']['client_id'],

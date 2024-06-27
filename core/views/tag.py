@@ -95,7 +95,7 @@ def create_tag(request, data: TagPostBody, thing_id: UUID = Path(...)):
 
     tag = Tag.objects.create(
         thing_id=thing_id,
-        **data.dict(include=set(TagFields.__fields__.keys()))
+        **data.dict(include=set(TagFields.model_fields.keys()))
     )
 
     return 201, TagGetResponse.serialize(tag)
@@ -123,7 +123,7 @@ def update_tag(request, data: TagPatchBody, thing_id: UUID = Path(...), tag_id: 
     if not tag:
         raise HttpError(404, 'Tag with the given ID was not found.')
 
-    tag_data = data.dict(include=set(TagFields.__fields__.keys()), exclude_unset=True)
+    tag_data = data.dict(include=set(TagFields.model_fields.keys()), exclude_unset=True)
 
     for field, value in tag_data.items():
         setattr(tag, field, value)

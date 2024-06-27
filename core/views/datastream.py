@@ -11,7 +11,7 @@ from django.db.models import Q
 from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream, Observation, Thing, Sensor, ObservedProperty, Unit, ProcessingLevel
-from sensorthings.types import ISOTimeString
+from sensorthings.types.iso_string import ISOTimeString
 from core.schemas.datastream import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody, \
      DatastreamMetadataGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -37,7 +37,7 @@ def get_datastreams(
     This endpoint returns a list of public datastreams and datastreams owned by the authenticated user if there is one.
     """
 
-    datastream_query = Datastream.objects.select_related('processing_level', 'unit', 'time_aggregation_interval_units')
+    datastream_query = Datastream.objects.select_related('processing_level', 'unit')
     datastream_query = datastream_query.modified_since(modified_since)
     datastream_query = datastream_query.owner_is_active()
 
@@ -121,18 +121,6 @@ def create_datastream(request, data: DatastreamPostBody):
     ):
         return 403, 'You do not have permission to link a datastream to the given unit.'
 
-    if not Unit.objects.get_by_id(
-        unit_id=datastream_data['time_aggregation_interval_units_id'], user=thing.primary_owner, method='POST',
-        model='Datastream', fetch=False
-    ):
-        return 403, 'You do not have permission to link a datastream to the given time aggregation interval unit.'
-
-    if datastream_data.get('intended_time_spacing_units_id') and not Unit.objects.get_by_id(
-        unit_id=datastream_data['intended_time_spacing_units_id'], user=thing.primary_owner, method='POST',
-        model='Datastream', fetch=False
-    ):
-        return 403, 'You do not have permission to link a datastream to the given intended time spacing unit.'
-
     datastream = Datastream.objects.create(
         **data.dict(include=set(DatastreamFields.model_fields.keys()))
     )
@@ -188,15 +176,6 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
     ):
         return 403, 'You do not have permission to link a datastream to the given unit.'
 
-    if datastream_data.get('time_aggregation_interval_units_id') and not Unit.objects.get_by_id(
-        unit_id=datastream_data['time_aggregation_interval_units_id'], user=datastream.primary_owner, method='PATCH',
-        model='Datastream', fetch=False
-    ) and not Unit.objects.get_by_id(
-        unit_id=datastream_data['time_aggregation_interval_units_id'], user=None, method='PATCH',
-        model='Datastream', fetch=False
-    ):
-        return 403, 'You do not have permission to link a datastream to the given time aggregation interval unit.'
-
     for field, value in datastream_data.items():
         setattr(datastream, field, value)
 
@@ -250,16 +229,20 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
         raise_404=True
     )
 
-    dataframe = pd.read_csv(file, dtype={'ResultTime': str, 'Result': float, 'ResultQualifiers': str})
+    dataframe = pd.read_csv(file.read(), dtypes=[pd.String, pd.Float64, pd.String])
 
     try:
-        dataframe['ISOResultTime'] = dataframe['ResultTime'].apply(
-            lambda x: ISOTimeString(x)
-        )
-    except ValueError:
+        dataframe = dataframe.with_columns([(pl.col('ResultTime').apply(
+            lambda x: ISOTimeString.validate(x)
+        ).alias('ISOResultTime'))])
+    except pl.exceptions.PolarsPanicError:
         return 400, 'Failed to parse uploaded CSV file.'
 
-    dataframe = dataframe[['ISOResultTime', 'Result', 'ResultQualifiers']]
+    dataframe = dataframe.select([
+        pd.column('ISOResultTime'),
+        pd.col('Result'),
+        pl.col('ResultQualifiers')
+    ])
 
     try:
         Observation.objects.bulk_create([
@@ -267,9 +250,10 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
                 datastream_id=datastream.id,
                 phenomenon_time=observation['ISOResultTime'],
                 result=observation['Result'] if not math.isnan(observation['Result']) else datastream.no_data_value,
-                result_qualifiers=observation['ResultQualifiers'].split(',') if observation['ResultQualifiers'] else None
+                result_qualifiers=observation['ResultQualifiers'].split(',')
+                if observation['ResultQualifiers'] else None
             )
-            for observation in dataframe.to_dict(orient='records')
+            for observation in dataframe.rows(named=True)
         ])
     except IntegrityError:
         return 409, 'Duplicate phenomenonTime found on this datastream.'
@@ -327,8 +311,7 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
         observed_properties = ObservedProperty.objects.filter(person=datastream.primary_owner).distinct()
     else:
         units = Unit.objects.filter(
-            Q(datastreams__id=datastream_id) |
-            Q(time_aggregation_interval_units__id=datastream_id)
+            Q(datastreams__id=datastream_id)
         ).distinct()
 
         sensors = Sensor.objects.filter(

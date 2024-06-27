@@ -19,7 +19,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: true
     is_data_visible: true
     data_source: 2c95bd7c-68f7-424e-920c-bd2e0ccc7717
@@ -42,7 +42,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: true
     is_data_visible: true
 
@@ -67,7 +67,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: false
     is_data_visible: false
 
@@ -92,7 +92,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: false
     is_data_visible: false
 
@@ -117,7 +117,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: true
     is_data_visible: true
 
@@ -142,7 +142,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: false
     is_data_visible: false
 
@@ -164,7 +164,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: e3b6c951-9b1b-4650-a309-5f08e352e801
+    time_aggregation_interval_units: minutes
     is_visible: true
     is_data_visible: true
 
@@ -186,7 +186,7 @@
     no_data_value: -9999
     aggregation_statistic: Continuous
     time_aggregation_interval: 1
-    time_aggregation_interval_units: 71e03b54-7225-4a52-b663-3b7159307e6e
+    time_aggregation_interval_units: minutes
     is_visible: true
     is_data_visible: true
     data_source: 2c95bd7c-68f7-424e-920c-bd2e0ccc7717

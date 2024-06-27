@@ -1,25 +1,25 @@
 import math
 from uuid import UUID
+from typing import List
 from django.db.utils import IntegrityError
 from ninja.errors import HttpError
 from core.models import Observation, ResultQualifier, Datastream
 from sensorthings.components.observations.engine import ObservationBaseEngine
-from sensorthings.extensions.dataarray.engine import DataArrayBaseEngine
 from stapi.engine.utils import SensorThingsUtils
 
 
 class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     def get_observations(
             self,
-            observation_ids: list[UUID] = None,
-            datastream_ids: list[UUID] = None,
-            feature_of_interest_ids: list[UUID] = None,
+            observation_ids: List[UUID] = None,
+            datastream_ids: List[UUID] = None,
+            feature_of_interest_ids: List[UUID] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (dict[str, dict], int):
+    ) -> (List[dict], int):
 
         if observation_ids:
             observation_ids = self.strings_to_uuids(observation_ids)
@@ -110,8 +110,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             for result_qualifier in result_qualifiers
         }
 
-        return {
-            observation.id: {
+        return [
+            {
                 'id': observation.id,
                 'phenomenon_time': str(observation.phenomenon_time),
                 'result': observation.result,
@@ -127,7 +127,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                     ] if observation.result_qualifiers is not None else []
                 }
             } for observation in observations
-        }, count
+        ], count
 
     def create_observation(
             self,
@@ -168,45 +168,10 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
         return new_observation.id
 
-    def update_observation(
-            self,
-            observation_id: str,
-            observation
-    ) -> None:
-        pass
-
-    def delete_observation(
-            self,
-            observation_id: str
-    ) -> None:
-        pass
-
-    def update_value_count(
-            self,
-            datastream_id: UUID
-    ) -> None:
-
-        observation_query = Observation.objects.filter(
-            datastream_id=datastream_id
-        ).owner(user=getattr(getattr(self, 'request', None), 'authenticated_user', None))
-
-        datastream = Datastream.objects.get_by_id(
-            datastream_id=datastream_id,
-            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
-            method='PATCH',
-            model='Datastream',
-            raise_404=True
-        )
-
-        datastream.value_count = int(observation_query.count())
-        datastream.save()
-
-
-class DataArrayEngine(DataArrayBaseEngine, SensorThingsUtils):
     def create_observation_bulk(
             self,
             observations
-    ) -> list[UUID]:
+    ) -> List[UUID]:
 
         new_observations = []
 
@@ -250,8 +215,41 @@ class DataArrayEngine(DataArrayBaseEngine, SensorThingsUtils):
 
             new_observations.extend(new_observations_for_datastream)
 
-            # self.update_value_count(datastream_id=datastream_id)
+            self.update_value_count(datastream_id=datastream_id)
 
         return [
             observation.id for observation in new_observations
         ]
+
+    def update_observation(
+            self,
+            observation_id: str,
+            observation
+    ) -> None:
+        pass
+
+    def delete_observation(
+            self,
+            observation_id: str
+    ) -> None:
+        pass
+
+    def update_value_count(
+            self,
+            datastream_id: UUID
+    ) -> None:
+
+        observation_query = Observation.objects.filter(
+            datastream_id=datastream_id
+        ).owner(user=getattr(getattr(self, 'request', None), 'authenticated_user', None))
+
+        datastream = Datastream.objects.get_by_id(
+            datastream_id=datastream_id,
+            user=getattr(getattr(self, 'request', None), 'authenticated_user', None),
+            method='PATCH',
+            model='Datastream',
+            raise_404=True
+        )
+
+        datastream.value_count = int(observation_query.count())
+        datastream.save()

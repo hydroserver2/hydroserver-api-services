@@ -1,3 +1,4 @@
+from typing import List
 from ninja.errors import HttpError
 from django.db.models import Prefetch
 from sensorthings.components.sensors.engine import SensorBaseEngine
@@ -8,13 +9,13 @@ from stapi.engine.utils import SensorThingsUtils
 class SensorEngine(SensorBaseEngine, SensorThingsUtils):
     def get_sensors(
             self,
-            sensor_ids: list[str] = None,
+            sensor_ids: List[str] = None,
             pagination: dict = None,
             ordering: dict = None,
             filters: dict = None,
             expanded: bool = False,
             get_count: bool = False
-    ) -> (dict[str, dict], int):
+    ) -> (List[dict], int):
 
         if sensor_ids:
             sensor_ids = self.strings_to_uuids(sensor_ids)
@@ -54,8 +55,8 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return {
-            sensor.id: {
+        return [
+            {
                 'id': sensor.id,
                 'name': sensor.name,
                 'description': sensor.description,
@@ -73,7 +74,7 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 },
                 'properties': {}
             } for sensor in sensors.all() if sensor_ids is None or sensor.id in sensor_ids
-        }, count
+        ], count
 
     def create_sensor(
             self,

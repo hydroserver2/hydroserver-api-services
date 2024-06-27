@@ -76,7 +76,7 @@ def create_observed_property(request, data: ObservedPropertyPostBody):
 
     observed_property = ObservedProperty.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(ObservedPropertyFields.__fields__.keys()))
+        **data.dict(include=set(ObservedPropertyFields.model_fields.keys()))
     )
 
     return 201, ObservedPropertyGetResponse.serialize(observed_property)
@@ -98,7 +98,7 @@ def update_observed_property(request, data: ObservedPropertyPatchBody, observed_
         method='PATCH',
         raise_404=True
     )
-    observed_property_data = data.dict(include=set(ObservedPropertyFields.__fields__.keys()), exclude_unset=True)
+    observed_property_data = data.dict(include=set(ObservedPropertyFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'ObservedProperty', fields=[*observed_property_data.keys()]

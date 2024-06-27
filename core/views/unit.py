@@ -65,7 +65,7 @@ def create_unit(request, data: UnitPostBody):
 
     unit = Unit.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(UnitFields.__fields__.keys()))
+        **data.dict(include=set(UnitFields.model_fields.keys()))
     )
 
     return 201, UnitGetResponse.serialize(unit)
@@ -81,7 +81,7 @@ def update_unit(request, data: UnitPatchBody, unit_id: UUID = Path(...)):
     """
 
     unit = Unit.objects.get_by_id(unit_id, request.authenticated_user, method='PATCH', raise_404=True)
-    unit_data = data.dict(include=set(UnitFields.__fields__.keys()), exclude_unset=True)
+    unit_data = data.dict(include=set(UnitFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'Unit', fields=[*unit_data.keys()]

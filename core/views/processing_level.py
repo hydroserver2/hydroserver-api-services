@@ -76,7 +76,7 @@ def create_processing_level(request, data: ProcessingLevelPostBody):
 
     processing_level = ProcessingLevel.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(ProcessingLevelFields.__fields__.keys()))
+        **data.dict(include=set(ProcessingLevelFields.model_fields.keys()))
     )
 
     return 201, ProcessingLevelGetResponse.serialize(processing_level)
@@ -98,7 +98,7 @@ def update_processing_level(request, data: ProcessingLevelPatchBody, processing_
         method='PATCH',
         raise_404=True
     )
-    processing_level_data = data.dict(include=set(ProcessingLevelFields.__fields__.keys()), exclude_unset=True)
+    processing_level_data = data.dict(include=set(ProcessingLevelFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'ProcessingLevel', fields=[*processing_level_data.keys()]

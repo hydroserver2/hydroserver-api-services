@@ -18,7 +18,7 @@
     intended_time_spacing_units: minutes
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
-    time_aggregation_interval_units: d69bbc57-8c31-4f5a-8398-2aaea4bd1f5e
+    time_aggregation_interval_units: minutes
     phenomenon_begin_time: 2022-01-01 10:10:10+00:00
     phenomenon_end_time: 2023-01-01 10:10:10+00:00
 

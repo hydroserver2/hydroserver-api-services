@@ -1,8 +1,9 @@
+import pydantic
 from ninja import Schema
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import Field
 from typing import List, Optional, Literal
 from uuid import UUID
-# from sensorthings.validators import disable_required_field_validation
+from sensorthings.validators import PartialSchema
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.unit import UnitGetResponse
@@ -39,8 +40,7 @@ class ArchivePostBody(ArchiveFields):
     public_resource: Optional[bool] = Field(None, alias='publicResource')
 
 
-# @disable_required_field_validation
-class ArchivePatchBody(ArchiveFields):
+class ArchivePatchBody(ArchiveFields, metaclass=PartialSchema):
     pass
 
 
@@ -70,8 +70,7 @@ class TagPostBody(TagFields):
     pass
 
 
-# @disable_required_field_validation
-class TagPatchBody(TagFields):
+class TagPatchBody(TagFields, metaclass=PartialSchema):
     pass
 
 
@@ -125,11 +124,12 @@ class LocationFields(Schema):
     county: str = None
     country: str = None
 
-    @field_validator('country')
-    def check_country_code(cls, value: str, info: ValidationInfo):
-        if value and value.upper() not in valid_country_codes:
-            raise ValueError(f'Invalid country code: {value}. Must be an ISO 3166-1 alpha-2 country code.')
-        return value
+    @pydantic.model_validator(mode='after')
+    def check_country_code(self, values):
+        country_code = values.get('country')
+        if country_code and country_code.upper() not in valid_country_codes:
+            raise ValueError(f'Invalid country code: {country_code}. Must be an ISO 3166-1 alpha-2 country code.')
+        return values
 
 
 class OrganizationFields(Schema):
@@ -194,7 +194,6 @@ class ThingPostBody(BasePostBody, ThingFields, LocationFields):
     pass
 
 
-# @disable_required_field_validation
 class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
     pass
 
@@ -205,7 +204,7 @@ class ThingOwnershipPatchBody(Schema):
     remove_owner: Optional[bool] = Field(False, alias='removeOwner')
     transfer_primary: Optional[bool] = Field(False, alias='transferPrimary')
 
-    @model_validator(mode='after')
+    @pydantic.model_validator(mode='after')
     def validate_only_one_method_allowed(self, field_values):
 
         assert [
