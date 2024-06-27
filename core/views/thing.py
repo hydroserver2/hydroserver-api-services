@@ -223,7 +223,6 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
         authenticated_user_association.save()
         thing_association.is_primary_owner = True
         thing_association.owns_thing = True
-        thing_association.follows_thing = False
         thing_association.save()
 
     elif data.remove_owner:
@@ -235,7 +234,6 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
         if not created:
             return 422, 'Specified user is already an owner of this site.'
         thing_association.owns_thing = True
-        thing_association.follows_thing = False
         thing_association.save()
 
     return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
@@ -265,43 +263,9 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
 
     thing.is_private = data.is_private
 
-    if data.is_private:
-        for thing_association in thing.associates.all():
-            if thing_association.follows_thing:
-                thing_association.delete()
-
     thing.save()
     
     return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
-
-
-# # @thing_ownership_required
-# # def upload_csv(request, pk):
-# #     thing = get_object_or_404(Thing, pk=pk)
-# #     sensors = Sensor.objects.filter(datastreams__thing=thing).distinct()
-# #
-# #     if not sensors:
-# #         return render(request, 'sites/upload_csv.html', {'thing': thing})
-# #
-# #     if request.method == 'POST' and request.FILES.get('csv_file'):
-# #         sensor_form = SensorSelectionForm(request.POST, sensors=sensors)
-# #
-# #         if sensor_form.is_valid():
-# #             csv_file = request.FILES['csv_file']
-# #             fs = FileSystemStorage(location=LOCAL_CSV_STORAGE)
-# #             filename = fs.save(csv_file.name, csv_file)
-# #             file_path = os.path.join(LOCAL_CSV_STORAGE, filename)
-# #             process_csv_file(file_path, sensors.get(pk=sensor_form.cleaned_data['sensor']))
-# #
-# #             return render(request, 'sites/upload_csv.html', {'success': True})
-# #     else:
-# #         sensor_form = SensorSelectionForm(sensors=sensors)
-# #
-# #     return render(request, 'sites/upload_csv.html', {
-# #         'thing': thing,
-# #         'form': sensor_form,
-# #         'has_sensors': True
-# #     })
 
 
 @router.get(

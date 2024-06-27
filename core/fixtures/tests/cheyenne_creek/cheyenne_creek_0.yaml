@@ -6,16 +6,12 @@
     sensor: 7294c8a8-a9d8-4490-b3be-315bbe971e0c
     observed_property: 4c310501-31f3-4954-80b0-2279eb049e39
     processing_level: 3c72a7e0-d7fd-4be4-9663-264e4634b020
-    name: 8af17d0e-8fce-4264-93b5-e55aa6a7ca02
-    description: A test datastream.
+    name: Datastream for CHEY - no data
+    description: This datastream opts out of everything that can be opted out of
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Result
-    status: Status
     sampled_medium: Medium
-    value_count: 0
     no_data_value: -9999.0
-    intended_time_spacing: 15.0
-    intended_time_spacing_units: minutes
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: minutes

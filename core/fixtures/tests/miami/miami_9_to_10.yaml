@@ -1,157 +1,157 @@
 - model: core.datastream
-  pk: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+  pk: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
   fields:
     unit: baf27e36-4b49-472d-9e08-1d3d3fcb04fe # Degree Celsius from Paul's list
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8 # Site in Miami
     sensor: 0afabdbd-9257-4e0a-8d47-76c98fe8a513 # YSI: EXO2 Multiparameter Sonde
     observed_property: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4 # Temperature
-    processing_level: 3b6284d9-7163-4b9a-9482-5c08e45e7b83 # RAW
-    name: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    processing_level: 3b6284d9-0000-4b9a-9482-5c08e45e7b83 # RAW
+    name: Temperature at MIA1 - values between 9 and 10
     description: A test datastream generated with a sinusoidal pattern to simulate temperature.
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Result
     status: Complete
     sampled_medium: Liquid aqueous
-    value_count: 100
+    value_count: 99
     no_data_value: -9999.0
     intended_time_spacing: 30.0
     intended_time_spacing_units: minutes
     aggregation_statistic: Continuous
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: minutes
-    phenomenon_begin_time: 2023-10-23 08:00:00+00:00
+    phenomenon_begin_time: 2023-10-23 09:00:00+00:00
     phenomenon_end_time: 2023-10-25 10:00:00+00:00
     data_source_id: c145427e-2ce4-4713-8847-18466e0f8f1d
     data_source_column: VALUE1
 
 - model: core.observation
-  pk: d48bcab5-5a77-4447-be08-2521b7bed335
+  pk: 558bcab5-5a77-4447-be08-2521b7bed335
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.718181789516809
     phenomenon_time: 2023-10-25 10:00:00+00:00
 - model: core.observation
-  pk: 24d9b4e5-871d-4b1d-8240-3703514afa15
+  pk: 55d9b4e5-871d-4b1d-8240-3703514afa15
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.62542352954546
     phenomenon_time: 2023-10-25 09:30:00+00:00
 - model: core.observation
-  pk: a8e1c257-ef28-4da5-a113-7d76fb0ce2cd
+  pk: 55e1c257-ef28-4da5-a113-7d76fb0ce2cd
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.925159006025778
     phenomenon_time: 2023-10-25 09:00:00+00:00
 - model: core.observation
-  pk: 6953d328-9a5a-4c06-b3d8-cdcb4d6df905
+  pk: 5553d328-9a5a-4c06-b3d8-cdcb4d6df905
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.509581323837748
     phenomenon_time: 2023-10-25 08:30:00+00:00
 - model: core.observation
-  pk: 91613357-4a40-423d-9310-a81702093eaf
+  pk: 55613357-4a40-423d-9310-a81702093eaf
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.676871956624165
     phenomenon_time: 2023-10-25 08:00:00+00:00
 - model: core.observation
-  pk: 8129b054-4830-41ba-8d30-e52ec4495b2e
+  pk: 5529b054-4830-41ba-8d30-e52ec4495b2e
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.69499210515533
     phenomenon_time: 2023-10-25 07:30:00+00:00
 - model: core.observation
-  pk: 66cd2879-a9dc-4ed5-a881-627fd702eea8
+  pk: 55cd2879-a9dc-4ed5-a881-627fd702eea8
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.631053315242589
     phenomenon_time: 2023-10-25 07:00:00+00:00
 - model: core.observation
-  pk: 11b84e34-5bab-476d-95fa-a44316d7ed85
+  pk: 55b84e34-5bab-476d-95fa-a44316d7ed85
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.623573485859362
     phenomenon_time: 2023-10-25 06:30:00+00:00
 - model: core.observation
-  pk: 47362700-ac96-4cb0-a630-b632ff8409b0
+  pk: 55362700-ac96-4cb0-a630-b632ff8409b0
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.852039143336386
     phenomenon_time: 2023-10-25 06:00:00+00:00
 - model: core.observation
-  pk: de732fe2-d857-4e58-9246-abf1d1f4b60a
+  pk: 55732fe2-d857-4e58-9246-abf1d1f4b60a
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.648482010455448
     phenomenon_time: 2023-10-25 05:30:00+00:00
 - model: core.observation
-  pk: 779ded97-4950-4017-9d2e-b40a31ee55f5
+  pk: 559ded97-4950-4017-9d2e-b40a31ee55f5
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.83092194834084
     phenomenon_time: 2023-10-25 05:00:00+00:00
 - model: core.observation
-  pk: 07773048-a77a-4bbe-af4b-0fb9d50320d8
+  pk: 55773048-a77a-4bbe-af4b-0fb9d50320d8
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.955460992982406
     phenomenon_time: 2023-10-25 04:30:00+00:00
 - model: core.observation
-  pk: 2e06d941-cc4f-41fc-9b3a-c1d1af809a4c
+  pk: 5506d941-cc4f-41fc-9b3a-c1d1af809a4c
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.89361400936211
     phenomenon_time: 2023-10-25 04:00:00+00:00
 - model: core.observation
-  pk: 62b231a8-d6a6-4983-a466-0443a48c6196
+  pk: 55b231a8-d6a6-4983-a466-0443a48c6196
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.90312479587348
     phenomenon_time: 2023-10-25 03:30:00+00:00
 - model: core.observation
-  pk: aed95827-9e15-43db-85fe-7d7aff92f405
+  pk: 55d95827-9e15-43db-85fe-7d7aff92f405
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.81343504714418
     phenomenon_time: 2023-10-25 03:00:00+00:00
 - model: core.observation
-  pk: a81efc11-0002-4daf-9b31-569e12542c09
+  pk: 551efc11-0002-4daf-9b31-569e12542c09
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.66729570710425
     phenomenon_time: 2023-10-25 02:30:00+00:00
 - model: core.observation
-  pk: 4c304f3a-b81b-4fa3-ac97-8051884e5b18
+  pk: 55304f3a-b81b-4fa3-ac97-8051884e5b18
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.647362873481518
     phenomenon_time: 2023-10-25 02:00:00+00:00
 - model: core.observation
-  pk: 8f284c87-2541-416e-bd72-4b8bf229734c
+  pk: 55284c87-2541-416e-bd72-4b8bf229734c
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.676353749880429
     phenomenon_time: 2023-10-25 01:30:00+00:00
 - model: core.observation
-  pk: e9a51d40-9e60-4bbd-b603-b501c6e3e6c3
+  pk: 55a51d40-9e60-4bbd-b603-b501c6e3e6c3
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.808986108446494
     phenomenon_time: 2023-10-25 01:00:00+00:00
 - model: core.observation
-  pk: 5df86bf8-b05f-43ec-9eee-cadad84c0db6
+  pk: 55f86bf8-b05f-43ec-9eee-cadad84c0db6
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.69137726774226
     phenomenon_time: 2023-10-25 00:30:00+00:00
 - model: core.observation
-  pk: d74b56a0-0ccb-4d58-888f-7cde9462ac3a
+  pk: 554b56a0-0ccb-4d58-888f-7cde9462ac3a
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.719916449870498
     phenomenon_time: 2023-10-25 00:00:00+00:00
 - model: core.observation
-  pk: c2ed2a77-7c9d-424b-ac24-f99195001238
+  pk: 55ed2a77-7c9d-424b-ac24-f99195001238
   fields:
     datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
     result: 9.845631166424006
@@ -463,164 +463,158 @@
     result: 9.783878488289
     phenomenon_time: 2023-10-23 22:00:00+00:00
 - model: core.observation
-  pk: 26934698-d801-4048-9192-8d07e1e489e9
+  pk: 55934698-d801-4048-9192-8d07e1e489e9
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.681073189307167
     phenomenon_time: 2023-10-23 21:30:00+00:00
 - model: core.observation
-  pk: 085e6395-27c6-4548-8fd5-3311efb0e19a
+  pk: 555e6395-27c6-4548-8fd5-3311efb0e19a
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.724142971903543
     phenomenon_time: 2023-10-23 21:00:00+00:00
 - model: core.observation
-  pk: 3384cd79-bc49-42b9-8904-0fb1adb7a564
+  pk: 5584cd79-bc49-42b9-8904-0fb1adb7a564
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.899056528448305
     phenomenon_time: 2023-10-23 20:30:00+00:00
 - model: core.observation
-  pk: 3de11136-aff2-4e78-9703-a0ce196f2225
+  pk: 55e11136-aff2-4e78-9703-a0ce196f2225
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.59628852027397
     phenomenon_time: 2023-10-23 20:00:00+00:00
 - model: core.observation
-  pk: 5dfbee89-c395-405a-8389-f0eb4c06167b
+  pk: 55fbee89-c395-405a-8389-f0eb4c06167b
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.56550718361649
     phenomenon_time: 2023-10-23 19:30:00+00:00
 - model: core.observation
-  pk: ec3b67e9-9e3f-4f52-b507-a93d1f502a5b
+  pk: 553b67e9-9e3f-4f52-b507-a93d1f502a5b
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.996015702113327
     phenomenon_time: 2023-10-23 19:00:00+00:00
 - model: core.observation
-  pk: 2b7fa4c2-c783-4163-8c9f-77c309db76c8
+  pk: 557fa4c2-c783-4163-8c9f-77c309db76c8
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.992143805010752
     phenomenon_time: 2023-10-23 18:30:00+00:00
 - model: core.observation
-  pk: 14a18c79-c2b6-4177-b92e-522d26a977c5
+  pk: 55a18c79-c2b6-4177-b92e-522d26a977c5
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.523211005325136
     phenomenon_time: 2023-10-23 18:00:00+00:00
 - model: core.observation
-  pk: 0f329d0c-5443-41aa-9826-a48a439139fc
+  pk: 55329d0c-5443-41aa-9826-a48a439139fc
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.610854334753308
     phenomenon_time: 2023-10-23 17:30:00+00:00
 - model: core.observation
-  pk: 78777002-bbfe-4a3c-88ff-4eff25e65a46
+  pk: 55777002-bbfe-4a3c-88ff-4eff25e65a46
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.525119477717714
     phenomenon_time: 2023-10-23 17:00:00+00:00
 - model: core.observation
-  pk: ac68836a-4c5e-4b20-b662-b40a08a245c9
+  pk: 5568836a-4c5e-4b20-b662-b40a08a245c9
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.617081072507002
     phenomenon_time: 2023-10-23 16:30:00+00:00
 - model: core.observation
-  pk: d19a90ed-f054-48ac-b9f4-6195489df0ba
+  pk: 559a90ed-f054-48ac-b9f4-6195489df0ba
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.545398137471663
     phenomenon_time: 2023-10-23 16:00:00+00:00
 - model: core.observation
-  pk: 74013ead-386a-4b98-8433-f807c3823fbe
+  pk: 55013ead-386a-4b98-8433-f807c3823fbe
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.654752194409612
     phenomenon_time: 2023-10-23 15:30:00+00:00
 - model: core.observation
-  pk: 3634109d-63d8-4fcc-826f-e798bac37e8a
+  pk: 5534109d-63d8-4fcc-826f-e798bac37e8a
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.936640282038807
     phenomenon_time: 2023-10-23 15:00:00+00:00
 - model: core.observation
-  pk: a832f504-b9ea-441c-bd42-2d1c3e2ef837
+  pk: 5532f504-b9ea-441c-bd42-2d1c3e2ef837
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.547652074618826
     phenomenon_time: 2023-10-23 14:30:00+00:00
 - model: core.observation
-  pk: 970ba687-e010-4e2d-8f86-9cae54c1cc42
+  pk: 550ba687-e010-4e2d-8f86-9cae54c1cc42
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.928834959722021
     phenomenon_time: 2023-10-23 14:00:00+00:00
 - model: core.observation
-  pk: 340798b7-90d3-409d-9d2f-7b61ba4eee81
+  pk: 550798b7-90d3-409d-9d2f-7b61ba4eee81
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.916161653590928
     phenomenon_time: 2023-10-23 13:30:00+00:00
 - model: core.observation
-  pk: fbceac09-7c71-44fb-ad75-a9d4980f31bb
+  pk: 55ceac09-7c71-44fb-ad75-a9d4980f31bb
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.533100915604754
     phenomenon_time: 2023-10-23 13:00:00+00:00
 - model: core.observation
-  pk: 1f0c56fb-19de-4e67-962b-223bf318a55a
+  pk: 550c56fb-19de-4e67-962b-223bf318a55a
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.976620708102748
     phenomenon_time: 2023-10-23 12:30:00+00:00
 - model: core.observation
-  pk: 47576895-e8c8-401e-8509-0a280677d58d
+  pk: 55576895-e8c8-401e-8509-0a280677d58d
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.946264642481257
     phenomenon_time: 2023-10-23 12:00:00+00:00
 - model: core.observation
-  pk: bd45656c-7de2-4846-8bb0-08bc9450daa7
+  pk: 5545656c-7de2-4846-8bb0-08bc9450daa7
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.995855561765147
     phenomenon_time: 2023-10-23 11:30:00+00:00
 - model: core.observation
-  pk: 73e6fb35-2ac3-4cf2-a720-11f3a6114c12
+  pk: 55e6fb35-2ac3-4cf2-a720-11f3a6114c12
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.926565107475255
     phenomenon_time: 2023-10-23 11:00:00+00:00
 - model: core.observation
-  pk: 35eedaa0-c32a-4d01-b4f7-5bc507e43d89
+  pk: 55eedaa0-c32a-4d01-b4f7-5bc507e43d89
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.820349115035787
     phenomenon_time: 2023-10-23 10:30:00+00:00
 - model: core.observation
-  pk: 96d1324b-03dc-4b55-8cb3-13fe5550a649
+  pk: 55d1324b-03dc-4b55-8cb3-13fe5550a649
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.876552859411442
     phenomenon_time: 2023-10-23 10:00:00+00:00
 - model: core.observation
-  pk: 38f6d06f-4086-4acd-9fdb-b6823d663e52
+  pk: 55f6d06f-4086-4acd-9fdb-b6823d663e52
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.614687329454034
     phenomenon_time: 2023-10-23 09:30:00+00:00
 - model: core.observation
-  pk: 10a29993-1ea5-444a-80c6-2bc3d10777b3
+  pk: 55a29993-1ea5-444a-80c6-2bc3d10777b3
   fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
+    datastream: 02a1c3f0-1111-41f6-a27a-f3e7a5d8f2a3
     result: 9.908241589026678
     phenomenon_time: 2023-10-23 09:00:00+00:00
-- model: core.observation
-  pk: 1513c730-cbce-4287-8e40-1a34d8f87065
-  fields:
-    datastream: 02a1c3f0-ae31-41f6-a27a-f3e7a5d8f2a3
-    result: 9.699237428206818
-    phenomenon_time: 2023-10-23 08:30:00+00:00

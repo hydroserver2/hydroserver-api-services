@@ -60,9 +60,6 @@ class DatastreamQuerySet(models.QuerySet):
     def unaffiliated(self, user):
         return self.filter(~(Q(thing__associates__person=user) & Q(thing__associates__is_owner=True)))
 
-    def follower(self, user):
-        return self.filter(Q(thing__associates__person=user) & Q(thing__associates__follows_thing=True))
-
     def prefetch_associates(self):
         from core.models import ThingAssociation
         associates_prefetch = Prefetch(

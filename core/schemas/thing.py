@@ -157,7 +157,6 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
     is_private: bool = Field(..., alias='isPrivate')
     is_primary_owner: bool = Field(..., alias='isPrimaryOwner')
     owns_thing: bool = Field(..., alias='ownsThing')
-    follows_thing: bool = Field(..., alias='followsThing')
     owners: List[OwnerFields]
     tags: List[TagGetResponse]
 
@@ -172,7 +171,6 @@ class ThingGetResponse(LocationFields, ThingFields, ThingID):
             'is_private': thing.is_private,
             'is_primary_owner': getattr(thing_association, 'is_primary_owner', False),
             'owns_thing': getattr(thing_association, 'owns_thing', False),
-            'follows_thing': getattr(thing_association, 'follows_thing', False),
             'tags': [
                 {'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()
             ],
