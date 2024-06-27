@@ -12,14 +12,14 @@
     result_type: Result
     status: Status
     sampled_medium: Medium
-    value_count: 0
+    value_count: 3
     no_data_value: -9999.0
-    intended_time_spacing: 15.0
+    intended_time_spacing: 5.0
     intended_time_spacing_units: minutes
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: minutes
-    phenomenon_begin_time: 2022-01-01 10:10:10+00:00
+    phenomenon_begin_time: 2022-03-01 10:00:10+00:00
     phenomenon_end_time: 2022-03-01 10:10:10+00:00
 
 - model: core.observation

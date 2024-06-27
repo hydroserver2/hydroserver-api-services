@@ -6,6 +6,7 @@
     description: "A prestigious university known for its research and academic excellence."
     type: "Educational Institution"
     link: "https://university-a.edu"
+
 - model: accounts.person
   pk: 1_000_000_001
   fields:
@@ -35,30 +36,6 @@
     model: EXO2 Multiparameter Sonde
     method_type: InstrumentDeployment
     person: 1_000_000_001
-
-- model: core.ProcessingLevel
-  pk: 3b6284d9-7163-4b9a-9482-5c08e45e7b83
-  fields:
-    definition: Raw data
-    explanation:
-      Raw and unprocessed data and data products that have not undergone
-      quality control. Depending on the variable, data type, and data transmission
-      system, raw data may be available within seconds or minutes after the measurements
-      have been made. Examples include real-time precipitation, streamflow, and water
-      quality measurements.
-    code: 0
-    person: 1_000_000_001
-
-- model: core.ObservedProperty
-  pk: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4
-  fields:
-    name: Temperature
-    definition: http://www.example.com/property4
-    description: "Originally from the CUAHSI HIS VariableNameCV.  See: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=VariableNameCV."
-    person: 1_000_000_001
-    code: Temperature
-    type: Hydrology
-
 - model: core.sensor
   pk: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
   fields:
@@ -85,7 +62,17 @@
     method_type: Method
     method_link: http://www.example.com/method
     method_code: METHOD 4
-- model: core.observedproperty
+
+- model: core.ObservedProperty
+  pk: e8d45a2e-3068-4cb6-b9f7-bbc22a40b6c4
+  fields:
+    name: Temperature
+    definition: http://www.example.com/property4
+    description: "Originally from the CUAHSI HIS VariableNameCV.  See: http://his.cuahsi.org/mastercvreg/edit_cv11.aspx?tbl=VariableNameCV."
+    person: 1_000_000_001
+    code: Temperature
+    type: Hydrology
+- model: core.ObservedProperty
   pk: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
   fields:
     name: test_property_3
@@ -94,7 +81,7 @@
     description: A test property.
     type: Variable
     code: VARIABLE3
-- model: core.observedproperty
+- model: core.ObservedProperty
   pk: 65d1d57a-528a-4a29-9a1e-a0e605eb6066
   fields:
     name: test_property_4
@@ -103,36 +90,58 @@
     description: A test property.
     type: Variable
     code: VARIABLE4
-- model: core.processinglevel
-  pk: 83fdb8ba-5db4-4f31-b1fa-e68478a4be13
+
+- model: core.ProcessingLevel
+  pk: 3b6284d9-0000-4b9a-9482-5c08e45e7b83
   fields:
+    code: 0
     person: 1_000_000_001
-    code: test_processing_level_2
-    definition: Processing level 2
+    definition: Raw data
+    explanation:
+      Raw and unprocessed data and data products that have not undergone
+      quality control. Depending on the variable, data type, and data transmission
+      system, raw data may be available within seconds or minutes after the measurements
+      have been made. Examples include real-time precipitation, streamflow, and water
+      quality measurements.
+- model: core.ProcessingLevel
+  pk: 3b6284d9-0001-4b9a-9482-5c08e45e7b83
+  fields:
+    code: 1
+    person: 1_000_000_001
+    definition: Quality controlled data
     explanation: A processing level
-- model: core.processinglevel
-  pk: 265f3951-7d73-4b7f-9b6a-ae19d3cecb2b
+- model: core.ProcessingLevel
+  pk: 3b6284d9-0002-4b9a-9482-5c08e45e7b83
   fields:
+    code: 2
     person: 1_000_000_001
-    code: test_processing_level_4
-    definition: Processing level 4
-    explanation: A processing level
-- model: core.unit
-  pk: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
+    definition: Derived products
+    explanation: 
+      Derived products that require scientific and technical interpretation
+      and may include multiple-sensor data. An example is basin average
+      precipitation derived from rain gauges using an interpolation procedure.
+- model: core.ProcessingLevel
+  pk: 3b6284d9-0003-4b9a-9482-5c08e45e7b83
   fields:
-    name: test_unit_2
+    code: 3
     person: 1_000_000_001
-    symbol: T
-    definition: http://www.example.com/unit2
-    type: Unit
-- model: core.unit
-  pk: 04d023bf-5d0a-4b61-9eac-7b7b6097af6f
+    definition: Interpreted products
+    explanation: 
+      Interpreted products that require researcher driven analysis and interpretation,
+      model-based interpretation using other data and/or strong prior assumptions. 
+      An example is basin average precipitation derived from the combination of rain gauges and radar return data.
+- model: core.ProcessingLevel
+  pk: 3b6284d9-0004-4b9a-9482-5c08e45e7b83
   fields:
-    name: test_unit_4
+    code: 4
     person: 1_000_000_001
-    symbol: T
-    definition: http://www.example.com/unit4
-    type: Unit
+    definition: Knowledge products
+    explanation: 
+      Knowledge products that require researcher driven scientific interpretation and 
+      multidisciplinary data integration and include model-based interpretation using 
+      other data and/or strong prior assumptions. An example is percentages of old or 
+      new water in a hydrograph inferred from an isotope analysis.
+
 - model: core.Unit
   pk: baf27e36-4b49-472d-9e08-1d3d3fcb04fe
   fields:
@@ -141,23 +150,40 @@
     person: 1_000_000_001
     symbol: degC; Cel
     type: Temperature
-- model: core.resultqualifier
+- model: core.Unit
+  pk: 52eac9d0-72ab-4f0e-933d-8ad8b8a8a1f9
+  fields:
+    name: test_unit_2
+    person: 1_000_000_001
+    symbol: T
+    definition: http://www.example.com/unit2
+    type: Unit
+- model: core.Unit
+  pk: 04d023bf-5d0a-4b61-9eac-7b7b6097af6f
+  fields:
+    name: test_unit_4
+    person: 1_000_000_001
+    symbol: T
+    definition: http://www.example.com/unit4
+    type: Unit
+
+- model: core.ResultQualifier
   pk: 565b2407-fc55-4e4a-bcd7-6e945860f11b
   fields:
-    code: RESULTQUALIFIER1
-    description: A test result qualifier.
+    code: ICE
+    description: The sensor was covered in ice at this time
     person: 1_000_000_001
-- model: core.resultqualifier
+- model: core.ResultQualifier
   pk: 93ccb684-2921-49df-a6cf-2f0dea8eb210
   fields:
-    code: RESULTQUALIFIER2
-    description: A test result qualifier.
+    code: MNT
+    description: Data point is affected by maintenance activities such as calibration, cleaning, or repairs
     person: 1_000_000_001
-- model: core.resultqualifier
-  pk: 8dc7b570-0247-4ccf-a5f2-0831546571cf
+- model: core.ResultQualifier
+  pk: 0037b570-0247-4ccf-a5f2-0831546571cf
   fields:
-    code: RESULTQUALIFIER5
-    description: A test result qualifier.
+    code: SED
+    description: Data point is influenced by the presence of sediment
     person: 1_000_000_001
 
 - model: core.dataloader

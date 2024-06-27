@@ -5,22 +5,22 @@
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
     sensor: 90d7f4a5-2042-4840-9bb4-b991f49cb8ed
     observed_property: 97f5e0b8-e1e9-4c65-9b98-0438cdfb4a19
-    processing_level: 83fdb8ba-5db4-4f31-b1fa-e68478a4be13
-    name: ca999458-d644-44b0-b678-09a892fd54ac
-    description: A test datastream.
+    processing_level: 3b6284d9-0002-4b9a-9482-5c08e45e7b83
+    name: 72 Points, 1 per hour
+    description: 72 Points, 1 per hour
     observation_type: http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement
     result_type: Result
     status: Status
     sampled_medium: Medium
-    value_count: 0
+    value_count: 72
     no_data_value: -9999.0
-    intended_time_spacing: 0.0
-    intended_time_spacing_units: minutes
+    intended_time_spacing: 1.0
+    intended_time_spacing_units: hours
     aggregation_statistic: TEST
     time_aggregation_interval: 0.0
     time_aggregation_interval_units: minutes
-    phenomenon_begin_time: 2022-05-01 10:10:10+00:00
-    phenomenon_end_time: 2022-05-04 09:10:10+00:00
+    phenomenon_begin_time: 2022-05-01 10:00:00+00:00
+    phenomenon_end_time: 2022-05-04 09:00:00+00:00
     data_source_id: c145427e-2ce4-4713-8847-18466e0f8f1d
     data_source_column: VALUE1
 
@@ -29,7 +29,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 3.2
-    phenomenon_time: "2022-05-01T10:10:10+00:00"
+    phenomenon_time: "2022-05-01T10:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -38,7 +38,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.3
-    phenomenon_time: "2022-05-01T11:10:10+00:00"
+    phenomenon_time: "2022-05-01T11:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -47,7 +47,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.4
-    phenomenon_time: "2022-05-01T12:10:10+00:00"
+    phenomenon_time: "2022-05-01T12:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -56,7 +56,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.0
-    phenomenon_time: "2022-05-01T13:10:10+00:00"
+    phenomenon_time: "2022-05-01T13:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -65,7 +65,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.4
-    phenomenon_time: "2022-05-01T14:10:10+00:00"
+    phenomenon_time: "2022-05-01T14:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -74,7 +74,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.5
-    phenomenon_time: "2022-05-01T15:10:10+00:00"
+    phenomenon_time: "2022-05-01T15:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -83,7 +83,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.3
-    phenomenon_time: "2022-05-01T16:10:10+00:00"
+    phenomenon_time: "2022-05-01T16:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -92,7 +92,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 3.1
-    phenomenon_time: "2022-05-01T17:10:10+00:00"
+    phenomenon_time: "2022-05-01T17:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -101,7 +101,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.1
-    phenomenon_time: "2022-05-01T18:10:10+00:00"
+    phenomenon_time: "2022-05-01T18:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -110,7 +110,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.7
-    phenomenon_time: "2022-05-01T19:10:10+00:00"
+    phenomenon_time: "2022-05-01T19:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -119,7 +119,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.7
-    phenomenon_time: "2022-05-01T20:10:10+00:00"
+    phenomenon_time: "2022-05-01T20:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -128,7 +128,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.2
-    phenomenon_time: "2022-05-01T21:10:10+00:00"
+    phenomenon_time: "2022-05-01T21:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -137,7 +137,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.8
-    phenomenon_time: "2022-05-01T22:10:10+00:00"
+    phenomenon_time: "2022-05-01T22:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -146,7 +146,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.6
-    phenomenon_time: "2022-05-01T23:10:10+00:00"
+    phenomenon_time: "2022-05-01T23:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -155,7 +155,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.2
-    phenomenon_time: "2022-05-02T00:10:10+00:00"
+    phenomenon_time: "2022-05-02T00:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -164,7 +164,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.8
-    phenomenon_time: "2022-05-02T01:10:10+00:00"
+    phenomenon_time: "2022-05-02T01:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -173,7 +173,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.8
-    phenomenon_time: "2022-05-02T02:10:10+00:00"
+    phenomenon_time: "2022-05-02T02:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -182,7 +182,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.2
-    phenomenon_time: "2022-05-02T03:10:10+00:00"
+    phenomenon_time: "2022-05-02T03:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -191,7 +191,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.3
-    phenomenon_time: "2022-05-02T04:10:10+00:00"
+    phenomenon_time: "2022-05-02T04:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -200,7 +200,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.1
-    phenomenon_time: "2022-05-02T05:10:10+00:00"
+    phenomenon_time: "2022-05-02T05:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -209,7 +209,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.0
-    phenomenon_time: "2022-05-02T06:10:10+00:00"
+    phenomenon_time: "2022-05-02T06:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -218,7 +218,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.1
-    phenomenon_time: "2022-05-02T07:10:10+00:00"
+    phenomenon_time: "2022-05-02T07:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -227,7 +227,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.8
-    phenomenon_time: "2022-05-02T08:10:10+00:00"
+    phenomenon_time: "2022-05-02T08:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -236,7 +236,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 3.9
-    phenomenon_time: "2022-05-02T09:10:10+00:00"
+    phenomenon_time: "2022-05-02T09:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -245,7 +245,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.6
-    phenomenon_time: "2022-05-02T10:10:10+00:00"
+    phenomenon_time: "2022-05-02T10:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -254,7 +254,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.2
-    phenomenon_time: "2022-05-02T11:10:10+00:00"
+    phenomenon_time: "2022-05-02T11:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -263,7 +263,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.6
-    phenomenon_time: "2022-05-02T12:10:10+00:00"
+    phenomenon_time: "2022-05-02T12:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -272,7 +272,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.8
-    phenomenon_time: "2022-05-02T13:10:10+00:00"
+    phenomenon_time: "2022-05-02T13:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -281,7 +281,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.4
-    phenomenon_time: "2022-05-02T14:10:10+00:00"
+    phenomenon_time: "2022-05-02T14:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -290,7 +290,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.7
-    phenomenon_time: "2022-05-02T15:10:10+00:00"
+    phenomenon_time: "2022-05-02T15:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -299,7 +299,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.2
-    phenomenon_time: "2022-05-02T16:10:10+00:00"
+    phenomenon_time: "2022-05-02T16:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -308,7 +308,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.1
-    phenomenon_time: "2022-05-02T17:10:10+00:00"
+    phenomenon_time: "2022-05-02T17:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -317,7 +317,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.5
-    phenomenon_time: "2022-05-02T18:10:10+00:00"
+    phenomenon_time: "2022-05-02T18:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -326,7 +326,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.3
-    phenomenon_time: "2022-05-02T19:10:10+00:00"
+    phenomenon_time: "2022-05-02T19:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -335,7 +335,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.3
-    phenomenon_time: "2022-05-02T20:10:10+00:00"
+    phenomenon_time: "2022-05-02T20:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -344,7 +344,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.1
-    phenomenon_time: "2022-05-02T21:10:10+00:00"
+    phenomenon_time: "2022-05-02T21:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -353,7 +353,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.3
-    phenomenon_time: "2022-05-02T22:10:10+00:00"
+    phenomenon_time: "2022-05-02T22:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -362,7 +362,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.5
-    phenomenon_time: "2022-05-02T23:10:10+00:00"
+    phenomenon_time: "2022-05-02T23:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -371,7 +371,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.4
-    phenomenon_time: "2022-05-03T00:10:10+00:00"
+    phenomenon_time: "2022-05-03T00:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -380,7 +380,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 9.9
-    phenomenon_time: "2022-05-03T01:10:10+00:00"
+    phenomenon_time: "2022-05-03T01:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -389,7 +389,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.7
-    phenomenon_time: "2022-05-03T02:10:10+00:00"
+    phenomenon_time: "2022-05-03T02:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -398,7 +398,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 10.0
-    phenomenon_time: "2022-05-03T03:10:10+00:00"
+    phenomenon_time: "2022-05-03T03:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -407,7 +407,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.3
-    phenomenon_time: "2022-05-03T04:10:10+00:00"
+    phenomenon_time: "2022-05-03T04:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -416,7 +416,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.0
-    phenomenon_time: "2022-05-03T05:10:10+00:00"
+    phenomenon_time: "2022-05-03T05:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -425,7 +425,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.5
-    phenomenon_time: "2022-05-03T06:10:10+00:00"
+    phenomenon_time: "2022-05-03T06:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -434,7 +434,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.0
-    phenomenon_time: "2022-05-03T07:10:10+00:00"
+    phenomenon_time: "2022-05-03T07:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -443,7 +443,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.9
-    phenomenon_time: "2022-05-03T08:10:10+00:00"
+    phenomenon_time: "2022-05-03T08:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -452,7 +452,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.8
-    phenomenon_time: "2022-05-03T09:10:10+00:00"
+    phenomenon_time: "2022-05-03T09:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -461,7 +461,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 0.1
-    phenomenon_time: "2022-05-03T10:10:10+00:00"
+    phenomenon_time: "2022-05-03T10:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -470,7 +470,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.9
-    phenomenon_time: "2022-05-03T11:10:10+00:00"
+    phenomenon_time: "2022-05-03T11:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -479,7 +479,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.0
-    phenomenon_time: "2022-05-03T12:10:10+00:00"
+    phenomenon_time: "2022-05-03T12:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -488,7 +488,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.5
-    phenomenon_time: "2022-05-03T13:10:10+00:00"
+    phenomenon_time: "2022-05-03T13:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -497,7 +497,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.4
-    phenomenon_time: "2022-05-03T14:10:10+00:00"
+    phenomenon_time: "2022-05-03T14:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -506,7 +506,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 0.3
-    phenomenon_time: "2022-05-03T15:10:10+00:00"
+    phenomenon_time: "2022-05-03T15:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -515,7 +515,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.7
-    phenomenon_time: "2022-05-03T16:10:10+00:00"
+    phenomenon_time: "2022-05-03T16:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -524,7 +524,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 9.4
-    phenomenon_time: "2022-05-03T17:10:10+00:00"
+    phenomenon_time: "2022-05-03T17:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -533,7 +533,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 8.3
-    phenomenon_time: "2022-05-03T18:10:10+00:00"
+    phenomenon_time: "2022-05-03T18:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -542,7 +542,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.1
-    phenomenon_time: "2022-05-03T19:10:10+00:00"
+    phenomenon_time: "2022-05-03T19:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -551,7 +551,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 6.6
-    phenomenon_time: "2022-05-03T20:10:10+00:00"
+    phenomenon_time: "2022-05-03T20:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -560,7 +560,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.1
-    phenomenon_time: "2022-05-03T21:10:10+00:00"
+    phenomenon_time: "2022-05-03T21:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -569,7 +569,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.9
-    phenomenon_time: "2022-05-03T22:10:10+00:00"
+    phenomenon_time: "2022-05-03T22:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -578,7 +578,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 4.3
-    phenomenon_time: "2022-05-03T23:10:10+00:00"
+    phenomenon_time: "2022-05-03T23:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -587,7 +587,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 9.4
-    phenomenon_time: "2022-05-04T00:10:10+00:00"
+    phenomenon_time: "2022-05-04T00:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -596,7 +596,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.3
-    phenomenon_time: "2022-05-04T01:10:10+00:00"
+    phenomenon_time: "2022-05-04T01:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -605,7 +605,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 0.6
-    phenomenon_time: "2022-05-04T02:10:10+00:00"
+    phenomenon_time: "2022-05-04T02:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -614,7 +614,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.6
-    phenomenon_time: "2022-05-04T03:10:10+00:00"
+    phenomenon_time: "2022-05-04T03:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -623,7 +623,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 3.5
-    phenomenon_time: "2022-05-04T04:10:10+00:00"
+    phenomenon_time: "2022-05-04T04:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -632,7 +632,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 9.5
-    phenomenon_time: "2022-05-04T05:10:10+00:00"
+    phenomenon_time: "2022-05-04T05:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -641,7 +641,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 7.1
-    phenomenon_time: "2022-05-04T06:10:10+00:00"
+    phenomenon_time: "2022-05-04T06:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -650,7 +650,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 5.3
-    phenomenon_time: "2022-05-04T07:10:10+00:00"
+    phenomenon_time: "2022-05-04T07:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -659,7 +659,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 2.6
-    phenomenon_time: "2022-05-04T08:10:10+00:00"
+    phenomenon_time: "2022-05-04T08:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null
@@ -670,7 +670,7 @@
   fields:
     datastream: ca999458-d644-44b0-b678-09a892fd54ac
     result: 1.1
-    phenomenon_time: "2022-05-04T09:10:10+00:00"
+    phenomenon_time: "2022-05-04T09:00:00+00:00"
     result_time: null
     feature_of_interest: null
     quality_code: null

@@ -10,6 +10,8 @@
     elevation_datum: WGS84
     state: FL
     county: Miami-Dade County
+    country: US
+
 - model: core.thing
   pk: 9344a3d4-a45a-4529-b731-b51149b4d1b8
   fields:
@@ -21,7 +23,8 @@
     location: 1796a56f-2cdf-42c6-8cc7-3da2f757e9a0
     is_private: False
 
-- model: core.thingassociation
+# Paul is primary owner
+- model: core.ThingAssociation
   pk: 1_100_000_005
   fields:
     thing: 9344a3d4-a45a-4529-b731-b51149b4d1b8
