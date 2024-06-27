@@ -9,7 +9,6 @@ class ThingAssociation(models.Model):
     thing = ForeignKey(Thing, on_delete=models.CASCADE, related_name='associates', db_column='thingId')
     person = ForeignKey(Person, on_delete=models.CASCADE, related_name='thing_associations', db_column='personId')
     owns_thing = models.BooleanField(default=False, db_column='ownsThing')
-    follows_thing = models.BooleanField(default=False, db_column='followsThing')
     is_primary_owner = models.BooleanField(default=False, db_column='isPrimaryOwner')
     history = HistoricalRecords(custom_model_name='ThingAssociationChangeLog', related_name='log')
 

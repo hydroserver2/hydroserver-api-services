@@ -50,7 +50,7 @@ class DataSource(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     path = models.CharField(max_length=255, null=True, blank=True)
-    url = models.CharField(max_length=255, null=True, blank=True)
+    link = models.CharField(max_length=255, null=True, blank=True)
     header_row = models.PositiveIntegerField(null=True, blank=True, db_column='headerRow')
     data_start_row = models.PositiveIntegerField(null=True, blank=True, db_column='dataStartRow')
     delimiter = models.CharField(max_length=1, null=True, blank=True)

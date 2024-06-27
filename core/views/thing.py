@@ -228,7 +228,6 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
         authenticated_user_association.save()
         thing_association.is_primary_owner = True
         thing_association.owns_thing = True
-        thing_association.follows_thing = False
         thing_association.save()
 
     elif data.remove_owner:
@@ -240,7 +239,6 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
         if not created:
             return 422, 'Specified user is already an owner of this site.'
         thing_association.owns_thing = True
-        thing_association.follows_thing = False
         thing_association.save()
 
     return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
@@ -270,92 +268,9 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
 
     thing.is_private = data.is_private
 
-    if data.is_private:
-        for thing_association in thing.associates.all():
-            if thing_association.follows_thing:
-                thing_association.delete()
-
     thing.save()
     
     return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
-
-
-# # @router.patch(
-# #     '{thing_id}/followership',
-# #     auth=[JWTAuth(), BasicAuth()],
-# #     response={
-# #         203: ThingGetResponse,
-# #         401: str,
-# #         403: str,
-# #         404: str,
-# #         500: str
-# #     },
-# #     by_alias=True
-# # )
-# # @transaction.atomic
-# # def update_thing_followership(request, thing_id: UUID = Path(...)):
-# #     """
-# #     Update a Thing's Follower Status
-#
-# #     This endpoint allows a user to follow or unfollow a public Thing. Users cannot follow Things they own.
-# #     """
-#
-# #     thing = get_thing_by_id(
-# #         user=request.authenticated_user,
-# #         thing_id=thing_id,
-# #         require_unaffiliated=True,
-# #         raise_http_errors=True
-# #     )
-#
-# #     user_association = next(iter([
-# #         associate for associate in thing.associates.all()
-# #         if associate.follows_thing is True and associate.person == request.authenticated_user
-# #     ]), None)
-#
-# #     if user_association:
-# #         user_association.delete()
-# #     else:
-# #         ThingAssociation.objects.create(
-# #             thing_id=thing_id,
-# #             person=request.authenticated_user,
-# #             follows_thing=True
-# #         )
-#
-# #     thing = get_thing_by_id(
-# #         user=request.authenticated_user,
-# #         thing_id=thing_id
-# #     )
-#
-# #     return 203, build_thing_response(request.authenticated_user, thing)
-
-
-# # @thing_ownership_required
-# # def upload_csv(request, pk):
-# #     thing = get_object_or_404(Thing, pk=pk)
-# #     sensors = Sensor.objects.filter(datastreams__thing=thing).distinct()
-# #
-# #     if not sensors:
-# #         return render(request, 'sites/upload_csv.html', {'thing': thing})
-# #
-# #     if request.method == 'POST' and request.FILES.get('csv_file'):
-# #         sensor_form = SensorSelectionForm(request.POST, sensors=sensors)
-# #
-# #         if sensor_form.is_valid():
-# #             csv_file = request.FILES['csv_file']
-# #             fs = FileSystemStorage(location=LOCAL_CSV_STORAGE)
-# #             filename = fs.save(csv_file.name, csv_file)
-# #             file_path = os.path.join(LOCAL_CSV_STORAGE, filename)
-# #             process_csv_file(file_path, sensors.get(pk=sensor_form.cleaned_data['sensor']))
-# #
-# #             return render(request, 'sites/upload_csv.html', {'success': True})
-# #     else:
-# #         sensor_form = SensorSelectionForm(sensors=sensors)
-# #
-# #     return render(request, 'sites/upload_csv.html', {
-# #         'thing': thing,
-# #         'form': sensor_form,
-# #         'has_sensors': True
-# #     })
 
 
 @router.get(
