@@ -1,7 +1,8 @@
-from ninja import Schema
+from ninja import Schema, Field
+from pydantic import AliasChoices, AliasPath
 from uuid import UUID
 from typing import Optional
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class ResultQualifierID(Schema):
@@ -13,16 +14,11 @@ class ResultQualifierFields(Schema):
     description: str
 
 
-class ResultQualifierGetResponse(ResultQualifierFields, ResultQualifierID):
-    owner: Optional[str]
-
-    @classmethod
-    def serialize(cls, result_qualifier):  # Temporary until after Pydantic v2 update
-        return {
-            'id': result_qualifier.id,
-            'owner': result_qualifier.person.email if result_qualifier.person else None,
-            **{field: getattr(result_qualifier, field) for field in ResultQualifierFields.model_fields.keys()},
-        }
+class ResultQualifierGetResponse(BaseGetResponse, ResultQualifierFields, ResultQualifierID):
+    owner: Optional[str] = Field(
+        None, serialization_alias='owner',
+        validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
+    )
 
     class Config:
         allow_population_by_field_name = True

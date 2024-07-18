@@ -5,7 +5,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q
 from core.router import DataManagementRouter
 from core.models import ResultQualifier
-from core.schemas.base import metadataOwnerOptions
+from core.schemas.metadata import metadataOwnerOptions
 from core.schemas.result_qualifier import ResultQualifierGetResponse, ResultQualifierPostBody, \
     ResultQualifierPatchBody, ResultQualifierFields
 
@@ -40,7 +40,7 @@ def get_result_qualifiers(request, owner: Optional[metadataOwnerOptions] = 'anyU
     result_qualifier_query = result_qualifier_query.distinct()
 
     response = [
-        ResultQualifierGetResponse.serialize(result_qualifier) for result_qualifier in result_qualifier_query.all()
+        result_qualifier for result_qualifier in result_qualifier_query.all()
     ]
 
     return 200, response
@@ -61,7 +61,7 @@ def get_result_qualifier(request, result_qualifier_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, ResultQualifierGetResponse.serialize(result_qualifier)
+    return 200, result_qualifier
 
 
 @router.dm_post('', response=ResultQualifierGetResponse)
@@ -76,10 +76,10 @@ def create_result_qualifier(request, data: ResultQualifierPostBody):
 
     result_qualifier = ResultQualifier.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(ResultQualifierFields.__fields__.keys()))
+        **data.dict(include=set(ResultQualifierFields.model_fields.keys()))
     )
 
-    return 201, ResultQualifierGetResponse.serialize(result_qualifier)
+    return 201, result_qualifier
 
 
 @router.dm_patch('{result_qualifier_id}', response=ResultQualifierGetResponse)
@@ -98,7 +98,7 @@ def update_result_qualifier(request, data: ResultQualifierPatchBody, result_qual
         method='PATCH',
         raise_404=True
     )
-    result_qualifier_data = data.dict(include=set(ResultQualifierFields.__fields__.keys()), exclude_unset=True)
+    result_qualifier_data = data.dict(include=set(ResultQualifierFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'ResultQualifier', fields=[*result_qualifier_data.keys()]
@@ -110,7 +110,7 @@ def update_result_qualifier(request, data: ResultQualifierPatchBody, result_qual
 
     result_qualifier.save()
 
-    return 203, ResultQualifierGetResponse.serialize(result_qualifier)
+    return 203, result_qualifier
 
 
 @router.dm_delete('{result_qualifier_id}')

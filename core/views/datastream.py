@@ -11,13 +11,9 @@ from django.db.models import Q
 from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream, Observation, Thing, Sensor, ObservedProperty, Unit, ProcessingLevel
-from sensorthings.types.iso_string import ISOTimeString
+from sensorthings.types import ISOTimeString
 from core.schemas.datastream import DatastreamFields, DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody, \
      DatastreamMetadataGetResponse
-from core.schemas.unit import UnitGetResponse
-from core.schemas.processing_level import ProcessingLevelGetResponse
-from core.schemas.observed_property import ObservedPropertyGetResponse
-from core.schemas.sensor import SensorGetResponse
 from core.utils import generate_csv
 
 
@@ -53,9 +49,7 @@ def get_datastreams(
 
     datastream_query = datastream_query.distinct()
 
-    response = [
-        DatastreamGetResponse.serialize(datastream) for datastream in datastream_query.all()
-    ]
+    response = [datastream for datastream in datastream_query.all()]
 
     return 200, response
 
@@ -75,7 +69,7 @@ def get_datastream(request, datastream_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, DatastreamGetResponse.serialize(datastream)
+    return 200, datastream
 
 
 @router.dm_post('', response=DatastreamGetResponse)
@@ -125,7 +119,7 @@ def create_datastream(request, data: DatastreamPostBody):
         **data.dict(include=set(DatastreamFields.model_fields.keys()))
     )
 
-    return 201, DatastreamGetResponse.serialize(datastream)
+    return 201, datastream
 
 
 @router.dm_patch('{datastream_id}', response=DatastreamGetResponse)
@@ -181,7 +175,7 @@ def update_datastream(request, data: DatastreamPatchBody, datastream_id: UUID = 
 
     datastream.save()
 
-    return 203, DatastreamGetResponse.serialize(datastream)
+    return 203, datastream
 
 
 @router.dm_delete('{datastream_id}')
@@ -229,20 +223,14 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
         raise_404=True
     )
 
-    dataframe = pd.read_csv(file.read(), dtypes=[pd.String, pd.Float64, pd.String])
+    dataframe = pd.read_csv(file, dtype={'ResultTime': str, 'Result': float, 'ResultQualifiers': str})
 
     try:
-        dataframe = dataframe.with_columns([(pl.col('ResultTime').apply(
-            lambda x: ISOTimeString.validate(x)
-        ).alias('ISOResultTime'))])
-    except pl.exceptions.PolarsPanicError:
+        dataframe['ISOResultTime'] = dataframe['ResultTime'].apply(ISOTimeString.validate)
+    except ValueError:
         return 400, 'Failed to parse uploaded CSV file.'
 
-    dataframe = dataframe.select([
-        pd.column('ISOResultTime'),
-        pd.col('Result'),
-        pl.col('ResultQualifiers')
-    ])
+    dataframe = dataframe[['ISOResultTime', 'Result', 'ResultQualifiers']]
 
     try:
         Observation.objects.bulk_create([
@@ -327,8 +315,8 @@ def get_datastream_metadata(request, datastream_id: UUID = Path(...), include_as
         ).distinct()
 
     return 200, {
-        'units': [UnitGetResponse.serialize(unit) for unit in units.all()],
-        'sensors': [SensorGetResponse.serialize(sensor) for sensor in sensors.all()],
-        'processing_levels': [ProcessingLevelGetResponse.serialize(plv) for plv in processing_levels.all()],
-        'observed_properties': [ObservedPropertyGetResponse.serialize(op) for op in observed_properties.all()]
+        'units': [unit for unit in units.all()],
+        'sensors': [sensor for sensor in sensors.all()],
+        'processing_levels': [plv for plv in processing_levels.all()],
+        'observed_properties': [op for op in observed_properties.all()]
     }

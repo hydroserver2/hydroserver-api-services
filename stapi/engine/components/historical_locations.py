@@ -1,6 +1,7 @@
 from typing import List
 from ninja.errors import HttpError
 from sensorthings.components.historicallocations.engine import HistoricalLocationBaseEngine
+from sensorthings.components.historicallocations.schemas import HistoricalLocationPostBody, HistoricalLocationPatchBody
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -22,18 +23,18 @@ class HistoricalLocationEngine(HistoricalLocationBaseEngine, SensorThingsUtils):
         else:
             count = None
 
-        return [], count
+        return {}, count
 
     def create_historical_location(
             self,
-            historical_location
+            historical_location: HistoricalLocationPostBody
     ) -> str:
         raise HttpError(403, 'You do not have permission to perform this action.')
 
     def update_historical_location(
             self,
             historical_location_id: str,
-            historical_location
+            historical_location: HistoricalLocationPatchBody
     ) -> None:
         raise HttpError(403, 'You do not have permission to perform this action.')
 

@@ -5,7 +5,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q
 from core.router import DataManagementRouter
 from core.models import Unit
-from core.schemas.base import metadataOwnerOptions
+from core.schemas.metadata import metadataOwnerOptions
 from core.schemas.unit import UnitGetResponse, UnitPostBody, UnitPatchBody, UnitFields
 
 
@@ -34,9 +34,7 @@ def get_units(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUser'
 
     unit_query = unit_query.distinct()
 
-    response = [
-        UnitGetResponse.serialize(unit) for unit in unit_query.all()
-    ]
+    response = [unit for unit in unit_query.all()]
 
     return 200, response
 
@@ -51,7 +49,7 @@ def get_unit(request, unit_id: UUID = Path(...)):
 
     unit = Unit.objects.get_by_id(unit_id, request.authenticated_user, method='GET', raise_404=True)
 
-    return 200, UnitGetResponse.serialize(unit)
+    return 200, unit
 
 
 @router.dm_post('', response=UnitGetResponse)
@@ -68,7 +66,7 @@ def create_unit(request, data: UnitPostBody):
         **data.dict(include=set(UnitFields.model_fields.keys()))
     )
 
-    return 201, UnitGetResponse.serialize(unit)
+    return 201, unit
 
 
 @router.dm_patch('{unit_id}', response=UnitGetResponse)
@@ -93,7 +91,7 @@ def update_unit(request, data: UnitPatchBody, unit_id: UUID = Path(...)):
 
     unit.save()
 
-    return 203, UnitGetResponse.serialize(unit)
+    return 203, unit
 
 
 @router.dm_delete('{unit_id}')

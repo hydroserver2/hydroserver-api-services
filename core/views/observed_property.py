@@ -5,7 +5,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q
 from core.router import DataManagementRouter
 from core.models import ObservedProperty
-from core.schemas.base import metadataOwnerOptions
+from core.schemas.metadata import metadataOwnerOptions
 from core.schemas.observed_property import ObservedPropertyGetResponse, ObservedPropertyPostBody, \
     ObservedPropertyPatchBody, ObservedPropertyFields
 
@@ -39,9 +39,7 @@ def get_observed_properties(request, owner: Optional[metadataOwnerOptions] = 'an
 
     observed_property_query = observed_property_query.distinct()
 
-    response = [
-        ObservedPropertyGetResponse.serialize(observed_property) for observed_property in observed_property_query.all()
-    ]
+    response = [observed_property for observed_property in observed_property_query.all()]
 
     return 200, response
 
@@ -61,7 +59,7 @@ def get_observed_property(request, observed_property_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, ObservedPropertyGetResponse.serialize(observed_property)
+    return 200, observed_property
 
 
 @router.dm_post('', response=ObservedPropertyGetResponse)
@@ -79,7 +77,7 @@ def create_observed_property(request, data: ObservedPropertyPostBody):
         **data.dict(include=set(ObservedPropertyFields.model_fields.keys()))
     )
 
-    return 201, ObservedPropertyGetResponse.serialize(observed_property)
+    return 201, observed_property
 
 
 @router.dm_patch('{observed_property_id}', response=ObservedPropertyGetResponse)
@@ -110,7 +108,7 @@ def update_observed_property(request, data: ObservedPropertyPatchBody, observed_
 
     observed_property.save()
 
-    return 203, ObservedPropertyGetResponse.serialize(observed_property)
+    return 203, observed_property
 
 
 @router.dm_delete('{observed_property_id}')

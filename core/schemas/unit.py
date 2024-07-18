@@ -1,7 +1,8 @@
-from ninja import Schema
+from ninja import Schema, Field
+from pydantic import AliasChoices, AliasPath
 from uuid import UUID
 from typing import Optional
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BasePostBody, BasePatchBody
 
 
 class UnitID(Schema):
@@ -16,15 +17,10 @@ class UnitFields(Schema):
 
 
 class UnitGetResponse(UnitFields, UnitID):
-    owner: Optional[str]
-
-    @classmethod
-    def serialize(cls, unit):  # Temporary until after Pydantic v2 update
-        return {
-            'id': unit.id,
-            'owner': unit.person.email if unit.person else None,
-            **{field: getattr(unit, field) for field in UnitFields.model_fields.keys()},
-        }
+    owner: Optional[str] = Field(
+        None, serialization_alias='owner',
+        validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
+    )
 
     class Config:
         allow_population_by_field_name = True

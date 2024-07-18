@@ -27,9 +27,7 @@ def get_data_sources(request):
 
     data_source_query = data_source_query.distinct()
 
-    response = [
-        DataSourceGetResponse.serialize(data_source) for data_source in data_source_query.all()
-    ]
+    response = [data_source for data_source in data_source_query.all()]
 
     return 200, response
 
@@ -49,7 +47,7 @@ def get_data_source(request, data_source_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, DataSourceGetResponse.serialize(data_source)
+    return 200, data_source
 
 
 @router.dm_post('', response=DataSourceGetResponse)
@@ -76,7 +74,7 @@ def create_data_source(request, data: DataSourcePostBody):
         **data_source_data
     )
 
-    return 201, DataSourceGetResponse.serialize(data_source)
+    return 201, data_source
 
 
 @router.dm_patch('{data_source_id}', response=DataSourceGetResponse)
@@ -116,7 +114,7 @@ def update_data_source(request, data: DataSourcePatchBody, data_source_id: UUID 
 
     data_source.save()
 
-    return 203, DataSourceGetResponse.serialize(data_source)
+    return 203, data_source
 
 
 @router.dm_delete('{data_source_id}')
@@ -173,8 +171,6 @@ def get_datasource_datastreams(request, data_source_id: UUID = Path(...)):
     datastream_query = datastream_query.filter(data_source_id=data_source_id)
     datastream_query = datastream_query.distinct()
 
-    response = [
-        DatastreamGetResponse.serialize(datastream) for datastream in datastream_query.all()
-    ]
+    response = [datastream for datastream in datastream_query.all()]
 
     return 200, response

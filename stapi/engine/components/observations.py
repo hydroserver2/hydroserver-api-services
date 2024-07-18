@@ -5,6 +5,8 @@ from django.db.utils import IntegrityError
 from ninja.errors import HttpError
 from core.models import Observation, ResultQualifier, Datastream
 from sensorthings.components.observations.engine import ObservationBaseEngine
+from sensorthings.components.observations.schemas import Observation as ObservationSchema, ObservationPatchBody
+from stapi.schemas.observations import ObservationPostBody
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -47,7 +49,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         if filters:
             observations = self.apply_filters(
                 queryset=observations,
-                component='Observation',
+                component=ObservationSchema,
                 filters=filters
             )
 
@@ -71,7 +73,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
         observations = self.apply_order(
             queryset=observations,
-            component='Observation',
+            component=ObservationSchema,
             order_by=ordering
         )
 
@@ -84,7 +86,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
         if datastream_ids:
             observations = self.apply_rank(
-                component='Observation',
+                component=ObservationSchema,
                 queryset=observations,
                 partition_field='datastream_id',
                 filter_ids=datastream_ids,
@@ -110,8 +112,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             for result_qualifier in result_qualifiers
         }
 
-        return [
-            {
+        return {
+            observation.id: {
                 'id': observation.id,
                 'phenomenon_time': str(observation.phenomenon_time),
                 'result': observation.result,
@@ -127,11 +129,11 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                     ] if observation.result_qualifiers is not None else []
                 }
             } for observation in observations
-        ], count
+        }, count
 
     def create_observation(
             self,
-            observation
+            observation: ObservationPostBody
     ) -> UUID:
 
         datastream = Datastream.objects.get_by_id(
@@ -145,7 +147,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         if observation.result_quality:
             for result_qualifier in observation.result_quality.result_qualifiers:
                 ResultQualifier.objects.get_by_id(
-                    result_qualifier_id=result_qualifier.id,
+                    result_qualifier_id=result_qualifier,
                     user=getattr(self, 'request').authenticated_user,
                     method='GET',
                     fetch=False,
@@ -168,14 +170,14 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
         return new_observation.id
 
-    def create_observation_bulk(
+    def create_observations(
             self,
             observations
     ) -> List[UUID]:
 
         new_observations = []
 
-        for datastream_id, observation_array in observations.items():
+        for datastream_id, datastream_observations in observations.items():
             datastream = Datastream.objects.get_by_id(
                 datastream_id=datastream_id,
                 user=getattr(self, 'request').authenticated_user,
@@ -186,7 +188,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
             for result_qualifier_id in list(set([result_qualifier for result_qualifiers in [
                 observation.result_quality.result_qualifiers
-                for observation in observation_array
+                for observation in datastream_observations
                 if observation.result_quality and observation.result_quality.result_qualifiers
             ] for result_qualifier in result_qualifiers])):
                 ResultQualifier.objects.get_by_id(
@@ -208,7 +210,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                         result_qualifiers=observation.result_quality.result_qualifiers
                         if observation.result_quality else []
                     )
-                    for observation in observation_array
+                    for observation in datastream_observations
                 ])
             except IntegrityError:
                 raise HttpError(409, 'Duplicate phenomenonTime found on this datastream.')
@@ -224,7 +226,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     def update_observation(
             self,
             observation_id: str,
-            observation
+            observation: ObservationPatchBody
     ) -> None:
         pass
 

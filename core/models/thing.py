@@ -113,6 +113,18 @@ class Thing(models.Model):
     def primary_owner(self):
         return self.associates.get(is_primary_owner=True).person
 
+    @property
+    def is_primary_owner(self):
+        return getattr(getattr(self, 'user', None), 'is_primary_owner', False)
+
+    @property
+    def owns_thing(self):
+        return getattr(getattr(self, 'user', None), 'owns_thing', False)
+
+    @property
+    def owners(self):
+        return self.associates.all()
+
     class Meta:
         db_table = 'Thing'
 

@@ -1,7 +1,8 @@
-from ninja import Schema
+from ninja import Schema, Field
+from pydantic import AliasChoices, AliasPath
 from uuid import UUID
 from typing import Optional
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class ProcessingLevelID(Schema):
@@ -10,20 +11,15 @@ class ProcessingLevelID(Schema):
 
 class ProcessingLevelFields(Schema):
     code: str
-    definition: str = None
-    explanation: str = None
+    definition: Optional[str] = None
+    explanation: Optional[str] = None
 
 
-class ProcessingLevelGetResponse(ProcessingLevelFields, ProcessingLevelID):
-    owner: Optional[str]
-
-    @classmethod
-    def serialize(cls, processing_level):  # Temporary until after Pydantic v2 update
-        return {
-            'id': processing_level.id,
-            'owner': processing_level.person.email if processing_level.person else None,
-            **{field: getattr(processing_level, field) for field in ProcessingLevelFields.model_fields.keys()},
-        }
+class ProcessingLevelGetResponse(BaseGetResponse, ProcessingLevelFields, ProcessingLevelID):
+    owner: Optional[str] = Field(
+        None, serialization_alias='owner',
+        validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
+    )
 
     class Config:
         allow_population_by_field_name = True

@@ -1,7 +1,8 @@
-from ninja import Schema
+from ninja import Schema, Field
+from pydantic import AliasChoices, AliasPath
 from uuid import UUID
 from typing import Optional
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class ObservedPropertyID(Schema):
@@ -11,21 +12,16 @@ class ObservedPropertyID(Schema):
 class ObservedPropertyFields(Schema):
     name: str
     definition: str
-    description: str = None
-    type: str = None
-    code: str = None
+    description: Optional[str] = None
+    type: Optional[str] = None
+    code: Optional[str] = None
 
 
-class ObservedPropertyGetResponse(ObservedPropertyFields, ObservedPropertyID):
-    owner: Optional[str]
-
-    @classmethod
-    def serialize(cls, observed_property):  # Temporary until after Pydantic v2 update
-        return {
-            'id': observed_property.id,
-            'owner': observed_property.person.email if observed_property.person else None,
-            **{field: getattr(observed_property, field) for field in ObservedPropertyFields.model_fields.keys()},
-        }
+class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields, ObservedPropertyID):
+    owner: Optional[str] = Field(
+        None, serialization_alias='owner',
+        validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
+    )
 
     class Config:
         allow_population_by_field_name = True

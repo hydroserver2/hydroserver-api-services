@@ -35,7 +35,7 @@ def get_thing_archive(request, thing_id: UUID = Path(...)):
     except ObjectDoesNotExist:
         return None
 
-    return 200, ArchiveGetResponse.serialize(archive)
+    return 200, archive
 
 
 @router.dm_post('', response=ArchiveGetResponse)
@@ -86,7 +86,7 @@ def create_archive(request, data: ArchivePostBody, thing_id: UUID = Path(...)):
         make_public=data.public_resource
     )
 
-    return 201, ArchiveGetResponse.serialize(archive)
+    return 201, archive
 
 
 @router.dm_post('trigger', response=ArchiveGetResponse)
@@ -129,7 +129,7 @@ def trigger_data_archival(request, thing_id: UUID = Path(...)):
         hs_connection=hydroshare_connection
     )
 
-    return 201, ArchiveGetResponse.serialize(thing.archive)
+    return 201, thing.archive
 
 
 @router.dm_patch('', response=ArchiveGetResponse)
@@ -189,7 +189,7 @@ def update_archive(request, data: ArchivePatchBody, thing_id: UUID = Path(...)):
         hs_connection=hydroshare_connection,
     )
 
-    return 203, ArchiveGetResponse.serialize(thing.archive)
+    return 203, thing.archive
 
 
 @router.dm_delete('')

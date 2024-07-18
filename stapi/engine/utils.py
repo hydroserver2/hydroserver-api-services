@@ -5,6 +5,7 @@ from django.core.exceptions import FieldError
 from django.db.models.query import prefetch_related_objects
 from ninja.errors import HttpError
 from odata_query.django.django_q import AstToDjangoQVisitor
+from sensorthings.components import field_schemas
 from core import models as core_models
 
 
@@ -20,7 +21,7 @@ class SensorThingsUtils:
         ]
 
     def transform_model_field(self, component, prop):
-        if component == 'Thing':
+        if component.__name__ == 'Thing':
             return {
                 'properties__samplingFeatureType': 'sampling_feature_type',
                 'properties__samplingFeatureCode': 'sampling_feature_code',
@@ -28,16 +29,16 @@ class SensorThingsUtils:
                 'Location__id': 'location_id'
             }.get(prop, prop)
 
-        elif component == 'Location':
+        elif component.__name__ == 'Location':
             return {
                 'encodingType': 'location__encoding_type',
                 'Thing__id': 'id'
             }.get(prop, f'location__{prop}')
 
-        elif component == 'HistoricalLocation':
+        elif component.__name__ == 'HistoricalLocation':
             return prop
 
-        elif component == 'Sensor':
+        elif component.__name__ == 'Sensor':
             return {
                 'encodingType': 'encoding_type',
                 'metadata__methodCode': 'method_code',
@@ -48,20 +49,20 @@ class SensorThingsUtils:
                 'metadata__sensorModel__sensorManufacturer': 'manufacturer'
             }.get(prop, prop)
 
-        elif component == 'ObservedProperty':
+        elif component.__name__ == 'ObservedProperty':
             return {
                 'properties__variableCode': 'code',
                 'properties__variableType': 'type'
             }.get(prop, prop)
 
-        elif component == 'Datastream':
+        elif component.__name__ == 'Datastream':
             if prop.split('__')[0] in [
                 'Thing', 'Sensor', 'ObservedProperty'
             ]:
-                return lookup_component(
-                    prop.split('__')[0], 'camel_singular', 'snake_singular'
-                ) + '__' + self.transform_model_field(
-                    component=prop.split('__')[0],
+                return getattr(
+                    field_schemas, prop.split('__')[0]
+                ).Config.json_schema_extra['name_ref'][1] + '__' + self.transform_model_field(
+                    component=getattr(field_schemas, prop.split('__')[0]),
                     prop='__'.join(prop.split('__')[1:])
                 )
             else:
@@ -84,17 +85,17 @@ class SensorThingsUtils:
                     'properties__timeAggregationIntervalUnitOfMeasurement': 'time_aggregation_interval_units',
                 }.get(prop, prop)
 
-        elif component == 'FeatureOfInterest':
+        elif component.__name__ == 'FeatureOfInterest':
             return prop
 
-        elif component == 'Observation':
+        elif component.__name__ == 'Observation':
             if prop.split('__')[0] in [
                 'Datastream', 'FeatureOfInterest'
             ]:
-                return lookup_component(
-                    prop.split('__')[0], 'camel_singular', 'snake_singular'
-                ) + '__' + self.transform_model_field(
-                    component=prop.split('__')[0],
+                return getattr(
+                    field_schemas, prop.split('__')[0]
+                ).Config.json_schema_extra['name_ref'][1] + '__' + self.transform_model_field(
+                    component=getattr(field_schemas, prop.split('__')[0]),
                     prop='__'.join(prop.split('__')[1:])
                 )
             else:
@@ -106,7 +107,7 @@ class SensorThingsUtils:
     def apply_filters(self, queryset, component, filters):
         """"""
 
-        visitor = AstToDjangoQVisitor(getattr(core_models, component))
+        visitor = AstToDjangoQVisitor(getattr(core_models, component.__name__))
         query_filter = visitor.visit(filters)
 
         for prop in list(query_filter.flatten()):
@@ -156,17 +157,17 @@ class SensorThingsUtils:
 
         sql, params = ranked_queryset.query.sql_with_params()
 
-        query = list(getattr(core_models, component).objects.raw("""
+        query = list(getattr(core_models, component.__name__).objects.raw("""
             SELECT * FROM ({}) ranked_result
             WHERE rank <= %s
             LIMIT %s
         """.format(sql), [*params, max_records, total_query_limit]))
 
-        if hasattr(getattr(core_models, component), 'history'):
+        if hasattr(getattr(core_models, component.__name__), 'history'):
             prefetch_related_objects(
                 query, Prefetch(
                     'log',
-                    queryset=getattr(core_models, component).history.order_by('-history_date'), to_attr='ordered_log'
+                    queryset=getattr(core_models, component.__name__).history.order_by('-history_date'), to_attr='ordered_log'
                 )
             )
 

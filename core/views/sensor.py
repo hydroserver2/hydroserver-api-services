@@ -5,7 +5,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q
 from core.router import DataManagementRouter
 from core.models import Sensor
-from core.schemas.base import metadataOwnerOptions
+from core.schemas.metadata import metadataOwnerOptions
 from core.schemas.sensor import SensorGetResponse, SensorPostBody, SensorPatchBody, SensorFields
 
 
@@ -35,7 +35,7 @@ def get_sensors(request, owner: Optional[metadataOwnerOptions] = 'anyUserOrNoUse
     sensor_query = sensor_query.distinct()
 
     response = [
-        SensorGetResponse.serialize(sensor) for sensor in sensor_query.all()
+        sensor for sensor in sensor_query.all()
     ]
 
     return 200, response
@@ -56,7 +56,7 @@ def get_sensor(request, sensor_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, SensorGetResponse.serialize(sensor)
+    return 200, sensor
 
 
 @router.dm_post('', response=SensorGetResponse)
@@ -73,7 +73,7 @@ def create_sensor(request, data: SensorPostBody):
         **data.dict(include=set(SensorFields.model_fields.keys()))
     )
 
-    return 201, SensorGetResponse.serialize(sensor)
+    return 201, sensor
 
 
 @router.dm_patch('{sensor_id}', response=SensorGetResponse)
@@ -103,7 +103,7 @@ def update_sensor(request, data: SensorPatchBody, sensor_id: UUID = Path(...)):
 
     sensor.save()
 
-    return 203, SensorGetResponse.serialize(sensor)
+    return 203, sensor
 
 
 @router.dm_delete('{sensor_id}')

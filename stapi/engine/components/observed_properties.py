@@ -4,6 +4,7 @@ from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import ObservedProperty
 from sensorthings.components.observedproperties.engine import ObservedPropertyBaseEngine
+from sensorthings.components.observedproperties.schemas import ObservedProperty as ObservedPropertySchema
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -33,14 +34,14 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
         if filters:
             observed_properties = self.apply_filters(
                 queryset=observed_properties,
-                component='ObservedProperty',
+                component=ObservedPropertySchema,
                 filters=filters
             )
 
         if ordering:
             observed_properties = self.apply_order(
                 queryset=observed_properties,
-                component='ObservedProperty',
+                component=ObservedPropertySchema,
                 order_by=ordering
             )
 
@@ -56,8 +57,8 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return [
-            {
+        return {
+            observed_property.id: {
                 'id': observed_property.id,
                 'name': observed_property.name,
                 'description': observed_property.description,
@@ -69,7 +70,7 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 }
             } for observed_property in observed_properties.all()
             if observed_property_ids is None or observed_property.id in observed_property_ids
-        ], count
+        }, count
 
     def create_observed_property(
             self,

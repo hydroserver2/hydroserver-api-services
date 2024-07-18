@@ -6,7 +6,7 @@ from hydroserver.auth import JWTAuth, BasicAuth
 from django.shortcuts import redirect
 from accounts.views.oauth.client import oauth
 from accounts.models import Person
-# from accounts.endpoints.user.utils import account_verification_token
+from accounts.models.person import account_verification_token
 
 
 oauth.register(

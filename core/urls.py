@@ -16,7 +16,7 @@ from core.views.data_source import router as data_source_router
 
 api = NinjaAPI(
     title='HydroServer Data Management API',
-    version='0.0.1',
+    version='0.10.0',
     urls_namespace='data'
 )
 

@@ -11,7 +11,7 @@ from hydroserver import settings
 
 accounts_api = NinjaExtraAPI(
     title='HydroServer Account Management API',
-    version='0.0.1',
+    version='0.10.0',
     urls_namespace='accounts'
 )
 

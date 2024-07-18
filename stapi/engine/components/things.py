@@ -4,6 +4,7 @@ from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import Thing
 from sensorthings.components.things.engine import ThingBaseEngine
+from sensorthings.components.things.schemas import Thing as ThingSchema
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -52,14 +53,14 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
         if filters:
             things = self.apply_filters(
                 queryset=things,
-                component='Thing',
+                component=ThingSchema,
                 filters=filters
             )
 
         if ordering:
             things = self.apply_order(
                 queryset=things,
-                component='Thing',
+                component=ThingSchema,
                 order_by=ordering
             )
 
@@ -75,8 +76,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return [
-            {
+        return {
+            thing.id: {
                 'id': thing.id,
                 'name': thing.name,
                 'description': thing.description,
@@ -96,7 +97,7 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 },
                 'location_ids': [thing.location.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids
-        ], count
+        }, count
 
     def create_thing(
             self,

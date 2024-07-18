@@ -26,9 +26,7 @@ def get_tags(request):
         thing.tags.all() for thing in thing_query.all()
     ] for tag in tags]
 
-    return 200, [
-        TagGetResponse.serialize(tag) for tag in user_tags
-    ]
+    return 200, [tag for tag in user_tags]
 
 
 @thing_tag_router.dm_list('', response=TagGetResponse)
@@ -47,9 +45,7 @@ def get_thing_tags(request, thing_id: UUID = Path(...)):
         prefetch=['tags']
     )
 
-    return 200, [
-        TagGetResponse.serialize(tag) for tag in thing.tags.all()
-    ]
+    return 200, [tag for tag in thing.tags.all()]
 
 
 @thing_tag_router.dm_get('{tag_id}', response=TagGetResponse)
@@ -73,7 +69,7 @@ def get_tag(request, thing_id: UUID = Path(...), tag_id: UUID = Path(...)):
     if not tag:
         raise HttpError(404, 'Tag with the given ID was not found.')
 
-    return 200, TagGetResponse.serialize(tag)
+    return 200, tag
 
 
 @thing_tag_router.dm_post('', response=TagGetResponse)
@@ -98,7 +94,7 @@ def create_tag(request, data: TagPostBody, thing_id: UUID = Path(...)):
         **data.dict(include=set(TagFields.model_fields.keys()))
     )
 
-    return 201, TagGetResponse.serialize(tag)
+    return 201, tag
 
 
 @thing_tag_router.dm_patch('{tag_id}', response=TagGetResponse)
@@ -130,7 +126,7 @@ def update_tag(request, data: TagPatchBody, thing_id: UUID = Path(...), tag_id: 
 
     tag.save()
 
-    return 203, TagGetResponse.serialize(tag)
+    return 203, tag
 
 
 @thing_tag_router.dm_delete('{tag_id}')
