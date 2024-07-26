@@ -136,11 +136,11 @@ class OwnerFields(Schema):
     )
     last_name: str = Field(
         ..., serialization_alias='lastName',
-        validation_alias=AliasChoices('lastName', AliasPath('person', 'first_name'))
+        validation_alias=AliasChoices('lastName', AliasPath('person', 'last_name'))
     )
     email: str = Field(
         ..., serialization_alias='email',
-        validation_alias=AliasChoices('email', AliasPath('person', 'first_name'))
+        validation_alias=AliasChoices('email', AliasPath('person', 'email'))
     )
     organization_name: Optional[str] = Field(
         None, serialization_alias='organizationName',
