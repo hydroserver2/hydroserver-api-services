@@ -4,7 +4,7 @@
     name: Alice - Data Loader Key
     key: 8fd2cf493428683399f6d3cf8c7df3dd80e46d106d003e9dc4d77306d7c19fee  # sdl
     expires: null
-    permissions: |
+    _permissions: |
       [
         {
           "model": "Datastream",
@@ -28,7 +28,7 @@
           "resources": [{
             "model": "DataLoader",
             "ids": ["9d571b4b-c986-4fa8-8933-0491ddad9e0e"]
-          }]
+          }],
           "fields": ["dataSourceThru", "lastSyncSuccessful", "lastSyncMessage", "lastSynced", "nextSync"]
         }
       ]
@@ -41,7 +41,7 @@
     name: Bob - API Key
     key: 14c2529eb4498c5d1ffd6915d05bf58a91bdda796af59f41d480d11c099d0479  # api
     expires: null
-    permissions: |
+    _permissions: |
       {}
     person_id: 1000000011
     enabled: true
@@ -52,7 +52,7 @@
     name: Alice - Expired Key
     key: fa64ea1e82e1206f828ab2a02917c7e92accb98e3b95881a1b4ad52b914b66e3  # expired
     expires: 2000-01-01 10:00:00.000 -0700
-    permissions: |
+    _permissions: |
       [
         {
           "model": "Thing",
@@ -72,7 +72,7 @@
     name: Alice - Disabled Key
     key: 17eb3c0168d0d7b21ede5481150f17233427d89833ec121b4dbc4fb96cfab71e  # disabled
     expires: null
-    permissions: |
+    _permissions: |
       [
         {
           "model": "Thing",

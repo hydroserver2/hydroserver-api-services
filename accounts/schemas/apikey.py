@@ -1,9 +1,8 @@
 from ninja import Schema
 from datetime import datetime
 from typing import Optional, Literal, List
-from pydantic import Field
 from uuid import UUID
-from sensorthings.validators import allow_partial
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 permissions_methods = Literal['GET', 'POST', 'PATCH', 'DELETE']
@@ -21,29 +20,27 @@ class APIKeyResource(Schema):
 class APIKeyPermissions(Schema):
     model: permissions_models
     methods: List[permissions_methods]
-    resources: Optional[List[APIKeyResource]]
-    fields: Optional[List[str]]
+    resources: Optional[List[APIKeyResource]] = None
+    fields: Optional[List[str]] = None
 
 
 class APIKeyFields(Schema):
     name: str
-    scope: str
-    permissions: Optional[List[APIKeyPermissions]]
-    expires: Optional[datetime]
+    permissions: Optional[List[APIKeyPermissions]] = None
+    expires: Optional[datetime] = None
     enabled: bool
-    last_used: Optional[datetime] = Field(default=None, alias='lastUsed')
+    last_used: Optional[datetime] = None
 
 
-class APIKeyGetResponse(APIKeyFields):
+class APIKeyGetResponse(BaseGetResponse, APIKeyFields):
     id: UUID
 
 
-class APIKeyPostBody(APIKeyFields):
+class APIKeyPostBody(BasePostBody, APIKeyFields):
     pass
 
 
-@allow_partial
-class APIKeyPatchBody(APIKeyFields):
+class APIKeyPatchBody(BasePatchBody, APIKeyFields):
     pass
 
 

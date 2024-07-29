@@ -1,10 +1,9 @@
-from ninja import Schema, Field
+from ninja import Schema
 from typing import Optional, Literal, Union
 from pydantic import conint
 from datetime import datetime
 from uuid import UUID
-from sensorthings.validators import allow_partial
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class DataSourceID(Schema):
@@ -13,38 +12,30 @@ class DataSourceID(Schema):
 
 class DataSourceFields(Schema):
     name: str
-    path: Optional[str]
-    link: Optional[str]
-    header_row: Optional[conint(gt=0)] = Field(None, alias='headerRow')
-    data_start_row: Optional[conint(gt=0)] = Field(1, alias='dataStartRow')
+    path: Optional[str] = None
+    link: Optional[str] = None
+    header_row: Optional[conint(gt=0)] = None
+    data_start_row: Optional[conint(gt=0)] = 1
     delimiter: Optional[str] = ','
-    quote_char: Optional[str] = Field('"', alias='quoteChar')
-    interval: Optional[conint(gt=0)]
-    interval_units: Optional[Literal['minutes', 'hours', 'days', 'weeks', 'months']] = \
-        Field(None, alias='intervalUnits')
-    crontab: Optional[str]
-    start_time: Optional[datetime] = Field(None, alias='startTime')
-    end_time: Optional[datetime] = Field(None, alias='endTime')
+    quote_char: Optional[str] = '"'
+    interval: Optional[conint(gt=0)] = None
+    interval_units: Optional[Literal['minutes', 'hours', 'days', 'weeks', 'months']] = None
+    crontab: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     paused: Optional[bool]
-    timestamp_column: Union[conint(gt=0), str] = Field(..., alias='timestampColumn')
-    timestamp_format: Optional[str] = Field('%Y-%m-%dT%H:%M:%S%Z', alias='timestampFormat')
-    timestamp_offset: Optional[str] = Field('+0000', alias='timestampOffset')
-    data_loader_id: UUID = Field(..., alias='dataLoaderId')
-    data_source_thru: Optional[datetime] = Field(None, alias='dataSourceThru')
-    last_sync_successful: Optional[bool] = Field(None, alias='lastSyncSuccessful')
-    last_sync_message: Optional[str] = Field(None, alias='lastSyncMessage')
-    last_synced: Optional[datetime] = Field(None, alias='lastSynced')
-    next_sync: Optional[datetime] = Field(None, alias='nextSync')
+    timestamp_column: Union[conint(gt=0), str]
+    timestamp_format: Optional[str] = '%Y-%m-%dT%H:%M:%S%Z'
+    timestamp_offset: Optional[str] = '+0000'
+    data_loader_id: UUID
+    data_source_thru: Optional[datetime] = None
+    last_sync_successful: Optional[bool] = None
+    last_sync_message: Optional[str] = None
+    last_synced: Optional[datetime] = None
+    next_sync: Optional[datetime] = None
 
 
-class DataSourceGetResponse(DataSourceFields, DataSourceID):
-
-    @classmethod
-    def serialize(cls, data_source):  # Temporary until after Pydantic v2 update
-        return {
-            'id': data_source.id,
-            **{field: getattr(data_source, field) for field in DataSourceFields.__fields__.keys()},
-        }
+class DataSourceGetResponse(BaseGetResponse, DataSourceFields, DataSourceID):
 
     class Config:
         allow_population_by_field_name = True
@@ -54,6 +45,5 @@ class DataSourcePostBody(BasePostBody, DataSourceFields):
     pass
 
 
-@allow_partial
 class DataSourcePatchBody(BasePatchBody, DataSourceFields):
     pass

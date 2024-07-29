@@ -159,19 +159,19 @@ class Datastream(models.Model):
             return
 
         metadata_models = {
-            'unit': {'name': 'Unit', 'fields': ['name', 'symbol', 'definition', 'type']},
-            'sensor': {'name': 'Sensor', 'fields': ['name', 'description', 'encoding_type', 'manufacturer', 'model',
-                                                    'model_link', 'method_type', 'method_link', 'method_code']},
-            'processing_level': {'name': 'ProcessingLevel', 'fields': ['code', 'definition', 'explanation']},
-            'observed_property': {'name': 'ObservedProperty', 'fields': ['name', 'definition', 'description', 'type',
-                                                                         'code']}
+            'unit': {'model': Unit, 'fields': ['name', 'symbol', 'definition', 'type']},
+            'sensor': {'model': Sensor, 'fields': ['name', 'description', 'encoding_type', 'manufacturer', 'model',
+                                                   'model_link', 'method_type', 'method_link', 'method_code']},
+            'processing_level': {'model': ProcessingLevel, 'fields': ['code', 'definition', 'explanation']},
+            'observed_property': {'model': ObservedProperty, 'fields': ['name', 'definition', 'description', 'type',
+                                                                        'code']}
         }
 
         for related_name, model in metadata_models.items():
             if not getattr(self, related_name):
                 continue
 
-            matching_objects = getattr(models, model['name']).objects.filter(
+            matching_objects = model['model'].objects.filter(
                 person=owner,
                 **{field: getattr(getattr(self, related_name), field) for field in model['fields']}
             )

@@ -27,9 +27,7 @@ def get_data_loaders(request):
 
     data_loader_query = data_loader_query.distinct()
 
-    response = [
-        DataLoaderGetResponse.serialize(data_loader) for data_loader in data_loader_query.all()
-    ]
+    response = [data_loader for data_loader in data_loader_query.all()]
 
     return 200, response
 
@@ -49,7 +47,7 @@ def get_data_loader(request, data_loader_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, DataLoaderGetResponse.serialize(data_loader)
+    return 200, data_loader
 
 
 @router.dm_post('', response=DataLoaderGetResponse)
@@ -63,10 +61,10 @@ def create_data_loader(request, data: DataLoaderPostBody):
 
     data_loader = DataLoader.objects.create(
         person=request.authenticated_user,
-        **data.dict(include=set(DataLoaderFields.__fields__.keys()))
+        **data.dict(include=set(DataLoaderFields.model_fields.keys()))
     )
 
-    return 201, DataLoaderGetResponse.serialize(data_loader)
+    return 201, data_loader
 
 
 @router.dm_patch('{data_loader_id}', response=DataLoaderGetResponse)
@@ -86,7 +84,7 @@ def update_data_loader(request, data: DataLoaderPatchBody, data_loader_id: UUID 
         raise_404=True
     )
 
-    data_loader_data = data.dict(include=set(DataLoaderFields.__fields__.keys()), exclude_unset=True)
+    data_loader_data = data.dict(include=set(DataLoaderFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'DataLoader', fields=[*data_loader_data.keys()]
@@ -98,7 +96,7 @@ def update_data_loader(request, data: DataLoaderPatchBody, data_loader_id: UUID 
 
     data_loader.save()
 
-    return 203, DataLoaderGetResponse.serialize(data_loader)
+    return 203, data_loader
 
 
 @router.dm_delete('{data_loader_id}')
@@ -153,8 +151,6 @@ def get_data_loader_data_sources(request, data_loader_id: UUID = Path(...)):
 
     data_source_query = data_source_query.distinct()
 
-    response = [
-        DataSourceGetResponse.serialize(data_source) for data_source in data_source_query.all()
-    ]
+    response = [data_source for data_source in data_source_query.all()]
 
     return 200, response

@@ -5,8 +5,7 @@ from uuid import UUID
 from django.http import HttpRequest
 from hydroserver.auth import JWTAuth, BasicAuth
 from accounts.models import APIKey
-from accounts.endpoints.apikey.schemas import APIKeyGetResponse, APIKeyPostResponse, APIKeyPatchBody, APIKeyPostBody
-from accounts.endpoints.apikey.utils import build_api_key_response
+from accounts.schemas.apikey import APIKeyGetResponse, APIKeyPostResponse, APIKeyPatchBody, APIKeyPostBody
 
 
 api_key_router = Router(tags=['API Keys'])
@@ -15,7 +14,10 @@ api_key_router = Router(tags=['API Keys'])
 @api_key_router.get(
     '',
     auth=[JWTAuth(), BasicAuth()],
-    response=List[APIKeyGetResponse],
+    response={
+        200: List[APIKeyGetResponse],
+        401: str
+    },
     by_alias=True
 )
 def list_api_keys(request: HttpRequest):
@@ -28,15 +30,16 @@ def list_api_keys(request: HttpRequest):
     user = getattr(request, 'authenticated_user')
     api_keys = APIKey.objects.filter(person=user)
 
-    return [
-        build_api_key_response(api_key) for api_key in api_keys
-    ]
+    return [api_key for api_key in api_keys.all()]
 
 
 @api_key_router.get(
     '/{api_key_id}',
     auth=[JWTAuth(), BasicAuth()],
-    response=List[APIKeyGetResponse],
+    response={
+        200: APIKeyGetResponse,
+        401: str, 403: str, 404: str
+    },
     by_alias=True
 )
 def get_api_key(request: HttpRequest, api_key_id: UUID = Path(...)):
@@ -56,13 +59,16 @@ def get_api_key(request: HttpRequest, api_key_id: UUID = Path(...)):
     except APIKey.DoesNotExist:
         return 404, 'API key not found.'
 
-    return build_api_key_response(api_key)
+    return api_key
 
 
 @api_key_router.post(
     '',
     auth=[JWTAuth(), BasicAuth()],
-    response=APIKeyPostResponse,
+    response={
+        201: APIKeyPostResponse,
+        401: str, 422: str
+    },
     by_alias=True
 )
 def create_api_key(request: HttpRequest, data: APIKeyPostBody):
@@ -76,22 +82,24 @@ def create_api_key(request: HttpRequest, data: APIKeyPostBody):
     user = getattr(request, 'authenticated_user')
     api_key = APIKey.objects.create(
         name=data.name,
-        scope=data.scope,
-        permissions=json.dumps([permission.dict(exclude_unset=True) for permission in data.permissions]),
+        permissions=[permission.dict(exclude_unset=True) for permission in data.permissions],
         expires=data.expires,
         enabled=data.enabled,
         person=user
     )
 
-    api_key_value = api_key.generate_token()
+    api_key.generate_token()
 
-    return build_api_key_response(api_key, api_key_value=api_key_value)
+    return 201, api_key
 
 
 @api_key_router.patch(
     '/{api_key_id}',
     auth=[JWTAuth(), BasicAuth()],
-    response=APIKeyGetResponse,
+    response={
+        203: APIKeyGetResponse,
+        401: str, 403: str, 404: str, 422: str
+    },
     by_alias=True
 )
 def update_api_key(request: HttpRequest, data: APIKeyPatchBody, api_key_id: UUID = Path(...)):
@@ -125,12 +133,16 @@ def update_api_key(request: HttpRequest, data: APIKeyPatchBody, api_key_id: UUID
 
     api_key.save()
 
-    return build_api_key_response(api_key)
+    return 203, api_key
 
 
 @api_key_router.delete(
     '/{api_key_id}',
-    auth=[JWTAuth(), BasicAuth()]
+    auth=[JWTAuth(), BasicAuth()],
+    response={
+        204: None,
+        401: str, 403: str, 404: str
+    },
 )
 def delete_api_key(request: HttpRequest, api_key_id: UUID = Path(...)):
     """

@@ -28,9 +28,7 @@ def get_photos(request, thing_id: UUID = Path(...)):
         prefetch=['photos']
     )
 
-    return 200, [
-        PhotoGetResponse.serialize(photo) for photo in thing.photos.all()
-    ]
+    return 200, [photo for photo in thing.photos.all()]
 
 
 @router.dm_get('{photo_id}', response=PhotoGetResponse)
@@ -54,7 +52,7 @@ def get_photo(request, thing_id: UUID = Path(...), photo_id: UUID = Path(...)):
     if not photo:
         raise HttpError(404, 'Photo with the given ID was not found.')
 
-    return 200, PhotoGetResponse.serialize(photo)
+    return 200, photo
 
 
 @router.dm_post('', response=List[PhotoGetResponse])
@@ -87,9 +85,7 @@ def upload_photos(request, thing_id: UUID = Path(...), files: List[UploadedFile]
         prefetch=['photos']
     )
 
-    return 201, [
-        PhotoGetResponse.serialize(photo) for photo in thing.photos.all()
-    ]
+    return 201, [photo for photo in thing.photos.all()]
 
 
 @router.dm_delete('{photo_id}')

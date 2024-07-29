@@ -5,11 +5,7 @@ import dj_database_url
 from pathlib import Path
 from uuid import UUID
 from corsheaders.defaults import default_headers
-from pydantic import BaseSettings, PostgresDsn, EmailStr, HttpUrl
-from typing import Union
-from ninja.types import DictStrAny
-from django.contrib.admin.views.decorators import staff_member_required
-from decouple import config, UndefinedValueError
+from decouple import config
 from urllib.parse import urlparse
 
 
@@ -39,7 +35,7 @@ elif DEPLOYMENT_BACKEND == 'vm':
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',')
     CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
 else:
-    PROXY_BASE_URL = 'http://127.0.0.1:3030'
+    PROXY_BASE_URL = config('PROXY_BASE_URL', 'http://127.0.0.1:3030')
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
     CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
     CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.

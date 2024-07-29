@@ -4,6 +4,8 @@ from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import Datastream
 from sensorthings.components.datastreams.engine import DatastreamBaseEngine
+from sensorthings.components.datastreams.schemas import (Datastream as DatastreamSchema, DatastreamPostBody,
+                                                         DatastreamPatchBody)
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -53,14 +55,14 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
         if filters:
             datastreams = self.apply_filters(
                 queryset=datastreams,
-                component='Datastream',
+                component=DatastreamSchema,
                 filters=filters
             )
 
         if ordering:
             datastreams = self.apply_order(
                 queryset=datastreams,
-                component='Datastream',
+                component=DatastreamSchema,
                 order_by=ordering
             )
 
@@ -71,7 +73,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
 
         if thing_ids:
             datastreams = self.apply_rank(
-                component='Datastream',
+                component=DatastreamSchema,
                 queryset=datastreams,
                 partition_field='thing_id',
                 filter_ids=thing_ids,
@@ -79,14 +81,14 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
             )
         elif sensor_ids:
             datastreams = self.apply_rank(
-                component='Datastream',
+                component=DatastreamSchema,
                 queryset=datastreams,
                 partition_field='sensor_id',
                 filter_ids=sensor_ids
             )
         elif observed_property_ids:
             datastreams = self.apply_rank(
-                component='Datastream',
+                component=DatastreamSchema,
                 queryset=datastreams,
                 partition_field='observed_property_id',
                 filter_ids=observed_property_ids
@@ -100,8 +102,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 )
             datastreams = datastreams.all()
 
-        return [
-            {
+        return {
+            datastream.id: {
                 'id': datastream.id,
                 'name': str(datastream.name),
                 'description': datastream.description,
@@ -135,18 +137,18 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     'last_updated': getattr(next(iter(datastream.ordered_log), None), 'history_date', None)
                 }
             } for datastream in datastreams
-        ], count
+        }, count
 
     def create_datastream(
             self,
-            datastream
+            datastream: DatastreamPostBody
     ) -> UUID:
         raise HttpError(403, 'You do not have permission to perform this action.')
 
     def update_datastream(
             self,
             datastream_id: UUID,
-            datastream
+            datastream: DatastreamPatchBody
     ) -> None:
 
         datastream_obj = Datastream.objects.get_by_id(

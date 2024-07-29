@@ -1,6 +1,3 @@
-import os
-import hsclient
-import tempfile
 from ninja import Path, Query
 from typing import List, Optional
 from uuid import UUID
@@ -12,14 +9,8 @@ from accounts.models import Person
 from core.models import Thing, Location, ThingAssociation, Unit, Sensor, ProcessingLevel, ObservedProperty, Datastream
 from core.router import DataManagementRouter
 from core.schemas.thing import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, \
-    ThingPrivacyPatchBody, ThingFields, LocationFields, ThingMetadataGetResponse, ThingArchiveBody
-from core.schemas.unit import UnitGetResponse
-from core.schemas.processing_level import ProcessingLevelGetResponse
-from core.schemas.observed_property import ObservedPropertyGetResponse
-from core.schemas.sensor import SensorGetResponse
+    ThingPrivacyPatchBody, ThingFields, LocationFields, ThingMetadataGetResponse
 from core.schemas.datastream import DatastreamGetResponse
-from core.utils import generate_csv
-from hydroserver import settings
 
 
 router = DataManagementRouter(tags=['Things'])
@@ -53,12 +44,16 @@ def get_things(
         thing_query = thing_query.apply_permissions(user=request.authenticated_user, method='GET')
 
     thing_query = thing_query.distinct()
+    things = []
 
-    response = [
-        ThingGetResponse.serialize(thing=thing, user=request.authenticated_user) for thing in thing_query.all()
-    ]
+    for thing in thing_query.all():
+        thing.user = next(iter([
+            owner for owner in thing.owners
+            if request.authenticated_user and owner.person.id == request.authenticated_user.id
+        ]), None)
+        things.append(thing)
 
-    return 200, response
+    return 200, things
 
 
 @router.dm_get('{thing_id}', response=ThingGetResponse)
@@ -76,7 +71,12 @@ def get_thing(request, thing_id: UUID = Path(...)):
         raise_404=True
     )
 
-    return 200, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
+    thing.user = next(iter([
+        owner for owner in thing.owners
+        if request.authenticated_user and owner.person.id == request.authenticated_user.id
+    ]), None)
+
+    return 200, thing
 
 
 @router.dm_post('', response=ThingGetResponse)
@@ -92,12 +92,12 @@ def create_thing(request, data: ThingPostBody):
         name=f'Location for {data.name}',
         description='location',
         encoding_type="application/geo+json",
-        **data.dict(include=set(LocationFields.__fields__.keys()))
+        **data.dict(include=set(LocationFields.model_fields.keys()))
     )
 
     thing = Thing.objects.create(
         location=location,
-        **data.dict(include=set(ThingFields.__fields__.keys()))
+        **data.dict(include=set(ThingFields.model_fields.keys()))
     )
 
     ThingAssociation.objects.create(
@@ -107,7 +107,12 @@ def create_thing(request, data: ThingPostBody):
         is_primary_owner=True
     )
 
-    return 201, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
+    thing.user = next(iter([
+        owner for owner in thing.owners
+        if request.authenticated_user and owner.person.id == request.authenticated_user.id
+    ]), None)
+
+    return 201, thing
 
 
 @router.dm_patch('{thing_id}', response=ThingGetResponse)
@@ -127,8 +132,8 @@ def update_thing(request, data: ThingPatchBody, thing_id: UUID = Path(...)):
     )
     location = thing.location
 
-    thing_data = data.dict(include=set(ThingFields.__fields__.keys()), exclude_unset=True)
-    location_data = data.dict(include=set(LocationFields.__fields__.keys()), exclude_unset=True)
+    thing_data = data.dict(include=set(ThingFields.model_fields.keys()), exclude_unset=True)
+    location_data = data.dict(include=set(LocationFields.model_fields.keys()), exclude_unset=True)
 
     if not request.authenticated_user.permissions.check_allowed_fields(
             'Thing', fields=[*thing_data.keys(), *location_data.keys()]
@@ -148,7 +153,12 @@ def update_thing(request, data: ThingPatchBody, thing_id: UUID = Path(...)):
 
     location.save()
 
-    return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
+    thing.user = next(iter([
+        owner for owner in thing.owners
+        if request.authenticated_user and owner.person.id == request.authenticated_user.id
+    ]), None)
+
+    return 203, thing
 
 
 @router.dm_delete('{thing_id}')
@@ -241,7 +251,13 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
         thing_association.owns_thing = True
         thing_association.save()
 
-    return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
+    thing = Thing.objects.get_by_id(thing_id, request.authenticated_user, method='GET', raise_404=False) or thing
+    thing.user = next(iter([
+        owner for owner in thing.owners
+        if request.authenticated_user and owner.person.id == request.authenticated_user.id
+    ]), None)
+
+    return 203, thing
 
 
 @router.patch(
@@ -269,8 +285,13 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
     thing.is_private = data.is_private
 
     thing.save()
+
+    thing.user = next(iter([
+        owner for owner in thing.owners
+        if request.authenticated_user and owner.person.id == request.authenticated_user.id
+    ]), None)
     
-    return 203, ThingGetResponse.serialize(thing=thing, user=request.authenticated_user)
+    return 203, thing
 
 
 @router.get(
@@ -333,10 +354,10 @@ def get_thing_metadata(request, thing_id: UUID = Path(...), include_assignable_m
         ).select_related('person').distinct()
 
     return 200, {
-        'units': [UnitGetResponse.serialize(unit) for unit in units.all()],
-        'sensors': [SensorGetResponse.serialize(sensor) for sensor in sensors.all()],
-        'processing_levels': [ProcessingLevelGetResponse.serialize(pl) for pl in processing_levels.all()],
-        'observed_properties': [ObservedPropertyGetResponse.serialize(op) for op in observed_properties.all()]
+        'units': [unit for unit in units.all()],
+        'sensors': [sensor for sensor in sensors.all()],
+        'processing_levels': [processing_level for processing_level in processing_levels.all()],
+        'observed_properties': [observed_property for observed_property in observed_properties.all()]
     }
 
 
@@ -374,8 +395,6 @@ def get_datastreams(request, thing_id: UUID = Path(...)):
     datastream_query = datastream_query.filter(thing_id=thing_id)
     datastream_query = datastream_query.distinct()
 
-    response = [
-        DatastreamGetResponse.serialize(datastream) for datastream in datastream_query.all()
-    ]
+    response = [datastream for datastream in datastream_query.all()]
 
     return 200, response

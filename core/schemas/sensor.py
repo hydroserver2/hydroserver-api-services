@@ -1,9 +1,9 @@
 from ninja import Schema
 from pydantic import Field
+from pydantic import AliasChoices, AliasPath
 from uuid import UUID
 from typing import Optional
-from sensorthings.validators import allow_partial
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class SensorID(Schema):
@@ -13,25 +13,20 @@ class SensorID(Schema):
 class SensorFields(Schema):
     name: str
     description: str
-    encoding_type: str = Field(alias='encodingType')
-    manufacturer: str = None
-    model: str = None
-    model_link: str = Field(None, alias='modelLink')
-    method_type: str = Field(alias='methodType')
-    method_link: str = Field(None, alias='methodLink')
-    method_code: str = Field(None, alias='methodCode')
+    encoding_type: str
+    manufacturer: Optional[str] = None
+    model: Optional[str] = None
+    model_link: Optional[str] = None
+    method_type: str
+    method_link: Optional[str] = None
+    method_code: Optional[str] = None
 
 
-class SensorGetResponse(SensorFields, SensorID):
-    owner: Optional[str]
-
-    @classmethod
-    def serialize(cls, sensor):  # Temporary until after Pydantic v2 update
-        return {
-            'id': sensor.id,
-            'owner': sensor.person.email if sensor.person else None,
-            **{field: getattr(sensor, field) for field in SensorFields.__fields__.keys()},
-        }
+class SensorGetResponse(BaseGetResponse, SensorFields, SensorID):
+    owner: Optional[str] = Field(
+        None, serialization_alias='owner',
+        validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
+    )
 
     class Config:
         allow_population_by_field_name = True
@@ -41,6 +36,5 @@ class SensorPostBody(BasePostBody, SensorFields):
     pass
 
 
-@allow_partial
 class SensorPatchBody(BasePatchBody, SensorFields):
     pass

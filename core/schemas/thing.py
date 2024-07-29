@@ -1,47 +1,38 @@
-import pydantic
-from ninja import Schema
-from pydantic import Field
+from ninja import Schema, Field
+from pydantic import AliasPath, AliasChoices, model_validator, field_validator
 from typing import List, Optional, Literal
 from uuid import UUID
-from sensorthings.validators import allow_partial
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
 from core.schemas.unit import UnitGetResponse
 from core.schemas.sensor import SensorGetResponse
-from core.schemas import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 from country_list import countries_for_language
 
 
 class ArchiveFields(Schema):
-    link: Optional[str] = Field(None, alias='link')
+    link: Optional[str] = None
     frequency: Optional[Literal['daily', 'weekly', 'monthly']]
-    path: str = Field(..., alias='path')
-    datastream_ids: List[UUID] = Field(..., alias='datastreamIds')
+    path: str
+    datastream_ids: List[UUID]
 
 
-class ArchiveGetResponse(ArchiveFields):
-    thing_id: UUID = Field(..., alias='thingId')
-    public_resource: bool = Field(..., alias='publicResource')
-
-    @classmethod
-    def serialize(cls, archive):  # Temporary until after Pydantic v2 update
-        return {
-            **{field: getattr(archive, field) for field in cls.__fields__.keys()}
-        }
+class ArchiveGetResponse(BaseGetResponse, ArchiveFields):
+    thing_id: UUID
+    public_resource: bool
 
     class Config:
         allow_population_by_field_name = True
 
 
-class ArchivePostBody(ArchiveFields):
-    resource_title: Optional[str] = Field(None, alias='resourceTitle')
-    resource_abstract: Optional[str] = Field(None, alias='resourceAbstract')
-    resource_keywords: Optional[List[str]] = Field(None, alias='resourceKeywords')
-    public_resource: Optional[bool] = Field(None, alias='publicResource')
+class ArchivePostBody(BasePostBody, ArchiveFields):
+    resource_title: Optional[str] = None
+    resource_abstract: Optional[str] = None
+    resource_keywords: Optional[List[str]] = None
+    public_resource: Optional[bool] = None
 
 
-@allow_partial
-class ArchivePatchBody(ArchiveFields):
+class ArchivePatchBody(BasePatchBody, ArchiveFields):
     pass
 
 
@@ -54,25 +45,17 @@ class TagFields(Schema):
     value: str
 
 
-class TagGetResponse(TagFields, TagID):
-    @classmethod
-    def serialize(cls, tag):  # Temporary until after Pydantic v2 update
-        return {
-            'id': tag.id,
-            'key': tag.key,
-            'value': tag.value
-        }
+class TagGetResponse(BaseGetResponse, TagFields, TagID):
 
     class Config:
         allow_population_by_field_name = True
 
 
-class TagPostBody(TagFields):
+class TagPostBody(BasePostBody, TagFields):
     pass
 
 
-@allow_partial
-class TagPatchBody(TagFields):
+class TagPatchBody(BasePatchBody, TagFields):
     pass
 
 
@@ -81,20 +64,12 @@ class PhotoID(Schema):
 
 
 class PhotoFields(Schema):
-    thing_id: UUID = Field(..., alias='thingId')
-    file_path: str = Field(..., alias='filePath')
+    thing_id: UUID
+    file_path: str
     link: str
 
 
-class PhotoGetResponse(PhotoFields, PhotoID):
-    @classmethod
-    def serialize(cls, photo):  # Temporary until after Pydantic v2 update
-        return {
-            'id': photo.id,
-            'thing_id': photo.thing_id,
-            'file_path': str(photo.file_path),
-            'link': photo.link
-        }
+class PhotoGetResponse(BaseGetResponse, PhotoFields, PhotoID):
 
     class Config:
         allow_population_by_field_name = True
@@ -107,10 +82,10 @@ class ThingID(Schema):
 class ThingFields(Schema):
     name: str
     description: str
-    sampling_feature_type: str = Field(alias='samplingFeatureType')
-    sampling_feature_code: str = Field(alias='samplingFeatureCode')
-    site_type: str = Field(alias='siteType')
-    data_disclaimer: str = Field(None, alias='dataDisclaimer')
+    sampling_feature_type: str
+    sampling_feature_code: str
+    site_type: str
+    data_disclaimer: Optional[str] = None
 
 
 # Get a list of all ISO 3166-1 alpha-2 country codes
@@ -118,73 +93,78 @@ valid_country_codes = [code for code, _ in countries_for_language('en')]
 
 
 class LocationFields(Schema):
-    latitude: float
-    longitude: float
-    elevation_m: float = None
-    elevation_datum: str = Field(None, alias='elevationDatum')
-    state: str = None
-    county: str = None
-    country: str = None
+    latitude: float = Field(
+        ..., serialization_alias='latitude',
+        validation_alias=AliasChoices('latitude', AliasPath('location', 'latitude'))
+    )
+    longitude: float = Field(
+        ..., serialization_alias='longitude',
+        validation_alias=AliasChoices('longitude', AliasPath('location', 'longitude'))
+    )
+    elevation_m: Optional[float] = Field(
+        None, serialization_alias='elevation_m',
+        validation_alias=AliasChoices('elevation_m', AliasPath('location', 'elevation_m'))
+    )
+    elevation_datum: Optional[str] = Field(
+        None, serialization_alias='elevationDatum',
+        validation_alias=AliasChoices('elevationDatum', AliasPath('location', 'elevationDatum'))
+    )
+    state: Optional[str] = Field(
+        None, serialization_alias='state',
+        validation_alias=AliasChoices('state', AliasPath('location', 'state'))
+    )
+    county: Optional[str] = Field(
+        None, serialization_alias='county',
+        validation_alias=AliasChoices('county', AliasPath('location', 'county'))
+    )
+    country: Optional[str] = Field(
+        None, serialization_alias='country',
+        validation_alias=AliasChoices('country', AliasPath('location', 'country'))
+    )
 
-    @pydantic.root_validator
-    def check_country_code(cls, values):
-        country_code = values.get('country')
-        if country_code and country_code.upper() not in valid_country_codes:
-            raise ValueError(f'Invalid country code: {country_code}. Must be an ISO 3166-1 alpha-2 country code.')
-        return values
+    @field_validator('country', mode='after')
+    def check_country_code(cls, value):
+        if value and value.upper() not in valid_country_codes:
+            raise ValueError(f'Invalid country code: {value}. Must be an ISO 3166-1 alpha-2 country code.')
+        return value
 
 
-class OrganizationFields(Schema):
-    name: Optional[str] = Field(None, alias='organizationName')
-
-
-class AssociationFields(Schema):
-    is_primary_owner: bool = Field(..., alias='isPrimaryOwner')
-
-
-class PersonFields(Schema):
-    first_name: str = Field(..., alias='firstName')
-    last_name: str = Field(..., alias='lastName')
-    email: str
+class OwnerFields(Schema):
+    first_name: str = Field(
+        ..., serialization_alias='firstName',
+        validation_alias=AliasChoices('firstName', AliasPath('person', 'first_name'))
+    )
+    last_name: str = Field(
+        ..., serialization_alias='lastName',
+        validation_alias=AliasChoices('lastName', AliasPath('person', 'last_name'))
+    )
+    email: str = Field(
+        ..., serialization_alias='email',
+        validation_alias=AliasChoices('email', AliasPath('person', 'email'))
+    )
+    organization_name: Optional[str] = Field(
+        None, serialization_alias='organizationName',
+        validation_alias=AliasChoices('organizationName', AliasPath('person', 'organization', 'name'))
+    )
+    is_primary_owner: bool = Field(
+        ..., serialization_alias='isPrimaryOwner',
+        validation_alias=AliasChoices('isPrimaryOwner', 'is_primary_owner')
+    )
 
     class Config:
         allow_population_by_field_name = True
 
 
-class OwnerFields(AssociationFields, OrganizationFields, PersonFields):
+class OwnerGetResponse(BaseGetResponse, OwnerFields):
     pass
 
 
-class ThingGetResponse(LocationFields, ThingFields, ThingID):
-    is_private: bool = Field(..., alias='isPrivate')
-    is_primary_owner: bool = Field(..., alias='isPrimaryOwner')
-    owns_thing: bool = Field(..., alias='ownsThing')
-    owners: List[OwnerFields]
+class ThingGetResponse(BaseGetResponse, LocationFields, ThingFields, ThingID):
+    is_private: bool
+    is_primary_owner: bool
+    owns_thing: bool
+    owners: List[OwnerGetResponse]
     tags: List[TagGetResponse]
-
-    @classmethod
-    def serialize(cls, thing, user):  # Temporary until after Pydantic v2 update
-        thing_association = next(iter([
-            associate for associate in thing.associates.all() if user and associate.person.id == user.id
-        ]), None)
-
-        return {
-            'id': thing.id,
-            'is_private': thing.is_private,
-            'is_primary_owner': getattr(thing_association, 'is_primary_owner', False),
-            'owns_thing': getattr(thing_association, 'owns_thing', False),
-            'tags': [
-                {'id': tag.id, 'key': tag.key, 'value': tag.value} for tag in thing.tags.all()
-            ],
-            'owners': [{
-                **{field: getattr(associate, field) for field in AssociationFields.__fields__.keys()},
-                **{field: getattr(associate.person, field) for field in PersonFields.__fields__.keys()},
-                **{field: getattr(associate.person.organization, field, None)
-                   for field in OrganizationFields.__fields__.keys()},
-            } for associate in thing.associates.all() if associate.owns_thing is True and associate.person.is_active],
-            **{field: getattr(thing, field) for field in ThingFields.__fields__.keys()},
-            **{field: getattr(thing.location, field) for field in LocationFields.__fields__.keys()}
-        }
 
     class Config:
         allow_population_by_field_name = True
@@ -194,47 +174,53 @@ class ThingPostBody(BasePostBody, ThingFields, LocationFields):
     pass
 
 
-@allow_partial
 class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
     pass
 
 
-class ThingOwnershipPatchBody(Schema):
+class ThingOwnershipPatchBody(BasePatchBody):
     email: str
-    make_owner: Optional[bool] = Field(False, alias='makeOwner')
-    remove_owner: Optional[bool] = Field(False, alias='removeOwner')
-    transfer_primary: Optional[bool] = Field(False, alias='transferPrimary')
+    make_owner: Optional[bool] = False
+    remove_owner: Optional[bool] = False
+    transfer_primary: Optional[bool] = False
 
-    @pydantic.root_validator()
-    def validate_only_one_method_allowed(cls, field_values):
-
+    @model_validator(mode='after')
+    def validate_only_one_method_allowed(self):
         assert [
-                   field_values.get('make_owner', False),
-                   field_values.get('remove_owner', False),
-                   field_values.get('transfer_primary', False)
-               ].count(True) == 1, \
+            self.make_owner,
+            self.remove_owner,
+            self.transfer_primary
+        ].count(True) == 1, \
             'You must perform one and only one action from among "makeOwner", "removeOwner", and "transferPrimary".'
 
-        return field_values
+        return self
 
 
-class ThingPrivacyPatchBody(Schema):
-    is_private: bool = Field(..., alias="isPrivate")
+class ThingPrivacyPatchBody(BasePatchBody):
+    is_private: bool
 
 
-class ThingMetadataGetResponse(Schema):
+class ThingMetadataGetResponse(BaseGetResponse):
     units: List[UnitGetResponse]
     sensors: List[SensorGetResponse]
-    processing_levels: List[ProcessingLevelGetResponse] = Field(..., alias='processingLevels')
-    observed_properties: List[ObservedPropertyGetResponse] = Field(..., alias='observedProperties')
+    processing_levels: List[ProcessingLevelGetResponse]
+    observed_properties: List[ObservedPropertyGetResponse]
 
     class Config:
         allow_population_by_field_name = True
 
 
-class ThingArchiveBody(Schema):
-    resource_title: str = Field(..., alias='resourceTitle')
-    resource_abstract: str = Field(..., alias='resourceAbstract')
-    resource_keywords: List[str] = Field(None, alias='resourceKeywords')
-    public_resource: bool = Field(False, alias='publicResource')
-    datastreams: List[UUID] = Field(None, alias='datastreams')
+class ThingArchiveFields(Schema):
+    resource_title: str
+    resource_abstract: str
+    resource_keywords: Optional[List[str]] = None
+    public_resource: bool = False
+    datastreams: Optional[List[UUID]] = None
+
+
+class ThingArchivePostBody(BasePostBody, ThingArchiveFields):
+    pass
+
+
+class ThingArchivePatchBody(BasePatchBody, ThingArchiveFields):
+    pass

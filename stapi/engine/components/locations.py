@@ -3,6 +3,7 @@ from ninja.errors import HttpError
 from django.db.models import Prefetch
 from core.models import Thing
 from sensorthings.components.locations.engine import LocationBaseEngine
+from sensorthings.components.locations.schemas import Location as LocationSchema, LocationPostBody, LocationPatchBody
 from stapi.engine.utils import SensorThingsUtils
 
 
@@ -51,14 +52,14 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
         if filters:
             things = self.apply_filters(
                 queryset=things,
-                component='Location',
+                component=LocationSchema,
                 filters=filters
             )
 
         if ordering:
             things = self.apply_order(
                 queryset=things,
-                component='Location',
+                component=LocationSchema,
                 order_by=ordering
             )
 
@@ -74,8 +75,8 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 skip=pagination.get('skip')
             )
 
-        return [
-            {
+        return {
+            thing.location.id: {
                 'id': thing.location.id,
                 'name': thing.location.name,
                 'description': thing.location.description,
@@ -100,18 +101,18 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 },
                 'thing_ids': [thing.id]
             } for thing in things.all() if location_ids is None or thing.location.id in location_ids
-        ], count
+        }, count
 
     def create_location(
             self,
-            location
+            location: LocationPostBody
     ) -> str:
         raise HttpError(403, 'You do not have permission to perform this action.')
 
     def update_location(
             self,
             location_id: str,
-            location
+            location: LocationPatchBody
     ) -> None:
         raise HttpError(403, 'You do not have permission to perform this action.')
 

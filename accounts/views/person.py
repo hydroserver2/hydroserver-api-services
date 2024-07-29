@@ -3,23 +3,26 @@ from ninja_jwt.tokens import RefreshToken
 from django.http import HttpRequest
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from accounts.endpoints.user.schemas import *
-from accounts.endpoints.user.utils import account_verification_token, update_account_to_verified, send_verification_email, \
-     send_password_reset_confirmation_email, build_user_response
 from hydroserver.auth import JWTAuth, BasicAuth
-from accounts.models import PasswordReset, Organization
+from accounts.models import Organization
+from accounts.models.person import PasswordReset, account_verification_token
+from accounts.schemas.person import (PersonGetResponse, PersonAuthResponse, PersonPostBody, PersonPatchBody,
+                                     PasswordResetRequestPostBody, ResetPasswordPostBody, VerifyAccountPostBody)
 from hydroserver import settings
 
 
-user_router = Router(tags=['User Management'])
+person_router = Router(tags=['User Management'])
 auth_router = Router(tags=['Basic Authentication'])
 user_model = get_user_model()
 
 
-@user_router.get(
+@person_router.get(
     '/user',
     auth=[JWTAuth(), BasicAuth()],
-    response=UserGetResponse,
+    response={
+        200: PersonGetResponse,
+        401: str
+    },
     by_alias=True
 )
 def get_user(request: HttpRequest):
@@ -28,27 +31,27 @@ def get_user(request: HttpRequest):
     if user and user.is_verified is False:
         user.email = user.unverified_email
 
-    return build_user_response(user)
+    return user
 
 
 if not settings.DISABLE_ACCOUNT_CREATION:
-    @user_router.post(
+    @person_router.post(
         '/user',
         response={
-            409: str,
-            200: UserAuthResponse
+            200: PersonAuthResponse,
+            409: str, 422: str
         },
         by_alias=True
     )
-    def create_user(_: HttpRequest, data: UserPostBody):
+    def create_user(request: HttpRequest, data: PersonPostBody):
 
-        user = user_model.objects.filter(username=data.email, is_verified=True).first()
+        user = user_model.objects.filter(username=data.user_email, is_verified=True).first()
 
         if user:
             return 409, 'Email already linked to an existing account.'
 
         user = user_model.objects.create_user(
-            email=data.email,
+            email=data.user_email,
             password=data.password,
             first_name=data.first_name,
             middle_name=data.middle_name,
@@ -62,7 +65,7 @@ if not settings.DISABLE_ACCOUNT_CREATION:
         if getattr(data, 'organization', None) is not None:
             Organization.objects.create(person=user, **data.organization.dict())
 
-        send_verification_email(user)
+        user.send_verification_email()
         jwt = RefreshToken.for_user(user)
 
         user.email = user.unverified_email
@@ -70,17 +73,20 @@ if not settings.DISABLE_ACCOUNT_CREATION:
         return 200, {
             'access': str(getattr(jwt, 'access_token', '')),
             'refresh': str(jwt),
-            'user': build_user_response(user)
+            'user': user
         }
 
 
-@user_router.patch(
+@person_router.patch(
     '/user',
-    response=UserGetResponse,
-    auth=JWTAuth(),
+    response={
+        200: PersonGetResponse,  # TODO: Should update this to 203. Needs to be done on frontend as well.
+        401: str, 403: str, 404: str, 422: str,
+    },
+    auth=[JWTAuth(), BasicAuth()],
     by_alias=True
 )
-def update_user(request: HttpRequest, data: UserPatchBody):
+def update_user(request: HttpRequest, data: PersonPatchBody):
 
     user = getattr(request, 'authenticated_user', None)
     included_names = {'first_name', 'last_name', 'middle_name', 'phone', 'address', 'type', 'link'}
@@ -104,18 +110,22 @@ def update_user(request: HttpRequest, data: UserPatchBody):
                 user.organization = Organization.objects.create(**org_data.dict())
 
     if 'email' in data.dict(exclude_unset=True) and user.is_verified is False:
-        user.unverified_email = data.email
-        send_verification_email(user)
+        user.unverified_email = data.user_email
+        user.send_verification_email()
 
     user.save()
 
-    return build_user_response(user)
+    if user and user.is_verified is False:
+        user.email = user.unverified_email
+
+    return user
 
 
-@user_router.delete(
+@person_router.delete(
     '/user',
     response={
-        204: None
+        204: None,
+        401:  str, 403: str, 404: str
     },
     auth=[JWTAuth(), BasicAuth()],
 )
@@ -129,7 +139,7 @@ def delete_user(request: HttpRequest):
 
 
 if not settings.DISABLE_ACCOUNT_CREATION:
-    @user_router.post(
+    @person_router.post(
         '/send-verification-email',
         auth=JWTAuth(),
         response={
@@ -144,20 +154,20 @@ if not settings.DISABLE_ACCOUNT_CREATION:
         if not user or user.is_verified is not False:
             return 403, 'Email address has already been verified for this account.'
 
-        send_verification_email(user)
+        user.send_verification_email()
 
         return 200, 'Verification email sent.'
 
 
-    @user_router.post(
+    @person_router.post(
         '/activate',
         response={
             403: str,
-            200: UserAuthResponse
+            200: PersonAuthResponse
         },
         by_alias=True
     )
-    def activate_account(_: HttpRequest, data: VerifyAccountPostBody):
+    def activate_account(request: HttpRequest, data: VerifyAccountPostBody):
         user = user_model.objects.filter(
             username=data.uid,
             is_verified=False
@@ -167,20 +177,20 @@ if not settings.DISABLE_ACCOUNT_CREATION:
             return 403, 'This account does not exist or has already been activated.'
 
         if account_verification_token.check_token(user, data.token):
-            user = update_account_to_verified(user)
+            user = user.update_account_to_verified()
             jwt = RefreshToken.for_user(user)
 
             return 200, {
                 'access': str(getattr(jwt, 'access_token', '')),
                 'refresh': str(jwt),
-                'user': build_user_response(user)
+                'user': user
             }
 
         else:
             return 403, 'Account activation token incorrect or expired.'
 
 
-@user_router.post(
+@person_router.post(
     '/send-password-reset-email',
     response={
         200: str,
@@ -189,11 +199,11 @@ if not settings.DISABLE_ACCOUNT_CREATION:
     }
 )
 def send_password_reset_email(
-        _: HttpRequest,
+        request: HttpRequest,
         data: PasswordResetRequestPostBody
 ):
     try:
-        user = user_model.objects.filter(email=data.email).first()
+        user = user_model.objects.filter(email=data.email).filter(is_verified=True).filter(is_active=True).first()
         if user:
             try:
                 password_reset = PasswordReset(user=user)
@@ -204,16 +214,16 @@ def send_password_reset_email(
                 password_reset.save()
 
             token = account_verification_token.make_token(user)
-            send_password_reset_confirmation_email(user, password_reset.id, token)
+            user.send_password_reset_confirmation_email(password_reset.id, token)
 
             return 200, 'Password reset email sent.'
         else:
-            return 404, 'User does not exist'
+            return 404, 'User with the given email not found.'
     except Exception as e:
         return 500, str(e)
 
 
-@user_router.post(
+@person_router.post(
     '/reset-password',
     response={
         200: str,
@@ -221,7 +231,7 @@ def send_password_reset_email(
     }
 )
 def reset_password(
-        _: HttpRequest,
+        request: HttpRequest,
         data: ResetPasswordPostBody
 ):
     try:

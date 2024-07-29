@@ -14,12 +14,12 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_datastream',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.DatastreamResponse
+            response_schema=schemas.DatastreamListResponse
         ),
         SensorThingsEndpoint(
             name='get_datastream',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.DatastreamResponse
+            response_schema=schemas.DatastreamGetResponse
         ),
         SensorThingsEndpoint(
             name='create_datastream',
@@ -85,12 +85,12 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_location',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.LocationResponse
+            response_schema=schemas.LocationListResponse
         ),
         SensorThingsEndpoint(
             name='get_location',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.LocationResponse
+            response_schema=schemas.LocationGetResponse
         ),
         SensorThingsEndpoint(
             name='create_location',
@@ -110,28 +110,27 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_observation',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.ObservationResponse
+            response_schema=schemas.ObservationListResponse
         ),
         SensorThingsEndpoint(
             name='get_observation',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.ObservationResponse
+            response_schema=schemas.ObservationGetResponse
         ),
         SensorThingsEndpoint(
             name='create_observation',
             authentication=[JWTAuth(), BasicAuth()],
-            body_schema=schemas.ObservationBody
+            body_schema=schemas.ObservationPostBody
         ),
         SensorThingsEndpoint(
             name='create_observations',
             authentication=[JWTAuth(), BasicAuth()],
-            body_schema=schemas.ObservationBody
+            body_schema=schemas.ObservationDataArrayPostBody
         ),
         SensorThingsEndpoint(
             name='update_observation',
             deprecated=True,
             authorization=lambda request, observation_id, observation: False,
-            body_schema=schemas.ObservationBody
         ),
         SensorThingsEndpoint(
             name='delete_observation',
@@ -141,12 +140,12 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_observed_property',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.ObservedPropertyResponse
+            response_schema=schemas.ObservedPropertyListResponse
         ),
         SensorThingsEndpoint(
             name='get_observed_property',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.ObservedPropertyResponse
+            response_schema=schemas.ObservedPropertyGetResponse
         ),
         SensorThingsEndpoint(
             name='create_observed_property',
@@ -166,12 +165,12 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_sensor',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.SensorResponse
+            response_schema=schemas.SensorListResponse
         ),
         SensorThingsEndpoint(
             name='get_sensor',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.SensorResponse
+            response_schema=schemas.SensorGetResponse
         ),
         SensorThingsEndpoint(
             name='create_sensor',
@@ -191,12 +190,12 @@ st_api_1_1 = SensorThingsAPI(
         SensorThingsEndpoint(
             name='list_thing',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.ThingResponse
+            response_schema=schemas.ThingListResponse
         ),
         SensorThingsEndpoint(
             name='get_thing',
             authentication=[JWTAuth(), BasicAuth(), anonymous_auth],
-            response_schema=schemas.ThingResponse
+            response_schema=schemas.ThingGetResponse
         ),
         SensorThingsEndpoint(
             name='create_thing',

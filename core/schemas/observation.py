@@ -1,10 +1,8 @@
 from ninja import Schema
-from pydantic import Field
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
-from sensorthings.validators import allow_partial
-from core.schemas_old import BasePostBody, BasePatchBody
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class ObservationID(Schema):
@@ -12,16 +10,16 @@ class ObservationID(Schema):
 
 
 class ObservationFields(Schema):
-    datastream_id: UUID = Field(..., alias='datastreamId')
-    feature_of_interest_id: UUID = Field(None, alias='featureOfInterestId')
-    phenomenon_time: datetime = Field(..., alias='phenomenonTime')
+    datastream_id: UUID
+    feature_of_interest_id: Optional[UUID] = None
+    phenomenon_time: datetime
     result: float
-    result_time: datetime = Field(None, alias='resultTime')
-    quality_code: str = Field(None, alias='qualityCode')
-    result_qualifiers: List[UUID] = Field(None, alias='resultQualifiers')
+    result_time: Optional[datetime] = None
+    quality_code: Optional[str] = None
+    result_qualifiers: List[UUID] = None
 
 
-class ObservationGetResponse(ObservationFields, ObservationID):
+class ObservationGetResponse(BaseGetResponse, ObservationFields, ObservationID):
 
     class Config:
         allow_population_by_field_name = True
@@ -31,6 +29,5 @@ class ObservationPostBody(BasePostBody, ObservationFields):
     pass
 
 
-@allow_partial
 class ObservationPatchBody(BasePatchBody, ObservationFields):
     pass
