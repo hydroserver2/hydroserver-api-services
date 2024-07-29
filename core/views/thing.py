@@ -251,7 +251,7 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
         thing_association.owns_thing = True
         thing_association.save()
 
-    thing = Thing.objects.get_by_id(thing_id, request.authenticated_user, method='PATCH', raise_404=True)
+    thing = Thing.objects.get_by_id(thing_id, request.authenticated_user, method='GET', raise_404=False) or thing
     thing.user = next(iter([
         owner for owner in thing.owners
         if request.authenticated_user and owner.person.id == request.authenticated_user.id
