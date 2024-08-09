@@ -1,4 +1,6 @@
 from ninja import Schema
+from typing import Annotated
+from pydantic import StringConstraints as StrCon
 from uuid import UUID
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
@@ -8,7 +10,7 @@ class DataLoaderID(Schema):
 
 
 class DataLoaderFields(Schema):
-    name: str
+    name: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
 
 
 class DataLoaderGetResponse(BaseGetResponse, DataLoaderFields, DataLoaderID):

@@ -1,6 +1,6 @@
 from ninja import Schema, Field
-from pydantic import AliasPath, AliasChoices, model_validator, field_validator
-from typing import List, Optional, Literal
+from pydantic import AliasPath, AliasChoices, model_validator, field_validator, StringConstraints as StrCon
+from typing import List, Optional, Literal, Annotated
 from uuid import UUID
 from core.schemas.observed_property import ObservedPropertyGetResponse
 from core.schemas.processing_level import ProcessingLevelGetResponse
@@ -11,9 +11,9 @@ from country_list import countries_for_language
 
 
 class ArchiveFields(Schema):
-    link: Optional[str] = None
+    link: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
     frequency: Optional[Literal['daily', 'weekly', 'monthly']]
-    path: str
+    path: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
     datastream_ids: List[UUID]
 
 
@@ -26,9 +26,9 @@ class ArchiveGetResponse(BaseGetResponse, ArchiveFields):
 
 
 class ArchivePostBody(BasePostBody, ArchiveFields):
-    resource_title: Optional[str] = None
-    resource_abstract: Optional[str] = None
-    resource_keywords: Optional[List[str]] = None
+    resource_title: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    resource_abstract: Optional[Annotated[str, StrCon(strip_whitespace=True)]] = None
+    resource_keywords: Optional[List[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]]] = None
     public_resource: Optional[bool] = None
 
 
@@ -41,8 +41,8 @@ class TagID(Schema):
 
 
 class TagFields(Schema):
-    key: str
-    value: str
+    key: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    value: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
 
 
 class TagGetResponse(BaseGetResponse, TagFields, TagID):
@@ -65,8 +65,8 @@ class PhotoID(Schema):
 
 class PhotoFields(Schema):
     thing_id: UUID
-    file_path: str
-    link: str
+    file_path: Annotated[str, StrCon(strip_whitespace=True)]
+    link: Annotated[str, StrCon(strip_whitespace=True)]
 
 
 class PhotoGetResponse(BaseGetResponse, PhotoFields, PhotoID):
@@ -80,12 +80,12 @@ class ThingID(Schema):
 
 
 class ThingFields(Schema):
-    name: str
-    description: str
-    sampling_feature_type: str
-    sampling_feature_code: str
-    site_type: str
-    data_disclaimer: Optional[str] = None
+    name: Annotated[str, StrCon(strip_whitespace=True, max_length=200)]
+    description: Annotated[str, StrCon(strip_whitespace=True)]
+    sampling_feature_type: Annotated[str, StrCon(strip_whitespace=True, max_length=200)]
+    sampling_feature_code: Annotated[str, StrCon(strip_whitespace=True, max_length=200)]
+    site_type: Annotated[str, StrCon(strip_whitespace=True, max_length=200)]
+    data_disclaimer: Optional[Annotated[str, StrCon(strip_whitespace=True)]] = None
 
 
 # Get a list of all ISO 3166-1 alpha-2 country codes
@@ -94,30 +94,30 @@ valid_country_codes = [code for code, _ in countries_for_language('en')]
 
 class LocationFields(Schema):
     latitude: float = Field(
-        ..., serialization_alias='latitude',
+        ..., ge=-90, le=90, serialization_alias='latitude',
         validation_alias=AliasChoices('latitude', AliasPath('location', 'latitude'))
     )
     longitude: float = Field(
-        ..., serialization_alias='longitude',
+        ..., ge=-180, le=180, serialization_alias='longitude',
         validation_alias=AliasChoices('longitude', AliasPath('location', 'longitude'))
     )
     elevation_m: Optional[float] = Field(
-        None, serialization_alias='elevation_m',
+        None, ge=-99999, le=99999, serialization_alias='elevation_m',
         validation_alias=AliasChoices('elevation_m', AliasPath('location', 'elevation_m'))
     )
-    elevation_datum: Optional[str] = Field(
+    elevation_datum: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = Field(
         None, serialization_alias='elevationDatum',
         validation_alias=AliasChoices('elevationDatum', AliasPath('location', 'elevationDatum'))
     )
-    state: Optional[str] = Field(
+    state: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=200)]] = Field(
         None, serialization_alias='state',
         validation_alias=AliasChoices('state', AliasPath('location', 'state'))
     )
-    county: Optional[str] = Field(
+    county: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=200)]] = Field(
         None, serialization_alias='county',
         validation_alias=AliasChoices('county', AliasPath('location', 'county'))
     )
-    country: Optional[str] = Field(
+    country: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=2)]] = Field(
         None, serialization_alias='country',
         validation_alias=AliasChoices('country', AliasPath('location', 'country'))
     )

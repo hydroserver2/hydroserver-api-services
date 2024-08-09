@@ -1,7 +1,7 @@
 from ninja import Schema, Field
-from pydantic import AliasChoices, AliasPath
+from pydantic import AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Annotated
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -10,8 +10,8 @@ class ResultQualifierID(Schema):
 
 
 class ResultQualifierFields(Schema):
-    code: str
-    description: str
+    code: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]]
+    description: Optional[Annotated[str, StrCon(strip_whitespace=True)]]
 
 
 class ResultQualifierGetResponse(BaseGetResponse, ResultQualifierFields, ResultQualifierID):

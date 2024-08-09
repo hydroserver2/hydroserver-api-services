@@ -595,8 +595,8 @@ def base_url():
                 }, None
         ),
         (  # Test POST Thing with bad body.
-                'things', 'post', 'alice', 2, 422, {'test': 'test'},
-                '{"detail": [{"type": "missing", "loc": ["body", "data", "latitude"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "longitude"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "name"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "description"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "samplingFeatureType"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "samplingFeatureCode"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "siteType"], "msg": "Field required"}]}'
+                'things', 'post', 'alice', 2, 422, {'latitude': 91, 'longitude': -181, 'elevation_m': 100000},
+                '{"detail": [{"type": "less_than_equal", "loc": ["body", "data", "latitude"], "msg": "Input should be less than or equal to 90", "ctx": {"le": 90.0}}, {"type": "greater_than_equal", "loc": ["body", "data", "longitude"], "msg": "Input should be greater than or equal to -180", "ctx": {"ge": -180.0}}, {"type": "less_than_equal", "loc": ["body", "data", "elevation_m"], "msg": "Input should be less than or equal to 99999", "ctx": {"le": 99999.0}}, {"type": "missing", "loc": ["body", "data", "name"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "description"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "samplingFeatureType"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "samplingFeatureCode"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "data", "siteType"], "msg": "Field required"}]}'
         ),
         (  # Test POST Thing as an anonymous user.
                 'things', 'post', 'anonymous', 2, 401,  {'test': 'test'},

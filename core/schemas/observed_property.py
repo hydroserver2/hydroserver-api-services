@@ -1,7 +1,7 @@
 from ninja import Schema, Field
-from pydantic import AliasChoices, AliasPath
+from pydantic import AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Annotated
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -10,11 +10,11 @@ class ObservedPropertyID(Schema):
 
 
 class ObservedPropertyFields(Schema):
-    name: str
-    definition: str
-    description: Optional[str] = None
-    type: Optional[str] = None
-    code: Optional[str] = None
+    name: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    definition: Annotated[str, StrCon(strip_whitespace=True)]
+    description: Optional[Annotated[str, StrCon(strip_whitespace=True)]] = None
+    type: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    code: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
 
 
 class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields, ObservedPropertyID):

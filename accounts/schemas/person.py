@@ -1,23 +1,23 @@
 import base64
 from ninja import Schema
-from typing import Optional
-from pydantic import Field, field_validator, EmailStr, AliasChoices
+from typing import Optional, Annotated
+from pydantic import Field, field_validator, EmailStr, AliasChoices, StringConstraints as StrCon
 from accounts.schemas.organization import OrganizationFields, OrganizationPatchBody
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class PersonFields(Schema):
-    first_name: str
-    last_name: str
+    first_name: Annotated[str, StrCon(strip_whitespace=True, max_length=150)]
+    last_name: Annotated[str, StrCon(strip_whitespace=True, max_length=150)]
     user_email: Optional[EmailStr] = Field(
         None, serialization_alias='email',
         validation_alias=AliasChoices('email', 'user_email'),
     )
-    middle_name: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    type: Optional[str] = None
-    link: Optional[str] = None
+    middle_name: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=50)]] = None
+    phone: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=15)]] = None
+    address: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    type: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    link: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=2000)]] = None
     organization: Optional[OrganizationFields] = None
 
     class Config:
