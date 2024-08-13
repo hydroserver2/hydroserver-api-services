@@ -1,8 +1,7 @@
 from ninja import Schema
-from pydantic import Field
-from pydantic import AliasChoices, AliasPath
+from pydantic import Field, AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Annotated
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -11,15 +10,15 @@ class SensorID(Schema):
 
 
 class SensorFields(Schema):
-    name: str
-    description: str
-    encoding_type: str
-    manufacturer: Optional[str] = None
-    model: Optional[str] = None
-    model_link: Optional[str] = None
-    method_type: str
-    method_link: Optional[str] = None
-    method_code: Optional[str] = None
+    name: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]]
+    description: Annotated[str, StrCon(strip_whitespace=True)]
+    encoding_type: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    manufacturer: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    model: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    model_link: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=500)]] = None
+    method_type: Annotated[str, StrCon(strip_whitespace=True, max_length=100)]
+    method_link: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=500)]] = None
+    method_code: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=50)]] = None
 
 
 class SensorGetResponse(BaseGetResponse, SensorFields, SensorID):

@@ -1,7 +1,7 @@
 from ninja import Schema, Field
-from pydantic import AliasChoices, AliasPath
+from pydantic import AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Annotated
 from hydroserver.schemas import BasePostBody, BasePatchBody
 
 
@@ -10,10 +10,10 @@ class UnitID(Schema):
 
 
 class UnitFields(Schema):
-    name: str
-    symbol: str
-    definition: str
-    type: str
+    name: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    symbol: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    definition: Annotated[str, StrCon(strip_whitespace=True)]
+    type: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
 
 
 class UnitGetResponse(UnitFields, UnitID):

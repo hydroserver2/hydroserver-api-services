@@ -1,6 +1,7 @@
 from ninja import Schema
+from pydantic import StringConstraints as StrCon
 from datetime import datetime
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Annotated
 from uuid import UUID
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
@@ -21,11 +22,11 @@ class APIKeyPermissions(Schema):
     model: permissions_models
     methods: List[permissions_methods]
     resources: Optional[List[APIKeyResource]] = None
-    fields: Optional[List[str]] = None
+    fields: Optional[List[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]]] = None
 
 
 class APIKeyFields(Schema):
-    name: str
+    name: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
     permissions: Optional[List[APIKeyPermissions]] = None
     expires: Optional[datetime] = None
     enabled: bool

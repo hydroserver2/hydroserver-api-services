@@ -1,5 +1,6 @@
 from ninja import Schema
-from typing import List, Optional
+from pydantic import StringConstraints as StrCon
+from typing import List, Optional, Annotated
 from uuid import UUID
 from datetime import datetime
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
@@ -15,7 +16,7 @@ class ObservationFields(Schema):
     phenomenon_time: datetime
     result: float
     result_time: Optional[datetime] = None
-    quality_code: Optional[str] = None
+    quality_code: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
     result_qualifiers: List[UUID] = None
 
 

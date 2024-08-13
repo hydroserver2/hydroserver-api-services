@@ -1,5 +1,6 @@
-from ninja import Schema
-from typing import Optional, Literal, Union, List
+from ninja import Schema, Field
+from pydantic import StringConstraints as StrCon
+from typing import Optional, Literal, List, Annotated
 from uuid import UUID
 from datetime import datetime
 from core.schemas.observed_property import ObservedPropertyGetResponse
@@ -14,22 +15,22 @@ class DatastreamID(Schema):
 
 
 class DatastreamFields(Schema):
-    name: Union[UUID, str]
-    description: str
-    observation_type: str
-    sampled_medium: str
+    name: UUID | Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    description: Annotated[str, StrCon(strip_whitespace=True)]
+    observation_type: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    sampled_medium: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
     no_data_value: float
-    aggregation_statistic: str
+    aggregation_statistic: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
     time_aggregation_interval: float
-    status: Optional[str] = None
-    result_type: str
-    value_count: Optional[int] = None
+    status: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
+    result_type: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    value_count: Optional[Annotated[int, Field(ge=0)]] = None
     phenomenon_begin_time: Optional[datetime] = None
     phenomenon_end_time: Optional[datetime] = None
     result_begin_time: Optional[datetime] = None
     result_end_time: Optional[datetime] = None
     data_source_id: Optional[UUID] = None
-    data_source_column: Optional[str] = None
+    data_source_column: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
     is_visible: bool = True
     is_data_visible: bool = True
     thing_id: UUID

@@ -1,7 +1,7 @@
 from ninja import Schema, Field
-from pydantic import AliasChoices, AliasPath
+from pydantic import AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Annotated
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -10,9 +10,9 @@ class ProcessingLevelID(Schema):
 
 
 class ProcessingLevelFields(Schema):
-    code: str
-    definition: Optional[str] = None
-    explanation: Optional[str] = None
+    code: Annotated[str, StrCon(strip_whitespace=True, max_length=255)]
+    definition: Optional[Annotated[str, StrCon(strip_whitespace=True)]] = None
+    explanation: Optional[Annotated[str, StrCon(strip_whitespace=True)]] = None
 
 
 class ProcessingLevelGetResponse(BaseGetResponse, ProcessingLevelFields, ProcessingLevelID):
