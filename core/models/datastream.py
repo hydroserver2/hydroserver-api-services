@@ -21,22 +21,22 @@ class DatastreamQuerySet(models.QuerySet):
             for resource in permission.resources:
                 if resource.model == 'Datastream':
                     permission_filters.append(
-                        (Q(thing__is_private=False) & Q(is_data_visible=True))
+                        (Q(thing__is_private=False) & Q(is_visible=True))
                         | Q(id__in=resource.ids)
                     )
                 elif resource.model == 'Thing':
                     permission_filters.append(
-                        (Q(thing__is_private=False) & Q(is_data_visible=True))
+                        (Q(thing__is_private=False) & Q(is_visible=True))
                         | Q(thing_id__in=resource.ids)
                     )
                 elif resource.model == 'DataSource':
                     permission_filters.append(
-                        (Q(thing__is_private=False) & Q(is_data_visible=True))
+                        (Q(thing__is_private=False) & Q(is_visible=True))
                         | Q(data_source_id__in=resource.ids)
                     )
                 elif resource.model == 'DataLoader':
                     permission_filters.append(
-                        (Q(thing__is_private=False) & Q(is_data_visible=True))
+                        (Q(thing__is_private=False) & Q(is_visible=True))
                         | Q(data_source__data_loader_id__in=resource.ids)
                     )
 
@@ -49,12 +49,12 @@ class DatastreamQuerySet(models.QuerySet):
 
     def primary_owner(self, user, include_public=False):
         query = Q(thing__associates__person=user) & Q(thing__associates__is_primary_owner=True)
-        query |= (Q(thing__is_private=False) & Q(is_data_visible=True)) if include_public else Q()
+        query |= (Q(thing__is_private=False) & Q(is_visible=True)) if include_public else Q()
         return self.filter(query)
 
     def owner(self, user, include_public=False):
         query = Q(thing__associates__person=user) & Q(thing__associates__owns_thing=True)
-        query |= (Q(thing__is_private=False) & Q(is_data_visible=True)) if include_public else Q()
+        query |= (Q(thing__is_private=False) & Q(is_visible=True)) if include_public else Q()
         return self.filter(query)
 
     def unaffiliated(self, user):

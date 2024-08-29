@@ -19,23 +19,23 @@ class ObservationQuerySet(models.QuerySet):
             for resource in permission.resources:
                 if resource.model == 'Datastream':
                     permission_filters.append(
-                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True))
-                        | Q(datastream_id__in=resource.ids)
+                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True) &
+                         Q(datastream__is_visible=True)) | Q(datastream_id__in=resource.ids)
                     )
                 elif resource.model == 'Thing':
                     permission_filters.append(
-                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True))
-                        | Q(datastream__thing_id__in=resource.ids)
+                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True) &
+                         Q(datastream__is_visible=True)) | Q(datastream__thing_id__in=resource.ids)
                     )
                 elif resource.model == 'DataSource':
                     permission_filters.append(
-                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True))
-                        | Q(datastream__data_source_id__in=resource.ids)
+                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True) &
+                         Q(datastream__is_visible=True)) | Q(datastream__data_source_id__in=resource.ids)
                     )
                 elif resource.model == 'DataLoader':
                     permission_filters.append(
-                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True))
-                        | Q(datastream__data_source__data_loader_id__in=resource.ids)
+                        (Q(datastream__thing__is_private=False) & Q(datastream__is_data_visible=True) &
+                         Q(datastream__is_visible=True)) | Q(datastream__data_source__data_loader_id__in=resource.ids)
                     )
 
         return self.filter(*permission_filters) if permission_filters else self
@@ -49,13 +49,15 @@ class ObservationQuerySet(models.QuerySet):
     def primary_owner(self, user, include_public=False):
         query = Q(datastream__thing__associates__person=user) & Q(datastream__thing__associates__is_primary_owner=True)
         query |= (Q(datastream__thing__is_private=False) &
-                  Q(datastream__is_data_visible=True)) if include_public else Q()
+                  Q(datastream__is_data_visible=True) &
+                  Q(datastream__is_visible=True)) if include_public else Q()
         return self.filter(query)
 
     def owner(self, user, include_public=False):
         query = Q(datastream__thing__associates__person=user) & Q(datastream__thing__associates__owns_thing=True)
         query |= (Q(datastream__thing__is_private=False) &
-                  Q(datastream__is_data_visible=True)) if include_public else Q()
+                  Q(datastream__is_data_visible=True) &
+                  Q(datastream__is_visible=True)) if include_public else Q()
         return self.filter(query)
 
     def unaffiliated(self, user):
