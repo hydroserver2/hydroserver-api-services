@@ -169,9 +169,9 @@ if not settings.DISABLE_ACCOUNT_CREATION:
     )
     def activate_account(request: HttpRequest, data: VerifyAccountPostBody):
         user = user_model.objects.filter(
-            username=data.uid,
+            unverified_email=data.uid,
             is_verified=False
-        ).first()
+        ).order_by('-date_joined').first()
 
         if user is None or user.is_verified is True:
             return 403, 'This account does not exist or has already been activated.'
