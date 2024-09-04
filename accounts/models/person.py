@@ -39,6 +39,10 @@ class PersonManager(BaseUserManager):
             )
         else:
             uid = f'{uuid.uuid4()}@hydroserver-temp.org'
+
+            if unverified_email is not None:
+                self.model.objects.filter(unverified_email=unverified_email, is_verified=False).delete()
+
             user = self.model(
                 username=uid,
                 email=uid,
