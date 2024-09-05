@@ -2,7 +2,7 @@ from ninja import Router
 from ninja_jwt.tokens import RefreshToken
 from django.http import HttpRequest
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from hydroserver.auth import JWTAuth, BasicAuth
 from accounts.models import Organization
 from accounts.models.person import PasswordReset, account_verification_token
@@ -43,12 +43,18 @@ if not settings.DISABLE_ACCOUNT_CREATION:
         },
         by_alias=True
     )
+    @transaction.atomic
     def create_user(request: HttpRequest, data: PersonPostBody):
 
         user = user_model.objects.filter(username=data.user_email, is_verified=True).first()
 
         if user:
             return 409, 'Email already linked to an existing account.'
+
+        if getattr(data, 'organization', None) is not None:
+            organization = Organization.objects.create(**data.organization.dict())
+        else:
+            organization = None
 
         user = user_model.objects.create_user(
             email=data.user_email,
@@ -59,11 +65,9 @@ if not settings.DISABLE_ACCOUNT_CREATION:
             type=data.type,
             phone=data.phone,
             address=data.address,
-            link=data.link
+            link=data.link,
+            organization=organization,
         )
-
-        if getattr(data, 'organization', None) is not None:
-            Organization.objects.create(person=user, **data.organization.dict())
 
         user.send_verification_email()
         jwt = RefreshToken.for_user(user)
@@ -86,6 +90,7 @@ if not settings.DISABLE_ACCOUNT_CREATION:
     auth=[JWTAuth(), BasicAuth()],
     by_alias=True
 )
+@transaction.atomic
 def update_user(request: HttpRequest, data: PersonPatchBody):
 
     user = getattr(request, 'authenticated_user', None)
