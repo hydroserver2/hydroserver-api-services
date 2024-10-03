@@ -64,6 +64,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
+        things = things.distinct()
+
         if get_count:
             count = things.count()
         else:

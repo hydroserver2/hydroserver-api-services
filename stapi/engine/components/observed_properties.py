@@ -45,6 +45,8 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
+        observed_properties = observed_properties.distinct()
+
         if get_count:
             count = observed_properties.count()
         else:
