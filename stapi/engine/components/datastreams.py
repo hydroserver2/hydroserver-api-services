@@ -66,6 +66,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
+        datastreams = datastreams.distinct()
+
         if get_count:
             count = datastreams.count()
         else:

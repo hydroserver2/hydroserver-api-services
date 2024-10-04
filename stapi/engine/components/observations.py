@@ -77,12 +77,12 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             order_by=ordering
         )
 
+        observations = observations.distinct()
+
         if get_count:
             count = observations.count()
         else:
             count = None
-
-        observations = observations.distinct()
 
         if datastream_ids:
             observations = self.apply_rank(

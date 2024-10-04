@@ -23,22 +23,28 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 DEPLOYMENT_BACKEND = config('DEPLOYMENT_BACKEND', default='local')
 DISABLE_ACCOUNT_CREATION = config('DISABLE_ACCOUNT_CREATION', default=False, cast=bool)
 
+# CORS Settings
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/api/.*$'
+CORS_ALLOW_HEADERS = list(default_headers)
+
+# Deployment Settings
+
 if DEPLOYMENT_BACKEND == 'aws':
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
-    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
-    CORS_ALLOW_HEADERS = list(default_headers) + ['Refresh_Authorization']
+    CORS_ALLOW_HEADERS += ['Refresh_Authorization']
 elif DEPLOYMENT_BACKEND == 'vm':
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',')
-    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
 else:
     PROXY_BASE_URL = config('PROXY_BASE_URL', 'http://127.0.0.1:3030')
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
-    CORS_ORIGIN_ALLOW_ALL = True  # Warning: Do not use this setting in production.
+
+CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
 
 LOGIN_REDIRECT_URL = 'sites'
 LOGOUT_REDIRECT_URL = 'home'

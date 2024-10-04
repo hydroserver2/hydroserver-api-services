@@ -44,6 +44,8 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 order_by=ordering
             )
 
+        sensors = sensors.distinct()
+
         if get_count:
             count = sensors.count()
         else:
