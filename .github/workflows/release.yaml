@@ -35,4 +35,6 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name || github.event.inputs.release_tag }}
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name || github.event.inputs.release_tag }}
+            ghcr.io/${{ github.repository }}:latest
