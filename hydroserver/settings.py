@@ -214,7 +214,7 @@ if DEPLOYMENT_BACKEND == 'aws':
         }
     }
 elif DEPLOYMENT_BACKEND == 'gcp':
-    GS_BUCKET_NAME = config('GS_BUCKET_NAME', default=None)
+    GS_BUCKET_NAME = config('STORAGE_BUCKET', default=None)
     GS_PROJECT_ID = config('GS_PROJECT_ID', default=None)
     GS_CUSTOM_ENDPOINT = PROXY_BASE_URL
     STORAGES = {
