@@ -17,7 +17,7 @@ class Command(BaseCommand):
             password = getattr(settings, 'DEFAULT_SUPERUSER_PASSWORD', 'pass')
 
             try:
-                user_model.objects.create_superuser(username=email, email=email, password=password)
+                user_model.objects.create_superuser(email=email, password=password)
                 self.stdout.write(self.style.SUCCESS(f'Superuser created: {email}'))
             except ValidationError as e:
                 self.stdout.write(self.style.ERROR(f'Failed to create default superuser: {e}'))
