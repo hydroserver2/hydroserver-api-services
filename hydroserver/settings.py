@@ -24,13 +24,15 @@ DEPLOYMENT_BACKEND = config('DEPLOYMENT_BACKEND', default='local')
 DISABLE_ACCOUNT_CREATION = config('DISABLE_ACCOUNT_CREATION', default=False, cast=bool)
 
 # CORS Settings
-
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ALLOW_HEADERS = list(default_headers)
 
-# Deployment Settings
+# Default Superuser Settings
+DEFAULT_SUPERUSER_EMAIL = config('DEFAULT_SUPERUSER_EMAIL', default='admin@hydroserver.org')
+DEFAULT_SUPERUSER_PASSWORD = config('DEFAULT_SUPERUSER_PASSWORD', default='pass')
 
+# Deployment Settings
 if DEPLOYMENT_BACKEND == 'aws':
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)  # This is necessary for AWS ELB Health Checks to pass.
@@ -38,6 +40,9 @@ if DEPLOYMENT_BACKEND == 'aws':
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',') + [local_ip]
     CORS_ALLOW_HEADERS += ['Refresh_Authorization']
 elif DEPLOYMENT_BACKEND == 'vm':
+    PROXY_BASE_URL = config('PROXY_BASE_URL')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',')
+elif DEPLOYMENT_BACKEND == 'gcp':
     PROXY_BASE_URL = config('PROXY_BASE_URL')
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=PROXY_BASE_URL).split(',')
 else:
@@ -170,14 +175,28 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # Email Settings
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = True
-EMAIL_HOST = config('EMAIL_HOST', default=None)
-EMAIL_PORT = config('EMAIL_PORT', default=None)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
-DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default=None)
+SMTP_URL = config('SMTP_URL', default=None)
+SMTP_CONNECTION = urlparse(SMTP_URL) if SMTP_URL else None
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = config('ACCOUNTS_EMAIL', default=None)
+
+EMAIL_HOST = SMTP_CONNECTION.hostname if SMTP_CONNECTION else None
+EMAIL_PORT = SMTP_CONNECTION.port if SMTP_CONNECTION else None
+EMAIL_HOST_USER = SMTP_CONNECTION.username if SMTP_CONNECTION else None
+EMAIL_HOST_PASSWORD = SMTP_CONNECTION.password if SMTP_CONNECTION else None
+
+if SMTP_CONNECTION and SMTP_CONNECTION.scheme == "smtp":
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+elif SMTP_CONNECTION and SMTP_CONNECTION.scheme == "smtps":
+    EMAIL_USE_TLS = False
+    EMAIL_USE_SSL = True
+elif SMTP_CONNECTION:
+    raise ValueError("Unsupported SMTP URL scheme. Use 'smtp' or 'smtps'.")
+
+
+# Deployment Settings
 
 if DEPLOYMENT_BACKEND == 'aws':
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
