@@ -6,7 +6,7 @@ class CloudHealthCheckMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path == '/health-check':
+        if request.path.rstrip('/') == '/health-check':
             return HttpResponse('OK', status=200)
 
         return self.get_response(request)
