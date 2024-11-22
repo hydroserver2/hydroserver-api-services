@@ -199,9 +199,7 @@ elif SMTP_CONNECTION:
 # Deployment Settings
 
 if DEPLOYMENT_BACKEND == 'aws':
-    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
-    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
-    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default=None)
+    AWS_STORAGE_BUCKET_NAME = config('STORAGE_BUCKET', default=None)
     AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
     STORAGES = {
         'default': {
