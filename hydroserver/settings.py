@@ -120,7 +120,7 @@ WSGI_APPLICATION = 'hydroserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'postgresql://admin:pass@timescaledb:5432/tsdb')
+os.environ["DATABASE_URL"] = config('DATABASE_URL', default=f'sqlite:///db.sqlite3')
 
 DATABASES = {
     'default': dj_database_url.config(
