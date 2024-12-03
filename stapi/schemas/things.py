@@ -15,11 +15,20 @@ class ContactPerson(Schema):
         populate_by_name = True
 
 
+class Tag(Schema):
+    key: str = Field(..., alias='key')
+    value: str = Field(..., alias='value')
+
+    class Config:
+        populate_by_name = True
+
+
 class ThingProperties(Schema):
     sampling_feature_type: str = Field(..., alias='samplingFeatureType')
     sampling_feature_code: str = Field(..., alias='samplingFeatureCode')
     site_type: str = Field(..., alias='siteType')
     contact_people: List[ContactPerson] = Field(..., alias='contactPeople')
+    tags: List[Tag] = Field(..., alias='tags')
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
 
     class Config:

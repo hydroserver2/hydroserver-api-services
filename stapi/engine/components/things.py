@@ -50,6 +50,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
             Prefetch('log', queryset=Thing.history.order_by('-history_date'), to_attr='ordered_log')
         )
 
+        things = things.prefetch_related('tags')
+
         if filters:
             things = self.apply_filters(
                 queryset=things,
@@ -87,6 +89,12 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                     'sampling_feature_type': thing.sampling_feature_type,
                     'sampling_feature_code': thing.sampling_feature_code,
                     'site_type': thing.site_type,
+                    'tags': [
+                        {
+                            'key': tag.key,
+                            'value': tag.value
+                        } for tag in thing.tags.all()
+                    ],
                     'contact_people': [
                         {
                             'first_name': thing_association.person.first_name,

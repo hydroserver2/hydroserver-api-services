@@ -26,6 +26,8 @@ class SensorThingsUtils:
                 'properties__samplingFeatureType': 'sampling_feature_type',
                 'properties__samplingFeatureCode': 'sampling_feature_code',
                 'properties__siteType': 'site_type',
+                'properties__tags__key': 'tags__key',
+                'properties__tags__value': 'tags__value',
                 'Location__id': 'location_id'
             }.get(prop, prop)
 
