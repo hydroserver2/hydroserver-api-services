@@ -6,8 +6,10 @@ from hydroserver.views import index
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("accounts/", include("allauth.urls")),
+    path('accounts/', include('allauth.socialaccount.urls')),
     path('api/data/', include('core.urls')),
-    path('api/account/', include('accounts.urls')),
+    # path('api/account/', include('accounts.urls')),
     path('api/sensorthings/', include('stapi.urls')),
     path('', index)
 ]

@@ -9,6 +9,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from accounts.models.organization import Organization
 from accounts.models.apikey import PermissionChecker
 from django.conf import settings
@@ -208,3 +210,8 @@ class PasswordReset(models.Model):
 
     def is_valid(self):
         return timezone.now() - self.timestamp <= timedelta(days=1)
+
+
+@receiver(pre_save, sender=Person)
+def update_username_from_email(sender, instance, **kwargs):
+    instance.username = instance.email

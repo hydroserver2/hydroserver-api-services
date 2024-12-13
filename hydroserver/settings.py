@@ -53,8 +53,36 @@ AUTH_USER_MODEL = 'accounts.Person'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'hydroserver.backends.UnverifiedUserBackend'
+    "allauth.account.auth_backends.AuthenticationBackend",
+    # 'hydroserver.backends.UnverifiedUserBackend'
 ]
+
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+SITE_ID = 1
+
+ACCOUNT_FORMS = {'signup': 'accounts.forms.HydroServerSignUpForm'}
+
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.HydroServerSocialAccountAdapter'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    },
+    'orcid': {
+        'BASE_DOMAIN': 'sandbox.orcid.org',
+        'MEMBER_API': False,
+    }
+}
 
 NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
@@ -68,6 +96,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.orcid',
     'corsheaders',
     'core.apps.CoreConfig',
     'accounts.apps.AccountsConfig',
@@ -85,6 +119,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'sensorthings.middleware.SensorThingsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware'
@@ -142,27 +177,27 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# OAuth Settings
-
-AUTHLIB_OAUTH_CLIENTS = {
-    'orcid': {
-        'client_id': config('OAUTH_ORCID_CLIENT', default=''),
-        'client_secret': config('OAUTH_ORCID_SECRET', default=''),
-        'server_metadata_url': 'https://www.orcid.org/.well-known/openid-configuration'
-    },
-    'google': {
-        'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
-        'client_secret': config('OAUTH_GOOGLE_SECRET', default=''),
-        'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
-    },
-    'hydroshare': {
-        'client_id': config('OAUTH_HYDROSHARE_CLIENT', default=''),
-        'client_secret': config('OAUTH_HYDROSHARE_SECRET', default=''),
-        'api_base_url': 'https://www.hydroshare.org',
-        'authorize_url': 'https://www.hydroshare.org/o/authorize/',
-        'access_token_url': 'https://www.hydroshare.org/o/token/'
-    }
-}
+# # OAuth Settings
+#
+# AUTHLIB_OAUTH_CLIENTS = {
+#     'orcid': {
+#         'client_id': config('OAUTH_ORCID_CLIENT', default=''),
+#         'client_secret': config('OAUTH_ORCID_SECRET', default=''),
+#         'server_metadata_url': 'https://www.orcid.org/.well-known/openid-configuration'
+#     },
+#     'google': {
+#         'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
+#         'client_secret': config('OAUTH_GOOGLE_SECRET', default=''),
+#         'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
+#     },
+#     'hydroshare': {
+#         'client_id': config('OAUTH_HYDROSHARE_CLIENT', default=''),
+#         'client_secret': config('OAUTH_HYDROSHARE_SECRET', default=''),
+#         'api_base_url': 'https://www.hydroshare.org',
+#         'authorize_url': 'https://www.hydroshare.org/o/authorize/',
+#         'access_token_url': 'https://www.hydroshare.org/o/token/'
+#     }
+# }
 
 APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
@@ -171,7 +206,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 # Email Settings
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = True
+# EMAIL_USE_TLS = True
 EMAIL_HOST = config('EMAIL_HOST', default=None)
 EMAIL_PORT = config('EMAIL_PORT', default=None)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
