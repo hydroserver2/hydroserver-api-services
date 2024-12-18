@@ -216,6 +216,7 @@ elif DEPLOYMENT_BACKEND == 'gcp':
     GS_BUCKET_NAME = config('STORAGE_BUCKET', default=None)
     GS_PROJECT_ID = config('GS_PROJECT_ID', default=None)
     GS_CUSTOM_ENDPOINT = PROXY_BASE_URL
+    GS_DEFAULT_ACL = "publicRead"
     STORAGES = {
         'default': {
             'BACKEND': 'storages.backends.gcloud.GoogleCloudStorage',
