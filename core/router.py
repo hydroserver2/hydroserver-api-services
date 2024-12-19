@@ -36,7 +36,8 @@ class DataManagementRouter(Router):
                 201: response,
                 401: str,
                 403: str,
-                404: str
+                404: str,
+                409: str
             },
             by_alias=True
         )
