@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from pydantic import AliasChoices, AliasPath, StringConstraints as StrCon
+from pydantic import ConfigDict, AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
 from typing import Optional, Annotated
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
@@ -18,13 +18,12 @@ class ObservedPropertyFields(Schema):
 
 
 class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields, ObservedPropertyID):
+    model_config = ConfigDict(populate_by_name=True)
+
     owner: Optional[str] = Field(
         None, serialization_alias='owner',
         validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
     )
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):

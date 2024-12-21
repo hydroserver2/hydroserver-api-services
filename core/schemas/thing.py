@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from pydantic import AliasPath, AliasChoices, model_validator, field_validator, StringConstraints as StrCon
+from pydantic import ConfigDict, AliasPath, AliasChoices, model_validator, field_validator, StringConstraints as StrCon
 from typing import List, Optional, Literal, Annotated
 from uuid import UUID
 from core.schemas.observed_property import ObservedPropertyGetResponse
@@ -18,11 +18,10 @@ class ArchiveFields(Schema):
 
 
 class ArchiveGetResponse(BaseGetResponse, ArchiveFields):
+    model_config = ConfigDict(populate_by_name=True)
+
     thing_id: UUID
     public_resource: bool
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class ArchivePostBody(BasePostBody, ArchiveFields):
@@ -46,9 +45,7 @@ class TagFields(Schema):
 
 
 class TagGetResponse(BaseGetResponse, TagFields, TagID):
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class TagPostBody(BasePostBody, TagFields):
@@ -70,9 +67,7 @@ class PhotoFields(Schema):
 
 
 class PhotoGetResponse(BaseGetResponse, PhotoFields, PhotoID):
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ThingID(Schema):
@@ -130,6 +125,8 @@ class LocationFields(Schema):
 
 
 class OwnerFields(Schema):
+    model_config = ConfigDict(populate_by_name=True)
+
     first_name: str = Field(
         ..., serialization_alias='firstName',
         validation_alias=AliasChoices('firstName', AliasPath('person', 'first_name'))
@@ -151,23 +148,19 @@ class OwnerFields(Schema):
         validation_alias=AliasChoices('isPrimaryOwner', 'is_primary_owner')
     )
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class OwnerGetResponse(BaseGetResponse, OwnerFields):
     pass
 
 
 class ThingGetResponse(BaseGetResponse, LocationFields, ThingFields, ThingID):
+    model_config = ConfigDict(populate_by_name=True)
+
     is_private: bool
     is_primary_owner: bool
     owns_thing: bool
     owners: List[OwnerGetResponse]
     tags: List[TagGetResponse]
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class ThingPostBody(BasePostBody, ThingFields, LocationFields):
@@ -201,13 +194,12 @@ class ThingPrivacyPatchBody(BasePatchBody):
 
 
 class ThingMetadataGetResponse(BaseGetResponse):
+    model_config = ConfigDict(populate_by_name=True)
+
     units: List[UnitGetResponse]
     sensors: List[SensorGetResponse]
     processing_levels: List[ProcessingLevelGetResponse]
     observed_properties: List[ObservedPropertyGetResponse]
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class ThingArchiveFields(Schema):

@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from pydantic import StringConstraints as StrCon
+from pydantic import ConfigDict, StringConstraints as StrCon
 from typing import Optional, Literal, List, Annotated
 from uuid import UUID
 from datetime import datetime
@@ -44,9 +44,7 @@ class DatastreamFields(Schema):
 
 
 class DatastreamGetResponse(BaseGetResponse, DatastreamFields, DatastreamID):
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DatastreamPostBody(BasePostBody, DatastreamFields):
@@ -58,10 +56,9 @@ class DatastreamPatchBody(BasePatchBody, DatastreamFields):
 
 
 class DatastreamMetadataGetResponse(Schema):
+    model_config = ConfigDict(populate_by_name=True)
+
     units: List[UnitGetResponse]
     sensors: List[SensorGetResponse]
     processing_levels: List[ProcessingLevelGetResponse]
     observed_properties: List[ObservedPropertyGetResponse]
-
-    class Config:
-        allow_population_by_field_name = True

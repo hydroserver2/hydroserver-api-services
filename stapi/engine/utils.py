@@ -61,7 +61,7 @@ class SensorThingsUtils:
             ]:
                 return getattr(
                     field_schemas, prop.split('__')[0]
-                ).Config.json_schema_extra['name_ref'][1] + '__' + self.transform_model_field(
+                ).model_config['json_schema_extra']['name_ref'][1] + '__' + self.transform_model_field(
                     component=getattr(field_schemas, prop.split('__')[0]),
                     prop='__'.join(prop.split('__')[1:])
                 )
@@ -94,7 +94,7 @@ class SensorThingsUtils:
             ]:
                 return getattr(
                     field_schemas, prop.split('__')[0]
-                ).Config.json_schema_extra['name_ref'][1] + '__' + self.transform_model_field(
+                ).model_config['json_schema_extra']['name_ref'][1] + '__' + self.transform_model_field(
                     component=getattr(field_schemas, prop.split('__')[0]),
                     prop='__'.join(prop.split('__')[1:])
                 )

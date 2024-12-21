@@ -1,12 +1,14 @@
 import base64
 from ninja import Schema
 from typing import Optional, Annotated
-from pydantic import Field, field_validator, EmailStr, AliasChoices, StringConstraints as StrCon
+from pydantic import Field, ConfigDict, field_validator, EmailStr, AliasChoices, StringConstraints as StrCon
 from accounts.schemas.organization import OrganizationFields, OrganizationPatchBody
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class PersonFields(Schema):
+    model_config = ConfigDict(populate_by_name=True)
+
     first_name: Annotated[str, StrCon(strip_whitespace=True, max_length=150)]
     last_name: Annotated[str, StrCon(strip_whitespace=True, max_length=150)]
     user_email: Optional[EmailStr] = Field(
@@ -19,9 +21,6 @@ class PersonFields(Schema):
     type: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=255)]] = None
     link: Optional[Annotated[str, StrCon(strip_whitespace=True, max_length=2000)]] = None
     organization: Optional[OrganizationFields] = None
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class PersonGetResponse(BaseGetResponse, PersonFields):
