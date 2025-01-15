@@ -46,48 +46,10 @@ else:
 
 CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
 
-LOGIN_REDIRECT_URL = 'sites'
-LOGOUT_REDIRECT_URL = 'home'
-
-AUTH_USER_MODEL = 'accounts.Person'
-
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     "allauth.account.auth_backends.AuthenticationBackend",
-    # 'hydroserver.backends.UnverifiedUserBackend'
 ]
-
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-
-SITE_ID = 1
-
-ACCOUNT_FORMS = {'signup': 'accounts.forms.HydroServerSignUpForm'}
-
-SOCIALACCOUNT_ADAPTER = 'accounts.adapters.HydroServerSocialAccountAdapter'
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    },
-    'orcid': {
-        'BASE_DOMAIN': 'sandbox.orcid.org',
-        'MEMBER_API': False,
-    }
-}
-
-NINJA_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
-}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -119,8 +81,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    "allauth.account.middleware.AccountMiddleware",
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'sensorthings.middleware.SensorThingsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware'
 ]
@@ -159,6 +121,41 @@ DATABASES = {
     )
 }
 
+
+# Account and Access Control Settings
+
+AUTH_USER_MODEL = 'accounts.Person'
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+
+HEADLESS_ONLY = True
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email":           f"{PROXY_BASE_URL}/verify-email/{{key}}",
+    "account_reset_password_from_key": f"{PROXY_BASE_URL}/reset-password/{{key}}",
+    "account_signup":                  f"{PROXY_BASE_URL}/sign-up",
+}
+
+SITE_ID = 1
+
+SESSION_COOKIE_NAME = "hs_session"
+SESSION_COOKIE_AGE = 86400
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+# Email Settings
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config('EMAIL_HOST', default='127.0.0.1')
+EMAIL_PORT = config('EMAIL_PORT', default=1025)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
+DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default=None)
+
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -177,41 +174,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# # OAuth Settings
-#
-# AUTHLIB_OAUTH_CLIENTS = {
-#     'orcid': {
-#         'client_id': config('OAUTH_ORCID_CLIENT', default=''),
-#         'client_secret': config('OAUTH_ORCID_SECRET', default=''),
-#         'server_metadata_url': 'https://www.orcid.org/.well-known/openid-configuration'
-#     },
-#     'google': {
-#         'client_id': config('OAUTH_GOOGLE_CLIENT', default=''),
-#         'client_secret': config('OAUTH_GOOGLE_SECRET', default=''),
-#         'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration'
-#     },
-#     'hydroshare': {
-#         'client_id': config('OAUTH_HYDROSHARE_CLIENT', default=''),
-#         'client_secret': config('OAUTH_HYDROSHARE_SECRET', default=''),
-#         'api_base_url': 'https://www.hydroshare.org',
-#         'authorize_url': 'https://www.hydroshare.org/o/authorize/',
-#         'access_token_url': 'https://www.hydroshare.org/o/token/'
-#     }
-# }
 
 APP_CLIENT_URL = config('APP_CLIENT_URL', default=PROXY_BASE_URL)
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
-
-
-# Email Settings
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_USE_TLS = True
-EMAIL_HOST = config('EMAIL_HOST', default=None)
-EMAIL_PORT = config('EMAIL_PORT', default=None)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default=None)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default=None)
-DEFAULT_FROM_EMAIL = config('ADMIN_EMAIL', default=None)
 
 
 if DEPLOYMENT_BACKEND == 'aws':
@@ -266,31 +231,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ST_API_PREFIX = 'api/sensorthings'
 ST_API_ID_QUALIFIER = "'"
 ST_API_ID_TYPE = UUID
-
-
-# # We need to patch Django Ninja's OpenAPISchema "methods" method to create a unique operationId for endpoints
-# # that allow multiple methods on the same view function (such as GET and HEAD in this case). Without this patch,
-# # our GET and HEAD methods in the Swagger docs will have the same ID and behave inconsistently. This is probably an
-# # unintentional bug with the Django Ninja router.api_operation method when using it for multiple HTTP methods.
-#
-# from ninja.openapi.schema import OpenAPISchema
-#
-#
-# def _methods_patch(self, operations: list) -> DictStrAny:
-#     result = {}
-#     for op in operations:
-#         if op.include_in_schema:
-#             operation_details = self.operation_details(op)
-#             for method in op.methods:
-#                 # Update the operationId of HEAD methods to avoid conflict with corresponding GET methods.
-#                 # Original code:
-#                 # result[method.lower()] = operation_details
-#                 result[method.lower()] = {
-#                     **operation_details,
-#                     'operationId': operation_details['operationId'] + '_head'
-#                     if method.lower() == 'head' else operation_details['operationId']
-#                 }
-#     return result
-#
-#
-# OpenAPISchema.methods = _methods_patch

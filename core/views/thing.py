@@ -4,7 +4,7 @@ from uuid import UUID
 from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.db.models import Q
-from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
+from hydroserver.security import session_auth, basic_auth, anonymous_auth
 from accounts.models import Person
 from core.models import Thing, Location, ThingAssociation, Unit, Sensor, ProcessingLevel, ObservedProperty, Datastream
 from core.router import DataManagementRouter
@@ -186,7 +186,7 @@ def delete_thing(request, thing_id: UUID = Path(...)):
 
 @router.patch(
     '{thing_id}/ownership',
-    auth=[JWTAuth(), BasicAuth()],
+    auth=[session_auth, basic_auth],
     response={
         203: ThingGetResponse,
         401: str,
@@ -262,7 +262,7 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
 
 @router.patch(
     '{thing_id}/privacy',
-    auth=[JWTAuth(), BasicAuth()],
+    auth=[session_auth, basic_auth],
     response={
         203: ThingGetResponse,
         401: str,
@@ -296,7 +296,7 @@ def update_thing_privacy(request, data: ThingPrivacyPatchBody, thing_id: UUID = 
 
 @router.get(
     '{thing_id}/metadata',
-    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: ThingMetadataGetResponse,
         401: str,
@@ -363,7 +363,7 @@ def get_thing_metadata(request, thing_id: UUID = Path(...), include_assignable_m
 
 @router.get(
     '{thing_id}/datastreams',
-    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: List[DatastreamGetResponse]
     },
