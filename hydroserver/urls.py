@@ -8,8 +8,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/csrf/', csrf, name='csrf'),
     path('api/auth/', include('allauth.headless.urls')),
+    path('api/account/', include('iam.urls')),
     path('api/data/', include('core.urls')),
-    # path('api/account/', include('accounts.urls')),
     path('api/sensorthings/', include('stapi.urls')),
     path('', index)
 ]

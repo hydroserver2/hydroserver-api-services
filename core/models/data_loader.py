@@ -3,7 +3,9 @@ from django.db import models
 from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
-from accounts.models import Person
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class DataLoaderQuerySet(models.QuerySet):
@@ -46,7 +48,7 @@ class DataLoaderQuerySet(models.QuerySet):
 class DataLoader(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_loaders', db_column='personId')
+    person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='data_loaders', db_column='personId')
     history = HistoricalRecords(custom_model_name='DataLoaderChangeLog', related_name='log')
 
     objects = DataLoaderQuerySet.as_manager()

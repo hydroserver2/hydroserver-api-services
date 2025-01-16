@@ -5,13 +5,14 @@ from datetime import datetime
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from hydroserver.security import session_auth, basic_auth, anonymous_auth
-from accounts.models import Person
 from core.models import Thing, Location, ThingAssociation, Unit, Sensor, ProcessingLevel, ObservedProperty, Datastream
 from core.router import DataManagementRouter
 from core.schemas.thing import ThingGetResponse, ThingPostBody, ThingPatchBody, ThingOwnershipPatchBody, \
     ThingPrivacyPatchBody, ThingFields, LocationFields, ThingMetadataGetResponse
 from core.schemas.datastream import DatastreamGetResponse
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 router = DataManagementRouter(tags=['Things'])
 
@@ -214,8 +215,8 @@ def update_thing_ownership(request, data: ThingOwnershipPatchBody, thing_id: UUI
     ]), None)
 
     try:
-        user = Person.objects.get(email=data.email)
-    except Person.DoesNotExist:
+        user = User.objects.get(email=data.email)
+    except User.DoesNotExist:
         return 404, 'User with the given email not found.'
 
     if request.authenticated_user == user and authenticated_user_association.is_primary_owner:

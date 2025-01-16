@@ -1,0 +1,310 @@
+[
+  {
+    "model": "iam.usertype",
+    "pk": 1,
+    "fields": {
+      "name": "University Faculty"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 2,
+    "fields": {
+      "name": "University Professional or Research Staff"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 3,
+    "fields": {
+      "name": "Post-Doctoral Fellow"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 4,
+    "fields": {
+      "name": "University Graduate Student"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 5,
+    "fields": {
+      "name": "University Undergraduate Student"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 6,
+    "fields": {
+      "name": "Commercial/Professional"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 7,
+    "fields": {
+      "name": "Government Official"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 8,
+    "fields": {
+      "name": "School Student Kindergarten to 12th Grade"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 9,
+    "fields": {
+      "name": "School Teacher Kindergarten to 12th Grade"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 10,
+    "fields": {
+      "name": "Organization"
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 11,
+    "fields": {
+      "name": "Other"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 1,
+    "fields": {
+      "name": "Analytical library"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 2,
+    "fields": {
+      "name": "Association"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 3,
+    "fields": {
+      "name": "Center"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 4,
+    "fields": {
+      "name": "College"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 5,
+    "fields": {
+      "name": "Company"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 6,
+    "fields": {
+      "name": "Consortium"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 7,
+    "fields": {
+      "name": "Department"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 8,
+    "fields": {
+      "name": "Division"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 9,
+    "fields": {
+      "name": "Faith-based organization"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 10,
+    "fields": {
+      "name": "Foundation"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 11,
+    "fields": {
+      "name": "Funding organization"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 12,
+    "fields": {
+      "name": "Government agency"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 13,
+    "fields": {
+      "name": "Institute"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 14,
+    "fields": {
+      "name": "Laboratory"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 15,
+    "fields": {
+      "name": "Library"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 16,
+    "fields": {
+      "name": "Manufacturer"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 17,
+    "fields": {
+      "name": "Museum"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 18,
+    "fields": {
+      "name": "Nature center"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 19,
+    "fields": {
+      "name": "Non-profit organization"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 20,
+    "fields": {
+      "name": "Park"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 21,
+    "fields": {
+      "name": "Program"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 22,
+    "fields": {
+      "name": "Publisher"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 23,
+    "fields": {
+      "name": "Research agency"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 24,
+    "fields": {
+      "name": "Research institute"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 25,
+    "fields": {
+      "name": "Research organization"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 26,
+    "fields": {
+      "name": "School primary"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 27,
+    "fields": {
+      "name": "School secondary"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 28,
+    "fields": {
+      "name": "Student organization"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 29,
+    "fields": {
+      "name": "University"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 30,
+    "fields": {
+      "name": "Unknown"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 31,
+    "fields": {
+      "name": "Vendor"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 32,
+    "fields": {
+      "name": "Youth group"
+    }
+  },
+  {
+    "model": "iam.organizationtype",
+    "pk": 33,
+    "fields": {
+      "name": "Other"
+    }
+  }
+]
