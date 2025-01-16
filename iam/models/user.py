@@ -35,7 +35,7 @@ class User(AbstractUser):
     address = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(max_length=2000, blank=True, null=True)
     _user_type = models.ForeignKey("UserType", on_delete=models.SET_NULL, blank=True, null=True,
-                                   db_column='user_type_id')
+                                   db_column="user_type_id")
     organization = models.OneToOneField("Organization", on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name="user")
 
@@ -78,7 +78,7 @@ class User(AbstractUser):
         super().delete(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.first_name} {self.middle_name or ''} {self.last_name}".strip()
+        return f"{self.first_name} {self.middle_name + ' ' or ''}{self.last_name}".strip()
 
 
 class UserType(models.Model):

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
+    # "hydroserver.providers.hydroshare",
     "corsheaders",
     "sensorthings",
     "storages",
@@ -123,7 +124,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_FORM_CLASS = "iam.forms.UserSignupForm"
 
-DISABLE_ACCOUNT_CREATION = config("DISABLE_ACCOUNT_CREATION", default=False, cast=bool)
+ACCOUNT_SIGNUP_ENABLED = config("ACCOUNT_SIGNUP_ENABLED", default=True, cast=bool)
 
 HEADLESS_ONLY = True
 HEADLESS_FRONTEND_URLS = {
@@ -138,6 +139,20 @@ SITE_ID = 1
 SESSION_COOKIE_NAME = "hs_session"
 SESSION_COOKIE_AGE = 86400
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# OAuth2 settings
+
+SOCIALACCOUNT_SIGNUP_ONLY = config("SOCIALACCOUNT_SIGNUP_ONLY", default=False, cast=bool)
+
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "mandatory"
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {},
+    "orcid": {},
+}
 
 
 # Email Settings
