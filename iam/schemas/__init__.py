@@ -1,1 +1,1 @@
-from .profile import ProfilePatchBody
+from .profile import ProfileGetResponse, ProfilePatchBody

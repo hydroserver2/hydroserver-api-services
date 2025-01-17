@@ -122,10 +122,11 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SIGNUP_FORM_CLASS = "iam.forms.UserSignupForm"
+ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
 
 ACCOUNT_SIGNUP_ENABLED = config("ACCOUNT_SIGNUP_ENABLED", default=True, cast=bool)
 
+HEADLESS_ADAPTER = "iam.auth.adapters.HeadlessAdapter"
 HEADLESS_ONLY = True
 HEADLESS_FRONTEND_URLS = {
     "account_confirm_email":           f"{PROXY_BASE_URL}/verify-email/{{key}}",

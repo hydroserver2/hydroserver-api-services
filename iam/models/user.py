@@ -5,6 +5,9 @@ from django.db import models
 
 
 class UserManager(BaseUserManager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('_user_type', 'organization', 'organization___organization_type')
+
     def create_user(self, email, password, **extra_fields):
         if email is None:
             raise ValueError("Users must have an email address")
@@ -78,7 +81,7 @@ class User(AbstractUser):
         super().delete(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.first_name} {self.middle_name + ' ' or ''}{self.last_name}".strip()
+        return f"{self.first_name} {self.last_name}".strip()
 
 
 class UserType(models.Model):

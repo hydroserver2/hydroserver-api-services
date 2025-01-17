@@ -1,7 +1,7 @@
-from ninja import Schema
-from pydantic import ConfigDict, EmailStr, field_validator, StringConstraints as StrCon
+from ninja import Schema, Field
+from pydantic import ConfigDict, EmailStr, field_validator
 from pydantic.alias_generators import to_camel
-from typing import Optional, Annotated, List
+from typing import Optional, List
 from sensorthings.validators import PartialSchema
 from django.conf import settings
 from iam.models import Organization
@@ -20,11 +20,11 @@ class ProfileBaseSchema(Schema):
 
 
 class OrganizationFields(ProfileBaseSchema):
-    code: Annotated[str, StrCon(max_length=255)]
-    name: Annotated[str, StrCon(max_length=30)]
+    code: str = Field(..., max_length=255)
+    name: str = Field(..., max_length=30)
     description: Optional[str] = None
-    link: Optional[Annotated[str, StrCon(max_length=2000)]] = None
-    organization_type: Annotated[str, StrCon(max_length=255)]
+    link: Optional[str] = Field(None, max_length=2000)
+    organization_type: str = Field(..., max_length=255, alias='type')
 
 
 class OrganizationPatchFields(OrganizationFields, metaclass=PartialSchema):
@@ -32,13 +32,13 @@ class OrganizationPatchFields(OrganizationFields, metaclass=PartialSchema):
 
 
 class UserFields(ProfileBaseSchema):
-    first_name: Annotated[str, StrCon(max_length=30)]
-    middle_name: Optional[Annotated[str, StrCon(max_length=30)]] = None
-    last_name: Annotated[str, StrCon(max_length=150)]
-    phone: Optional[Annotated[str, StrCon(max_length=15)]] = None
-    address: Optional[Annotated[str, StrCon(max_length=255)]] = None
-    user_type: Optional[Annotated[str, StrCon(max_length=255)]] = None
-    link: Optional[Annotated[str, StrCon(max_length=2000)]] = None
+    first_name: str = Field(..., max_length=30)
+    middle_name: Optional[str] = Field(None, max_length=30)
+    last_name: str = Field(..., max_length=150)
+    phone: Optional[str] = Field(None, max_length=15)
+    address: Optional[str] = Field(None, max_length=255)
+    user_type: str = Field(..., max_length=255, alias='type')
+    link: Optional[str] = Field(None, max_length=2000)
     organization: Optional[OrganizationFields] = None
 
 
@@ -78,5 +78,5 @@ class ProfilePatchBody(UserPatchFields):
 
 
 class TypeGetResponse(ProfileBaseSchema):
-    user_types: List[Annotated[str, StrCon(max_length=255)]]
-    organization_types: List[Annotated[str, StrCon(max_length=255)]]
+    user_types: List[str]
+    organization_types: List[str]
