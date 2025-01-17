@@ -19,5 +19,6 @@ hsmodels==1.0.3
 country-list==1.1.0
 gunicorn==23.0.0
 django-allauth==65.3.1
-pydantic[email]==2.10.5
+django-allauth[socialauth]==65.3.1
+pydantic[email]==2.7.4
 dj-email-url==1.0.6

@@ -24,12 +24,13 @@ DEPLOYMENT_BACKEND = config("DEPLOYMENT_BACKEND", default="local")
 
 # Deployment Settings
 
-PROXY_BASE_URL = config("PROXY_BASE_URL", "http://127.0.0.1:3030")
+USE_X_FORWARDED_HOST = True
+PROXY_BASE_URL = config("PROXY_BASE_URL", "http://localhost")
 
 hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=PROXY_BASE_URL).split(",") + [local_ip, "127.0.0.1"]
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=urlparse(PROXY_BASE_URL).netloc).split(",") + [local_ip]
 
 CORS_ALLOWED_ORIGINS = [PROXY_BASE_URL]
 CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
@@ -149,6 +150,7 @@ SOCIALACCOUNT_SIGNUP_ONLY = config("SOCIALACCOUNT_SIGNUP_ONLY", default=False, c
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {},
