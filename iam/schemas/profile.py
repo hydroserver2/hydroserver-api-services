@@ -1,8 +1,10 @@
 from ninja import Schema, Field
+from ninja.errors import ValidationError
 from pydantic import ConfigDict, EmailStr, field_validator
 from pydantic.alias_generators import to_camel
 from typing import Optional, List
 from sensorthings.validators import PartialSchema
+from django.db import IntegrityError
 from django.conf import settings
 from iam.models import Organization
 
@@ -55,22 +57,29 @@ class ProfileGetResponse(UserFields):
 
 class ProfilePatchBody(UserPatchFields):
     def save(self, user: settings.AUTH_USER_MODEL):
-        user_body = self.dict(include=set(self.model_fields.keys()), exclude=["organization"], exclude_unset=True)
+        try:
+            user_body = self.dict(include=set(self.model_fields.keys()), exclude=["organization"], exclude_unset=True)
 
-        organization_body = self.organization.dict(
-            include=set(self.organization.model_fields.keys()), exclude_unset=True
-        ) if self.organization else None
+            organization_body = self.organization.dict(
+                include=set(self.organization.model_fields.keys()), exclude_unset=True
+            ) if self.organization else None
 
-        for field, value in user_body.items():
-            setattr(user, field, value)
+            for field, value in user_body.items():
+                setattr(user, field, value)
 
-        if organization_body:
-            if user.organization:
-                for field, value in organization_body.items():
-                    setattr(user.organization, field, value)
-                user.organization.save()
-            else:
-                user.organization = Organization.objects.create(**organization_body)
+            if organization_body:
+                if user.organization:
+                    for field, value in organization_body.items():
+                        setattr(user.organization, field, value)
+                    user.organization.save()
+                else:
+                    user.organization = Organization.objects.create(**organization_body)
+        except IntegrityError as e:
+            error_message = str(e)
+            if "user_type" in error_message:
+                raise ValidationError([{"detail": "Invalid userType value provided."}])
+            if "organization_type" in error_message:
+                raise ValidationError([{"detail": "Invalid organizationType value provided."}])
 
         user.save()
 

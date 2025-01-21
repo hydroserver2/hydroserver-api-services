@@ -127,6 +127,7 @@ ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
 
 ACCOUNT_SIGNUP_ENABLED = config("ACCOUNT_SIGNUP_ENABLED", default=True, cast=bool)
 
+ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
 HEADLESS_ADAPTER = "iam.auth.adapters.HeadlessAdapter"
 HEADLESS_ONLY = True
 HEADLESS_FRONTEND_URLS = {
@@ -151,11 +152,7 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_QUERY_EMAIL = True
-
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {},
-    "orcid": {},
-}
+SOCIALACCOUNT_AUTO_SIGNUP = False
 
 
 # Email Settings

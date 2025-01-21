@@ -23,6 +23,7 @@ class Organization(models.Model):
 
 class OrganizationType(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    public = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

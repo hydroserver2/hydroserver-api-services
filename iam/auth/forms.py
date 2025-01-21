@@ -9,7 +9,7 @@ class UserSignupForm(forms.Form):
     phone = forms.CharField(max_length=15, required=False)
     address = forms.CharField(max_length=255, required=False)
     link = forms.URLField(max_length=2000, required=False)
-    user_type = forms.CharField(max_length=255, required=False, label="type")
+    user_type = forms.CharField(max_length=255, required=True, label="type")
     organization = forms.JSONField(required=False)
 
     def __init__(self, *args, **kwargs):

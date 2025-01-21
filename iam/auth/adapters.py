@@ -1,6 +1,14 @@
 from typing import Dict, Any
+from django.http import HttpRequest
+from django.conf import settings
+from allauth.account.adapter import DefaultAccountAdapter
 from allauth.headless.adapter import DefaultHeadlessAdapter
 from iam.schemas import ProfileGetResponse
+
+
+class AccountAdapter(DefaultAccountAdapter):
+    def is_open_for_signup(self, request: HttpRequest):
+        return settings.ACCOUNT_SIGNUP_ENABLED
 
 
 class HeadlessAdapter(DefaultHeadlessAdapter):

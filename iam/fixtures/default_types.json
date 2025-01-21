@@ -3,203 +3,240 @@
     "model": "iam.usertype",
     "pk": 1,
     "fields": {
-      "name": "University Faculty"
+      "name": "Admin",
+      "public": false
     }
   },
   {
     "model": "iam.usertype",
     "pk": 2,
     "fields": {
-      "name": "University Professional or Research Staff"
+      "name": "University Faculty",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 3,
     "fields": {
-      "name": "Post-Doctoral Fellow"
+      "name": "University Professional or Research Staff",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 4,
     "fields": {
-      "name": "University Graduate Student"
+      "name": "Post-Doctoral Fellow",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 5,
     "fields": {
-      "name": "University Undergraduate Student"
+      "name": "University Graduate Student",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 6,
     "fields": {
-      "name": "Commercial/Professional"
+      "name": "University Undergraduate Student",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 7,
     "fields": {
-      "name": "Government Official"
+      "name": "Commercial/Professional",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 8,
     "fields": {
-      "name": "School Student Kindergarten to 12th Grade"
+      "name": "Government Official",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 9,
     "fields": {
-      "name": "School Teacher Kindergarten to 12th Grade"
+      "name": "School Student Kindergarten to 12th Grade",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 10,
     "fields": {
-      "name": "Organization"
+      "name": "School Teacher Kindergarten to 12th Grade",
+      "public": true
     }
   },
   {
     "model": "iam.usertype",
     "pk": 11,
     "fields": {
-      "name": "Other"
+      "name": "Organization",
+      "public": true
+    }
+  },
+  {
+    "model": "iam.usertype",
+    "pk": 12,
+    "fields": {
+      "name": "Other",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 1,
     "fields": {
-      "name": "Analytical library"
+      "name": "Analytical library",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 2,
     "fields": {
-      "name": "Association"
+      "name": "Association",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 3,
     "fields": {
-      "name": "Center"
+      "name": "Center",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 4,
     "fields": {
-      "name": "College"
+      "name": "College",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 5,
     "fields": {
-      "name": "Company"
+      "name": "Company",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 6,
     "fields": {
-      "name": "Consortium"
+      "name": "Consortium",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 7,
     "fields": {
-      "name": "Department"
+      "name": "Department",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 8,
     "fields": {
-      "name": "Division"
+      "name": "Division",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 9,
     "fields": {
-      "name": "Faith-based organization"
+      "name": "Faith-based organization",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 10,
     "fields": {
-      "name": "Foundation"
+      "name": "Foundation",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 11,
     "fields": {
-      "name": "Funding organization"
+      "name": "Funding organization",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 12,
     "fields": {
-      "name": "Government agency"
+      "name": "Government agency",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 13,
     "fields": {
-      "name": "Institute"
+      "name": "Institute",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 14,
     "fields": {
-      "name": "Laboratory"
+      "name": "Laboratory",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 15,
     "fields": {
-      "name": "Library"
+      "name": "Library",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 16,
     "fields": {
-      "name": "Manufacturer"
+      "name": "Manufacturer",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 17,
     "fields": {
-      "name": "Museum"
+      "name": "Museum",
+      "public": true
     }
   },
   {
     "model": "iam.organizationtype",
     "pk": 18,
     "fields": {
-      "name": "Nature center"
+      "name": "Nature center",
+      "public": true
     }
   },
   {

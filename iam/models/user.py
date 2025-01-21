@@ -25,8 +25,14 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, **extra_fields):
+        user_type, _ = UserType.objects.get_or_create(
+            name="Admin",
+            defaults={"public": False}
+        )
+
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("_user_type", user_type)
 
         return self.create_user(email, password, **extra_fields)
 
@@ -37,8 +43,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(max_length=2000, blank=True, null=True)
-    _user_type = models.ForeignKey("UserType", on_delete=models.SET_NULL, blank=True, null=True,
-                                   db_column="user_type_id")
+    _user_type = models.ForeignKey("UserType", on_delete=models.PROTECT, db_column="user_type_id")
     organization = models.OneToOneField("Organization", on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name="user")
 
@@ -46,10 +51,6 @@ class User(AbstractUser):
     def permissions(self):
         # TODO: Will be replaced by updated permissions system.
         return SimpleNamespace(enabled=lambda: False)
-
-    @property
-    def is_profile_complete(self):
-        return all((getattr(self, field) for field in self.REQUIRED_PROFILE_FIELDS))
 
     @property
     def is_ownership_allowed(self):
@@ -70,7 +71,6 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
-    REQUIRED_PROFILE_FIELDS = ["email", "first_name", "last_name", "_user_type"]
 
     def save(self, *args, **kwargs):
         if self.email:
@@ -86,6 +86,7 @@ class User(AbstractUser):
 
 class UserType(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    public = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

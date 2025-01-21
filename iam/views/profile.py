@@ -75,6 +75,6 @@ def get_types(request: HydroServerHttpRequest):
     """
 
     return {
-        "user_types": UserType.objects.values_list("name", flat=True),
-        "organization_types": OrganizationType.objects.values_list("name", flat=True),
+        "user_types": UserType.objects.filter(public=True).values_list("name", flat=True),
+        "organization_types": OrganizationType.objects.filter(public=True).values_list("name", flat=True),
     }
