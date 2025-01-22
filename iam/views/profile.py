@@ -1,4 +1,5 @@
 from ninja import Router
+from ninja.errors import HttpError
 from django.conf import settings
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import session_auth, basic_auth, anonymous_auth
@@ -26,6 +27,10 @@ def get_profile(request: HydroServerHttpRequest):
 
     if not request.authenticated_user:
         user = dict(request.session).get("socialaccount_sociallogin", {}).get("user")
+
+        if not user:
+            raise HttpError(401, 'Invalid or missing session cookie')
+
         user["account_type"] = "Standard" if settings.ACCOUNT_OWNERSHIP_ENABLED is True else "Limited"
         user["account_status"] = "Incomplete"
 
