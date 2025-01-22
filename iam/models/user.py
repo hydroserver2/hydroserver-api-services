@@ -1,7 +1,9 @@
 from types import SimpleNamespace
+from allauth.account.utils import has_verified_email
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
+from django.conf import settings
 
 
 class UserManager(BaseUserManager):
@@ -19,6 +21,7 @@ class UserManager(BaseUserManager):
             email=normalized_email,
             **extra_fields
         )
+        user.is_ownership_allowed = user.is_superuser or settings.ACCOUNT_OWNERSHIP_ENABLED
         user.set_password(password)
         user.save(using=self._db)
 
@@ -46,6 +49,7 @@ class User(AbstractUser):
     _user_type = models.ForeignKey("UserType", on_delete=models.PROTECT, db_column="user_type_id")
     organization = models.OneToOneField("Organization", on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name="user")
+    is_ownership_allowed = models.BooleanField(default=False)
 
     @property
     def permissions(self):
@@ -53,8 +57,22 @@ class User(AbstractUser):
         return SimpleNamespace(enabled=lambda: False)
 
     @property
-    def is_ownership_allowed(self):
-        return True
+    def account_type(self):
+        if self.is_superuser:
+            return "Admin"
+        elif self.is_ownership_allowed:
+            return "Standard"
+        else:
+            return "Limited"
+
+    @property
+    def account_status(self):
+        if not self.is_active:
+            return "Disabled"
+        elif self.is_active and has_verified_email(self):
+            return "Active"
+        else:
+            return "Unverified"
 
     @property
     def user_type(self):

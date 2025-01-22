@@ -1,4 +1,5 @@
 from ninja import Router
+from django.conf import settings
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import session_auth, basic_auth, anonymous_auth
 from ..models import UserType, OrganizationType
@@ -22,6 +23,13 @@ def get_profile(request: HydroServerHttpRequest):
     """
     Get user profile details.
     """
+
+    if not request.authenticated_user:
+        user = dict(request.session).get("socialaccount_sociallogin", {}).get("user")
+        user["account_type"] = "Standard" if settings.ACCOUNT_OWNERSHIP_ENABLED is True else "Limited"
+        user["account_status"] = "Incomplete"
+
+        return user
 
     return request.authenticated_user
 

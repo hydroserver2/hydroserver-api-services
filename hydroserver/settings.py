@@ -114,28 +114,7 @@ DATABASES = {
 }
 
 
-# Account and Access Control Settings
-
-AUTH_USER_MODEL = "iam.User"
-
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
-
-ACCOUNT_SIGNUP_ENABLED = config("ACCOUNT_SIGNUP_ENABLED", default=True, cast=bool)
-
-ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
-HEADLESS_ADAPTER = "iam.auth.adapters.HeadlessAdapter"
-HEADLESS_ONLY = True
-HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email":           f"{PROXY_BASE_URL}/verify-email/{{key}}",
-    "account_reset_password_from_key": f"{PROXY_BASE_URL}/reset-password/{{key}}",
-    "account_reset_password":          f"{PROXY_BASE_URL}/reset-password",
-    "account_signup":                  f"{PROXY_BASE_URL}/sign-up",
-}
+# Site and Session Settings
 
 SITE_ID = 1
 
@@ -144,10 +123,35 @@ SESSION_COOKIE_AGE = 86400
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 
-# OAuth2 settings
+# Account and Access Control Settings
+
+AUTH_USER_MODEL = "iam.User"
+
+ACCOUNT_SIGNUP_ENABLED = config("ACCOUNT_SIGNUP_ENABLED", default=True, cast=bool)
+ACCOUNT_OWNERSHIP_ENABLED = config("ACCOUNT_OWNERSHIP_ENABLED", default=True, cast=bool)
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
+
+ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
+HEADLESS_ADAPTER = "iam.auth.adapters.HeadlessAdapter"
+HEADLESS_ONLY = True
+
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email":           f"{PROXY_BASE_URL}/verify-email/{{key}}",
+    "account_reset_password_from_key": f"{PROXY_BASE_URL}/reset-password/{{key}}",
+    "account_reset_password":          f"{PROXY_BASE_URL}/reset-password",
+    "account_signup":                  f"{PROXY_BASE_URL}/sign-up",
+}
+
+
+# Social Account Settings
 
 SOCIALACCOUNT_SIGNUP_ONLY = config("SOCIALACCOUNT_SIGNUP_ONLY", default=False, cast=bool)
-
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_EMAIL_REQUIRED = True

@@ -12,5 +12,8 @@ class SessionAuth(APIKeyCookie):
         if key and request.user.is_authenticated:
             request.authenticated_user = request.user
             return request.user
+        elif key and request.resolver_match.view_name == "iam:get_profile":
+            request.authenticated_user = None
+            return True
         elif key:
             raise HttpError(401, 'Invalid or missing session cookie')

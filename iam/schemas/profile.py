@@ -2,7 +2,7 @@ from ninja import Schema, Field
 from ninja.errors import ValidationError
 from pydantic import ConfigDict, EmailStr, field_validator
 from pydantic.alias_generators import to_camel
-from typing import Optional, List
+from typing import Optional, List, Literal
 from sensorthings.validators import PartialSchema
 from django.db import IntegrityError
 from django.conf import settings
@@ -50,9 +50,8 @@ class UserPatchFields(UserFields, metaclass=PartialSchema):
 
 class ProfileGetResponse(UserFields):
     email: EmailStr
-    is_profile_complete: bool
-    is_ownership_allowed: bool
-    is_active: bool
+    account_type: Literal["Admin", "Standard", "Limited"]
+    account_status: Literal["Active", "Disabled", "Incomplete", "Unverified"]
 
 
 class ProfilePatchBody(UserPatchFields):
