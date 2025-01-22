@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from allauth.account.utils import has_verified_email
+from allauth.account.models import EmailAddress
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
@@ -37,7 +38,16 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("_user_type", user_type)
 
-        return self.create_user(email, password, **extra_fields)
+        user = self.create_user(email, password, **extra_fields)
+
+        EmailAddress.objects.create(
+            user=user,
+            email=email,
+            verified=True,
+            primary=True
+        )
+
+        return user
 
 
 class User(AbstractUser):
