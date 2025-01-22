@@ -50,8 +50,8 @@ class UserPatchFields(UserFields, metaclass=PartialSchema):
 
 class ProfileGetResponse(UserFields):
     email: EmailStr
-    account_type: Literal["Admin", "Standard", "Limited"]
-    account_status: Literal["Active", "Disabled", "Incomplete", "Unverified"]
+    account_type: Literal["admin", "standard", "limited"]
+    account_status: Literal["active", "disabled", "incomplete", "unverified"]
 
 
 class ProfilePatchBody(UserPatchFields):

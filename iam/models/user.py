@@ -69,20 +69,20 @@ class User(AbstractUser):
     @property
     def account_type(self):
         if self.is_superuser:
-            return "Admin"
+            return "admin"
         elif self.is_ownership_allowed:
-            return "Standard"
+            return "standard"
         else:
-            return "Limited"
+            return "limited"
 
     @property
     def account_status(self):
         if not self.is_active:
-            return "Disabled"
+            return "disabled"
         elif self.is_active and has_verified_email(self):
-            return "Active"
+            return "active"
         else:
-            return "Unverified"
+            return "unverified"
 
     @property
     def user_type(self):

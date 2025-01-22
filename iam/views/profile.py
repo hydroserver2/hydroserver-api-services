@@ -31,8 +31,8 @@ def get_profile(request: HydroServerHttpRequest):
         if not user:
             raise HttpError(401, 'Invalid or missing session cookie')
 
-        user["account_type"] = "Standard" if settings.ACCOUNT_OWNERSHIP_ENABLED is True else "Limited"
-        user["account_status"] = "Incomplete"
+        user["account_type"] = "standard" if settings.ACCOUNT_OWNERSHIP_ENABLED is True else "limited"
+        user["account_status"] = "incomplete"
 
         return user
 
