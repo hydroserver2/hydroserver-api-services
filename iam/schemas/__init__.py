@@ -1,1 +1,2 @@
 from .profile import ProfileGetResponse, ProfilePatchBody
+from .authentication import AuthenticationMethodsGetResponse

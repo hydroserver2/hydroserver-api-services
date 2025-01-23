@@ -2,12 +2,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from hydroserver.views import index, csrf
+from hydroserver.views import index
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
-    path("api/csrf/", csrf, name="csrf"),
     path("api/auth/", include("allauth.headless.urls")),
     path("api/account/", include("iam.urls")),
     path("api/data/", include("core.urls")),
