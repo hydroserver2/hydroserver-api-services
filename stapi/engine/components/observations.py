@@ -1,6 +1,7 @@
 import math
 from uuid import UUID
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 from django.db.utils import IntegrityError
 from ninja.errors import HttpError
 from core.models import Observation, ResultQualifier, Datastream
@@ -235,6 +236,14 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             observation_id: str
     ) -> None:
         pass
+
+    def delete_observations(
+            self,
+            datastream_id: UUID,
+            start_time: Optional[datetime] = None,
+            end_time: Optional[datetime] = None
+    ) -> None:
+        return None
 
     def update_value_count(
             self,

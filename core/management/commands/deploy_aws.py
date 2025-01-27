@@ -1,10 +1,12 @@
 import os
 from django.core.management.base import BaseCommand
-from pydantic import BaseModel, Field, DirectoryPath
+from pydantic import BaseModel, Field, DirectoryPath, ConfigDict
 from typing import Literal
 
 
 class DeploySettings(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     instance: Literal['dev', 'beta'] = Field(
         ..., alias='--instance',
         help='Specify the HydroServer instance you want to deploy to. Options are ["dev", "beta"]'
@@ -25,9 +27,6 @@ class DeploySettings(BaseModel):
         ..., alias='--cloudfront-id',
         help='Enter the CloudFront distribution ID for this deployment.'
     )
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class Command(BaseCommand):
