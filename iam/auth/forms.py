@@ -1,5 +1,5 @@
 from django import forms
-from iam.schemas import ProfilePatchBody
+from iam.schemas import AccountPatchBody
 
 
 class UserSignupForm(forms.Form):
@@ -23,5 +23,5 @@ class UserSignupForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def signup(self, request, user):
-        profile = ProfilePatchBody(**self.cleaned_data)
-        profile.save(user)
+        account = AccountPatchBody(**self.cleaned_data)
+        account.save(user)

@@ -1,5 +1,4 @@
 from types import SimpleNamespace
-from allauth.account.utils import has_verified_email
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
@@ -74,15 +73,6 @@ class User(AbstractUser):
             return "standard"
         else:
             return "limited"
-
-    @property
-    def account_status(self):
-        if not self.is_active:
-            return "disabled"
-        elif self.is_active and has_verified_email(self):
-            return "active"
-        else:
-            return "unverified"
 
     @property
     def user_type(self):

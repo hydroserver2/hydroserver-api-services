@@ -2,6 +2,7 @@ from ninja import Schema
 from pydantic import ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import List
+from hydroserver.schemas import BaseGetResponse
 
 
 class AuthenticationBaseSchema(Schema):
@@ -11,7 +12,7 @@ class AuthenticationBaseSchema(Schema):
     )
 
 
-class Provider(AuthenticationBaseSchema):
+class ProviderGetResponse(BaseGetResponse):
     id: str
     name: str
     icon_link: str
@@ -19,6 +20,6 @@ class Provider(AuthenticationBaseSchema):
     connect_enabled: bool
 
 
-class AuthenticationMethodsGetResponse(AuthenticationBaseSchema):
+class AuthenticationMethodsGetResponse(BaseGetResponse):
     hydroserver_signup_enabled: bool
-    providers: List[Provider]
+    providers: List[ProviderGetResponse]

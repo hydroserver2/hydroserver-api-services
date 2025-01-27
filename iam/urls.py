@@ -1,7 +1,7 @@
 from ninja import NinjaAPI
 from django.urls import path
 from hydroserver import __version__
-from iam.views import profile_router, type_router, get_auth_methods
+from iam.views import account_router, session_router, email_router, password_router, provider_router, get_auth_methods
 
 
 iam_api = NinjaAPI(
@@ -10,10 +10,13 @@ iam_api = NinjaAPI(
     urls_namespace="iam"
 )
 
-iam_api.add_router("/profile", profile_router)
-iam_api.add_router("/types", type_router)
+account_router.add_router("email", email_router)
+account_router.add_router("password", password_router)
+iam_api.add_router("{client}/account", account_router)
+iam_api.add_router("{client}/session", session_router)
+iam_api.add_router("{client}/provider", provider_router)
 
 urlpatterns = [
     path("", iam_api.urls),
-    path("authentication/methods", get_auth_methods, name="auth_methods"),
+    path("methods", get_auth_methods, name="auth_methods"),
 ]

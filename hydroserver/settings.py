@@ -138,7 +138,6 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
 
 ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
-HEADLESS_ADAPTER = "iam.auth.adapters.HeadlessAdapter"
 HEADLESS_ONLY = True
 
 HEADLESS_FRONTEND_URLS = {

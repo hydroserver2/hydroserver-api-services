@@ -3,7 +3,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.templatetags.static import static
 from django.http import JsonResponse
 from django.conf import settings
-from ..schemas.authentication import AuthenticationMethodsGetResponse
+from iam.schemas.authentication import AuthenticationMethodsGetResponse
 
 
 @ensure_csrf_cookie

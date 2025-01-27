@@ -3,9 +3,7 @@ from django.http import HttpRequest
 from django.conf import settings
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.headless.adapter import DefaultHeadlessAdapter
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.account.adapter import get_adapter as get_account_adapter
-from iam.schemas import ProfileGetResponse, ProfilePatchBody
+from iam.schemas import AccountGetResponse, AccountPatchBody
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -16,7 +14,7 @@ class AccountAdapter(DefaultAccountAdapter):
         user = super().save_user(request, user, form, commit=False)
         data = form.cleaned_data
 
-        profile = ProfilePatchBody(
+        account = AccountPatchBody(
             **{
                 "middle_name": data.get("middle_name") or None,
                 "phone": data.get("phone") or None,
@@ -26,19 +24,6 @@ class AccountAdapter(DefaultAccountAdapter):
                 "organization": data.get("organization") or None,
             }
         )
-        profile.save(user)
+        account.save(user)
 
         return user
-
-
-class HeadlessAdapter(DefaultHeadlessAdapter):
-    def serialize_user(self, user) -> Dict[str, Any]:
-        """
-        Attaches user profile metadata to AllAuth responses.
-        """
-
-        user_response = super().serialize_user(user=user)
-        user_profile = ProfileGetResponse.from_orm(user)
-        user_response["profile"] = user_profile.dict(by_alias=True)
-
-        return user_response
