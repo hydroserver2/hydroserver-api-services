@@ -4,6 +4,8 @@
 __pycache__/
 db.sqlite3
 staticfiles/
+/static
+!/static/**/
 *.db
 *test.ipynb
 *test.yaml

@@ -1,7 +1,7 @@
 django==5.0.6
 django-ninja==1.1.0
 django-ninja-jwt==5.3.1
-hydroserver-sensorthings==0.3.0
+hydroserver-sensorthings==0.4.0
 dj-database-url==2.2.0
 python-decouple==3.8
 pytz==2024.1
