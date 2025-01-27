@@ -3,8 +3,10 @@ from django.db import models, IntegrityError
 from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
-from accounts.models import Person
 from core.models import Observation
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class ResultQualifierQuerySet(models.QuerySet):
@@ -51,7 +53,7 @@ class ResultQualifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     code = models.CharField(max_length=255)
     description = models.TextField()
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
+    person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='result_qualifiers', null=True,
                                blank=True, db_column='personId')
     history = HistoricalRecords(custom_model_name='ResultQualifierChangeLog', related_name='log')
 

@@ -3,7 +3,9 @@ from django.db import models
 from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
-from accounts.models import Person
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class UnitQuerySet(models.QuerySet):
@@ -54,7 +56,7 @@ class UnitQuerySet(models.QuerySet):
 
 class Unit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True, db_column='personId')
+    person = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, db_column='personId')
     name = models.CharField(max_length=255)
     symbol = models.CharField(max_length=255)
     definition = models.TextField()
