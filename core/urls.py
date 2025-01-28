@@ -1,5 +1,6 @@
 from ninja import NinjaAPI
 from django.urls import path
+from django.views.decorators.csrf import ensure_csrf_cookie
 from core.views.thing import router as thing_router
 from core.views.sensor import router as sensor_router
 from core.views.observed_property import router as observed_property_router
@@ -17,7 +18,9 @@ from core.views.data_source import router as data_source_router
 api = NinjaAPI(
     title='HydroServer Data Management API',
     version='0.10.0',
-    urls_namespace='data'
+    urls_namespace='data',
+    docs_decorator=ensure_csrf_cookie,
+    csrf=True
 )
 
 thing_router.add_router('/{thing_id}/photos', photo_router)

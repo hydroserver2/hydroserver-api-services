@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.decorators.csrf import ensure_csrf_cookie
 from sensorthings import SensorThingsAPI
 from sensorthings.extensions.dataarray import data_array_extension
 from sensorthings.extensions.qualitycontrol import quality_control_extension
@@ -11,7 +12,9 @@ st_api_1_1 = SensorThingsAPI(
     version='1.1',
     description='This is the documentation for the HydroServer SensorThings API implementation.',
     engine=HydroServerSensorThingsEngine,
-    extensions=[data_array_extension, quality_control_extension, hydroserver_extension]
+    extensions=[data_array_extension, quality_control_extension, hydroserver_extension],
+    docs_decorator=ensure_csrf_cookie,
+    csrf=True
 )
 
 urlpatterns = [

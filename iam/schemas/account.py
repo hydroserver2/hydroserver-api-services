@@ -3,9 +3,12 @@ from ninja.errors import HttpError
 from pydantic import EmailStr
 from typing import List, Optional, Literal
 from django.db import IntegrityError
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 from iam.models import Organization
+
+
+User = get_user_model()
 
 
 class OrganizationFields(Schema):
@@ -53,7 +56,7 @@ class AccountPostBody(BasePostBody, UserFields):
             ) if self.organization else None
 
             organization = Organization.objects.create(**organization_body) if organization_body else None
-            user = settings.AUTH_USER_MODEL.create(organization=organization, **user_body)
+            user = User.objects.create(organization=organization, **user_body)
 
             return user
 
@@ -71,7 +74,7 @@ class AccountPostBody(BasePostBody, UserFields):
 class AccountPatchBody(BasePatchBody, UserFields):
     organization: Optional[OrganizationPatchBody] = None
 
-    def save(self, user: settings.AUTH_USER_MODEL):
+    def save(self, user: User):
         try:
             user_body = self.dict(include=set(self.model_fields.keys()), exclude=["organization"], exclude_unset=True)
             organization_body = self.organization.dict(

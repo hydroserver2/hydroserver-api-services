@@ -1,4 +1,5 @@
-from .account import AccountGetResponse, AccountPostBody, AccountPatchBody, TypeGetResponse
+from .account import (AccountGetResponse, AccountPostBody, AccountPatchBody, TypeGetResponse, OrganizationPostBody,
+                      OrganizationPatchBody)
 from .authentication import AuthenticationMethodsGetResponse
 from .session import SessionPostBody
 from .email import VerificationEmailPutBody, VerifyEmailPostBody
