@@ -2,7 +2,7 @@ from ninja import Router, Path, Form
 from typing import Literal
 from allauth.headless.socialaccount.views import RedirectToProviderView, ProviderSignupView
 from allauth.headless.constants import Client
-from iam.schemas import ProviderRedirectPostForm, AccountPostBody
+from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody
 
 
 provider_router = Router(tags=["Provider"])
@@ -48,7 +48,7 @@ def redirect_to_provider(request, client: Path[Literal["browser", "app"]], form:
     },
     by_alias=True
 )
-def provider_signup(request, client: Path[Literal["browser", "app"]], body: AccountPostBody):
+def provider_signup(request, client: Path[Literal["browser", "app"]], body: ProviderSignupPostBody):
     """
     Finish signing up with a provider account.
     """

@@ -1,9 +1,7 @@
-from typing import Dict, Any
 from django.http import HttpRequest
 from django.conf import settings
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.headless.adapter import DefaultHeadlessAdapter
-from iam.schemas import AccountGetResponse, AccountPatchBody
+from iam.schemas import AccountPatchBody
 
 
 class AccountAdapter(DefaultAccountAdapter):
