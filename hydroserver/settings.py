@@ -202,12 +202,12 @@ if DEPLOYMENT_BACKEND == "aws":
         "default": {
             "BACKEND": "storages.backends.s3.S3Storage",
             "OPTIONS": {"location": "media"},
-            "BUCKET_NAME": config("AWS_MEDIA_BUCKET_NAME", default=None),
+            "BUCKET_NAME": config("MEDIA_BUCKET_NAME", default=None),
         },
         "staticfiles": {
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
             "OPTIONS": {"location": "staticfiles"},
-            "BUCKET_NAME": config("AWS_STATIC_BUCKET_NAME", default=None),
+            "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
         }
     }
 else:
