@@ -193,32 +193,32 @@ AUTH_PASSWORD_VALIDATORS = [
 # Storage settings
 
 APP_CLIENT_URL = config("APP_CLIENT_URL", default=PROXY_BASE_URL)
+STATIC_URL = "/static/"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 if DEPLOYMENT_BACKEND == "aws":
-    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default=None)
-    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default=None)
-    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default=None)
     AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {"location": "photos"}
+            "OPTIONS": {"location": "media"},
+            "BUCKET_NAME": config("AWS_MEDIA_BUCKET_NAME", default=None),
         },
         "staticfiles": {
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
-            "OPTIONS": {"location": "static"}
+            "OPTIONS": {"location": "staticfiles"},
+            "BUCKET_NAME": config("AWS_STATIC_BUCKET_NAME", default=None),
         }
     }
 else:
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "OPTIONS": {"location": "photos"}
+            "OPTIONS": {"location": "media"}
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            "OPTIONS": {"location": "static"}
+            "OPTIONS": {"location": "staticfiles"}
         },
     }
 
@@ -230,13 +230,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
-STATIC_URL = "/static/"
-STATIC_ROOT = "staticfiles"
 
 
 # Default primary key field type
