@@ -1,8 +1,9 @@
+import json
 from ninja import Router, Path, Form
 from typing import Literal
 from allauth.headless.socialaccount.views import RedirectToProviderView, ProviderSignupView
 from allauth.headless.constants import Client
-from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody
+from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody, AccountGetResponse
 
 
 provider_router = Router(tags=["Provider"])
@@ -54,5 +55,10 @@ def provider_signup(request, client: Path[Literal["browser", "app"]], body: Prov
     """
 
     response = provider_signup_view[client](request)
+
+    if response.status_code == 200:
+        response_content = json.loads(response.content)
+        response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        response.content = json.dumps(response_content)
 
     return response

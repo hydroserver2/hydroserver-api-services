@@ -1,8 +1,9 @@
+import json
 from ninja import Router, Path
 from typing import Literal
 from allauth.headless.account.views import ManageEmailView, VerifyEmailView
 from allauth.headless.constants import Client
-from iam.schemas import VerificationEmailPutBody, VerifyEmailPostBody
+from iam.schemas import VerificationEmailPutBody, VerifyEmailPostBody, AccountGetResponse
 
 
 email_router = Router(tags=["Email"])
@@ -54,5 +55,10 @@ def verify_email(request, client: Path[Literal["browser", "app"]], body: VerifyE
     """
 
     response = verification_view[client](request)
+
+    if response.status_code == 200:
+        response_content = json.loads(response.content)
+        response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        response.content = json.dumps(response_content)
 
     return response
