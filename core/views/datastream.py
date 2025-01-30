@@ -8,7 +8,7 @@ from typing import Optional
 from django.db import transaction, IntegrityError
 from django.http import StreamingHttpResponse
 from django.db.models import Q
-from hydroserver.auth import JWTAuth, BasicAuth, anonymous_auth
+from hydroserver.security import session_auth, basic_auth, anonymous_auth
 from core.router import DataManagementRouter
 from core.models import Datastream, Observation, Thing, Sensor, ObservedProperty, Unit, ProcessingLevel
 from sensorthings.types import ISOTimeString
@@ -203,7 +203,7 @@ def delete_datastream(request, datastream_id: UUID = Path(...)):
 
 @router.post(
     '{datastream_id}/csv',
-    auth=[JWTAuth(), BasicAuth()],
+    auth=[session_auth, basic_auth],
     response={
         201: None,
         400: str,
@@ -251,7 +251,7 @@ def upload_observations(request, datastream_id: UUID = Path(...), file: Uploaded
 
 @router.get(
     '{datastream_id}/csv',
-    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: None,
         403: str,
@@ -275,7 +275,7 @@ def get_datastream_csv(request, datastream_id: UUID = Path(...)):
 
 @router.get(
     '{datastream_id}/metadata',
-    auth=[JWTAuth(), BasicAuth(), anonymous_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: DatastreamMetadataGetResponse,
         403: str,

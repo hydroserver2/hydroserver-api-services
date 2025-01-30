@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional
 from django.db import models
 from django.db.models import Q, Prefetch
+from django.core.files.storage import storages
 from django.core.files.storage import get_storage_class
 from hsmodels.schemas.fields import PointCoverage
 from ninja.errors import HttpError
@@ -144,7 +145,7 @@ class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     thing = models.ForeignKey('Thing', related_name='photos', on_delete=models.CASCADE, db_column='thingId')
     file_path = models.FileField(
-        upload_to='photos', storage=get_storage_class(STORAGES['default']['BACKEND']), db_column='filePath'
+        upload_to='photos', storage=storages.backends["default"], db_column='filePath'
     )
     history = HistoricalRecords(custom_model_name='PhotoChangeLog', related_name='log')
 
@@ -198,7 +199,13 @@ class ArchiveManager(models.Manager):
             if thing.data_disclaimer:
                 archive_resource.metadata.additional_metadata['Data Disclaimer'] = thing.data_disclaimer
 
-            archive_resource.save()
+            try:
+                archive_resource.save()
+            except (Exception,):
+                raise HttpError(
+                    400,
+                    'Encountered an unexpected error while creating or updating HydroShare resource.'
+                )
 
         for datastream in thing.datastreams.all():
             if datastream_ids and datastream.id in datastream_ids:

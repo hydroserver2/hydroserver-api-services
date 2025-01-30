@@ -1,6 +1,6 @@
 from ninja import Schema, Field
 from typing import Optional, Literal, Annotated
-from pydantic import StringConstraints as StrCon
+from pydantic import ConfigDict, StringConstraints as StrCon
 from datetime import datetime
 from uuid import UUID
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
@@ -37,9 +37,7 @@ class DataSourceFields(Schema):
 
 
 class DataSourceGetResponse(BaseGetResponse, DataSourceFields, DataSourceID):
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DataSourcePostBody(BasePostBody, DataSourceFields):

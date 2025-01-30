@@ -1,6 +1,6 @@
 from ninja import Router
 from typing import List
-from hydroserver.auth import JWTAuth, BasicAuth, APIKeyHeaderAuth, anonymous_auth
+from hydroserver.security import session_auth, basic_auth, anonymous_auth
 
 
 class DataManagementRouter(Router):
@@ -8,7 +8,7 @@ class DataManagementRouter(Router):
         return super(DataManagementRouter, self).api_operation(
             ['GET'],  # ['GET', 'HEAD'],
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth(), anonymous_auth],
+            auth=[session_auth, basic_auth, anonymous_auth],
             response={
                 200: List[response]
             },
@@ -19,7 +19,7 @@ class DataManagementRouter(Router):
         return super(DataManagementRouter, self).api_operation(
             ['GET'],  # ['GET', 'HEAD'],
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth(), anonymous_auth],
+            auth=[session_auth, basic_auth, anonymous_auth],
             response={
                 200: response,
                 403: str,
@@ -31,12 +31,13 @@ class DataManagementRouter(Router):
     def dm_post(self, route, response):
         return super(DataManagementRouter, self).post(
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth()],
+            auth=[session_auth, basic_auth],
             response={
                 201: response,
                 401: str,
                 403: str,
-                404: str
+                404: str,
+                409: str
             },
             by_alias=True
         )
@@ -44,7 +45,7 @@ class DataManagementRouter(Router):
     def dm_patch(self, route, response):
         return super(DataManagementRouter, self).patch(
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth()],
+            auth=[session_auth, basic_auth],
             response={
                 203: response,
                 401: str,
@@ -57,7 +58,7 @@ class DataManagementRouter(Router):
     def dm_delete(self, route):
         return super(DataManagementRouter, self).delete(
             route,
-            auth=[JWTAuth(), BasicAuth(), APIKeyHeaderAuth()],
+            auth=[session_auth, basic_auth],
             response={
                 204: None,
                 401: str,

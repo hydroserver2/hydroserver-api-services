@@ -3,8 +3,10 @@ from django.db import models
 from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
-from accounts.models import Person
 from core.models import DataLoader
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class DataSourceQuerySet(models.QuerySet):
@@ -72,7 +74,7 @@ class DataSource(models.Model):
     last_sync_message = models.TextField(null=True, blank=True, db_column='lastSyncMessage')
     last_synced = models.DateTimeField(null=True, blank=True, db_column='lastSynced')
     next_sync = models.DateTimeField(null=True, blank=True, db_column='nextSync')
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='data_sources', db_column='personId')
+    person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='data_sources', db_column='personId')
     history = HistoricalRecords(custom_model_name='DataSourceChangeLog', related_name='log')
 
     objects = DataSourceQuerySet.as_manager()

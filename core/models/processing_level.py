@@ -3,7 +3,9 @@ from django.db import models
 from django.db.models import Q
 from simple_history.models import HistoricalRecords
 from ninja.errors import HttpError
-from accounts.models import Person
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class ProcessingLevelQuerySet(models.QuerySet):
@@ -54,7 +56,7 @@ class ProcessingLevelQuerySet(models.QuerySet):
 
 class ProcessingLevel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='processing_levels', null=True,
+    person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='processing_levels', null=True,
                                blank=True, db_column='personId')
     code = models.CharField(max_length=255)
     definition = models.TextField(null=True, blank=True)

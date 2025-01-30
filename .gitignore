@@ -3,7 +3,11 @@
 .pytest_cache
 __pycache__/
 db.sqlite3
+/static/
+!*/static/
 staticfiles/
+/static
+!/static/**/
 *.db
 *test.ipynb
 *test.yaml

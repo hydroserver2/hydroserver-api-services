@@ -1,5 +1,5 @@
 from ninja import Schema
-from pydantic import Field, AliasChoices, AliasPath, StringConstraints as StrCon
+from pydantic import ConfigDict, Field, AliasChoices, AliasPath, StringConstraints as StrCon
 from uuid import UUID
 from typing import Optional, Annotated
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
@@ -22,13 +22,12 @@ class SensorFields(Schema):
 
 
 class SensorGetResponse(BaseGetResponse, SensorFields, SensorID):
+    model_config = ConfigDict(populate_by_name=True)
+
     owner: Optional[str] = Field(
         None, serialization_alias='owner',
         validation_alias=AliasChoices('owner', AliasPath('person', 'email'))
     )
-
-    class Config:
-        allow_population_by_field_name = True
 
 
 class SensorPostBody(BasePostBody, SensorFields):

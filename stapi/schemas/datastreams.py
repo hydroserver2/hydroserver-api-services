@@ -1,4 +1,5 @@
 from ninja import Schema, Field
+from pydantic import ConfigDict
 from typing import List, Union, Optional
 from datetime import datetime
 from sensorthings.components.datastreams.schemas import (DatastreamGetResponse as DefaultDatastreamGetResponse,
@@ -6,6 +7,8 @@ from sensorthings.components.datastreams.schemas import (DatastreamGetResponse a
 
 
 class DatastreamProperties(Schema):
+    model_config = ConfigDict(populate_by_name=True)
+
     result_type: str = Field(..., alias='resultType')
     status: Union[str, None] = None
     sampled_medium: str = Field(..., alias='sampledMedium')
@@ -18,9 +21,6 @@ class DatastreamProperties(Schema):
     time_aggregation_interval: float = Field(None, alias='timeAggregationInterval')
     time_aggregation_interval_units: str = Field(..., alias='timeAggregationIntervalUnitOfMeasurement')
     last_updated: Optional[datetime] = Field(None, alias='lastUpdated')
-
-    class Config:
-        populate_by_name = True
 
 
 class DatastreamGetResponse(DefaultDatastreamGetResponse):

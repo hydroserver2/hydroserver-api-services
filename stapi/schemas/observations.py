@@ -1,5 +1,6 @@
 from uuid import UUID
 from ninja import Schema, Field
+from pydantic import ConfigDict
 from typing import List, Union, Optional
 from sensorthings.types import ISOTimeString, ISOIntervalString
 from sensorthings.components.observations.schemas import ObservationPostBody as DefaultObservationPostBody
@@ -17,11 +18,10 @@ class ResultQualifier(Schema):
 
 
 class ObservationResultQualityResponse(Schema):
+    model_config = ConfigDict(populate_by_name=True)
+
     quality_code: Optional[str] = Field(None, alias='qualityCode')
     result_qualifiers: List[ResultQualifier] = Field(None, alias='resultQualifiers')
-
-    class Config:
-        populate_by_name = True
 
 
 class ObservationResultQualityBody(Schema):
@@ -34,10 +34,9 @@ dataArrayPost = List[List[Union[UUID, float, ISOTimeString, ISOIntervalString, O
 
 
 class ObservationDataArrayResponse(DefaultObservationDataArrayResponse):
-    data_array: dataArrayList = Field(..., alias='dataArray')
+    model_config = ConfigDict(populate_by_name=True)
 
-    class Config:
-        populate_by_name = True
+    data_array: dataArrayList = Field(..., alias='dataArray')
 
 
 class ObservationGetResponse(DefaultObservationGetResponse):

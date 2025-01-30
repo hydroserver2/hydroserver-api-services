@@ -1,6 +1,6 @@
 from ninja import Schema
 from typing import Annotated
-from pydantic import StringConstraints as StrCon
+from pydantic import ConfigDict, StringConstraints as StrCon
 from uuid import UUID
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
@@ -14,9 +14,7 @@ class DataLoaderFields(Schema):
 
 
 class DataLoaderGetResponse(BaseGetResponse, DataLoaderFields, DataLoaderID):
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DataLoaderPostBody(BasePostBody, DataLoaderFields):
