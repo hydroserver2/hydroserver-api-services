@@ -1,35 +1,29 @@
-import psycopg2
+from django.db import connection
 from django.core.management.base import BaseCommand
-from django.conf import settings
+from psycopg2 import OperationalError, Error
 
 
 class Command(BaseCommand):
+    help = "Create or update the Observation table and optionally set it as a TimescaleDB hypertable."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--no-timescale',
+            '--setup-timescaledb',
             action='store_true',
-            help='Create the observations table without installing TimescaleDB or creating a hypertable.'
+            help='Create the observations table as a hypertable if using TimescaleDB.'
         )
 
         parser.add_argument(
             '--partition-interval-days',
             default=365,
+            type=int,
             help='Set the observations hypertable partition interval value in days.'
         )
 
     def handle(self, *args, **options):
+        self.stdout.write(self.style.NOTICE("\nChecking Observation table setup..."))
 
-        db_settings = settings.DATABASES['default']
-
-        with psycopg2.connect(
-            host=db_settings['HOST'],
-            user=db_settings['USER'],
-            password=db_settings['PASSWORD'],
-            dbname=db_settings['NAME'],
-            port=db_settings['PORT'],
-            connect_timeout=3
-        ) as connection:
+        try:
             with connection.cursor() as cursor:
                 observation_table = """
                     CREATE TABLE IF NOT EXISTS "Observation" (
@@ -47,13 +41,10 @@ class Command(BaseCommand):
                         CONSTRAINT observation_feature_of_interest_id_fkey FOREIGN KEY ("featureOfInterestId") REFERENCES public."Datastream"(id)
                     );
                 """
-
                 cursor.execute(observation_table)
 
-                if options['no_timescale'] is False:
-                    cursor.execute(
-                        "CREATE EXTENSION IF NOT EXISTS timescaledb;"
-                    )
+                if options['setup_timescaledb']:
+                    cursor.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
                     cursor.execute(
                         f"SELECT create_hypertable("
                         f"'\"Observation\"', "
@@ -62,3 +53,12 @@ class Command(BaseCommand):
                         f"if_not_exists => TRUE"
                         f");"
                     )
+
+        except OperationalError as e:
+            self.stdout.write(self.style.ERROR(f"Database connection failed: {e}"))
+        except Error as e:
+            self.stdout.write(self.style.ERROR(f"An error occurred while executing Observation table setup: {e}"))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"An unexpected error occurred setting up Observation table: {e}"))
+
+        self.stdout.write(self.style.SUCCESS("Finished checking Observation table setup."))

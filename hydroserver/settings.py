@@ -22,6 +22,10 @@ DEBUG = config("DEBUG", default=True, cast=bool)
 DEPLOYMENT_BACKEND = config("DEPLOYMENT_BACKEND", default="local")
 
 
+# Default Superuser Settings
+DEFAULT_SUPERUSER_EMAIL = config('DEFAULT_SUPERUSER_EMAIL', default='admin@hydroserver.org')
+DEFAULT_SUPERUSER_PASSWORD = config('DEFAULT_SUPERUSER_PASSWORD', default='pass')
+
 # Deployment Settings
 
 USE_X_FORWARDED_HOST = True
@@ -70,6 +74,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "core.middleware.CloudHealthCheckMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -103,7 +108,7 @@ WSGI_APPLICATION = "hydroserver.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config("DATABASE_URL", default=f"postgresql://admin:pass@127.0.0.1:5432/hydroserver")
+os.environ["DATABASE_URL"] = config("DATABASE_URL", default=f"sqlite:///db.sqlite3")
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -207,6 +212,22 @@ if DEPLOYMENT_BACKEND == "aws":
         },
         "staticfiles": {
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+            "OPTIONS": {"location": "staticfiles"},
+            "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
+        }
+    }
+elif DEPLOYMENT_BACKEND == "gcp":
+    GS_PROJECT_ID = config("GS_PROJECT_ID", default=None)
+    GS_CUSTOM_ENDPOINT = PROXY_BASE_URL
+    GS_DEFAULT_ACL = "publicRead"
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {"location": "media"},
+            "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
             "OPTIONS": {"location": "staticfiles"},
             "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
         }
