@@ -13,7 +13,7 @@ class OrganizationFields(Schema):
     name: str = Field(..., max_length=30)
     description: Optional[str] = None
     link: Optional[str] = Field(None, max_length=2000)
-    organization_type: str = Field(..., max_length=255, alias='type')
+    organization_type: Optional[str] = Field(None, max_length=255, alias='type')
 
 
 class OrganizationPostBody(BasePostBody, OrganizationFields):
