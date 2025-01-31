@@ -216,7 +216,7 @@ if DEPLOYMENT_BACKEND == "aws":
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
             "OPTIONS": {
                 "bucket_name": config("STATIC_BUCKET_NAME", default=None),
-                "location": "staticfiles"
+                "location": "static"
             },
         }
     }
@@ -227,13 +227,17 @@ elif DEPLOYMENT_BACKEND == "gcp":
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-            "OPTIONS": {"location": "media"},
-            "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
+            "OPTIONS": {
+                "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
+                "location": "media"
+            },
         },
         "staticfiles": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-            "OPTIONS": {"location": "staticfiles"},
-            "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
+            "OPTIONS": {
+                "bucket_name": config("STATIC_BUCKET_NAME", default=None),
+                "location": "static"
+            },
         }
     }
 else:
@@ -244,7 +248,7 @@ else:
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            "OPTIONS": {"location": "staticfiles"}
+            "OPTIONS": {"location": "static"}
         },
     }
 
