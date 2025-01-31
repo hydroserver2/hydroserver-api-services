@@ -74,7 +74,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    "core.middleware.CloudHealthCheckMiddleware",
+    "hydroserver.middleware.CloudHealthCheckMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -207,13 +207,17 @@ if DEPLOYMENT_BACKEND == "aws":
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {"location": "media"},
-            "BUCKET_NAME": config("MEDIA_BUCKET_NAME", default=None),
+            "OPTIONS": {
+                "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
+                "location": "media"
+            },
         },
         "staticfiles": {
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
-            "OPTIONS": {"location": "staticfiles"},
-            "BUCKET_NAME": config("STATIC_BUCKET_NAME", default=None),
+            "OPTIONS": {
+                "bucket_name": config("STATIC_BUCKET_NAME", default=None),
+                "location": "staticfiles"
+            },
         }
     }
 elif DEPLOYMENT_BACKEND == "gcp":
