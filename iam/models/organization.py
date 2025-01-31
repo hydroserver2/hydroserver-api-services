@@ -16,7 +16,7 @@ class Organization(models.Model):
     @organization_type.setter
     def organization_type(self, value):
         try:
-            self._user_type = None if value is None else OrganizationType.objects.get(name=value)
+            self._organization_type = None if value is None else OrganizationType.objects.get(name=value)
         except OrganizationType.DoesNotExist:
             raise ValueError(f"'{value}' is not an allowed user type.")
 
