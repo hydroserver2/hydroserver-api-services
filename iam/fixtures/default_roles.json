@@ -1,0 +1,10 @@
+[
+  {
+    "model": "iam.role",
+    "pk": 1,
+    "fields": {
+      "name": "Admin",
+      "public": false
+    }
+  }
+]
