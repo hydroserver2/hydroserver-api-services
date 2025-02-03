@@ -1,11 +1,17 @@
+import json
 from ninja import Router, Path, Form
 from typing import Literal
-from allauth.headless.socialaccount.views import RedirectToProviderView, ProviderSignupView
+from allauth.headless.socialaccount.views import RedirectToProviderView, ProviderSignupView, ManageProvidersView
 from allauth.headless.constants import Client
-from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody
+from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody, AccountGetResponse
 
 
 provider_router = Router(tags=["Provider"])
+
+provider_manage_view = {
+    "browser": ManageProvidersView.as_api_view(client=Client.BROWSER),
+    "app": ManageProvidersView.as_api_view(client=Client.APP)
+}
 
 provider_redirect_view = {
     "browser": RedirectToProviderView.as_api_view(client=Client.BROWSER),
@@ -16,6 +22,24 @@ provider_signup_view = {
     "browser": ProviderSignupView.as_api_view(client=Client.BROWSER),
     "app": ProviderSignupView.as_api_view(client=Client.APP)
 }
+
+
+@provider_router.get(
+    "connections",
+    url_name="get_connections",
+    response={
+        200: str
+    },
+    by_alias=True
+)
+def get_providers(request, client: Path[Literal["browser", "app"]]):
+    """
+    Get connected provider accounts.
+    """
+
+    response = provider_manage_view[client](request)
+
+    return response
 
 
 @provider_router.post(
@@ -54,5 +78,10 @@ def provider_signup(request, client: Path[Literal["browser", "app"]], body: Prov
     """
 
     response = provider_signup_view[client](request)
+
+    if response.status_code == 200:
+        response_content = json.loads(response.content)
+        response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        response.content = json.dumps(response_content)
 
     return response
