@@ -1,5 +1,5 @@
 import uuid
-from ninja import Router
+from ninja import Router, Path
 from hydroserver.security import basic_auth, session_auth
 
 
@@ -42,7 +42,7 @@ def create_workspace(request):
     },
     by_alias=True
 )
-def get_workspace(request, workspace_id: uuid.UUID):
+def get_workspace(request, workspace_id: Path[uuid.UUID]):
     pass
 
 
@@ -56,7 +56,7 @@ def get_workspace(request, workspace_id: uuid.UUID):
     },
     by_alias=True
 )
-def update_workspace(request, workspace_id: uuid.UUID):
+def update_workspace(request, workspace_id: Path[uuid.UUID]):
     pass
 
 
@@ -70,7 +70,7 @@ def update_workspace(request, workspace_id: uuid.UUID):
     },
     by_alias=True
 )
-def delete_workspace(request, workspace_id: uuid.UUID):
+def delete_workspace(request, workspace_id: Path[uuid.UUID]):
     pass
 
 
@@ -84,7 +84,7 @@ def delete_workspace(request, workspace_id: uuid.UUID):
     },
     by_alias=True
 )
-def transfer_workspace(request, workspace_id: uuid.UUID):
+def transfer_workspace(request, workspace_id: Path[uuid.UUID]):
     pass
 
 
@@ -98,5 +98,5 @@ def transfer_workspace(request, workspace_id: uuid.UUID):
     },
     by_alias=True
 )
-def accept_workspace(request, workspace_id: uuid.UUID):
+def accept_workspace(request, workspace_id: Path[uuid.UUID]):
     pass

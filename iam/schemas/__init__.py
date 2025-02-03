@@ -5,3 +5,4 @@ from .session import SessionPostBody
 from .email import VerificationEmailPutBody, VerifyEmailPostBody
 from .password import RequestResetPasswordPostBody, ResetPasswordPostBody
 from .provider import ProviderRedirectPostForm, ProviderSignupPostBody
+from .role import CollaboratorPostBody
