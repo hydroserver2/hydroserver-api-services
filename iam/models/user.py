@@ -1,3 +1,4 @@
+import uuid
 from types import SimpleNamespace
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import AbstractUser

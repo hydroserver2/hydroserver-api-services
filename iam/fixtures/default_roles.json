@@ -3,8 +3,36 @@
     "model": "iam.role",
     "pk": 1,
     "fields": {
-      "name": "Admin",
-      "public": false
+      "name": "Editor",
+      "description": "Grants read and write access to all workspace resources.",
+      "workspace_id": null
+    }
+  },
+  {
+    "model": "iam.role",
+    "pk": 2,
+    "fields": {
+      "name": "Viewer",
+      "description": "Grants read-only access to all workspace resources.",
+      "workspace_id": null
+    }
+  },
+  {
+    "model": "iam.permission",
+    "pk": 1,
+    "fields": {
+      "role": 1,
+      "permission_type": "*",
+      "resource_type": "*"
+    }
+  },
+  {
+    "model": "iam.permission",
+    "pk": 2,
+    "fields": {
+      "role": 2,
+      "permission_type": "view",
+      "resource_type": "*"
     }
   }
 ]
