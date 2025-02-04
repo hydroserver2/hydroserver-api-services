@@ -35,6 +35,7 @@ def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = Fals
     response={
         201: WorkspaceGetResponse,
         401: str,
+        422: str,
     },
     by_alias=True
 )
@@ -74,9 +75,10 @@ def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
     "/{workspace_id}",
     auth=[session_auth, basic_auth],
     response={
-        203: WorkspaceGetResponse,
+        200: WorkspaceGetResponse,
         401: str,
         403: str,
+        422: str,
     },
     by_alias=True
 )
@@ -85,7 +87,7 @@ def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     Update a workspace owned by the authenticated user.
     """
 
-    return 203, WorkspaceService.update(
+    return 200, WorkspaceService.update(
         user=request.authenticated_user,
         uid=workspace_id,
         data=data
@@ -118,8 +120,10 @@ def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     auth=[session_auth, basic_auth],
     response={
         201: str,
+        400: str,
         401: str,
         403: str,
+        422: str,
     },
     by_alias=True
 )
@@ -135,22 +139,45 @@ def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.
     )
 
 
-@workspace_router.post(
-    "/{workspace_id}/transfer/accept",
+@workspace_router.put(
+    "/{workspace_id}/transfer",
     auth=[session_auth, basic_auth],
     response={
-        201: str,
+        200: str,
+        400: str,
         401: str,
         403: str,
     },
     by_alias=True
 )
-def accept_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
     Accept a pending workspace transfer.
     """
 
-    return 201, WorkspaceService.accept(
+    return 200, WorkspaceService.accept_transfer(
+        user=request.authenticated_user,
+        uid=workspace_id
+    )
+
+
+@workspace_router.delete(
+    "/{workspace_id}/transfer",
+    auth=[session_auth, basic_auth],
+    response={
+        200: str,
+        400: str,
+        401: str,
+        403: str,
+    },
+    by_alias=True
+)
+def reject_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+    """
+    Reject a pending workspace transfer.
+    """
+
+    return 200, WorkspaceService.reject_transfer(
         user=request.authenticated_user,
         uid=workspace_id
     )
