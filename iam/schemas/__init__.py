@@ -6,4 +6,5 @@ from .email import VerificationEmailPutBody, VerifyEmailPostBody
 from .password import RequestResetPasswordPostBody, ResetPasswordPostBody
 from .provider import ProviderRedirectPostForm, ProviderSignupPostBody
 from .workspace import WorkspaceGetResponse, WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
-from .collaborator import CollaboratorPostBody
+from .collaborator import CollaboratorGetResponse, CollaboratorPostBody, CollaboratorDeleteBody
+from .role import RoleGetResponse

@@ -3,3 +3,4 @@ from .organization import Organization, OrganizationType
 from .workspace import Workspace, WorkspaceTransferConfirmation
 from .role import Role
 from .collaborator import Collaborator
+from .permission import Permission

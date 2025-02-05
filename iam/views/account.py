@@ -9,6 +9,7 @@ from hydroserver.http import HydroServerHttpRequest
 
 
 account_router = Router(tags=["Account"])
+account_service = AccountService()
 
 signup_view = {
     "browser": SignupView.as_api_view(client=Client.BROWSER),
@@ -30,7 +31,7 @@ def get_account(request: HydroServerHttpRequest, client: Path[Literal["browser",
     Get user account details.
     """
 
-    return 200, AccountService.get(user=request.authenticated_user)
+    return 200, account_service.get(user=request.authenticated_user)
 
 
 @account_router.post(
@@ -71,7 +72,7 @@ def update_account(request: HydroServerHttpRequest, client: Path[Literal["browse
     Update user account details.
     """
 
-    return 200, AccountService.update(
+    return 200, account_service.update(
         user=request.authenticated_user,
         data=data
     )
@@ -81,7 +82,7 @@ def update_account(request: HydroServerHttpRequest, client: Path[Literal["browse
     "",
     auth=[session_auth, basic_auth],
     response={
-        204: None,
+        204: str,
         401: str
     }
 )
@@ -90,7 +91,7 @@ def delete_account(request: HydroServerHttpRequest, client: Path[Literal["browse
     Delete a user account.
     """
 
-    return 204, AccountService.delete(
+    return 204, account_service.delete(
         user=request.authenticated_user,
     )
 
@@ -108,4 +109,4 @@ def get_types(request, client: Path[Literal["browser", "app"]]):
     Get allowed user and organization types.
     """
 
-    return 200, AccountService.get_types()
+    return 200, account_service.get_types()

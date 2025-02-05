@@ -1,7 +1,7 @@
 [
   {
     "model": "iam.role",
-    "pk": 1,
+    "pk": "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
     "fields": {
       "name": "Editor",
       "description": "Grants read and write access to all workspace resources.",
@@ -10,7 +10,7 @@
   },
   {
     "model": "iam.role",
-    "pk": 2,
+    "pk": "1d91bff7-edf6-4b69-bb26-674436335725",
     "fields": {
       "name": "Viewer",
       "description": "Grants read-only access to all workspace resources.",
@@ -21,7 +21,7 @@
     "model": "iam.permission",
     "pk": 1,
     "fields": {
-      "role": 1,
+      "role": "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
       "permission_type": "*",
       "resource_type": "*"
     }
@@ -30,7 +30,7 @@
     "model": "iam.permission",
     "pk": 2,
     "fields": {
-      "role": 2,
+      "role": "1d91bff7-edf6-4b69-bb26-674436335725",
       "permission_type": "view",
       "resource_type": "*"
     }

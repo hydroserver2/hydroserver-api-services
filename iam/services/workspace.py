@@ -4,12 +4,13 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from iam.models import Workspace, WorkspaceTransferConfirmation
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
+from .utils import ServiceUtils
 
 
 User = get_user_model()
 
 
-class WorkspaceService:
+class WorkspaceService(ServiceUtils):
     @staticmethod
     def list(user: User, associated_only: bool):
         workspaces = Workspace.objects.visible(user=user)
@@ -19,20 +20,8 @@ class WorkspaceService:
 
         return workspaces
 
-    @staticmethod
-    def get(user: User, uid: uuid.UUID):
-        try:
-            workspace = Workspace.objects.get(pk=uid)
-        except Workspace.DoesNotExist:
-            raise HttpError(404, "Workspace does not exist")
-
-        permissions = workspace.get_user_permissions(user=user)
-
-        if "view" not in permissions and workspace.private is True:
-            raise HttpError(404, "Workspace does not exist")
-
-        if "view" not in permissions:
-            raise HttpError(403, "You do not have permission to view this workspace")
+    def get(self, user: User, uid: uuid.UUID):
+        workspace, _ = self.get_workspace(user=user, workspace_id=uid)
 
         return workspace
 
@@ -46,17 +35,8 @@ class WorkspaceService:
             **data.dict()
         )
 
-    @staticmethod
-    def update(user: User, uid: uuid.UUID, data: WorkspacePatchBody):
-        try:
-            workspace = Workspace.objects.get(pk=uid)
-        except Workspace.DoesNotExist:
-            raise HttpError(404, "Workspace does not exist")
-
-        permissions = workspace.get_user_permissions(user=user)
-
-        if "view" not in permissions and "edit" not in permissions:
-            raise HttpError(404, "Workspace does not exist")
+    def update(self, user: User, uid: uuid.UUID, data: WorkspacePatchBody):
+        workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
 
         if "edit" not in permissions:
             raise HttpError(403, "You do not have permission to edit this workspace")
@@ -70,34 +50,16 @@ class WorkspaceService:
 
         return workspace
 
-    @staticmethod
-    def delete(user: User, uid: uuid.UUID):
-        try:
-            workspace = Workspace.objects.get(pk=uid)
-        except Workspace.DoesNotExist:
-            raise HttpError(404, "Workspace does not exist")
-
-        permissions = workspace.get_user_permissions(user=user)
-
-        if "view" not in permissions and "delete" not in permissions:
-            raise HttpError(404, "Workspace does not exist")
+    def delete(self, user: User, uid: uuid.UUID):
+        workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
 
         if "delete" not in permissions:
             raise HttpError(403, "You do not have permission to delete this workspace")
 
         workspace.delete()
 
-    @staticmethod
-    def transfer(user: User, uid: uuid.UUID, data: WorkspaceTransferBody):
-        try:
-            workspace = Workspace.objects.get(pk=uid)
-        except Workspace.DoesNotExist:
-            raise HttpError(404, "Workspace does not exist")
-
-        permissions = workspace.get_user_permissions(user=user)
-
-        if "view" not in permissions and "edit" not in permissions:
-            raise HttpError(404, "Workspace does not exist")
+    def transfer(self, user: User, uid: uuid.UUID, data: WorkspaceTransferBody):
+        workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
 
         if "edit" not in permissions:
             raise HttpError(403, "You do not have permission to transfer this workspace")
@@ -121,14 +83,8 @@ class WorkspaceService:
 
         return "Workspace transfer initiated"
 
-    @staticmethod
-    def accept_transfer(user: User, uid: uuid.UUID):
-        try:
-            workspace = Workspace.objects.select_related("transfer_confirmation").get(pk=uid)
-        except Workspace.DoesNotExist:
-            raise HttpError(404, "Workspace does not exist")
-
-        permissions = workspace.get_user_permissions(user=user)
+    def accept_transfer(self, user: User, uid: uuid.UUID):
+        workspace, permissions = self.get_workspace(user=user, workspace_id=uid, override_view_permissions=True)
 
         try:
             workspace_transfer_confirmation = workspace.transfer_confirmation
@@ -150,14 +106,8 @@ class WorkspaceService:
 
         return "Workspace transfer accepted"
 
-    @staticmethod
-    def reject_transfer(user: User, uid: uuid.UUID):
-        try:
-            workspace = Workspace.objects.select_related("transfer_confirmation").get(pk=uid)
-        except Workspace.DoesNotExist:
-            raise HttpError(404, "Workspace does not exist")
-
-        permissions = workspace.get_user_permissions(user=user)
+    def reject_transfer(self, user: User, uid: uuid.UUID):
+        workspace, permissions = self.get_workspace(user=user, workspace_id=uid, override_view_permissions=True)
 
         try:
             workspace_transfer_confirmation = workspace.transfer_confirmation

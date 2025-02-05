@@ -13,6 +13,7 @@ RESOURCE_TYPE_CHOICES = (
     ("*", "All"),
     ("APIKey", "API Key"),
     ("Role", "Role"),
+    ("Collaborator", "Collaborator"),
     ("DataSource", "Data Source"),
     ("ETLSystem", "ETL System"),
     ("Thing", "Thing"),

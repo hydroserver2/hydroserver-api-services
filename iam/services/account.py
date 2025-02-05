@@ -73,6 +73,8 @@ class AccountService:
     def delete(user: User):
         user.delete()
 
+        return "User account has been deleted"
+
     @staticmethod
     def get_types():
         return {
