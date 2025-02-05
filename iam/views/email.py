@@ -5,7 +5,6 @@ from allauth.headless.account.views import ManageEmailView, VerifyEmailView
 from allauth.headless.constants import Client
 from iam.schemas import VerificationEmailPutBody, VerifyEmailPostBody, AccountGetResponse
 
-
 email_router = Router(tags=["Email"])
 
 email_view = {

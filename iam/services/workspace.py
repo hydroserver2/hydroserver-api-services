@@ -1,27 +1,54 @@
 import uuid
+from typing import Optional
 from ninja.errors import HttpError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from iam.models import Workspace, WorkspaceTransferConfirmation
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
 from .utils import ServiceUtils
-
 
 User = get_user_model()
 
 
 class WorkspaceService(ServiceUtils):
     @staticmethod
-    def list(user: User, associated_only: bool):
-        workspaces = Workspace.objects.visible(user=user)
+    def attach_role_and_transfer_fields(workspace: Workspace, user: Optional[User]):
+        if not user:
+            return workspace
+
+        try:
+            workspace_transfer = workspace.transfer_confirmation
+        except ObjectDoesNotExist:
+            workspace_transfer = None
+
+        if workspace_transfer and (workspace_transfer.new_owner == user or workspace.owner == user):
+            workspace.pending_transfer_to = workspace_transfer.new_owner
+
+        collaborator = next((i for i in user.collaborator_roles if i.user == user and i.workspace == workspace), None)
+
+        if collaborator:
+            workspace.collaborator_role = collaborator.role
+
+        return workspace
+
+    def list(self, user: Optional[User], associated_only: bool = False):
+        workspaces = Workspace.objects.select_related("transfer_confirmation").visible(user=user)
+
+        if user:
+            user.collaborator_roles = list(user.workspace_roles.all())
 
         if associated_only:
             workspaces = workspaces.associated(user=user)
 
+        workspaces = [self.attach_role_and_transfer_fields(workspace, user) for workspace in workspaces]
+
         return workspaces
 
-    def get(self, user: User, uid: uuid.UUID):
+    def get(self, user: Optional[User], uid: uuid.UUID):
         workspace, _ = self.get_workspace(user=user, workspace_id=uid)
+        user.collaborator_roles = list(user.workspace_roles.all()) if user else []
+        workspace = self.attach_role_and_transfer_fields(workspace, user)
 
         return workspace
 
@@ -48,6 +75,9 @@ class WorkspaceService(ServiceUtils):
 
         workspace.save()
 
+        user.collaborator_roles = list(user.workspace_roles.all())
+        workspace = self.attach_role_and_transfer_fields(workspace, user)
+
         return workspace
 
     def delete(self, user: User, uid: uuid.UUID):
@@ -58,11 +88,19 @@ class WorkspaceService(ServiceUtils):
 
         workspace.delete()
 
+        return "Workspace deleted"
+
     def transfer(self, user: User, uid: uuid.UUID, data: WorkspaceTransferBody):
         workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
 
         if "edit" not in permissions:
             raise HttpError(403, "You do not have permission to transfer this workspace")
+
+        try:
+            _ = workspace.transfer_confirmation
+            raise HttpError(400, "Workspace transfer is already pending")
+        except ObjectDoesNotExist:
+            pass
 
         try:
             new_owner = User.objects.get(email=data.new_owner)

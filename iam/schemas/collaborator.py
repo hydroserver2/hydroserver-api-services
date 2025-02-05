@@ -1,12 +1,13 @@
 import uuid
-from ninja import Field
 from pydantic import EmailStr
 from hydroserver.schemas import BaseGetResponse, BasePostBody
+from .role import RoleGetResponse
+from .account import AccountContactGetResponse
 
 
 class CollaboratorGetResponse(BaseGetResponse):
-    email: EmailStr = Field(..., validation_alias="user.email")
-    role_id: uuid.UUID
+    user: AccountContactGetResponse
+    role: RoleGetResponse
 
 
 class CollaboratorPostBody(BasePostBody):

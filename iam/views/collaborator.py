@@ -1,10 +1,9 @@
 import uuid
 from ninja import Router, Path
-from hydroserver.security import basic_auth, session_auth
+from hydroserver.security import basic_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from iam.schemas import CollaboratorGetResponse, CollaboratorPostBody, CollaboratorDeleteBody
 from iam.services import CollaboratorService
-
 
 collaborator_router = Router(tags=["Collaborators"])
 collaborator_service = CollaboratorService()
@@ -12,7 +11,7 @@ collaborator_service = CollaboratorService()
 
 @collaborator_router.get(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: list[CollaboratorGetResponse],
         401: str,

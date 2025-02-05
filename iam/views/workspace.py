@@ -1,29 +1,30 @@
 import uuid
 from ninja import Router, Path
 from hydroserver.http import HydroServerHttpRequest
-from hydroserver.security import basic_auth, session_auth
+from hydroserver.security import basic_auth, session_auth, anonymous_auth
 from iam.schemas import WorkspaceGetResponse, WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
 from iam.services import WorkspaceService
 
-
 workspace_router = Router(tags=["Workspaces"])
+workspace_service = WorkspaceService()
 
 
 @workspace_router.get(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: list[WorkspaceGetResponse],
         401: str,
     },
-    by_alias=True
+    by_alias=True,
+    exclude_unset=True
 )
 def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = False):
     """
     Get public workspaces and workspaces associated with the authenticated user.
     """
 
-    return 200, WorkspaceService.list(
+    return 200, workspace_service.list(
         user=request.authenticated_user,
         associated_only=associated_only
     )
@@ -37,14 +38,15 @@ def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = Fals
         401: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
+    exclude_unset=True
 )
 def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
     """
     Create a new workspace owned by the authenticated user.
     """
 
-    return 201, WorkspaceService.create(
+    return 201, workspace_service.create(
         user=request.authenticated_user,
         data=data
     )
@@ -52,20 +54,21 @@ def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
 
 @workspace_router.get(
     "/{workspace_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: WorkspaceGetResponse,
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
+    exclude_unset=True
 )
 def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
     Get workspace details.
     """
 
-    return 200, WorkspaceService.get(
+    return 200, workspace_service.get(
         user=request.authenticated_user,
         uid=workspace_id
     )
@@ -80,14 +83,15 @@ def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
+    exclude_unset=True
 )
 def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: WorkspacePatchBody):
     """
     Update a workspace owned by the authenticated user.
     """
 
-    return 200, WorkspaceService.update(
+    return 200, workspace_service.update(
         user=request.authenticated_user,
         uid=workspace_id,
         data=data
@@ -109,7 +113,7 @@ def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     Delete a workspace owned by the authenticated user.
     """
 
-    return 204, WorkspaceService.delete(
+    return 204, workspace_service.delete(
         user=request.authenticated_user,
         uid=workspace_id
     )
@@ -132,7 +136,7 @@ def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.
     Transfer a workspace owned by the authenticated user to another HydroServer user.
     """
 
-    return 201, WorkspaceService.transfer(
+    return 201, workspace_service.transfer(
         user=request.authenticated_user,
         uid=workspace_id,
         data=data
@@ -155,7 +159,7 @@ def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Pat
     Accept a pending workspace transfer.
     """
 
-    return 200, WorkspaceService.accept_transfer(
+    return 200, workspace_service.accept_transfer(
         user=request.authenticated_user,
         uid=workspace_id
     )
@@ -177,7 +181,7 @@ def reject_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Pat
     Reject a pending workspace transfer.
     """
 
-    return 200, WorkspaceService.reject_transfer(
+    return 200, workspace_service.reject_transfer(
         user=request.authenticated_user,
         uid=workspace_id
     )

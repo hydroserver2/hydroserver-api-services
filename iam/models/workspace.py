@@ -1,16 +1,33 @@
 import uuid
-from typing import Literal
+import typing
+from typing import Literal, Optional
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
 
+if typing.TYPE_CHECKING:
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+
 
 class WorkspaceQueryset(models.QuerySet):
-    def visible(self, user: settings.AUTH_USER_MODEL):
-        return self.filter(Q(private=False) | Q(owner=user) | Q(collaborators__user=user))
+    def visible(self, user: Optional["User"]):
+        if user is None:
+            return self.filter(private=False)
+        else:
+            return self.filter(
+                Q(private=False) |
+                Q(owner=user) |
+                Q(collaborators__user=user) |
+                Q(transfer_confirmation__new_owner=user)
+            )
 
-    def associated(self, user: settings.AUTH_USER_MODEL):
-        return self.filter(Q(owner=user) | Q(collaborators__user=user))
+    def associated(self, user: Optional["User"]):
+        if user is None:
+            return self.none()
+        else:
+            return self.filter(Q(owner=user) | Q(collaborators__user=user))
 
 
 class Workspace(models.Model):
@@ -22,10 +39,10 @@ class Workspace(models.Model):
     objects = WorkspaceQueryset.as_manager()
 
     @classmethod
-    def can_user_create(cls, user: settings.AUTH_USER_MODEL):
+    def can_user_create(cls, user: Optional["User"]):
         return user.account_type != "limited"
 
-    def get_user_permissions(self, user: settings.AUTH_USER_MODEL) -> list[Literal["edit", "delete", "view"]]:
+    def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
         if user == self.owner:
             return ["view", "edit", "delete"]
         elif self.private is False or self.collaborators.filter(user=user).exists():

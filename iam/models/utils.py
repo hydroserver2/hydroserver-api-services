@@ -1,16 +1,20 @@
 import typing
-from .workspace import Workspace
+from typing import Optional
 from .permission import Permission
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
+    from iam.models import Workspace
 
     User = get_user_model()
 
 
 class PermissionChecker:
     @classmethod
-    def check_create_permissions(cls, user: "User", workspace: Workspace, resource_type: str):
+    def check_create_permissions(cls, user: Optional["User"], workspace: "Workspace", resource_type: str):
+        if not user:
+            return False
+
         if workspace.owner == user or user.account_type in ["admin", "staff"]:
             return True
 
@@ -23,11 +27,11 @@ class PermissionChecker:
         return any(perm in permissions for perm in ["*", "create"])
 
     @staticmethod
-    def check_object_permissions(user: "User", workspace: Workspace, resource_type: str):
+    def check_object_permissions(user: Optional["User"], workspace: "Workspace", resource_type: str):
         if not workspace:
             return ["view"]
 
-        if user == workspace.owner or user.account_type in ["admin", "staff"]:
+        if user and (user == workspace.owner or user.account_type in ["admin", "staff"]):
             return ["view", "edit", "delete"]
 
         permissions = Permission.objects.exclude(

@@ -5,7 +5,6 @@ from allauth.headless.socialaccount.views import RedirectToProviderView, Provide
 from allauth.headless.constants import Client
 from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody, AccountGetResponse
 
-
 provider_router = Router(tags=["Provider"])
 
 provider_manage_view = {

@@ -4,7 +4,6 @@ from typing import List, Optional, Literal
 from django.contrib.auth import get_user_model
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
-
 User = get_user_model()
 
 
@@ -24,15 +23,24 @@ class OrganizationPatchBody(BasePatchBody, OrganizationFields):
     pass
 
 
-class UserFields(Schema):
+class UserContactFields(Schema):
+    phone: Optional[str] = Field(None, max_length=15)
+    address: Optional[str] = Field(None, max_length=255)
+    link: Optional[str] = Field(None, max_length=2000)
+    user_type: str = Field(..., max_length=255, alias='type')
+
+
+class UserFields(UserContactFields):
     first_name: str = Field(..., max_length=30)
     middle_name: Optional[str] = Field(None, max_length=30)
     last_name: str = Field(..., max_length=150)
-    phone: Optional[str] = Field(None, max_length=15)
-    address: Optional[str] = Field(None, max_length=255)
-    user_type: str = Field(..., max_length=255, alias='type')
-    link: Optional[str] = Field(None, max_length=2000)
     organization: Optional[OrganizationFields] = None
+
+
+class AccountContactGetResponse(BaseGetResponse, UserContactFields):
+    name: str = Field(..., max_length=255)
+    email: EmailStr
+    organization_name: Optional[str] = None
 
 
 class AccountGetResponse(BaseGetResponse, UserFields):

@@ -4,7 +4,6 @@ from django.db import IntegrityError
 from iam.models import Organization, UserType, OrganizationType
 from iam.schemas import AccountPostBody, AccountPatchBody
 
-
 User = get_user_model()
 
 

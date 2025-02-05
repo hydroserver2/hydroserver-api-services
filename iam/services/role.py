@@ -5,7 +5,6 @@ from django.db.models import Q
 from iam.models import Role
 from .utils import ServiceUtils
 
-
 User = get_user_model()
 
 

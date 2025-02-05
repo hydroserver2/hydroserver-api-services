@@ -7,7 +7,6 @@ from iam.services import AccountService
 from hydroserver.security import anonymous_auth, basic_auth, session_auth
 from hydroserver.http import HydroServerHttpRequest
 
-
 account_router = Router(tags=["Account"])
 account_service = AccountService()
 

@@ -1,10 +1,9 @@
 import uuid
 from ninja import Router, Path
 from hydroserver.http import HydroServerHttpRequest
-from hydroserver.security import basic_auth, session_auth
+from hydroserver.security import basic_auth, session_auth, anonymous_auth
 from iam.services import RoleService
 from iam.schemas import RoleGetResponse
-
 
 role_router = Router(tags=["Roles"])
 role_service = RoleService()
@@ -12,7 +11,7 @@ role_service = RoleService()
 
 @role_router.get(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: list[RoleGetResponse],
         401: str,
@@ -33,7 +32,7 @@ def get_roles(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
 
 @role_router.get(
     "{role_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, basic_auth, anonymous_auth],
     response={
         200: RoleGetResponse,
         401: str,

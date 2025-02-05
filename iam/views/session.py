@@ -5,7 +5,6 @@ from allauth.headless.account.views import LoginView, SessionView
 from allauth.headless.constants import Client
 from iam.schemas import AccountGetResponse, SessionPostBody
 
-
 session_router = Router(tags=["Session"])
 
 session_view = {

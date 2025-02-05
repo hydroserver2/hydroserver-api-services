@@ -6,7 +6,6 @@ from iam.models import Collaborator
 from iam.schemas import CollaboratorPostBody, CollaboratorDeleteBody
 from .utils import ServiceUtils
 
-
 User = get_user_model()
 
 

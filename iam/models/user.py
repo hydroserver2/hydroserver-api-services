@@ -1,4 +1,3 @@
-import uuid
 from types import SimpleNamespace
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import AbstractUser
@@ -9,7 +8,7 @@ from django.conf import settings
 
 class UserManager(BaseUserManager):
     def get_queryset(self):
-        return super().get_queryset().select_related('_user_type', 'organization', 'organization___organization_type')
+        return super().get_queryset().select_related('organization')
 
     def create_user(self, email, password, **extra_fields):
         if email is None:
@@ -56,7 +55,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(max_length=2000, blank=True, null=True)
-    _user_type = models.ForeignKey("UserType", on_delete=models.PROTECT, db_column="user_type_id")
+    user_type = models.CharField(max_length=255)
     organization = models.OneToOneField("Organization", on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name="user")
     is_ownership_allowed = models.BooleanField(default=False)
@@ -67,6 +66,14 @@ class User(AbstractUser):
         return SimpleNamespace(enabled=lambda: False)
 
     @property
+    def name(self):
+        return self.__str__
+
+    @property
+    def organization_name(self):
+        return self.organization.name if self.organization else None
+
+    @property
     def account_type(self):
         if self.is_superuser:
             return "admin"
@@ -74,17 +81,6 @@ class User(AbstractUser):
             return "standard"
         else:
             return "limited"
-
-    @property
-    def user_type(self):
-        return self._user_type.name
-
-    @user_type.setter
-    def user_type(self, value):
-        try:
-            self._user_type = None if value is None else UserType.objects.get(name=value)
-        except UserType.DoesNotExist:
-            raise ValueError(f"'{value}' is not an allowed user type.")
 
     objects = UserManager()
 
