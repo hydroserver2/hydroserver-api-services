@@ -15,13 +15,13 @@ class RoleService(ServiceUtils):
         return Role.objects.filter(
             Q(workspace__isnull=True) |
             Q(workspace=workspace)
-        ).visible(user=user)
+        ).visible(user=user).distinct()
 
     def get(self, user: User, uid: uuid.UUID, workspace_id: uuid.UUID):
         workspace, _ = self.get_workspace(user=user, workspace_id=workspace_id)
 
         try:
-            role = Role.objects.get(pk=uid, workspace=workspace)
+            role = Role.objects.get(Q(workspace=workspace) | Q(workspace__isnull=True), pk=uid)
         except Role.DoesNotExist:
             raise HttpError(404, "Role does not exist")
 

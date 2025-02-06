@@ -19,6 +19,8 @@ class RoleQueryset(models.QuerySet):
                 Q(workspace__isnull=True) |
                 Q(workspace__private=False)
             )
+        elif user.account_type == "admin":
+            return self
         else:
             return self.filter(
                 Q(workspace__isnull=True) |

@@ -33,7 +33,7 @@ class WorkspaceService(ServiceUtils):
         return workspace
 
     def list(self, user: Optional[User], associated_only: bool = False):
-        workspaces = Workspace.objects.select_related("transfer_confirmation").visible(user=user)
+        workspaces = Workspace.objects.select_related("transfer_confirmation").visible(user=user).distinct()
 
         if user:
             user.collaborator_roles = list(user.workspace_roles.all())

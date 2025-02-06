@@ -1,0 +1,45 @@
+# Editor Role
+- model: iam.role
+  pk: a7701d22-e716-4584-a18c-055c8c4f2bd6
+  fields:
+    name: "Editor"
+    description: "Editor"
+
+# Editor Permissions
+- model: iam.permission
+  pk: 1000000010
+  fields:
+    role: a7701d22-e716-4584-a18c-055c8c4f2bd6
+    permission_type: "*"
+    resource_type: "*"
+
+# Viewer Role
+- model: iam.role
+  pk: 702e2156-baee-451a-b7ee-dca8baeda378
+  fields:
+    name: "Viewer"
+    description: "Viewer"
+
+# Viewer Permissions
+- model: iam.permission
+  pk: 1000000011
+  fields:
+    role: 702e2156-baee-451a-b7ee-dca8baeda378
+    permission_type: "view"
+    resource_type: "*"
+
+# Private Role
+- model: iam.role
+  pk: 60b9d8b1-28d1-4d0d-9bee-4e47219d0118
+  fields:
+    name: "Private"
+    description: "Private"
+    workspace: b27c51a0-7374-462d-8a53-d97d47176c10
+
+# Private Permissions
+- model: iam.permission
+  pk: 1000000012
+  fields:
+    role: 60b9d8b1-28d1-4d0d-9bee-4e47219d0118
+    permission_type: "*"
+    resource_type: "*"

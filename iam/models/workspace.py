@@ -15,6 +15,8 @@ class WorkspaceQueryset(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
             return self.filter(private=False)
+        elif user.account_type == "admin":
+            return self
         else:
             return self.filter(
                 Q(private=False) |
@@ -27,7 +29,7 @@ class WorkspaceQueryset(models.QuerySet):
         if user is None:
             return self.none()
         else:
-            return self.filter(Q(owner=user) | Q(collaborators__user=user))
+            return self.filter(Q(owner=user) | Q(collaborators__user=user) | Q(transfer_confirmation__new_owner=user))
 
 
 class Workspace(models.Model):
@@ -43,7 +45,7 @@ class Workspace(models.Model):
         return user.account_type != "limited"
 
     def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        if user == self.owner:
+        if user == self.owner or user.account_type == "admin":
             return ["view", "edit", "delete"]
         elif self.private is False or self.collaborators.filter(user=user).exists():
             return ["view"]
