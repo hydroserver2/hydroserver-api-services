@@ -12,13 +12,17 @@ if typing.TYPE_CHECKING:
 
 
 class WorkspaceQueryset(models.QuerySet):
+    def get_queryset(self):
+        return self.select_related("transfer_confirmation", "delete_confirmation")
+
     def visible(self, user: Optional["User"]):
+        queryset = self.get_queryset()
         if user is None:
-            return self.filter(private=False)
+            return queryset.filter(private=False)
         elif user.account_type == "admin":
-            return self
+            return queryset
         else:
-            return self.filter(
+            return queryset.filter(
                 Q(private=False) |
                 Q(owner=user) |
                 Q(collaborators__user=user) |
@@ -26,10 +30,13 @@ class WorkspaceQueryset(models.QuerySet):
             )
 
     def associated(self, user: Optional["User"]):
+        queryset = self.get_queryset()
         if user is None:
-            return self.none()
+            return queryset.none()
         else:
-            return self.filter(Q(owner=user) | Q(collaborators__user=user) | Q(transfer_confirmation__new_owner=user))
+            return queryset.filter(
+                Q(owner=user) | Q(collaborators__user=user) | Q(transfer_confirmation__new_owner=user)
+            )
 
 
 class Workspace(models.Model):
@@ -40,6 +47,14 @@ class Workspace(models.Model):
 
     objects = WorkspaceQueryset.as_manager()
 
+    @property
+    def transfer_details(self):
+        return getattr(self, "transfer_confirmation", None)
+
+    @property
+    def delete_details(self):
+        return getattr(self, "delete_confirmation", None)
+
     @classmethod
     def can_user_create(cls, user: Optional["User"]):
         return user.account_type != "limited"
@@ -48,6 +63,8 @@ class Workspace(models.Model):
         if user == self.owner or user.account_type == "admin":
             return ["view", "edit", "delete"]
         elif self.private is False or self.collaborators.filter(user=user).exists():
+            return ["view"]
+        elif self.transfer_details and self.transfer_details.new_owner == user:
             return ["view"]
         else:
             return []
@@ -60,5 +77,5 @@ class WorkspaceTransferConfirmation(models.Model):
 
 
 class WorkspaceDeleteConfirmation(models.Model):
-    workspace = models.ForeignKey("Workspace", on_delete=models.CASCADE, related_name="delete_confirmation")
+    workspace = models.OneToOneField("Workspace", on_delete=models.CASCADE, related_name="delete_confirmation")
     initiated = models.DateTimeField()

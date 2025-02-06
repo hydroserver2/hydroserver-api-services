@@ -12,6 +12,7 @@ service_utils = ServiceUtils()
     ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", {"view"}, None),
     ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", {"view"}, None),
     ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", {"view"}, None),
+    ("anonymous", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Transfer", {"view"}, None),
     ("owner", "00000000-0000-0000-0000-000000000000", "Workspace does not exist", {}, 404),
     ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", {}, 404),
 ])

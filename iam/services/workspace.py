@@ -3,7 +3,6 @@ from typing import Optional
 from ninja.errors import HttpError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 from iam.models import Workspace, WorkspaceTransferConfirmation
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
 from .utils import ServiceUtils
@@ -17,13 +16,8 @@ class WorkspaceService(ServiceUtils):
         if not user:
             return workspace
 
-        try:
-            workspace_transfer = workspace.transfer_confirmation
-        except ObjectDoesNotExist:
-            workspace_transfer = None
-
-        if workspace_transfer and (workspace_transfer.new_owner == user or workspace.owner == user):
-            workspace.pending_transfer_to = workspace_transfer.new_owner
+        if workspace.transfer_details and (workspace.transfer_details.new_owner == user or workspace.owner == user):
+            workspace.pending_transfer_to = workspace.transfer_details.new_owner
 
         collaborator = next((i for i in user.collaborator_roles if i.user == user and i.workspace == workspace), None)
 
@@ -33,7 +27,7 @@ class WorkspaceService(ServiceUtils):
         return workspace
 
     def list(self, user: Optional[User], associated_only: bool = False):
-        workspaces = Workspace.objects.select_related("transfer_confirmation").visible(user=user).distinct()
+        workspaces = Workspace.objects.visible(user=user).distinct()
 
         if user:
             user.collaborator_roles = list(user.workspace_roles.all())
@@ -96,11 +90,8 @@ class WorkspaceService(ServiceUtils):
         if "edit" not in permissions:
             raise HttpError(403, "You do not have permission to transfer this workspace")
 
-        try:
-            _ = workspace.transfer_confirmation
+        if workspace.transfer_details:
             raise HttpError(400, "Workspace transfer is already pending")
-        except ObjectDoesNotExist:
-            pass
 
         try:
             new_owner = User.objects.get(email=data.new_owner)
@@ -124,22 +115,17 @@ class WorkspaceService(ServiceUtils):
     def accept_transfer(self, user: User, uid: uuid.UUID):
         workspace, permissions = self.get_workspace(user=user, workspace_id=uid, override_view_permissions=True)
 
-        try:
-            workspace_transfer_confirmation = workspace.transfer_confirmation
-        except WorkspaceTransferConfirmation.DoesNotExist:
-            if "view" not in permissions:
-                raise HttpError(404, "Workspace does not exist")
-            else:
-                raise HttpError(400, "No workspace transfer is pending")
+        if "view" not in permissions:
+            raise HttpError(404, "Workspace does not exist")
 
-        if workspace_transfer_confirmation.new_owner != user:
-            if "view" not in permissions:
-                raise HttpError(404, "Workspace does not exist")
-            else:
-                raise HttpError(403, "You do not have permission to accept this workspace transfer")
+        if not workspace.transfer_details:
+            raise HttpError(400, "No workspace transfer is pending")
+
+        if workspace.transfer_details.new_owner != user:
+            raise HttpError(403, "You do not have permission to accept this workspace transfer")
 
         workspace.owner = user
-        workspace_transfer_confirmation.delete()
+        workspace.transfer_details.delete()
         workspace.save()
 
         return "Workspace transfer accepted"
@@ -147,20 +133,15 @@ class WorkspaceService(ServiceUtils):
     def reject_transfer(self, user: User, uid: uuid.UUID):
         workspace, permissions = self.get_workspace(user=user, workspace_id=uid, override_view_permissions=True)
 
-        try:
-            workspace_transfer_confirmation = workspace.transfer_confirmation
-        except WorkspaceTransferConfirmation.DoesNotExist:
-            if "view" not in permissions:
-                raise HttpError(404, "Workspace does not exist")
-            else:
-                raise HttpError(400, "No workspace transfer is pending")
+        if "view" not in permissions:
+            raise HttpError(404, "Workspace does not exist")
 
-        if not (workspace_transfer_confirmation.new_owner == user or "edit" in permissions):
-            if "view" not in permissions:
-                raise HttpError(404, "Workspace does not exist")
-            else:
-                raise HttpError(403, "You do not have permission to reject this workspace transfer")
+        if not workspace.transfer_details:
+            raise HttpError(400, "No workspace transfer is pending")
 
-        workspace_transfer_confirmation.delete()
+        if not (workspace.transfer_details.new_owner == user or workspace.owner == user):
+            raise HttpError(403, "You do not have permission to reject this workspace transfer")
+
+        workspace.transfer_details.delete()
 
         return "Workspace transfer rejected"
