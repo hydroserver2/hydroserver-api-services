@@ -7,12 +7,11 @@ from typing import Optional
 from django.db import models
 from django.db.models import Q, Prefetch
 from django.core.files.storage import storages
-from django.core.files.storage import get_storage_class
 from hsmodels.schemas.fields import PointCoverage
 from ninja.errors import HttpError
 from simple_history.models import HistoricalRecords
 from core.models import Location
-from hydroserver.settings import STORAGES, PROXY_BASE_URL
+from hydroserver.settings import PROXY_BASE_URL
 from core.utils import generate_csv
 
 
