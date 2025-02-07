@@ -17,14 +17,14 @@ class RoleQueryset(models.QuerySet):
         if user is None:
             return self.filter(
                 Q(workspace__isnull=True) |
-                Q(workspace__private=False)
+                Q(workspace__is_private=False)
             )
         elif user.account_type == "admin":
             return self
         else:
             return self.filter(
                 Q(workspace__isnull=True) |
-                Q(workspace__private=False) |
+                Q(workspace__is_private=False) |
                 Q(workspace__owner=user) |
                 Q(workspace__collaborators__user=user,
                   workspace__collaborators__role__permissions__resource_type__in=["*", "Role"],

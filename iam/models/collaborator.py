@@ -15,12 +15,12 @@ if typing.TYPE_CHECKING:
 class CollaboratorQueryset(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
-            return self.filter(Q(workspace__private=False))
+            return self.filter(Q(workspace__is_private=False))
         elif user.account_type == "admin":
             return self
         else:
             return self.filter(
-                Q(workspace__private=False) |
+                Q(workspace__is_private=False) |
                 Q(workspace__owner=user) |
                 Q(workspace__collaborators__user=user,
                   workspace__collaborators__role__permissions__resource_type__in=["*", "Collaborator"],

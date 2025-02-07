@@ -60,13 +60,13 @@ def test_create_workspace(get_user, user, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.create(
-                user=get_user(user), data=WorkspacePostBody(name="New", private=False)
+                user=get_user(user), data=WorkspacePostBody(name="New", is_private=False)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_update = workspace_service.create(
-            user=get_user(user), data=WorkspacePostBody(name="New", private=False)
+            user=get_user(user), data=WorkspacePostBody(name="New", is_private=False)
         )
         assert workspace_update.name == message
 
@@ -82,13 +82,13 @@ def test_update_workspace(get_user, user, workspace, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.update(
-                user=get_user(user), uid=uuid.UUID(workspace), data=WorkspacePatchBody(name="Updated", private=False)
+                user=get_user(user), uid=uuid.UUID(workspace), data=WorkspacePatchBody(name="Updated", is_private=False)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_update = workspace_service.update(
-            user=get_user(user), uid=uuid.UUID(workspace), data=WorkspacePatchBody(name="Updated", private=False)
+            user=get_user(user), uid=uuid.UUID(workspace), data=WorkspacePatchBody(name="Updated", is_private=False)
         )
         assert workspace_update.name == message
 

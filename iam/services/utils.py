@@ -16,7 +16,7 @@ class ServiceUtils:
 
         workspace_permissions = workspace.get_user_permissions(user=user)
 
-        if "view" not in workspace_permissions and workspace.private is True and not override_view_permissions:
+        if "view" not in workspace_permissions and workspace.is_private is True and not override_view_permissions:
             raise HttpError(404, "Workspace does not exist")
 
         return workspace, workspace_permissions

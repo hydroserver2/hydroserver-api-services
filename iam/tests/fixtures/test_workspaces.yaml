@@ -4,7 +4,7 @@
   fields:
     name: "Public"
     owner: 1000000010
-    private: false
+    is_private: false
 
 # Private Workspace
 - model: iam.workspace
@@ -12,7 +12,7 @@
   fields:
     name: "Private"
     owner: 1000000010
-    private: true
+    is_private: true
 
 # Transfer Workspace
 - model: iam.workspace
@@ -20,7 +20,7 @@
   fields:
     name: "Transfer"
     owner: 1000000010
-    private: true
+    is_private: true
 
 - model: iam.workspacetransferconfirmation
   pk: 1000000010

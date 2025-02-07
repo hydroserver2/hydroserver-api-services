@@ -18,12 +18,12 @@ class WorkspaceQueryset(models.QuerySet):
     def visible(self, user: Optional["User"]):
         queryset = self.get_queryset()
         if user is None:
-            return queryset.filter(private=False)
+            return queryset.filter(is_private=False)
         elif user.account_type == "admin":
             return queryset
         else:
             return queryset.filter(
-                Q(private=False) |
+                Q(is_private=False) |
                 Q(owner=user) |
                 Q(collaborators__user=user) |
                 Q(transfer_confirmation__new_owner=user)
@@ -43,7 +43,7 @@ class Workspace(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    private = models.BooleanField(default=False)
+    is_private = models.BooleanField(default=False)
 
     objects = WorkspaceQueryset.as_manager()
 
@@ -62,7 +62,7 @@ class Workspace(models.Model):
     def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
         if user == self.owner or user.account_type == "admin":
             return ["view", "edit", "delete"]
-        elif self.private is False or self.collaborators.filter(user=user).exists():
+        elif self.is_private is False or self.collaborators.filter(user=user).exists():
             return ["view"]
         elif self.transfer_details and self.transfer_details.new_owner == user:
             return ["view"]

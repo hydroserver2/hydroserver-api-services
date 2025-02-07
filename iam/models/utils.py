@@ -42,7 +42,7 @@ class PermissionChecker:
             resource_type__in=["*", resource_type]
         ).values_list("permission_type", flat=True)
 
-        if not workspace.private and "view" not in list(permissions):
+        if not workspace.is_private and "view" not in list(permissions):
             permissions = list(permissions) + ["view"]
 
         return permissions

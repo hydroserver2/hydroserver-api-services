@@ -12,7 +12,7 @@ User = get_user_model()
 
 class WorkspaceFields(Schema):
     name: str = Field(..., max_length=255)
-    private: bool
+    is_private: bool
 
 
 class WorkspaceGetResponse(BaseGetResponse, WorkspaceFields):

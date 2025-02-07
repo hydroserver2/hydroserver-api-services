@@ -28,14 +28,9 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, **extra_fields):
-        user_type, _ = UserType.objects.get_or_create(
-            name="Admin",
-            defaults={"public": False}
-        )
-
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("_user_type", user_type)
+        extra_fields.setdefault("user_type", "Admin")
 
         user = self.create_user(email, password, **extra_fields)
 
