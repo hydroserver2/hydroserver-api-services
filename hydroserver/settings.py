@@ -67,8 +67,8 @@ INSTALLED_APPS = [
     "sensorthings",
     "storages",
     "iam.apps.IamConfig",
-    "core.apps.CoreConfig",
-    "stapi.apps.SensorthingsConfig",
+    "sta.apps.StaConfig",
+    "etl.apps.EtlConfig",
 ]
 
 MIDDLEWARE = [
