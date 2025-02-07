@@ -23,11 +23,11 @@ class RoleService(ServiceUtils):
         try:
             role = Role.objects.get(Q(workspace=workspace) | Q(workspace__isnull=True), pk=uid)
         except Role.DoesNotExist:
-            raise HttpError(404, "Role does not exist")
+            raise HttpError(404, "Role does not exist in workspace")
 
         role_permissions = role.get_user_permissions(user=user)
 
         if "view" not in role_permissions:
-            raise HttpError(404, "Role does not exist")
+            raise HttpError(404, "Role does not exist in workspace")
 
         return role

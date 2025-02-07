@@ -19,8 +19,8 @@ class PermissionChecker:
             return True
 
         permissions = Permission.objects.filter(
-            role__collaborator_assignments__user_id=user.id,
-            role__workspace_id=workspace.id,
+            role__collaborator_assignments__user=user,
+            role__collaborator_assignments__workspace=workspace,
             resource_type__in=["*", resource_type]
         ).values_list("permission_type", flat=True)
 
@@ -37,12 +37,12 @@ class PermissionChecker:
         permissions = Permission.objects.exclude(
             permission_type="create"
         ).filter(
-            role__collaborator_assignments__user_id=user.id,
-            role__workspace_id=workspace.id,
+            role__collaborator_assignments__user=user,
+            role__collaborator_assignments__workspace=workspace,
             resource_type__in=["*", resource_type]
         ).values_list("permission_type", flat=True)
 
-        if not workspace.private and "view" not in permissions:
-            permissions.append("view")
+        if not workspace.private and "view" not in list(permissions):
+            permissions = list(permissions) + ["view"]
 
         return permissions

@@ -16,6 +16,8 @@ class CollaboratorQueryset(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
             return self.filter(Q(workspace__private=False))
+        elif user.account_type == "admin":
+            return self
         else:
             return self.filter(
                 Q(workspace__private=False) |

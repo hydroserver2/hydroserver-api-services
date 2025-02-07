@@ -1,6 +1,5 @@
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from iam.models import Organization, UserType, OrganizationType
 from iam.schemas import AccountPostBody, AccountPatchBody
 
@@ -28,13 +27,6 @@ class AccountService:
         except ValueError as e:
             raise HttpError(422, str(e))
 
-        except IntegrityError as e:
-            error_message = str(e)
-            if "user_type" in error_message:
-                raise HttpError(422, str("Invalid userType value provided."))
-            if "organization_type" in error_message:
-                raise HttpError(422, str("Invalid organizationType value provided."))
-
     @staticmethod
     def update(user: User, data: AccountPatchBody):
         try:
@@ -56,13 +48,6 @@ class AccountService:
 
         except ValueError as e:
             raise HttpError(422, str(e))
-
-        except IntegrityError as e:
-            error_message = str(e)
-            if "user_type" in error_message:
-                raise HttpError(422, str("Invalid userType value provided."))
-            if "organization_type" in error_message:
-                raise HttpError(422, str("Invalid organizationType value provided."))
 
         user.save()
 

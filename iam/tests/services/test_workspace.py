@@ -145,6 +145,9 @@ def test_transfer_workspace(get_user, from_user, to_user, workspace, message, er
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
     ("anonymous", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Workspace transfer accepted", None),
+    ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", 404),
+    ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", "No workspace transfer is pending", 400),
+    ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "You do not have permission to accept", 403),
 ])
 def test_accept_workspace_transfer(get_user, user, workspace, message, error_code):
     if error_code:
@@ -165,16 +168,22 @@ def test_accept_workspace_transfer(get_user, user, workspace, message, error_cod
         assert workspace_get.owner == get_user(user)
 
 
-# def test_reject_workspace_transfer(get_user, user, workspace, message, error_code):
-#     if error_code:
-#         with pytest.raises(HttpError) as exc_info:
-#             workspace_service.reject_transfer(
-#                 user=get_user(user), uid=uuid.UUID(workspace)
-#             )
-#         assert exc_info.value.status_code == error_code
-#         assert exc_info.value.message.startswith(message)
-#     else:
-#         workspace_get = workspace_service.reject_transfer(
-#             user=get_user(user), uid=uuid.UUID(workspace)
-#         )
-#         assert workspace_get.name == message
+@pytest.mark.parametrize("user, workspace, message, error_code", [
+    ("anonymous", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Workspace transfer rejected", None),
+    ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Workspace transfer rejected", None),
+    ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", 404),
+    ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", "No workspace transfer is pending", 400),
+])
+def test_reject_workspace_transfer(get_user, user, workspace, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            workspace_service.reject_transfer(
+                user=get_user(user), uid=uuid.UUID(workspace)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        workspace_transfer = workspace_service.reject_transfer(
+            user=get_user(user), uid=uuid.UUID(workspace)
+        )
+        assert workspace_transfer == message
