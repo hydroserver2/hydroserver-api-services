@@ -11,10 +11,11 @@ def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         call_command("migrate")
 
-        call_command("loaddata", "iam/tests/fixtures/test_users.yaml")
-        call_command("loaddata", "iam/tests/fixtures/test_workspaces.yaml")
-        call_command("loaddata", "iam/tests/fixtures/test_roles.yaml")
-        call_command("loaddata", "iam/tests/fixtures/test_collaborators.yaml")
+        call_command("loaddata", "tests/fixtures/test_users.yaml")
+        call_command("loaddata", "tests/fixtures/test_workspaces.yaml")
+        call_command("loaddata", "tests/fixtures/test_roles.yaml")
+        call_command("loaddata", "tests/fixtures/test_collaborators.yaml")
+        call_command("loaddata", "tests/fixtures/test_things.yaml")
 
 
 @pytest.fixture(scope="function")

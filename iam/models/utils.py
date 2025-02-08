@@ -34,15 +34,19 @@ class PermissionChecker:
         if user and (user == workspace.owner or user.account_type in ["admin", "staff"]):
             return ["view", "edit", "delete"]
 
-        permissions = Permission.objects.exclude(
+        permissions = list(Permission.objects.exclude(
             permission_type="create"
         ).filter(
             role__collaborator_assignments__user=user,
             role__collaborator_assignments__workspace=workspace,
             resource_type__in=["*", resource_type]
-        ).values_list("permission_type", flat=True)
+        ).values_list("permission_type", flat=True))
 
-        if not workspace.is_private and "view" not in list(permissions):
-            permissions = list(permissions) + ["view"]
+        if "*" in permissions:
+            permissions = ["view", "edit", "delete"]
+
+        if not workspace.is_private and "view" not in permissions:
+            if resource_type not in ["Thing", "Datastream"]:
+                permissions.append("view")
 
         return permissions
