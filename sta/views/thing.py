@@ -1,6 +1,7 @@
 import uuid
 from ninja import Router, Path
 from typing import Optional
+from django.db import transaction
 from hydroserver.security import basic_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import ThingGetResponse, ThingPostBody, ThingPatchBody
@@ -40,6 +41,7 @@ def get_things(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID
     },
     by_alias=True
 )
+@transaction.atomic
 def create_thing(request: HydroServerHttpRequest, data: ThingPostBody):
     """
     Create a new Thing.
@@ -84,6 +86,7 @@ def get_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True
 )
+@transaction.atomic
 def update_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: ThingPatchBody):
     """
     Update a Thing.
@@ -106,6 +109,7 @@ def update_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], dat
     },
     by_alias=True
 )
+@transaction.atomic
 def delete_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
     Delete a Thing.

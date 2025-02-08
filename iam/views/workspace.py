@@ -1,5 +1,6 @@
 import uuid
 from ninja import Router, Path
+from django.db import transaction
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import basic_auth, session_auth, anonymous_auth
 from iam.schemas import WorkspaceGetResponse, WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
@@ -41,6 +42,7 @@ def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = Fals
     by_alias=True,
     exclude_unset=True
 )
+@transaction.atomic
 def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
     """
     Create a new workspace owned by the authenticated user.
@@ -86,6 +88,7 @@ def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
     by_alias=True,
     exclude_unset=True
 )
+@transaction.atomic
 def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: WorkspacePatchBody):
     """
     Update a workspace owned by the authenticated user.
@@ -108,6 +111,7 @@ def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     },
     by_alias=True
 )
+@transaction.atomic
 def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
     Delete a workspace owned by the authenticated user.
@@ -131,6 +135,7 @@ def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     },
     by_alias=True
 )
+@transaction.atomic
 def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: WorkspaceTransferBody):
     """
     Transfer a workspace owned by the authenticated user to another HydroServer user.
@@ -154,6 +159,7 @@ def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.
     },
     by_alias=True
 )
+@transaction.atomic
 def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
     Accept a pending workspace transfer.
@@ -176,6 +182,7 @@ def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Pat
     },
     by_alias=True
 )
+@transaction.atomic
 def reject_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
     Reject a pending workspace transfer.

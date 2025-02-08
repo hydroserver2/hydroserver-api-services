@@ -1,5 +1,6 @@
 import uuid
 from ninja import Router, Path
+from django.db import transaction
 from hydroserver.security import basic_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from iam.schemas import CollaboratorGetResponse, CollaboratorPostBody, CollaboratorDeleteBody
@@ -41,6 +42,7 @@ def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.U
     },
     by_alias=True
 )
+@transaction.atomic
 def add_collaborator(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: CollaboratorPostBody):
     """
     Add a collaborator to a workspace.
@@ -64,6 +66,7 @@ def add_collaborator(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     },
     by_alias=True
 )
+@transaction.atomic
 def edit_collaborator_role(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: CollaboratorPostBody):
     """
     Edit a collaborator's role in a workspace.
@@ -87,6 +90,7 @@ def edit_collaborator_role(request: HydroServerHttpRequest, workspace_id: Path[u
     },
     by_alias=True
 )
+@transaction.atomic
 def remove_collaborator(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: CollaboratorDeleteBody):
     """
     Remove a collaborator from a workspace.
