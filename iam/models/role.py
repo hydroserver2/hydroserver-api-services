@@ -45,4 +45,9 @@ class Role(models.Model, PermissionChecker):
         return cls.check_create_permissions(user=user, workspace=workspace, resource_type="Role")
 
     def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        return self.check_object_permissions(user=user, workspace=self.workspace, resource_type="Role")
+        user_permissions = self.check_object_permissions(user=user, workspace=self.workspace, resource_type="Role")
+
+        if not self.workspace.is_private and "view" not in list(user_permissions):
+            user_permissions = list(user_permissions) + ["view"]
+
+        return user_permissions

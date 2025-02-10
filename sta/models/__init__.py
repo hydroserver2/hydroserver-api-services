@@ -2,3 +2,8 @@ from .thing import Thing
 from .location import Location
 from .tag import Tag
 from .photo import Photo
+from .observed_property import ObservedProperty
+from .processing_level import ProcessingLevel
+from .result_qualifier import ResultQualifier
+from .sensor import Sensor
+from .unit import Unit
