@@ -1,9 +1,9 @@
 import uuid
-from typing import Optional
+from typing import Optional, Literal
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from iam.services.utils import ServiceUtils
-from sta.models import Thing, Location
+from sta.models import Thing, Location, Tag, Photo
 from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody, PhotoPostBody, PhotoDeleteBody
 from sta.schemas.thing import ThingFields, LocationFields
 
@@ -12,16 +12,7 @@ User = get_user_model()
 
 class ThingService(ServiceUtils):
     @staticmethod
-    def list(user: Optional[User], workspace_id: Optional[uuid.UUID]):
-        queryset = Thing.objects
-
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
-
-        return queryset.visible(user=user).prefetch_related("tags", "photos").with_location().distinct()
-
-    @staticmethod
-    def get(user: Optional[User], uid: uuid.UUID):
+    def get_thing_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
         try:
             thing = Thing.objects.select_related("workspace").prefetch_related("tags", "photos").get(pk=uid)
         except Thing.DoesNotExist:
@@ -32,7 +23,22 @@ class ThingService(ServiceUtils):
         if "view" not in thing_permissions:
             raise HttpError(404, "Thing does not exist")
 
+        if action not in thing_permissions:
+            raise HttpError(403, f"You do not have permission to {action} this Thing")
+
         return thing
+
+    @staticmethod
+    def list(user: Optional[User], workspace_id: Optional[uuid.UUID]):
+        queryset = Thing.objects
+
+        if workspace_id:
+            queryset = queryset.filter(workspace_id=workspace_id)
+
+        return queryset.visible(user=user).prefetch_related("tags", "photos").with_location().distinct()
+
+    def get(self, user: Optional[User], uid: uuid.UUID):
+        return self.get_thing_for_action(user=user, uid=uid, action="view")
 
     def create(self, user: User, data: ThingPostBody):
         workspace, _ = self.get_workspace(user=user, workspace_id=data.workspace_id)
@@ -57,21 +63,9 @@ class ThingService(ServiceUtils):
 
         return thing
 
-    @staticmethod
-    def update(user: User, uid: uuid.UUID, data: ThingPatchBody):
-        try:
-            thing = Thing.objects.select_related("workspace").prefetch_related("tags", "photos").get(pk=uid)
-            location = thing.location
-        except Thing.DoesNotExist:
-            raise HttpError(404, "Thing does not exist")
-
-        thing_permissions = thing.get_user_permissions(user=user)
-
-        if "view" not in thing_permissions:
-            raise HttpError(404, "Thing does not exist")
-
-        if "edit" not in thing_permissions:
-            raise HttpError(403, "You do not have permission to edit this Thing")
+    def update(self, user: User, uid: uuid.UUID, data: ThingPatchBody):
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+        location = thing.location
 
         thing_data = data.dict(include=set(ThingFields.model_fields.keys()), exclude_unset=True)
         location_data = data.dict(include=set(LocationFields.model_fields.keys()), exclude_unset=True)
@@ -91,21 +85,9 @@ class ThingService(ServiceUtils):
 
         return thing
 
-    @staticmethod
-    def delete(user: User, uid: uuid.UUID):
-        try:
-            thing = Thing.objects.select_related("workspace").prefetch_related("tags", "photos").get(pk=uid)
-            location = thing.location
-        except Thing.DoesNotExist:
-            raise HttpError(404, "Thing does not exist")
-
-        thing_permissions = thing.get_user_permissions(user=user)
-
-        if "view" not in thing_permissions:
-            raise HttpError(404, "Thing does not exist")
-
-        if "delete" not in thing_permissions:
-            raise HttpError(403, "You do not have permission to delete this Thing")
+    def delete(self, user: User, uid: uuid.UUID):
+        thing = self.get_thing_for_action(user=user, uid=uid, action="delete")
+        location = thing.location
 
         thing.delete()
         location.delete()
@@ -113,25 +95,59 @@ class ThingService(ServiceUtils):
         return "Thing deleted"
 
     def get_tags(self, user: Optional[User], uid: uuid.UUID):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="view")
+
+        return thing.tags
 
     def add_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+
+        if Tag.objects.filter(thing=thing, key=data.key).exists():
+            raise HttpError(400, "Tag already exists")
+
+        return Tag.objects.create(thing=thing, key=data.key, value=data.value)
 
     def update_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+
+        try:
+            tag = Tag.objects.get(thing=thing, key=data.key)
+        except Tag.DoesNotExist:
+            raise HttpError(404, "Tag does not exist")
+
+        tag.value = data.value
+        tag.save()
+
+        return tag
 
     def remove_tag(self, user: User, uid: uuid.UUID, data: TagDeleteBody):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+
+        try:
+            tag = Tag.objects.get(thing=thing, key=data.key)
+        except Tag.DoesNotExist:
+            raise HttpError(404, "Tag does not exist")
+
+        tag.delete()
+
+        return "Tag deleted"
 
     def get_photos(self, user: Optional[User], uid: uuid.UUID):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="view")
+
+        return thing.photos
 
     def add_photo(self, user: User, uid: uuid.UUID, data: PhotoPostBody, file):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+
+        return thing.photos
 
     def update_photo(self, user: User, uid: uuid.UUID, data: PhotoPostBody, file):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+
+        return thing.photos
 
     def remove_photo(self, user: User, uid: uuid.UUID, data: PhotoDeleteBody):
-        pass
+        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+
+        return thing.photos

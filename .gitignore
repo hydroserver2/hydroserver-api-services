@@ -15,6 +15,7 @@ staticfiles/
 .coverage
 coverage.txt
 photos/
+csrf_test.py
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

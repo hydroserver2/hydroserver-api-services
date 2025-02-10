@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import ThingService
-from sta.schemas import ThingPostBody, ThingPatchBody
+from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody
 
 thing_service = ThingService()
 
@@ -190,3 +190,164 @@ def test_delete_thing(get_user, user, thing, message, error_code):
             user=get_user(user), uid=uuid.UUID(thing)
         )
         assert thing_delete == "Thing deleted"
+
+
+@pytest.mark.parametrize("user, thing, message, error_code", [
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+    ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
+    ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
+    ("owner", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
+    ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+    ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
+    ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
+    ("admin", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
+    ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+    ("editor", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
+    ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
+    ("editor", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
+    ("viewer", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+    ("viewer", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
+    ("viewer", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
+    ("viewer", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
+    ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+    ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", "Thing does not exist", 404),
+    ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Thing does not exist", 404),
+    ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", "Thing does not exist", 404),
+])
+def test_get_tags(get_user, user, thing, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            thing_service.get_tags(
+                user=get_user(user), uid=uuid.UUID(thing)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        thing_tags = thing_service.get_tags(
+            user=get_user(user), uid=uuid.UUID(thing)
+        )
+        assert len(list(thing_tags.all())) == 1
+        assert list(thing_tags.all())[0].key == "Test Key"
+        assert list(thing_tags.all())[0].value == "Test Value"
+
+
+@pytest.mark.parametrize("user, thing, tag, message, error_code", [
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "New Value"}, None, None),
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "Test Value"}, None, None),
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, "Tag already exists", 400),
+    ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "New Key", "value": "New Value"}, None, None),
+    ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "New Key", "value": "New Value"}, None, None),
+    ("owner", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "New Key", "value": "New Value"}, None, None),
+    ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "New Value"}, None, None),
+    ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "New Key", "value": "New Value"}, None, None),
+    ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "New Key", "value": "New Value"}, None, None),
+    ("admin", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "New Key", "value": "New Value"}, None, None),
+    ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "New Value"}, None, None),
+    ("editor", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "New Key", "value": "New Value"}, None, None),
+    ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "New Key", "value": "New Value"}, None, None),
+    ("editor", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "New Key", "value": "New Value"}, None, None),
+    ("viewer", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "New Value"}, "You do not have permission", 403),
+    ("viewer", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "New Key", "value": "New Value"}, "You do not have permission", 403),
+    ("viewer", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "New Key", "value": "New Value"}, "You do not have permission", 403),
+    ("viewer", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "New Key", "value": "New Value"}, "You do not have permission", 403),
+    ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "New Value"}, "You do not have permission", 403),
+    ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "New Key", "value": "New Value"}, "Thing does not exist", 404),
+    ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "New Key", "value": "New Value"}, "Thing does not exist", 404),
+    ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "New Key", "value": "New Value"}, "Thing does not exist", 404),
+])
+def test_add_tag(get_user, user, thing, tag, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            thing_service.add_tag(
+                user=get_user(user), uid=uuid.UUID(thing), data=TagPostBody(key=tag["key"], value=tag["value"])
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        thing_tag = thing_service.add_tag(
+            user=get_user(user), uid=uuid.UUID(thing), data=TagPostBody(key=tag["key"], value=tag["value"])
+        )
+
+        assert thing_tag.key == tag["key"]
+        assert thing_tag.value == tag["value"]
+
+
+@pytest.mark.parametrize("user, thing, tag, message, error_code", [
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key", "value": "New Value"}, "Tag does not exist", 404),
+    ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("owner", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("admin", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("editor", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("editor", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key", "value": "New Value"}, None, None),
+    ("viewer", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, "You do not have permission", 403),
+    ("viewer", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key", "value": "New Value"}, "You do not have permission", 403),
+    ("viewer", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key", "value": "New Value"}, "You do not have permission", 403),
+    ("viewer", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key", "value": "New Value"}, "You do not have permission", 403),
+    ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key", "value": "New Value"}, "You do not have permission", 403),
+    ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key", "value": "New Value"}, "Thing does not exist", 404),
+    ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key", "value": "New Value"}, "Thing does not exist", 404),
+    ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key", "value": "New Value"}, "Thing does not exist", 404),
+])
+def test_update_tag(get_user, user, thing, tag, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            thing_service.update_tag(
+                user=get_user(user), uid=uuid.UUID(thing), data=TagPostBody(key=tag["key"], value=tag["value"])
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        thing_tag = thing_service.update_tag(
+            user=get_user(user), uid=uuid.UUID(thing), data=TagPostBody(key=tag["key"], value=tag["value"])
+        )
+
+        assert thing_tag.key == tag["key"]
+        assert thing_tag.value == tag["value"]
+
+
+@pytest.mark.parametrize("user, thing, tag, message, error_code", [
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key"}, None, None),
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key"}, None, None),
+    ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "New Key"}, "Tag does not exist", 404),
+    ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key"}, None, None),
+    ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key"}, None, None),
+    ("owner", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key"}, None, None),
+    ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key"}, None, None),
+    ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key"}, None, None),
+    ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key"}, None, None),
+    ("admin", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key"}, None, None),
+    ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key"}, None, None),
+    ("editor", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key"}, None, None),
+    ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key"}, None, None),
+    ("editor", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key"}, None, None),
+    ("viewer", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key"}, "You do not have permission", 403),
+    ("viewer", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key"}, "You do not have permission", 403),
+    ("viewer", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key"}, "You do not have permission", 403),
+    ("viewer", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key"}, "You do not have permission", 403),
+    ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {"key": "Test Key"}, "You do not have permission", 403),
+    ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", {"key": "Test Key"}, "Thing does not exist", 404),
+    ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", {"key": "Test Key"}, "Thing does not exist", 404),
+    ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", {"key": "Test Key"}, "Thing does not exist", 404),
+])
+def test_remove_tag(get_user, user, thing, tag, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            thing_service.remove_tag(
+                user=get_user(user), uid=uuid.UUID(thing), data=TagDeleteBody(key=tag["key"])
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        thing_tag_delete = thing_service.remove_tag(
+            user=get_user(user), uid=uuid.UUID(thing), data=TagDeleteBody(key=tag["key"])
+        )
+
+        assert thing_tag_delete == "Tag deleted"
