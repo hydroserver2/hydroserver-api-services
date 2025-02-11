@@ -52,6 +52,7 @@ def test_list_thing(django_assert_num_queries, get_user, user, workspace, length
     ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", "Thing does not exist", 404),
     ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Thing does not exist", 404),
     ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", "Thing does not exist", 404),
+    ("anonymous", "00000000-0000-0000-0000-000000000000", "Thing does not exist", 404),
 ])
 def test_get_thing(get_user, user, thing, message, error_code):
     if error_code:
@@ -128,6 +129,7 @@ def test_create_thing(get_user, user, workspace, message, error_code):
     ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", "Thing does not exist", 404),
     ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Thing does not exist", 404),
     ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", "Thing does not exist", 404),
+    ("anonymous", "00000000-0000-0000-0000-000000000000", "Thing does not exist", 404),
 ])
 def test_edit_thing(get_user, user, thing, message, error_code):
     thing_data = ThingPatchBody(
@@ -176,6 +178,7 @@ def test_edit_thing(get_user, user, thing, message, error_code):
     ("anonymous", "76dadda5-224b-4e1f-8570-e385bd482b2d", "Thing does not exist", 404),
     ("anonymous", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Thing does not exist", 404),
     ("anonymous", "819260c8-2543-4046-b8c4-7431243ed7c5", "Thing does not exist", 404),
+    ("anonymous", "00000000-0000-0000-0000-000000000000", "Thing does not exist", 404),
 ])
 def test_delete_thing(get_user, user, thing, message, error_code):
     if error_code:

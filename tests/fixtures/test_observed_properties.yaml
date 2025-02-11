@@ -1,0 +1,31 @@
+# System Observed Property
+- model: sta.observedproperty
+  pk: 49a245bd-4517-4dea-b3ba-25c919bf2cf5
+  fields:
+    name: System Observed Property
+    definition: System Observed Property
+    description: System Observed Property
+    observed_property_type: System
+    code: System
+
+# Public Observed Property
+- model: sta.observedproperty
+  pk: cac1262e-68ee-43a0-9222-f214f2161091
+  fields:
+    name: Public Observed Property
+    definition: Public Observed Property
+    description: Public Observed Property
+    observed_property_type: Public
+    code: Public
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+
+# Private Observed Property
+- model: sta.observedproperty
+  pk: 5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1
+  fields:
+    name: Private Observed Property
+    definition: Private Observed Property
+    description: Private Observed Property
+    observed_property_type: Private
+    code: Private
+    workspace: b27c51a0-7374-462d-8a53-d97d47176c10

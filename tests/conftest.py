@@ -16,6 +16,11 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command("loaddata", "tests/fixtures/test_roles.yaml")
         call_command("loaddata", "tests/fixtures/test_collaborators.yaml")
         call_command("loaddata", "tests/fixtures/test_things.yaml")
+        call_command("loaddata", "tests/fixtures/test_observed_properties.yaml")
+        call_command("loaddata", "tests/fixtures/test_processing_levels.yaml")
+        call_command("loaddata", "tests/fixtures/test_result_qualifiers.yaml")
+        call_command("loaddata", "tests/fixtures/test_sensors.yaml")
+        call_command("loaddata", "tests/fixtures/test_units.yaml")
 
 
 @pytest.fixture(scope="function")

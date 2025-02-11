@@ -29,7 +29,10 @@ class PermissionChecker:
     @staticmethod
     def check_object_permissions(user: Optional["User"], workspace: "Workspace", resource_type: str):
         if not workspace:
-            return ["view"]
+            if user.account_type in ["admin", "staff"]:
+                return ["view", "edit", "delete"]
+            else:
+                return ["view"]
 
         if user and (user == workspace.owner or user.account_type in ["admin", "staff"]):
             return ["view", "edit", "delete"]

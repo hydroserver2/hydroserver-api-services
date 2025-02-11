@@ -51,7 +51,7 @@ class ProcessingLevel(models.Model, PermissionChecker):
         user_permissions = self.check_object_permissions(user=user, workspace=self.workspace,
                                                          resource_type="ProcessingLevel")
 
-        if not self.workspace.is_private and "view" not in list(user_permissions):
+        if (not self.workspace or not self.workspace.is_private) and "view" not in list(user_permissions):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
