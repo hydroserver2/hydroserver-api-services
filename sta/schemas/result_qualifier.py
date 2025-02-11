@@ -1,5 +1,6 @@
 import uuid
 from ninja import Schema, Field
+from typing import Optional
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -10,7 +11,7 @@ class ResultQualifierFields(Schema):
 
 class ResultQualifierGetResponse(BaseGetResponse, ResultQualifierFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID]
 
 
 class ResultQualifierPostBody(BasePostBody, ResultQualifierFields):

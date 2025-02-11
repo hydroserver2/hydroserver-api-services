@@ -1,5 +1,6 @@
 import uuid
 from ninja import Schema, Field
+from typing import Optional
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -12,7 +13,7 @@ class UnitFields(Schema):
 
 class UnitGetResponse(BaseGetResponse, UnitFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID]
 
 
 class UnitPostBody(BasePostBody, UnitFields):

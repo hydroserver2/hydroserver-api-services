@@ -18,7 +18,7 @@ class SensorFields(Schema):
 
 class SensorGetResponse(BaseGetResponse, SensorFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID]
 
 
 class SensorPostBody(BasePostBody, SensorFields):

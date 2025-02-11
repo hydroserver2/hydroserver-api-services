@@ -12,7 +12,7 @@ class ProcessingLevelFields(Schema):
 
 class ProcessingLevelGetResponse(BaseGetResponse, ProcessingLevelFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID]
 
 
 class ProcessingLevelPostBody(BasePostBody, ProcessingLevelFields):

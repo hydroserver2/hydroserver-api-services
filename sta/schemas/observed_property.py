@@ -1,5 +1,6 @@
 import uuid
 from ninja import Schema, Field
+from typing import Optional
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
@@ -13,7 +14,7 @@ class ObservedPropertyFields(Schema):
 
 class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID]
 
 
 class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):
