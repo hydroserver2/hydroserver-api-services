@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import SensorGetResponse, SensorPostBody, SensorPatchBody
 from sta.services import SensorService
@@ -13,7 +13,7 @@ sensor_service = SensorService()
 
 @sensor_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[SensorGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_sensors(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUI
 
 @sensor_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: SensorGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def create_sensor(request: HydroServerHttpRequest, data: SensorPostBody):
 
 @sensor_router.get(
     "/{sensor_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: SensorGetResponse,
         401: str,
@@ -77,7 +77,7 @@ def get_sensor(request: HydroServerHttpRequest, sensor_id: Path[uuid.UUID]):
 
 @sensor_router.patch(
     "/{sensor_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: SensorGetResponse,
         401: str,
@@ -101,7 +101,7 @@ def update_sensor(request: HydroServerHttpRequest, sensor_id: Path[uuid.UUID], d
 
 @sensor_router.delete(
     "/{sensor_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,

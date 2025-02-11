@@ -10,8 +10,7 @@ iam_api = NinjaAPI(
     title="HydroServer Identity and Access Management API",
     version=__version__,
     urls_namespace="iam",
-    docs_decorator=ensure_csrf_cookie,
-    csrf=True
+    docs_decorator=ensure_csrf_cookie
 )
 
 account_router.add_router("email", email_router)

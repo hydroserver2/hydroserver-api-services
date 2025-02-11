@@ -10,8 +10,7 @@ data_api = NinjaAPI(
     title="HydroServer Data Management API",
     version=__version__,
     urls_namespace="data",
-    docs_decorator=ensure_csrf_cookie,
-    csrf=True
+    docs_decorator=ensure_csrf_cookie
 )
 
 thing_router.add_router("{thing_id}/tags", tag_router)

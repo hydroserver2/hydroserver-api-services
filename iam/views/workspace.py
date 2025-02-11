@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from django.db import transaction
 from hydroserver.http import HydroServerHttpRequest
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from iam.schemas import WorkspaceGetResponse, WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
 from iam.services import WorkspaceService
 
@@ -12,7 +12,7 @@ workspace_service = WorkspaceService()
 
 @workspace_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[WorkspaceGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = Fals
 
 @workspace_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: WorkspaceGetResponse,
         401: str,
@@ -56,7 +56,7 @@ def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
 
 @workspace_router.get(
     "/{workspace_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: WorkspaceGetResponse,
         401: str,
@@ -78,7 +78,7 @@ def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
 
 @workspace_router.patch(
     "/{workspace_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: WorkspaceGetResponse,
         401: str,
@@ -103,7 +103,7 @@ def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
 
 @workspace_router.delete(
     "/{workspace_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,
@@ -125,7 +125,7 @@ def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
 
 @workspace_router.post(
     "/{workspace_id}/transfer",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: str,
         400: str,
@@ -150,7 +150,7 @@ def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.
 
 @workspace_router.put(
     "/{workspace_id}/transfer",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: str,
         400: str,
@@ -173,7 +173,7 @@ def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Pat
 
 @workspace_router.delete(
     "/{workspace_id}/transfer",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: str,
         400: str,

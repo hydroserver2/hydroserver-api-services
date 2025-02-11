@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import ThingGetResponse, ThingPostBody, ThingPatchBody
 from sta.services import ThingService
@@ -13,7 +13,7 @@ thing_service = ThingService()
 
 @thing_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[ThingGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_things(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID
 
 @thing_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: ThingGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def create_thing(request: HydroServerHttpRequest, data: ThingPostBody):
 
 @thing_router.get(
     "/{thing_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: ThingGetResponse,
         401: str,
@@ -77,7 +77,7 @@ def get_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
 
 @thing_router.patch(
     "/{thing_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: ThingGetResponse,
         401: str,
@@ -101,7 +101,7 @@ def update_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], dat
 
 @thing_router.delete(
     "/{thing_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,

@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import ResultQualifierGetResponse, ResultQualifierPostBody, ResultQualifierPatchBody
 from sta.services import ResultQualifierService
@@ -13,7 +13,7 @@ result_qualifier_service = ResultQualifierService()
 
 @result_qualifier_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[ResultQualifierGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_result_qualifiers(request: HydroServerHttpRequest, workspace_id: Optiona
 
 @result_qualifier_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: ResultQualifierGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def create_result_qualifier(request: HydroServerHttpRequest, data: ResultQualifi
 
 @result_qualifier_router.get(
     "/{result_qualifier_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: ResultQualifierGetResponse,
         401: str,
@@ -77,7 +77,7 @@ def get_result_qualifier(request: HydroServerHttpRequest, result_qualifier_id: P
 
 @result_qualifier_router.patch(
     "/{result_qualifier_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: ResultQualifierGetResponse,
         401: str,
@@ -101,7 +101,7 @@ def update_result_qualifier(request: HydroServerHttpRequest, result_qualifier_id
 
 @result_qualifier_router.delete(
     "/{result_qualifier_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,

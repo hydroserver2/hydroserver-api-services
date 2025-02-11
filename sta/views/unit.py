@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import UnitGetResponse, UnitPostBody, UnitPatchBody
 from sta.services import UnitService
@@ -13,7 +13,7 @@ unit_service = UnitService()
 
 @unit_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[UnitGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_units(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID]
 
 @unit_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: UnitGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def create_unit(request: HydroServerHttpRequest, data: UnitPostBody):
 
 @unit_router.get(
     "/{unit_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: UnitGetResponse,
         401: str,
@@ -77,7 +77,7 @@ def get_unit(request: HydroServerHttpRequest, unit_id: Path[uuid.UUID]):
 
 @unit_router.patch(
     "/{unit_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: UnitGetResponse,
         401: str,
@@ -101,7 +101,7 @@ def update_unit(request: HydroServerHttpRequest, unit_id: Path[uuid.UUID], data:
 
 @unit_router.delete(
     "/{unit_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,

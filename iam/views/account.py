@@ -4,7 +4,7 @@ from allauth.headless.account.views import SignupView
 from allauth.headless.constants import Client
 from iam.schemas import AccountGetResponse, AccountPostBody, AccountPatchBody, TypeGetResponse
 from iam.services import AccountService
-from hydroserver.security import anonymous_auth, basic_auth, session_auth
+from hydroserver.security import anonymous_auth, bearer_auth, session_auth
 from hydroserver.http import HydroServerHttpRequest
 
 account_router = Router(tags=["Account"])
@@ -18,7 +18,7 @@ signup_view = {
 
 @account_router.get(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: AccountGetResponse,
         401: str,
@@ -58,7 +58,7 @@ def create_account(request, client: Path[Literal["browser", "app"]], data: Accou
 
 @account_router.patch(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: AccountGetResponse,
         401: str,
@@ -79,7 +79,7 @@ def update_account(request: HydroServerHttpRequest, client: Path[Literal["browse
 
 @account_router.delete(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: str,
         401: str

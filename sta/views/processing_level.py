@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import ProcessingLevelGetResponse, ProcessingLevelPostBody, ProcessingLevelPatchBody
 from sta.services import ProcessingLevelService
@@ -13,7 +13,7 @@ processing_level_service = ProcessingLevelService()
 
 @processing_level_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[ProcessingLevelGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_processing_levels(request: HydroServerHttpRequest, workspace_id: Optiona
 
 @processing_level_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: ProcessingLevelGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def create_processing_level(request: HydroServerHttpRequest, data: ProcessingLev
 
 @processing_level_router.get(
     "/{processing_level_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: ProcessingLevelGetResponse,
         401: str,
@@ -77,7 +77,7 @@ def get_processing_level(request: HydroServerHttpRequest, processing_level_id: P
 
 @processing_level_router.patch(
     "/{processing_level_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: ProcessingLevelGetResponse,
         401: str,
@@ -101,7 +101,7 @@ def update_processing_level(request: HydroServerHttpRequest, processing_level_id
 
 @processing_level_router.delete(
     "/{processing_level_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,

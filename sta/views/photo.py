@@ -1,7 +1,7 @@
 import uuid
 from ninja import Router, Path, File
 from ninja.files import UploadedFile
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import PhotoGetResponse, PhotoPostBody, PhotoDeleteBody
 from sta.services import ThingService
@@ -12,7 +12,7 @@ thing_service = ThingService()
 
 @photo_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[PhotoGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
 
 @photo_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: PhotoGetResponse,
         401: str,
@@ -58,7 +58,7 @@ def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: 
 
 @photo_router.put(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: PhotoGetResponse,
         401: str,
@@ -83,7 +83,7 @@ def edit_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data:
 
 @photo_router.delete(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: str,
         401: str,

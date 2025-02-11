@@ -1,6 +1,6 @@
 import uuid
 from ninja import Router, Path
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import TagGetResponse, TagPostBody, TagDeleteBody
 from sta.services import ThingService
@@ -11,7 +11,7 @@ thing_service = ThingService()
 
 @tag_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[TagGetResponse],
         401: str,
@@ -32,7 +32,7 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
 
 @tag_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: TagGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def add_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: Ta
 
 @tag_router.put(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: TagGetResponse,
         401: str,
@@ -78,7 +78,7 @@ def edit_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: T
 
 @tag_router.delete(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: str,
         401: str,

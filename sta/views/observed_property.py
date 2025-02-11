@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import basic_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import ObservedPropertyGetResponse, ObservedPropertyPostBody, ObservedPropertyPatchBody
 from sta.services import ObservedPropertyService
@@ -13,7 +13,7 @@ observed_property_service = ObservedPropertyService()
 
 @observed_property_router.get(
     "",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: list[ObservedPropertyGetResponse],
         401: str,
@@ -33,7 +33,7 @@ def get_observed_properties(request: HydroServerHttpRequest, workspace_id: Optio
 
 @observed_property_router.post(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         201: ObservedPropertyGetResponse,
         401: str,
@@ -55,7 +55,7 @@ def create_observed_property(request: HydroServerHttpRequest, data: ObservedProp
 
 @observed_property_router.get(
     "/{observed_property_id}",
-    auth=[session_auth, basic_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, anonymous_auth],
     response={
         200: ObservedPropertyGetResponse,
         401: str,
@@ -77,7 +77,7 @@ def get_observed_property(request: HydroServerHttpRequest, observed_property_id:
 
 @observed_property_router.patch(
     "/{observed_property_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: ObservedPropertyGetResponse,
         401: str,
@@ -101,7 +101,7 @@ def update_observed_property(request: HydroServerHttpRequest, observed_property_
 
 @observed_property_router.delete(
     "/{observed_property_id}",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         204: None,
         401: str,
