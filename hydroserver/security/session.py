@@ -16,7 +16,7 @@ class SessionAuth(APIKeyCookie):
             return request.user
         elif key and csrf_passed:
             raise HttpError(401, 'Invalid or missing session cookie')
-        elif key and not csrf_passed:
+        elif key and csrf_passed is False:
             raise HttpError(403, "CSRF check Failed")
 
     def _get_key(self, request: HttpRequest) -> tuple[Any, bool]:
