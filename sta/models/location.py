@@ -1,8 +1,8 @@
 import uuid
 import typing
 from django.db import models
-from iam.models import Workspace
 from iam.models.utils import PermissionChecker
+from .thing import Thing
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
 
 class Location(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, related_name="locations", on_delete=models.CASCADE)
+    thing = models.ForeignKey(Thing, related_name="locations", on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=255)
     description = models.TextField()
     encoding_type = models.CharField(max_length=255)

@@ -29,9 +29,9 @@ class CollaboratorQueryset(models.QuerySet):
 
 
 class Collaborator(models.Model, PermissionChecker):
-    workspace = models.ForeignKey("Workspace", on_delete=models.CASCADE, related_name="collaborators")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="workspace_roles")
-    role = models.ForeignKey("Role", on_delete=models.CASCADE, related_name="collaborator_assignments")
+    workspace = models.ForeignKey("Workspace", on_delete=models.DO_NOTHING, related_name="collaborators")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="workspace_roles")
+    role = models.ForeignKey("Role", on_delete=models.DO_NOTHING, related_name="collaborator_assignments")
 
     objects = CollaboratorQueryset.as_manager()
 

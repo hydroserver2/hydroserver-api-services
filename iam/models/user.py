@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Optional
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
@@ -88,7 +89,21 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+        self.delete_contents(filter_arg=self, filter_suffix="")
+
+        if self.organization:
+            self.organization.delete()
+
         super().delete(*args, **kwargs)
+
+    @staticmethod
+    def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
+        from iam.models import Workspace, Collaborator
+
+        Collaborator.objects.filter(**{f"user__{filter_suffix}" if filter_suffix else "user": filter_arg}).delete()
+        Workspace.delete_contents(filter_arg=filter_arg,
+                                  filter_suffix=f"owner__{filter_suffix}" if filter_suffix else "owner")
+        Workspace.objects.filter(**{f"owner__{filter_suffix}" if filter_suffix else "owner": filter_arg}).delete()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()

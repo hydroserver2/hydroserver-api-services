@@ -6,3 +6,4 @@ from .processing_level import ProcessingLevelGetResponse, ProcessingLevelPostBod
 from .result_qualifier import ResultQualifierGetResponse, ResultQualifierPostBody, ResultQualifierPatchBody
 from .sensor import SensorGetResponse, SensorPostBody, SensorPatchBody
 from .unit import UnitGetResponse, UnitPostBody, UnitPatchBody
+from .datastream import DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody

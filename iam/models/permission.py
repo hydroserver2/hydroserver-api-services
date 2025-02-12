@@ -28,7 +28,7 @@ RESOURCE_TYPE_CHOICES = (
 
 
 class Permission(models.Model):
-    role = models.ForeignKey("Role", on_delete=models.CASCADE, related_name="permissions")
+    role = models.ForeignKey("Role", on_delete=models.DO_NOTHING, related_name="permissions")
     permission_type = models.CharField(max_length=50, choices=PERMISSION_CHOICES)
     resource_type = models.CharField(max_length=50, choices=RESOURCE_TYPE_CHOICES)
     # condition = models.JSONField(null=True, blank=True)

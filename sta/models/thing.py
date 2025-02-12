@@ -35,7 +35,7 @@ class ThingQuerySet(models.QuerySet):
 
 class Thing(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, related_name="things", on_delete=models.CASCADE)
+    workspace = models.ForeignKey(Workspace, related_name="things", on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=200)
     description = models.TextField()
     sampling_feature_type = models.CharField(max_length=200)
@@ -43,7 +43,6 @@ class Thing(models.Model, PermissionChecker):
     site_type = models.CharField(max_length=200)
     is_private = models.BooleanField(default=False)
     data_disclaimer = models.TextField(null=True, blank=True)
-    locations = models.ManyToManyField("Location", related_name="things")
 
     objects = ThingQuerySet.as_manager()
 
@@ -65,3 +64,18 @@ class Thing(models.Model, PermissionChecker):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
+
+    def delete(self, *args, **kwargs):
+        self.delete_contents(filter_arg=self, filter_suffix="")
+        super().delete(*args, **kwargs)
+
+    @staticmethod
+    def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
+        from sta.models import Datastream, Location, Tag, Photo
+
+        Datastream.delete_contents(filter_arg=filter_arg,
+                                   filter_suffix=f"thing__{filter_suffix}" if filter_suffix else "thing")
+        Datastream.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
+        Location.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
+        Tag.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
+        Photo.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()

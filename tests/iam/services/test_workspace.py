@@ -93,26 +93,27 @@ def test_update_workspace(get_user, user, workspace, message, error_code):
         assert workspace_update.name == message
 
 
-@pytest.mark.parametrize("user, workspace, message, error_code", [
-    ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None),
-    ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None),
-    ("owner", "00000000-0000-0000-0000-000000000000", "Workspace does not exist", 404),
-    ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", 404),
-    ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", "You do not have permission to delete this workspace", 403),
+@pytest.mark.parametrize("user, workspace, message, error_code, max_queries", [
+    ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 20),
+    ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 20),
+    ("owner", "00000000-0000-0000-0000-000000000000", "Workspace does not exist", 404, 2),
+    ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", 404, 5),
+    ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", "You do not have permission to delete this workspace", 403, 3),
 ])
-def test_delete_workspace(get_user, user, workspace, message, error_code):
-    if error_code:
-        with pytest.raises(HttpError) as exc_info:
-            workspace_service.delete(
+def test_delete_workspace(django_assert_max_num_queries, get_user, user, workspace, message, error_code, max_queries):
+    with django_assert_max_num_queries(max_queries):
+        if error_code:
+            with pytest.raises(HttpError) as exc_info:
+                workspace_service.delete(
+                    user=get_user(user), uid=uuid.UUID(workspace)
+                )
+            assert exc_info.value.status_code == error_code
+            assert exc_info.value.message.startswith(message)
+        else:
+            workspace_delete = workspace_service.delete(
                 user=get_user(user), uid=uuid.UUID(workspace)
             )
-        assert exc_info.value.status_code == error_code
-        assert exc_info.value.message.startswith(message)
-    else:
-        workspace_delete = workspace_service.delete(
-            user=get_user(user), uid=uuid.UUID(workspace)
-        )
-        assert workspace_delete == message
+            assert workspace_delete == message
 
 
 @pytest.mark.parametrize("from_user, to_user, workspace, message, error_code", [

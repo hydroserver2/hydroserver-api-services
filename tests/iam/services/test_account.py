@@ -49,11 +49,12 @@ def test_update_account(get_user, user, account_data):
     assert account.organization.code == account_data.organization.code
 
 
-@pytest.mark.parametrize("user", [
-    "owner",
-    "admin",
-    "limited",
+@pytest.mark.parametrize("user, max_queries", [
+    ("owner", 27),
+    ("admin", 24),
+    ("limited", 24),
 ])
-def test_delete_account(get_user, user):
-    message = account_service.delete(get_user(user))
-    assert message == "User account has been deleted"
+def test_delete_account(django_assert_max_num_queries, get_user, user, max_queries):
+    with django_assert_max_num_queries(max_queries):
+        message = account_service.delete(get_user(user))
+        assert message == "User account has been deleted"

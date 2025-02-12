@@ -35,7 +35,7 @@ class ResultQualifierQuerySet(models.QuerySet):
 
 class ResultQualifier(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, related_name="result_qualifiers", on_delete=models.CASCADE, blank=True,
+    workspace = models.ForeignKey(Workspace, related_name="result_qualifiers", on_delete=models.DO_NOTHING, blank=True,
                                   null=True)
     code = models.CharField(max_length=255)
     description = models.TextField()

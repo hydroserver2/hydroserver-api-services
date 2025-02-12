@@ -35,7 +35,7 @@ class ProcessingLevelQuerySet(models.QuerySet):
 
 class ProcessingLevel(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, related_name="processing_levels", on_delete=models.CASCADE, blank=True,
+    workspace = models.ForeignKey(Workspace, related_name="processing_levels", on_delete=models.DO_NOTHING, blank=True,
                                   null=True)
     code = models.CharField(max_length=255)
     definition = models.TextField(null=True, blank=True)

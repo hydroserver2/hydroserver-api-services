@@ -46,20 +46,18 @@ class ThingService(ServiceUtils):
         if not Thing.can_user_create(user=user, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this Thing")
 
-        location = Location.objects.create(
-            name=f'Location for {data.name}',
-            description='location',
-            encoding_type="application/geo+json",
-            workspace=workspace,
-            **data.dict(include=set(LocationFields.model_fields.keys()))
-        )
-
         thing = Thing.objects.create(
             workspace=workspace,
             **data.dict(include=set(ThingFields.model_fields.keys()))
         )
 
-        thing.locations.add(location)
+        Location.objects.create(
+            name=f'Location for {data.name}',
+            description='location',
+            encoding_type="application/geo+json",
+            thing=thing,
+            **data.dict(include=set(LocationFields.model_fields.keys()))
+        )
 
         return thing
 

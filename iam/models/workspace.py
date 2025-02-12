@@ -42,7 +42,7 @@ class WorkspaceQueryset(models.QuerySet):
 class Workspace(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
     is_private = models.BooleanField(default=False)
 
     objects = WorkspaceQueryset.as_manager()
@@ -68,6 +68,36 @@ class Workspace(models.Model):
             return ["view"]
         else:
             return []
+
+    def delete(self, *args, **kwargs):
+        self.delete_contents(filter_arg=self, filter_suffix="")
+        super().delete(*args, **kwargs)
+
+    @staticmethod
+    def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
+        from iam.models import Role, Collaborator
+        from sta.models import Thing, ObservedProperty, ProcessingLevel, ResultQualifier, Sensor, Unit
+
+        Collaborator.objects.filter(
+            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
+        ).delete()
+        Role.delete_contents(filter_arg=filter_arg,
+                             filter_suffix=f"workspace__{filter_suffix}" if filter_suffix else "workspace")
+        Role.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
+        Thing.delete_contents(filter_arg=filter_arg,
+                              filter_suffix=f"workspace__{filter_suffix}" if filter_suffix else "workspace")
+        Thing.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
+        ObservedProperty.objects.filter(
+            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
+        ).delete()
+        ProcessingLevel.objects.filter(
+            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
+        ).delete()
+        ResultQualifier.objects.filter(
+            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
+        ).delete()
+        Sensor.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
+        Unit.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
 
 
 class WorkspaceTransferConfirmation(models.Model):

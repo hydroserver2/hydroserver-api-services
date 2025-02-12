@@ -34,7 +34,7 @@ class RoleQueryset(models.QuerySet):
 
 class Role(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey("Workspace", on_delete=models.CASCADE, related_name="roles", blank=True, null=True)
+    workspace = models.ForeignKey("Workspace", on_delete=models.DO_NOTHING, related_name="roles", blank=True, null=True)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
 
@@ -51,3 +51,14 @@ class Role(models.Model, PermissionChecker):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
+
+    def delete(self, *args, **kwargs):
+        self.delete_contents(filter_arg=self, filter_suffix="")
+        super().delete(*args, **kwargs)
+
+    @staticmethod
+    def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
+        from iam.models import Permission, Collaborator
+
+        Collaborator.objects.filter(**{f"role__{filter_suffix}" if filter_suffix else "role": filter_arg}).delete()
+        Permission.objects.filter(**{f"role__{filter_suffix}" if filter_suffix else "role": filter_arg}).delete()

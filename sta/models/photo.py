@@ -2,6 +2,7 @@ import typing
 from django.db import models
 from django.core.files.storage import storages
 from iam.models.utils import PermissionChecker
+from .thing import Thing
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -10,7 +11,7 @@ if typing.TYPE_CHECKING:
 
 
 class Photo(models.Model, PermissionChecker):
-    thing = models.ForeignKey("Thing", related_name="photos", on_delete=models.CASCADE)
+    thing = models.ForeignKey(Thing, related_name="photos", on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=255)
     photo = models.FileField(upload_to="photos", storage=storages.backends["default"])
 
