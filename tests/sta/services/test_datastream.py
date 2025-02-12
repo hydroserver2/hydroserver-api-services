@@ -50,37 +50,38 @@ def test_list_datastream(django_assert_max_num_queries, get_user, user, workspac
         assert len(workspace_list) == length
 
 
-# @pytest.mark.parametrize("user, datastream, message, error_code", [
-#     ("owner", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Datastream", None),
-#     ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Datastream", None),
-#     ("owner", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Datastream", None),
-#     ("admin", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Datastream", None),
-#     ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Datastream", None),
-#     ("admin", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Datastream", None),
-#     ("editor", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Datastream", None),
-#     ("editor", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Datastream", None),
-#     ("editor", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Datastream", None),
-#     ("viewer", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Datastream", None),
-#     ("viewer", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Datastream", None),
-#     ("viewer", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Datastream", None),
-#     ("anonymous", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Datastream", None),
-#     ("anonymous", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Datastream", None),
-#     ("anonymous", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Datastream does not exist", 404),
-#     ("anonymous", "00000000-0000-0000-0000-000000000000", "Datastream does not exist", 404),
-# ])
-# def test_get_datastream(get_user, user, datastream, message, error_code):
-#     if error_code:
-#         with pytest.raises(HttpError) as exc_info:
-#             datastream_service.get(
-#                 user=get_user(user), uid=uuid.UUID(datastream)
-#             )
-#         assert exc_info.value.status_code == error_code
-#         assert exc_info.value.message.startswith(message)
-#     else:
-#         datastream_get = datastream_service.get(
-#             user=get_user(user), uid=uuid.UUID(datastream)
-#         )
-#         assert datastream_get.name == message
+@pytest.mark.parametrize("user, datastream, message, error_code", [
+    ("owner", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
+    ("owner", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
+    ("admin", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
+    ("admin", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
+    ("editor", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
+    ("editor", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
+    ("viewer", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
+    ("viewer", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
+    ("anonymous", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
+    ("anonymous", "e0506cac-3e50-4d0a-814d-7ae0146705b2", "Datastream does not exist", 404),
+    ("anonymous", "cad40a75-99ca-4317-b534-0fc7880c905f", "Datastream does not exist", 404),
+    ("anonymous", "fcd47d93-4cae-411a-9e1e-26ef473840ed", "Datastream does not exist", 404),
+    ("anonymous", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", "Datastream does not exist", 404),
+    ("anonymous", "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", "Datastream does not exist", 404),
+    ("anonymous", "42e08eea-27bb-4ea3-8ced-63acff0f3334", "Datastream does not exist", 404),
+    ("anonymous", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Datastream does not exist", 404),
+    ("anonymous", "00000000-0000-0000-0000-000000000000", "Datastream does not exist", 404),
+])
+def test_get_datastream(get_user, user, datastream, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            datastream_service.get(
+                user=get_user(user), uid=uuid.UUID(datastream)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        datastream_get = datastream_service.get(
+            user=get_user(user), uid=uuid.UUID(datastream)
+        )
+        assert datastream_get.name == message
 
 
 # @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -114,8 +115,8 @@ def test_list_datastream(django_assert_max_num_queries, get_user, user, workspac
 #         assert datastream_create.name == datastream_data.name
 #         assert datastream_create.definition == datastream_data.definition
 #         assert datastream_create.datastream_type == datastream_data.datastream_type
-# 
-# 
+
+
 # @pytest.mark.parametrize("user, datastream, message, error_code", [
 #     ("owner", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "You do not have permission", 403),
 #     ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
