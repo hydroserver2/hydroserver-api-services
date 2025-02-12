@@ -36,8 +36,8 @@ class ObservationQuerySet(models.QuerySet):
 
 
 class Observation(models.Model, PermissionChecker):
-    pk = models.CompositePrimaryKey("id", "datastream_id", "phenomenon_time")
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pk = models.CompositePrimaryKey("datastream_id", "phenomenon_time", "id")
+    id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     datastream = models.ForeignKey(Datastream, on_delete=models.DO_NOTHING)
     phenomenon_time = models.DateTimeField()
     result = models.FloatField()
@@ -59,3 +59,8 @@ class Observation(models.Model, PermissionChecker):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["datastream_id", "phenomenon_time"], name="unique_datastream_timestamps")
+        ]

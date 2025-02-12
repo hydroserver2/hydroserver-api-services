@@ -8,3 +8,4 @@ from .result_qualifier import ResultQualifier
 from .sensor import Sensor
 from .unit import Unit
 from .datastream import Datastream
+from .observation import Observation
