@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import DatastreamService
-from sta.schemas import DatastreamPostBody, DatastreamPatchBody
+from sta.schemas import DatastreamPostBody, DatastreamPatchBody, DatastreamGetResponse
 
 datastream_service = DatastreamService()
 
@@ -43,11 +43,12 @@ datastream_service = DatastreamService()
 ])
 def test_list_datastream(django_assert_max_num_queries, get_user, user, workspace, thing, length, max_queries):
     with django_assert_max_num_queries(max_queries):
-        workspace_list = datastream_service.list(
+        datastream_list = datastream_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None,
             thing_id=uuid.UUID(thing) if thing else None
         )
-        assert len(workspace_list) == length
+        assert len(datastream_list) == length
+        assert (DatastreamGetResponse.from_orm(datastream) for datastream in datastream_list)
 
 
 @pytest.mark.parametrize("user, datastream, message, error_code", [
@@ -82,6 +83,7 @@ def test_get_datastream(get_user, user, datastream, message, error_code):
             user=get_user(user), uid=uuid.UUID(datastream)
         )
         assert datastream_get.name == message
+        # assert DatastreamGetResponse.from_orm(datastream_get)
 
 
 # @pytest.mark.parametrize("user, workspace, message, error_code", [

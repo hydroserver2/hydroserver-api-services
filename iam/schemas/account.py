@@ -12,7 +12,11 @@ class OrganizationFields(Schema):
     name: str = Field(..., max_length=30)
     description: Optional[str] = None
     link: Optional[str] = Field(None, max_length=2000)
-    organization_type: str = Field(..., max_length=255, alias='type')
+    organization_type: str = Field(..., max_length=255, alias="type")
+
+
+class OrganizationGetResponse(BaseGetResponse, OrganizationFields):
+    pass
 
 
 class OrganizationPostBody(BasePostBody, OrganizationFields):
@@ -34,7 +38,7 @@ class UserFields(UserContactFields):
     first_name: str = Field(..., max_length=30)
     middle_name: Optional[str] = Field(None, max_length=30)
     last_name: str = Field(..., max_length=150)
-    organization: Optional[OrganizationFields] = None
+    organization: Optional[OrganizationGetResponse] = None
 
 
 class AccountContactGetResponse(BaseGetResponse, UserContactFields):

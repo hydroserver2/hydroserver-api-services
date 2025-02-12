@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import UnitService
-from sta.schemas import UnitPostBody, UnitPatchBody
+from sta.schemas import UnitPostBody, UnitPatchBody, UnitGetResponse
 
 unit_service = UnitService()
 
@@ -25,10 +25,11 @@ unit_service = UnitService()
 ])
 def test_list_unit(django_assert_num_queries, get_user, user, workspace, length, max_queries):
     with django_assert_num_queries(max_queries):
-        workspace_list = unit_service.list(
+        unit_list = unit_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None
         )
-        assert len(workspace_list) == length
+        assert len(unit_list) == length
+        assert (UnitGetResponse.from_orm(unit) for unit in unit_list)
 
 
 @pytest.mark.parametrize("user, unit, message, error_code", [
@@ -62,6 +63,7 @@ def test_get_unit(get_user, user, unit, message, error_code):
             user=get_user(user), uid=uuid.UUID(unit)
         )
         assert unit_get.name == message
+        assert UnitGetResponse.from_orm(unit_get)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -95,6 +97,7 @@ def test_create_unit(get_user, user, workspace, message, error_code):
         assert unit_create.name == unit_data.name
         assert unit_create.definition == unit_data.definition
         assert unit_create.unit_type == unit_data.unit_type
+        assert UnitGetResponse.from_orm(unit_create)
 
 
 @pytest.mark.parametrize("user, unit, message, error_code", [
@@ -134,6 +137,7 @@ def test_edit_unit(get_user, user, unit, message, error_code):
         assert unit_update.name == unit_data.name
         assert unit_update.symbol == unit_data.symbol
         assert unit_update.unit_type == unit_data.unit_type
+        assert UnitGetResponse.from_orm(unit_update)
 
 
 @pytest.mark.parametrize("user, unit, message, error_code", [

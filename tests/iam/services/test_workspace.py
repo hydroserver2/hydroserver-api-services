@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from iam.services.workspace import WorkspaceService
-from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
+from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody, WorkspaceGetResponse
 
 workspace_service = WorkspaceService()
 
@@ -26,6 +26,7 @@ def test_list_workspace(get_user, user, length, associated):
         user=get_user(user), associated_only=associated
     )
     assert len(workspace_list) == length
+    assert (WorkspaceGetResponse.from_orm(workspace) for workspace in workspace_list)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -49,6 +50,7 @@ def test_get_workspace(get_user, user, workspace, message, error_code):
             user=get_user(user), uid=uuid.UUID(workspace)
         )
         assert workspace_get.name == message
+        assert WorkspaceGetResponse.from_orm(workspace_get)
 
 
 @pytest.mark.parametrize("user, message, error_code", [
@@ -65,10 +67,11 @@ def test_create_workspace(get_user, user, message, error_code):
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        workspace_update = workspace_service.create(
+        workspace_create = workspace_service.create(
             user=get_user(user), data=WorkspacePostBody(name="New", is_private=False)
         )
-        assert workspace_update.name == message
+        assert workspace_create.name == message
+        assert WorkspaceGetResponse.from_orm(workspace_create)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -91,11 +94,12 @@ def test_update_workspace(get_user, user, workspace, message, error_code):
             user=get_user(user), uid=uuid.UUID(workspace), data=WorkspacePatchBody(name="Updated", is_private=False)
         )
         assert workspace_update.name == message
+        assert WorkspaceGetResponse.from_orm(workspace_update)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code, max_queries", [
-    ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 20),
-    ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 20),
+    ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 21),
+    ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 21),
     ("owner", "00000000-0000-0000-0000-000000000000", "Workspace does not exist", 404, 2),
     ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", 404, 5),
     ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", "You do not have permission to delete this workspace", 403, 3),

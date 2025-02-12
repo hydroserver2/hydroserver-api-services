@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from iam.services.collaborator import CollaboratorService
-from iam.schemas import CollaboratorPostBody, CollaboratorDeleteBody
+from iam.schemas import CollaboratorPostBody, CollaboratorDeleteBody, CollaboratorGetResponse
 
 collaborator_service = CollaboratorService()
 
@@ -28,6 +28,7 @@ def test_list_collaborator(get_user, user, workspace, message, error_code):
             user=get_user(user), workspace_id=uuid.UUID(workspace)
         )
         assert len(collaborator_list) == message
+        assert (CollaboratorGetResponse.from_orm(collaborator) for collaborator in collaborator_list)
 
 
 @pytest.mark.parametrize("user, collaborator, workspace, role, message, error_code", [
@@ -60,6 +61,7 @@ def test_create_collaborator(get_user, user, collaborator, workspace, role, mess
             data=CollaboratorPostBody(email=f"{collaborator}@example.com", role_id=uuid.UUID(role)),
         )
         assert collaborator_create.user.email == f"{collaborator}@example.com"
+        assert CollaboratorGetResponse.from_orm(collaborator_create)
 
 
 @pytest.mark.parametrize("user, collaborator, workspace, role, message, error_code", [
@@ -85,11 +87,12 @@ def test_update_collaborator(get_user, user, collaborator, workspace, role, mess
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        collaborator_create = collaborator_service.update(
+        collaborator_update = collaborator_service.update(
             user=get_user(user), workspace_id=uuid.UUID(workspace),
             data=CollaboratorPostBody(email=f"{collaborator}@example.com", role_id=uuid.UUID(role)),
         )
-        assert collaborator_create.user.email == f"{collaborator}@example.com"
+        assert collaborator_update.user.email == f"{collaborator}@example.com"
+        assert CollaboratorGetResponse.from_orm(collaborator_update)
 
 
 @pytest.mark.parametrize("user, collaborator, workspace, message, error_code", [

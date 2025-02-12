@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import ObservedPropertyService
-from sta.schemas import ObservedPropertyPostBody, ObservedPropertyPatchBody
+from sta.schemas import ObservedPropertyPostBody, ObservedPropertyPatchBody, ObservedPropertyGetResponse
 
 observed_property_service = ObservedPropertyService()
 
@@ -25,10 +25,11 @@ observed_property_service = ObservedPropertyService()
 ])
 def test_list_observed_property(django_assert_num_queries, get_user, user, workspace, length, max_queries):
     with django_assert_num_queries(max_queries):
-        workspace_list = observed_property_service.list(
+        observed_property_list = observed_property_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None
         )
-        assert len(workspace_list) == length
+        assert len(observed_property_list) == length
+        assert (ObservedPropertyGetResponse.from_orm(observed_property) for observed_property in observed_property_list)
 
 
 @pytest.mark.parametrize("user, observed_property, message, error_code", [
@@ -62,6 +63,7 @@ def test_get_observed_property(get_user, user, observed_property, message, error
             user=get_user(user), uid=uuid.UUID(observed_property)
         )
         assert observed_property_get.name == message
+        assert ObservedPropertyGetResponse.from_orm(observed_property_get)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -99,6 +101,7 @@ def test_create_observed_property(get_user, user, workspace, message, error_code
         assert observed_property_create.observed_property_type == observed_property_data.observed_property_type
         assert observed_property_create.description == observed_property_data.description
         assert observed_property_create.workspace_id == observed_property_data.workspace_id
+        assert ObservedPropertyGetResponse.from_orm(observed_property_create)
 
 
 @pytest.mark.parametrize("user, observed_property, message, error_code", [
@@ -140,6 +143,7 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
         assert observed_property_update.code == observed_property_data.code
         assert observed_property_update.observed_property_type == observed_property_data.observed_property_type
         assert observed_property_update.description == observed_property_data.description
+        assert ObservedPropertyGetResponse.from_orm(observed_property_update)
 
 
 @pytest.mark.parametrize("user, observed_property, message, error_code", [

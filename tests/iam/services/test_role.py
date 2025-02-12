@@ -2,6 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from iam.services.role import RoleService
+from iam.schemas import RoleGetResponse
 
 role_service = RoleService()
 
@@ -27,10 +28,11 @@ def test_list_role(get_user, user, workspace, length, message, error_code):
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        workspace_list = role_service.list(
+        role_list = role_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace)
         )
-        assert len(workspace_list) == length
+        assert len(role_list) == length
+        assert (RoleGetResponse.from_orm(role) for role in role_list)
 
 
 @pytest.mark.parametrize("user, workspace, role, message, error_code", [
@@ -54,3 +56,4 @@ def test_get_role(get_user, user, workspace, role, message, error_code):
             user=get_user(user), workspace_id=uuid.UUID(workspace), uid=uuid.UUID(role)
         )
         assert role_get.name == message
+        assert RoleGetResponse.from_orm(role_get)

@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import ResultQualifierService
-from sta.schemas import ResultQualifierPostBody, ResultQualifierPatchBody
+from sta.schemas import ResultQualifierPostBody, ResultQualifierPatchBody, ResultQualifierGetResponse
 
 result_qualifier_service = ResultQualifierService()
 
@@ -25,10 +25,11 @@ result_qualifier_service = ResultQualifierService()
 ])
 def test_list_result_qualifier(django_assert_num_queries, get_user, user, workspace, length, max_queries):
     with django_assert_num_queries(max_queries):
-        workspace_list = result_qualifier_service.list(
+        result_qualifier_list = result_qualifier_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None
         )
-        assert len(workspace_list) == length
+        assert len(result_qualifier_list) == length
+        assert (ResultQualifierGetResponse.from_orm(result_qualifier) for result_qualifier in result_qualifier_list)
 
 
 @pytest.mark.parametrize("user, result_qualifier, message, error_code", [
@@ -62,6 +63,7 @@ def test_get_result_qualifier(get_user, user, result_qualifier, message, error_c
             user=get_user(user), uid=uuid.UUID(result_qualifier)
         )
         assert result_qualifier_get.code == message
+        assert ResultQualifierGetResponse.from_orm(result_qualifier_get)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -94,6 +96,7 @@ def test_create_result_qualifier(get_user, user, workspace, message, error_code)
         assert result_qualifier_create.description == result_qualifier_data.description
         assert result_qualifier_create.code == result_qualifier_data.code
         assert result_qualifier_create.workspace_id == result_qualifier_data.workspace_id
+        assert ResultQualifierGetResponse.from_orm(result_qualifier_create)
 
 
 @pytest.mark.parametrize("user, result_qualifier, message, error_code", [
@@ -131,6 +134,7 @@ def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_
         )
         assert result_qualifier_update.description == result_qualifier_data.description
         assert result_qualifier_update.code == result_qualifier_data.code
+        assert ResultQualifierGetResponse.from_orm(result_qualifier_update)
 
 
 @pytest.mark.parametrize("user, result_qualifier, message, error_code", [

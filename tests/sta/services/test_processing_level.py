@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import ProcessingLevelService
-from sta.schemas import ProcessingLevelPostBody, ProcessingLevelPatchBody
+from sta.schemas import ProcessingLevelPostBody, ProcessingLevelPatchBody, ProcessingLevelGetResponse
 
 processing_level_service = ProcessingLevelService()
 
@@ -25,10 +25,11 @@ processing_level_service = ProcessingLevelService()
 ])
 def test_list_processing_level(django_assert_num_queries, get_user, user, workspace, length, max_queries):
     with django_assert_num_queries(max_queries):
-        workspace_list = processing_level_service.list(
+        processing_level_list = processing_level_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None
         )
-        assert len(workspace_list) == length
+        assert len(processing_level_list) == length
+        assert (ProcessingLevelGetResponse.from_orm(processing_level) for processing_level in processing_level_list)
 
 
 @pytest.mark.parametrize("user, processing_level, message, error_code", [
@@ -62,6 +63,7 @@ def test_get_processing_level(get_user, user, processing_level, message, error_c
             user=get_user(user), uid=uuid.UUID(processing_level)
         )
         assert processing_level_get.code == message
+        assert ProcessingLevelGetResponse.from_orm(processing_level_get)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -94,6 +96,7 @@ def test_create_processing_level(get_user, user, workspace, message, error_code)
         assert processing_level_create.definition == processing_level_data.definition
         assert processing_level_create.code == processing_level_data.code
         assert processing_level_create.workspace_id == processing_level_data.workspace_id
+        assert ProcessingLevelGetResponse.from_orm(processing_level_create)
 
 
 @pytest.mark.parametrize("user, processing_level, message, error_code", [
@@ -131,6 +134,7 @@ def test_edit_processing_level(get_user, user, processing_level, message, error_
         )
         assert processing_level_update.definition == processing_level_data.definition
         assert processing_level_update.code == processing_level_data.code
+        assert ProcessingLevelGetResponse.from_orm(processing_level_update)
 
 
 @pytest.mark.parametrize("user, processing_level, message, error_code", [

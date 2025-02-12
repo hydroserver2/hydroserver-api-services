@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import SensorService
-from sta.schemas import SensorPostBody, SensorPatchBody
+from sta.schemas import SensorPostBody, SensorPatchBody, SensorGetResponse
 
 sensor_service = SensorService()
 
@@ -25,10 +25,11 @@ sensor_service = SensorService()
 ])
 def test_list_sensor(django_assert_num_queries, get_user, user, workspace, length, max_queries):
     with django_assert_num_queries(max_queries):
-        workspace_list = sensor_service.list(
+        sensor_list = sensor_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None
         )
-        assert len(workspace_list) == length
+        assert len(sensor_list) == length
+        assert (SensorGetResponse.from_orm(sensor) for sensor in sensor_list)
 
 
 @pytest.mark.parametrize("user, sensor, message, error_code", [
@@ -62,6 +63,7 @@ def test_get_sensor(get_user, user, sensor, message, error_code):
             user=get_user(user), uid=uuid.UUID(sensor)
         )
         assert sensor_get.name == message
+        assert SensorGetResponse.from_orm(sensor_get)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -95,6 +97,7 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
         assert sensor_create.name == sensor_data.name
         assert sensor_create.encoding_type == sensor_data.encoding_type
         assert sensor_create.method_type == sensor_data.method_type
+        assert SensorGetResponse.from_orm(sensor_create)
 
 
 @pytest.mark.parametrize("user, sensor, message, error_code", [
@@ -134,6 +137,7 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
         assert sensor_update.name == sensor_data.name
         assert sensor_update.encoding_type == sensor_data.encoding_type
         assert sensor_update.method_type == sensor_data.method_type
+        assert SensorGetResponse.from_orm(sensor_update)
 
 
 @pytest.mark.parametrize("user, sensor, message, error_code", [

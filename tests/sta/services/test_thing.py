@@ -2,7 +2,7 @@ import pytest
 import uuid
 from ninja.errors import HttpError
 from sta.services import ThingService
-from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody
+from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody, ThingGetResponse
 
 thing_service = ThingService()
 
@@ -25,10 +25,11 @@ thing_service = ThingService()
 ])
 def test_list_thing(django_assert_num_queries, get_user, user, workspace, length, max_queries):
     with django_assert_num_queries(max_queries):
-        workspace_list = thing_service.list(
+        thing_list = thing_service.list(
             user=get_user(user), workspace_id=uuid.UUID(workspace) if workspace else None
         )
-        assert len(workspace_list) == length
+        assert len(thing_list) == length
+        assert (ThingGetResponse.from_orm(thing) for thing in thing_list)
 
 
 @pytest.mark.parametrize("user, thing, message, error_code", [
@@ -67,6 +68,7 @@ def test_get_thing(get_user, user, thing, message, error_code):
             user=get_user(user), uid=uuid.UUID(thing)
         )
         assert thing_get.name == message
+        assert ThingGetResponse.from_orm(thing_get)
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code", [
@@ -106,6 +108,7 @@ def test_create_thing(get_user, user, workspace, message, error_code):
         assert thing_create.location.longitude == thing_data.longitude
         assert thing_create.is_private == thing_data.is_private
         assert thing_create.workspace_id == thing_data.workspace_id
+        assert ThingGetResponse.from_orm(thing_create)
 
 
 @pytest.mark.parametrize("user, thing, message, error_code", [
@@ -155,6 +158,7 @@ def test_edit_thing(get_user, user, thing, message, error_code):
         assert thing_update.location.latitude == thing_data.latitude
         assert thing_update.location.longitude == thing_data.longitude
         assert thing_update.is_private == thing_data.is_private
+        assert ThingGetResponse.from_orm(thing_update)
 
 
 @pytest.mark.parametrize("user, thing, message, error_code", [

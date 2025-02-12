@@ -1,5 +1,6 @@
 import pytest
-from iam.schemas import AccountPostBody, AccountPatchBody, OrganizationPostBody, OrganizationPatchBody
+from iam.schemas import (AccountPostBody, AccountPatchBody, OrganizationPostBody, OrganizationPatchBody,
+                         AccountGetResponse)
 from iam.services.account import AccountService
 
 account_service = AccountService()
@@ -16,6 +17,7 @@ def test_get_account(get_user, user):
         user=get_user(user)
     )
     assert account.email.startswith(user)
+    assert AccountGetResponse.from_orm(account)
 
 
 @pytest.mark.parametrize("account_data", [
@@ -32,6 +34,7 @@ def test_create_account(account_data):
     assert account.user_type == account_data.user_type
     assert account.organization.name == account_data.organization.name
     assert account.organization.code == account_data.organization.code
+    assert AccountGetResponse.from_orm(account)
 
 
 @pytest.mark.parametrize("user, account_data", [
@@ -47,12 +50,13 @@ def test_update_account(get_user, user, account_data):
     assert account.user_type == account_data.user_type
     assert account.organization.name == account_data.organization.name
     assert account.organization.code == account_data.organization.code
+    assert AccountGetResponse.from_orm(account)
 
 
 @pytest.mark.parametrize("user, max_queries", [
-    ("owner", 27),
-    ("admin", 24),
-    ("limited", 24),
+    ("owner", 28),
+    ("admin", 25),
+    ("limited", 25),
 ])
 def test_delete_account(django_assert_max_num_queries, get_user, user, max_queries):
     with django_assert_max_num_queries(max_queries):
