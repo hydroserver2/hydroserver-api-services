@@ -11,11 +11,11 @@ class SessionAuth(APIKeyCookie):
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
         csrf_passed = check_csrf(request) if self.csrf else True
-        if key and csrf_passed and request.user.is_authenticated:
+        if key and csrf_passed in [True, None] and request.user.is_authenticated:
             request.authenticated_user = request.user
             return request.user
         elif key and csrf_passed:
-            raise HttpError(401, 'Invalid or missing session cookie')
+            raise HttpError(401, "Invalid or missing session cookie")
         elif key and csrf_passed is False:
             raise HttpError(403, "CSRF check Failed")
 
