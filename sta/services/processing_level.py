@@ -66,6 +66,10 @@ class ProcessingLevelService(ServiceUtils):
 
     def delete(self, user: User, uid: uuid.UUID):
         processing_level = self.get_processing_level_for_action(user=user, uid=uid, action="delete")
+
+        if processing_level.datastreams.exists():
+            raise HttpError(409, "Processing level in use by one or more datastreams")
+
         processing_level.delete()
 
         return "Processing level deleted"

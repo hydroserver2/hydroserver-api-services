@@ -66,6 +66,10 @@ class ObservedPropertyService(ServiceUtils):
 
     def delete(self, user: User, uid: uuid.UUID):
         observed_property = self.get_observed_property_for_action(user=user, uid=uid, action="delete")
+
+        if observed_property.datastreams.exists():
+            raise HttpError(409, "Observed property in use by one or more datastreams")
+
         observed_property.delete()
 
         return "Observed property deleted"

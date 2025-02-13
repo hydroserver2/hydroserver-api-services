@@ -1,6 +1,7 @@
 import uuid
 from ninja import Schema, Field
 from typing import Optional, Literal
+from pydantic import AliasChoices
 from datetime import datetime
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
@@ -34,7 +35,7 @@ class DatastreamFields(Schema):
 
 class DatastreamGetResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID]
+    workspace_id: Optional[uuid.UUID] = Field(None, validation_alias=AliasChoices("workspaceId", "thing.workspace_id"))
 
 
 class DatastreamPostBody(BasePostBody, DatastreamFields):

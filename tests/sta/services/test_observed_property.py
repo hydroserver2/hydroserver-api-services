@@ -153,6 +153,7 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
     ("admin", "49a245bd-4517-4dea-b3ba-25c919bf2cf5", None, None),
     ("admin", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
     ("admin", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
+    ("admin", "a5746e4e-f479-4476-a462-6a8f7874794d", "Observed property in use by one or more datastreams", 409),
     ("editor", "49a245bd-4517-4dea-b3ba-25c919bf2cf5", "You do not have permission", 403),
     ("editor", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
     ("editor", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),

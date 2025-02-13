@@ -66,6 +66,10 @@ class UnitService(ServiceUtils):
 
     def delete(self, user: User, uid: uuid.UUID):
         unit = self.get_unit_for_action(user=user, uid=uid, action="delete")
+
+        if unit.datastreams.exists():
+            raise HttpError(409, "Unit in use by one or more datastreams")
+
         unit.delete()
 
         return "Unit deleted"

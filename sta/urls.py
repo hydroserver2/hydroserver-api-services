@@ -3,7 +3,7 @@ from django.urls import path
 from django.views.decorators.csrf import ensure_csrf_cookie
 from hydroserver import __version__
 from sta.views import (thing_router, tag_router, photo_router, observed_property_router, processing_level_router,
-                       result_qualifier_router, sensor_router, unit_router)
+                       result_qualifier_router, sensor_router, unit_router, datastream_router)
 
 
 data_api = NinjaAPI(
@@ -21,6 +21,7 @@ data_api.add_router("processing-levels", processing_level_router)
 data_api.add_router("result-qualifiers", result_qualifier_router)
 data_api.add_router("sensors", sensor_router)
 data_api.add_router("units", unit_router)
+data_api.add_router("datastreams", datastream_router)
 
 urlpatterns = [
     path("", data_api.urls),

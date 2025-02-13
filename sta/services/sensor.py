@@ -66,6 +66,10 @@ class SensorService(ServiceUtils):
 
     def delete(self, user: User, uid: uuid.UUID):
         sensor = self.get_sensor_for_action(user=user, uid=uid, action="delete")
+
+        if sensor.datastreams.exists():
+            raise HttpError(409, "Sensor in use by one or more datastreams")
+
         sensor.delete()
 
         return "Sensor deleted"

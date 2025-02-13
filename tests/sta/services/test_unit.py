@@ -147,6 +147,7 @@ def test_edit_unit(get_user, user, unit, message, error_code):
     ("admin", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", None, None),
     ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
     ("admin", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
+    ("admin", "85c4118e-d1cc-4003-bbc5-5c65af802ae0", "Unit in use by one or more datastreams", 409),
     ("editor", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "You do not have permission", 403),
     ("editor", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
     ("editor", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),

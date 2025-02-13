@@ -144,6 +144,7 @@ def test_edit_processing_level(get_user, user, processing_level, message, error_
     ("admin", "1cb782af-6097-4a3f-9988-5fcbfcb5a327", None, None),
     ("admin", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
     ("admin", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
+    ("admin", "a7ff1528-e485-4def-b325-45330c1c448c", "Processing level in use by one or more datastreams", 409),
     ("editor", "1cb782af-6097-4a3f-9988-5fcbfcb5a327", "You do not have permission", 403),
     ("editor", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
     ("editor", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),

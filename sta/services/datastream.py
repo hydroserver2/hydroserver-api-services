@@ -19,6 +19,16 @@ unit_service = UnitService()
 
 class DatastreamService(ServiceUtils):
     @staticmethod
+    def handle_http_404_error(operation, *args, **kwargs):
+        try:
+            return operation(*args, **kwargs)
+        except HttpError as e:
+            if e.status_code == 404:
+                raise HttpError(400, str(e))
+            else:
+                raise e
+
+    @staticmethod
     def get_datastream_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
         try:
             datastream = Datastream.objects.select_related("thing", "thing__workspace").get(pk=uid)
@@ -50,26 +60,27 @@ class DatastreamService(ServiceUtils):
     def get(self, user: Optional[User], uid: uuid.UUID):
         return self.get_datastream_for_action(user=user, uid=uid, action="view")
 
-    @staticmethod
-    def create(user: User, data: DatastreamPostBody):
-        thing = thing_service.get(user=user, uid=data.thing_id)
+    def create(self, user: User, data: DatastreamPostBody):
+        thing = self.handle_http_404_error(thing_service.get, user=user, uid=data.thing_id)
 
         if not Datastream.can_user_create(user=user, workspace=thing.workspace):
             raise HttpError(403, "You do not have permission to create this datastream")
 
-        observed_property = observed_property_service.get(user=user, uid=data.observed_property_id)
+        observed_property = self.handle_http_404_error(observed_property_service.get, user=user,
+                                                       uid=data.observed_property_id)
         if observed_property.workspace not in (thing.workspace, None,):
             raise HttpError(400, "The given observed property cannot be associated with this datastream")
 
-        processing_level = processing_level_service.get(user=user, uid=data.processing_level_id)
+        processing_level = self.handle_http_404_error(processing_level_service.get, user=user,
+                                                      uid=data.processing_level_id)
         if processing_level.workspace not in (thing.workspace, None,):
             raise HttpError(400, "The given processing level cannot be associated with this datastream")
 
-        sensor = sensor_service.get(user=user, uid=data.sensor_id)
+        sensor = self.handle_http_404_error(sensor_service.get, user=user, uid=data.sensor_id)
         if sensor.workspace not in (thing.workspace, None,):
             raise HttpError(400, "The given sensor cannot be associated with this datastream")
 
-        unit = unit_service.get(user=user, uid=data.unit_id)
+        unit = self.handle_http_404_error(unit_service.get, user=user, uid=data.unit_id)
         if unit.workspace not in (thing.workspace, None,):
             raise HttpError(400, "The given unit cannot be associated with this datastream")
 
@@ -83,26 +94,34 @@ class DatastreamService(ServiceUtils):
         datastream = self.get_datastream_for_action(user=user, uid=uid, action="edit")
         datastream_data = data.dict(include=set(DatastreamFields.model_fields.keys()), exclude_unset=True)
 
-        thing = thing_service.get(user=user, uid=data.thing_id) if data.thing_id else None
+        thing = self.handle_http_404_error(
+            thing_service.get, user=user, uid=data.thing_id
+        ) if data.thing_id else None
         if thing and thing.workspace != datastream.thing.workspace:
             raise HttpError(400, "You cannot associate this datastream with a thing in another workspace")
 
-        observed_property = observed_property_service.get(user=user, uid=data.observed_property_id) \
-            if data.observed_property_id else None
-        if observed_property and observed_property.workspace not in (thing.workspace, None,):
+        observed_property = self.handle_http_404_error(
+            observed_property_service.get, user=user, uid=data.observed_property_id
+        ) if data.observed_property_id else None
+        if observed_property and observed_property.workspace not in (datastream.thing.workspace, None,):
             raise HttpError(400, "The given observed property cannot be associated with this datastream")
 
-        processing_level = processing_level_service.get(user=user, uid=data.processing_level_id) \
-            if data.processing_level_id else None
-        if processing_level and processing_level.workspace not in (thing.workspace, None,):
+        processing_level = self.handle_http_404_error(
+            processing_level_service.get, user=user, uid=data.processing_level_id
+        ) if data.processing_level_id else None
+        if processing_level and processing_level.workspace not in (datastream.thing.workspace, None,):
             raise HttpError(400, "The given processing level cannot be associated with this datastream")
 
-        sensor = sensor_service.get(user=user, uid=data.sensor_id) if data.sensor_id else None
-        if sensor and sensor.workspace not in (thing.workspace, None,):
+        sensor = self.handle_http_404_error(
+            sensor_service.get, user=user, uid=data.sensor_id
+        ) if data.sensor_id else None
+        if sensor and sensor.workspace not in (datastream.thing.workspace, None,):
             raise HttpError(400, "The given sensor cannot be associated with this datastream")
 
-        unit = unit_service.get(user=user, uid=data.unit_id) if data.unit_id else None
-        if unit and unit.workspace not in (thing.workspace, None,):
+        unit = self.handle_http_404_error(
+            unit_service.get, user=user, uid=data.unit_id
+        ) if data.unit_id else None
+        if unit and unit.workspace not in (datastream.thing.workspace, None,):
             raise HttpError(400, "The given unit cannot be associated with this datastream")
 
         for field, value in datastream_data.items():

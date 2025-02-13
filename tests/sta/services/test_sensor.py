@@ -147,6 +147,7 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
     ("admin", "a947c551-8e21-4848-a89b-3048aec69574", None, None),
     ("admin", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
     ("admin", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
+    ("admin", "291625d8-0f6e-46d6-918c-6c3af3d345ab", "Sensor in use by one or more datastreams", 409),
     ("editor", "a947c551-8e21-4848-a89b-3048aec69574", "You do not have permission", 403),
     ("editor", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
     ("editor", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
