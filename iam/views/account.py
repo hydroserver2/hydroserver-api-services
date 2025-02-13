@@ -2,13 +2,13 @@ from ninja import Router, Path
 from typing import Literal
 from allauth.headless.account.views import SignupView
 from allauth.headless.constants import Client
-from iam.models import UserType, OrganizationType
 from iam.schemas import AccountGetResponse, AccountPostBody, AccountPatchBody, TypeGetResponse
-from hydroserver.security import anonymous_auth, basic_auth, session_auth
+from iam.services import AccountService
+from hydroserver.security import anonymous_auth, bearer_auth, session_auth
 from hydroserver.http import HydroServerHttpRequest
 
-
 account_router = Router(tags=["Account"])
+account_service = AccountService()
 
 signup_view = {
     "browser": SignupView.as_api_view(client=Client.BROWSER),
@@ -18,7 +18,7 @@ signup_view = {
 
 @account_router.get(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
         200: AccountGetResponse,
         401: str,
@@ -30,7 +30,7 @@ def get_account(request: HydroServerHttpRequest, client: Path[Literal["browser",
     Get user account details.
     """
 
-    return request.authenticated_user
+    return 200, account_service.get(user=request.authenticated_user)
 
 
 @account_router.post(
@@ -58,9 +58,9 @@ def create_account(request, client: Path[Literal["browser", "app"]], data: Accou
 
 @account_router.patch(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
-        203: AccountGetResponse,
+        200: AccountGetResponse,
         401: str,
         422: str
     },
@@ -71,16 +71,17 @@ def update_account(request: HydroServerHttpRequest, client: Path[Literal["browse
     Update user account details.
     """
 
-    data.save(user=request.authenticated_user)
-
-    return 203, request.authenticated_user
+    return 200, account_service.update(
+        user=request.authenticated_user,
+        data=data
+    )
 
 
 @account_router.delete(
     "",
-    auth=[session_auth, basic_auth],
+    auth=[session_auth, bearer_auth],
     response={
-        204: None,
+        204: str,
         401: str
     }
 )
@@ -89,7 +90,9 @@ def delete_account(request: HydroServerHttpRequest, client: Path[Literal["browse
     Delete a user account.
     """
 
-    request.authenticated_user.delete()
+    return 204, account_service.delete(
+        user=request.authenticated_user,
+    )
 
 
 @account_router.get(
@@ -105,7 +108,4 @@ def get_types(request, client: Path[Literal["browser", "app"]]):
     Get allowed user and organization types.
     """
 
-    return {
-        "user_types": UserType.objects.filter(public=True).values_list("name", flat=True),
-        "organization_types": OrganizationType.objects.filter(public=True).values_list("name", flat=True),
-    }
+    return 200, account_service.get_types()

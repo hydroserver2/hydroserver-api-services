@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Optional
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
@@ -8,7 +9,7 @@ from django.conf import settings
 
 class UserManager(BaseUserManager):
     def get_queryset(self):
-        return super().get_queryset().select_related('_user_type', 'organization', 'organization___organization_type')
+        return super().get_queryset().select_related('organization')
 
     def create_user(self, email, password, **extra_fields):
         if email is None:
@@ -28,14 +29,9 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, **extra_fields):
-        user_type, _ = UserType.objects.get_or_create(
-            name="Admin",
-            defaults={"public": False}
-        )
-
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("_user_type", user_type)
+        extra_fields.setdefault("user_type", "Admin")
 
         user = self.create_user(email, password, **extra_fields)
 
@@ -55,7 +51,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(max_length=2000, blank=True, null=True)
-    _user_type = models.ForeignKey("UserType", on_delete=models.PROTECT, db_column="user_type_id")
+    user_type = models.CharField(max_length=255)
     organization = models.OneToOneField("Organization", on_delete=models.SET_NULL, blank=True, null=True,
                                         related_name="user")
     is_ownership_allowed = models.BooleanField(default=False)
@@ -66,6 +62,14 @@ class User(AbstractUser):
         return SimpleNamespace(enabled=lambda: False)
 
     @property
+    def name(self):
+        return self.__str__
+
+    @property
+    def organization_name(self):
+        return self.organization.name if self.organization else None
+
+    @property
     def account_type(self):
         if self.is_superuser:
             return "admin"
@@ -73,17 +77,6 @@ class User(AbstractUser):
             return "standard"
         else:
             return "limited"
-
-    @property
-    def user_type(self):
-        return self._user_type.name
-
-    @user_type.setter
-    def user_type(self, value):
-        try:
-            self._user_type = None if value is None else UserType.objects.get(name=value)
-        except UserType.DoesNotExist:
-            raise ValueError(f"'{value}' is not an allowed user type.")
 
     objects = UserManager()
 
@@ -96,7 +89,21 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+        self.delete_contents(filter_arg=self, filter_suffix="")
+
+        if self.organization:
+            self.organization.delete()
+
         super().delete(*args, **kwargs)
+
+    @staticmethod
+    def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
+        from iam.models import Workspace, Collaborator
+
+        Collaborator.objects.filter(**{f"user__{filter_suffix}" if filter_suffix else "user": filter_arg}).delete()
+        Workspace.delete_contents(filter_arg=filter_arg,
+                                  filter_suffix=f"owner__{filter_suffix}" if filter_suffix else "owner")
+        Workspace.objects.filter(**{f"owner__{filter_suffix}" if filter_suffix else "owner": filter_arg}).delete()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()

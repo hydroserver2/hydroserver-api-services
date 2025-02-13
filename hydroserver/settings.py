@@ -67,8 +67,8 @@ INSTALLED_APPS = [
     "sensorthings",
     "storages",
     "iam.apps.IamConfig",
-    "core.apps.CoreConfig",
-    "stapi.apps.SensorthingsConfig",
+    "sta.apps.StaConfig",
+    "etl.apps.EtlConfig",
 ]
 
 MIDDLEWARE = [
@@ -109,7 +109,7 @@ WSGI_APPLICATION = "hydroserver.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config("DATABASE_URL", default=f"sqlite:///db.sqlite3")
+os.environ["DATABASE_URL"] = config("DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver")
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -138,7 +138,7 @@ ACCOUNT_OWNERSHIP_ENABLED = config("ACCOUNT_OWNERSHIP_ENABLED", default=True, ca
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"

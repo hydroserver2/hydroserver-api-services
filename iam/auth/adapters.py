@@ -2,6 +2,7 @@ from django.http import HttpRequest
 from django.conf import settings
 from allauth.account.adapter import DefaultAccountAdapter
 from iam.schemas import AccountPatchBody
+from iam.services import AccountService
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -22,6 +23,6 @@ class AccountAdapter(DefaultAccountAdapter):
                 "organization": data.get("organization") or None,
             }
         )
-        account.save(user)
+        user = AccountService.update(user=user, data=account)
 
         return user

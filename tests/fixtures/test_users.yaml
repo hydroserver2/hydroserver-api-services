@@ -1,0 +1,111 @@
+# Owner User
+- model: iam.user
+  pk: 1000000010
+  fields:
+    is_superuser: false
+    username: owner@example.com
+    first_name: Owner
+    last_name: Johnson
+    is_staff: false
+    is_active: true
+    email: owner@example.com
+    user_type: Other
+    is_ownership_allowed: true
+
+# Editor User
+- model: iam.user
+  pk: 1000000011
+  fields:
+    is_superuser: false
+    username: editor@example.com
+    first_name: Editor
+    last_name: Smith
+    is_staff: false
+    is_active: true
+    email: editor@example.com
+    user_type: Other
+    is_ownership_allowed: true
+
+# Viewer User
+- model: iam.user
+  pk: 1000000012
+  fields:
+    is_superuser: false
+    username: viewer@example.com
+    first_name: Viewer
+    last_name: Davis
+    is_staff: false
+    is_active: true
+    email: viewer@example.com
+    user_type: Other
+    is_ownership_allowed: true
+
+# Anonymous User
+- model: iam.user
+  pk: 1000000013
+  fields:
+    is_superuser: false
+    username: anonymous@example.com
+    first_name: Anonymous
+    last_name: Anderson
+    is_staff: false
+    is_active: true
+    email: anonymous@example.com
+    user_type: Other
+    is_ownership_allowed: true
+
+# Limited User
+- model: iam.user
+  pk: 1000000015
+  fields:
+    is_superuser: false
+    username: limited@example.com
+    first_name: Limited
+    last_name: Taylor
+    is_staff: false
+    is_active: true
+    email: limited@example.com
+    user_type: Other
+    is_ownership_allowed: false
+
+# Inactive User
+- model: iam.user
+  pk: 1000000016
+  fields:
+    is_superuser: false
+    username: inactive@example.com
+    first_name: Inactive
+    last_name: Wilson
+    is_staff: false
+    is_active: false
+    email: inactive@example.com
+    user_type: Other
+    is_ownership_allowed: false
+
+# Admin User
+- model: iam.user
+  pk: 1000000017
+  fields:
+    is_superuser: true
+    username: admin@example.com
+    first_name: Admin
+    last_name: Thomas
+    is_staff: true
+    is_active: true
+    email: admin@example.com
+    user_type: Other
+    is_ownership_allowed: true
+
+# Staff User
+- model: iam.user
+  pk: 1000000018
+  fields:
+    is_superuser: false
+    username: staff@example.com
+    first_name: Staff
+    last_name: Lee
+    is_staff: true
+    is_active: true
+    email: staff@example.com
+    user_type: Other
+    is_ownership_allowed: true

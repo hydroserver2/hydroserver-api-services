@@ -4,7 +4,6 @@ from allauth.headless.account.views import RequestPasswordResetView, ResetPasswo
 from allauth.headless.constants import Client
 from iam.schemas import RequestResetPasswordPostBody, ResetPasswordPostBody
 
-
 password_router = Router(tags=["Password"])
 
 password_reset_request_view = {

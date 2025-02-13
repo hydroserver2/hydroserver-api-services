@@ -1,5 +1,6 @@
 from django import forms
 from iam.schemas import AccountPatchBody
+from iam.services import AccountService
 
 
 class UserSignupForm(forms.Form):
@@ -24,4 +25,4 @@ class UserSignupForm(forms.Form):
 
     def signup(self, request, user):
         account = AccountPatchBody(**self.cleaned_data)
-        account.save(user)
+        AccountService.update(user=user, data=account)
