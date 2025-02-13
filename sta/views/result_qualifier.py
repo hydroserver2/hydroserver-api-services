@@ -103,9 +103,10 @@ def update_result_qualifier(request: HydroServerHttpRequest, result_qualifier_id
     "/{result_qualifier_id}",
     auth=[session_auth, bearer_auth],
     response={
-        204: None,
+        204: str,
         401: str,
         403: str,
+        409: str,
     },
     by_alias=True
 )

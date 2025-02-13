@@ -36,7 +36,9 @@ def get_processing_levels(request: HydroServerHttpRequest, workspace_id: Optiona
     auth=[session_auth, bearer_auth],
     response={
         201: ProcessingLevelGetResponse,
+        400: str,
         401: str,
+        403: str,
         422: str,
     },
     by_alias=True
@@ -80,6 +82,7 @@ def get_processing_level(request: HydroServerHttpRequest, processing_level_id: P
     auth=[session_auth, bearer_auth],
     response={
         200: ProcessingLevelGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -103,9 +106,10 @@ def update_processing_level(request: HydroServerHttpRequest, processing_level_id
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth],
     response={
-        204: None,
+        204: str,
         401: str,
         403: str,
+        409: str,
     },
     by_alias=True
 )

@@ -36,6 +36,7 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     auth=[session_auth, bearer_auth],
     response={
         201: PhotoGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -61,6 +62,7 @@ def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: 
     auth=[session_auth, bearer_auth],
     response={
         200: PhotoGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -86,6 +88,7 @@ def edit_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data:
     auth=[session_auth, bearer_auth],
     response={
         204: str,
+        400: str,
         401: str,
         403: str,
         422: str,

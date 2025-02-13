@@ -36,7 +36,9 @@ def get_observed_properties(request: HydroServerHttpRequest, workspace_id: Optio
     auth=[session_auth, bearer_auth],
     response={
         201: ObservedPropertyGetResponse,
+        400: str,
         401: str,
+        403: str,
         422: str,
     },
     by_alias=True
@@ -80,6 +82,7 @@ def get_observed_property(request: HydroServerHttpRequest, observed_property_id:
     auth=[session_auth, bearer_auth],
     response={
         200: ObservedPropertyGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -103,9 +106,10 @@ def update_observed_property(request: HydroServerHttpRequest, observed_property_
     "/{observed_property_id}",
     auth=[session_auth, bearer_auth],
     response={
-        204: None,
+        204: str,
         401: str,
         403: str,
+        409: str,
     },
     by_alias=True
 )

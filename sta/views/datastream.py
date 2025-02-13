@@ -38,7 +38,9 @@ def get_datastreams(request: HydroServerHttpRequest, workspace_id: Optional[uuid
     auth=[session_auth, bearer_auth],
     response={
         201: DatastreamGetResponse,
+        400: str,
         401: str,
+        403: str,
         422: str,
     },
     by_alias=True
@@ -82,6 +84,7 @@ def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUI
     auth=[session_auth, bearer_auth],
     response={
         200: DatastreamGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -105,7 +108,7 @@ def update_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
     "/{datastream_id}",
     auth=[session_auth, bearer_auth],
     response={
-        204: None,
+        204: str,
         401: str,
         403: str,
     },

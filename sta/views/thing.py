@@ -36,6 +36,7 @@ def get_things(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID
     auth=[session_auth, bearer_auth],
     response={
         201: ThingGetResponse,
+        400: str,
         401: str,
         422: str,
     },
@@ -80,6 +81,7 @@ def get_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     auth=[session_auth, bearer_auth],
     response={
         200: ThingGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -103,7 +105,7 @@ def update_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], dat
     "/{thing_id}",
     auth=[session_auth, bearer_auth],
     response={
-        204: None,
+        204: str,
         401: str,
         403: str,
     },

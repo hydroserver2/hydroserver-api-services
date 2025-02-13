@@ -35,6 +35,7 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     auth=[session_auth, bearer_auth],
     response={
         201: TagGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -58,6 +59,7 @@ def add_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: Ta
     auth=[session_auth, bearer_auth],
     response={
         200: TagGetResponse,
+        400: str,
         401: str,
         403: str,
         422: str,
@@ -81,6 +83,7 @@ def edit_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: T
     auth=[session_auth, bearer_auth],
     response={
         204: str,
+        400: str,
         401: str,
         403: str,
         422: str,
