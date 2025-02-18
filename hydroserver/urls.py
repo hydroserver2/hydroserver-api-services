@@ -2,9 +2,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from hydroserver.views import index
+from hydroserver.views import index, load_test_data, load_default_data
 
 urlpatterns = [
+    path("admin/actions/load-test-data/", load_test_data, name="load_test_data"),
+    path("admin/actions/load-default-data/", load_default_data, name="load_default_data"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("api/auth/", include("iam.urls")),
