@@ -1,5 +1,5 @@
 from .thing import thing_router
-from .tag import tag_router
+from .tag import tag_router, tag_key_router
 from .photo import photo_router
 from .observed_property import observed_property_router
 from .processing_level import processing_level_router

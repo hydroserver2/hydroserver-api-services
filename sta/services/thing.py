@@ -97,6 +97,18 @@ class ThingService(ServiceUtils):
 
         return thing.tags
 
+    @staticmethod
+    def get_tag_keys(user: Optional[User], workspace_id: Optional[uuid.UUID], thing_id: Optional[uuid.UUID]):
+        queryset = Tag.objects
+
+        if workspace_id:
+            queryset = queryset.filter(thing__workspace_id=workspace_id)
+
+        if thing_id:
+            queryset = queryset.filter(thing_id=thing_id)
+
+        return list(queryset.visible(user=user).values_list("key", flat=True).distinct())
+
     def add_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
 
