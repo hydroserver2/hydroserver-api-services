@@ -28,12 +28,6 @@
     thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
     key: Test Public Key
     value: Test Public Value
-- model: sta.photo
-  pk: 1000000010
-  fields:
-    thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
-    name: Photo
-    photo: photos/3b7818af-eff7-4149-8517-e5cad9dc22e1/Photo.jpeg
 
 # Private Thing
 - model: sta.thing
@@ -65,12 +59,6 @@
     thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
     key: Test Private Key
     value: Test Private Value
-- model: sta.photo
-  pk: 1000000011
-  fields:
-    thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
-    name: Photo
-    photo: photos/76dadda5-224b-4e1f-8570-e385bd482b2d/Photo.jpeg
 
 # Private Thing in Public Workspace
 - model: sta.thing
@@ -102,12 +90,6 @@
     thing: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
     key: Test Private Key
     value: Test Private Value
-- model: sta.photo
-  pk: 1000000012
-  fields:
-    thing: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
-    name: Photo
-    photo: photos/92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7/Photo.jpeg
 
 # Public Thing in Private Workspace
 - model: sta.thing
@@ -139,9 +121,3 @@
     thing: 819260c8-2543-4046-b8c4-7431243ed7c5
     key: Test Private Key
     value: Test Private Value
-- model: sta.photo
-  pk: 1000000013
-  fields:
-    thing: 819260c8-2543-4046-b8c4-7431243ed7c5
-    name: Photo
-    photo: photos/819260c8-2543-4046-b8c4-7431243ed7c5/Photo.jpeg

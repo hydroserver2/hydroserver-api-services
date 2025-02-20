@@ -3,7 +3,7 @@ from ninja import Router, Path, File
 from ninja.files import UploadedFile
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from sta.schemas import PhotoGetResponse, PhotoPostBody, PhotoDeleteBody
+from sta.schemas import PhotoGetResponse, PhotoDeleteBody
 from sta.services import ThingService
 
 photo_router = Router(tags=["Photos"])
@@ -39,12 +39,12 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
         400: str,
         401: str,
         403: str,
+        413: str,
         422: str,
     },
     by_alias=True
 )
-def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: PhotoPostBody,
-              file: UploadedFile = File(...)):
+def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], file: UploadedFile = File(...)):
     """
     Add a photo to a thing.
     """
@@ -52,33 +52,6 @@ def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: 
     return 201, thing_service.add_photo(
         user=request.authenticated_user,
         uid=thing_id,
-        data=data,
-        file=file
-    )
-
-
-@photo_router.put(
-    "",
-    auth=[session_auth, bearer_auth],
-    response={
-        200: PhotoGetResponse,
-        400: str,
-        401: str,
-        403: str,
-        422: str,
-    },
-    by_alias=True
-)
-def edit_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: PhotoPostBody,
-               file: UploadedFile = File(...)):
-    """
-    Edit a photo of a Thing.
-    """
-
-    return 200, thing_service.update_photo(
-        user=request.authenticated_user,
-        uid=thing_id,
-        data=data,
         file=file
     )
 
