@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "iam.auth.providers.hydroshare",
     "iam.auth.providers.orcidsandbox",
     "corsheaders",
+    "easyaudit",
     "sensorthings",
     "storages",
     "iam.apps.IamConfig",
@@ -82,6 +83,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     "sensorthings.middleware.SensorThingsMiddleware",
 ]
 
@@ -178,6 +180,19 @@ EMAIL_HOST_USER = EMAIL_CONFIG["EMAIL_HOST_USER"]
 EMAIL_HOST_PASSWORD = EMAIL_CONFIG["EMAIL_HOST_PASSWORD"]
 EMAIL_USE_TLS = EMAIL_CONFIG["EMAIL_USE_TLS"]
 EMAIL_USE_SSL = EMAIL_CONFIG["EMAIL_USE_SSL"]
+
+
+# Audit Settings
+
+ENABLE_AUDITS = config("ENABLE_AUDITS", default=False, cast=bool)
+
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = ENABLE_AUDITS
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+DJANGO_EASY_AUDIT_ADMIN_SHOW_MODEL_EVENTS = ENABLE_AUDITS
+DJANGO_EASY_AUDIT_ADMIN_SHOW_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_ADMIN_SHOW_REQUEST_EVENTS = False
 
 
 # Password validation
