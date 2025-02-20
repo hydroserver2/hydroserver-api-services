@@ -1,9 +1,12 @@
 import json
 from ninja import Router, Path
 from typing import Literal
+from django.contrib.auth import get_user_model
 from allauth.headless.account.views import LoginView, SessionView
 from allauth.headless.constants import Client
 from iam.schemas import AccountGetResponse, SessionPostBody
+
+User = get_user_model()
 
 session_router = Router(tags=["Session"])
 
@@ -70,7 +73,11 @@ def create_session(request, client: Path[Literal["browser", "app"]], data: Sessi
 
     if response.status_code == 200:
         response_content = json.loads(response.content)
-        response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        if not request.user.is_authenticated:
+            user = User.objects.get(pk=response_content["data"]["user"]["id"])
+        else:
+            user = request.user
+        response_content["data"]["account"] = AccountGetResponse.from_orm(user).dict(by_alias=True)
         response.content = json.dumps(response_content)
 
     return response
