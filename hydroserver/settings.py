@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "iam.auth.providers.hydroshare",
     "iam.auth.providers.orcidsandbox",
     "corsheaders",
+    "easyaudit",
     "sensorthings",
     "storages",
     "iam.apps.IamConfig",
@@ -82,6 +83,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     "sensorthings.middleware.SensorThingsMiddleware",
 ]
 
@@ -180,6 +182,19 @@ EMAIL_USE_TLS = EMAIL_CONFIG["EMAIL_USE_TLS"]
 EMAIL_USE_SSL = EMAIL_CONFIG["EMAIL_USE_SSL"]
 
 
+# Audit Settings
+
+ENABLE_AUDITS = config("ENABLE_AUDITS", default=False, cast=bool)
+
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = ENABLE_AUDITS
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+DJANGO_EASY_AUDIT_ADMIN_SHOW_MODEL_EVENTS = ENABLE_AUDITS
+DJANGO_EASY_AUDIT_ADMIN_SHOW_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_ADMIN_SHOW_REQUEST_EVENTS = False
+
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -208,6 +223,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 if DEPLOYMENT_BACKEND == "aws":
     AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
+    AWS_DEFAULT_ACL = "private"
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3.S3Storage",
@@ -227,7 +243,7 @@ if DEPLOYMENT_BACKEND == "aws":
 elif DEPLOYMENT_BACKEND == "gcp":
     GS_PROJECT_ID = config("GS_PROJECT_ID", default=None)
     GS_CUSTOM_ENDPOINT = PROXY_BASE_URL
-    GS_DEFAULT_ACL = "publicRead"
+    GS_DEFAULT_ACL = "authenticatedRead"
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",

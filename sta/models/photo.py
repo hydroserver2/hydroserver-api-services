@@ -1,6 +1,6 @@
 import typing
 from django.db import models
-from django.core.files.storage import storages
+from django.conf import settings
 from iam.models.utils import PermissionChecker
 from .thing import Thing
 
@@ -10,11 +10,23 @@ if typing.TYPE_CHECKING:
     User = get_user_model()
 
 
+def photo_storage_path(instance, filename):
+    return f"photos/{instance.thing.id}/{filename}"
+
+
 class Photo(models.Model, PermissionChecker):
     thing = models.ForeignKey(Thing, related_name="photos", on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=255)
-    photo = models.FileField(upload_to="photos", storage=storages.backends["default"])
+    photo = models.FileField(upload_to=photo_storage_path)
 
     @property
     def link(self):
-        return "https://www.example.com/photo.jpeg"
+        storage = self.photo.storage
+
+        try:
+            return settings.PROXY_BASE_URL + storage.url(self.photo.name, expire=3600)
+        except TypeError:
+            return settings.PROXY_BASE_URL + storage.url(self.photo.name)
+
+    class Meta:
+        unique_together = ("thing", "name")

@@ -1,11 +1,13 @@
 import uuid
 from ninja import Router, Path
+from typing import Optional
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import TagGetResponse, TagPostBody, TagDeleteBody
 from sta.services import ThingService
 
 tag_router = Router(tags=["Tags"])
+tag_key_router = Router(tags=["Tags"])
 thing_service = ThingService()
 
 
@@ -27,6 +29,27 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     return 200, thing_service.get_tags(
         user=request.authenticated_user,
         uid=thing_id,
+    )
+
+
+@tag_key_router.get(
+    "keys",
+    auth=[session_auth, bearer_auth, anonymous_auth],
+    response={
+        200: list[str],
+        401: str,
+    }
+)
+def get_tag_keys(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None,
+                 thing_id: Optional[uuid.UUID] = None):
+    """
+    Get all existing unique tag keys.
+    """
+
+    return 200, thing_service.get_tag_keys(
+        user=request.authenticated_user,
+        workspace_id=workspace_id,
+        thing_id=thing_id,
     )
 
 

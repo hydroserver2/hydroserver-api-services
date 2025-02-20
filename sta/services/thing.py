@@ -4,7 +4,7 @@ from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from iam.services.utils import ServiceUtils
 from sta.models import Thing, Location, Tag, Photo
-from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody, PhotoPostBody, PhotoDeleteBody
+from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody, PhotoDeleteBody
 from sta.schemas.thing import ThingFields, LocationFields
 
 User = get_user_model()
@@ -35,7 +35,7 @@ class ThingService(ServiceUtils):
         if workspace_id:
             queryset = queryset.filter(workspace_id=workspace_id)
 
-        return queryset.visible(user=user).prefetch_related("tags", "photos").with_location().distinct()
+        return queryset.visible(user=user).prefetch_related("tags").with_location().distinct()
 
     def get(self, user: Optional[User], uid: uuid.UUID):
         return self.get_thing_for_action(user=user, uid=uid, action="view")
@@ -97,6 +97,18 @@ class ThingService(ServiceUtils):
 
         return thing.tags
 
+    @staticmethod
+    def get_tag_keys(user: Optional[User], workspace_id: Optional[uuid.UUID], thing_id: Optional[uuid.UUID]):
+        queryset = Tag.objects
+
+        if workspace_id:
+            queryset = queryset.filter(thing__workspace_id=workspace_id)
+
+        if thing_id:
+            queryset = queryset.filter(thing_id=thing_id)
+
+        return list(queryset.visible(user=user).values_list("key", flat=True).distinct())
+
     def add_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
 
@@ -135,17 +147,23 @@ class ThingService(ServiceUtils):
 
         return thing.photos
 
-    def add_photo(self, user: User, uid: uuid.UUID, data: PhotoPostBody, file):
+    def add_photo(self, user: User, uid: uuid.UUID, file):
         thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
 
-        return thing.photos
+        if Photo.objects.filter(thing=thing, name=file.name).exists():
+            raise HttpError(400, "Photo already exists")
 
-    def update_photo(self, user: User, uid: uuid.UUID, data: PhotoPostBody, file):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
-
-        return thing.photos
+        return Photo.objects.create(thing=thing, name=file.name, photo=file)
 
     def remove_photo(self, user: User, uid: uuid.UUID, data: PhotoDeleteBody):
         thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
 
-        return thing.photos
+        try:
+            photo = Photo.objects.get(thing=thing, name=data.name)
+        except Photo.DoesNotExist:
+            raise HttpError(404, "Photo does not exist")
+
+        photo.photo.delete()
+        photo.delete()
+
+        return "Photo deleted"
