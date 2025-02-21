@@ -24,9 +24,14 @@ class Photo(models.Model, PermissionChecker):
         storage = self.photo.storage
 
         try:
-            return settings.PROXY_BASE_URL + storage.url(self.photo.name, expire=3600)
+            photo_link = storage.url(self.photo.name, expire=3600)
         except TypeError:
-            return settings.PROXY_BASE_URL + storage.url(self.photo.name)
+            photo_link = storage.url(self.photo.name)
+
+        if settings.DEPLOYMENT_BACKEND == "local":
+            photo_link = settings.PROXY_BASE_URL + photo_link
+
+        return photo_link
 
     class Meta:
         unique_together = ("thing", "name")

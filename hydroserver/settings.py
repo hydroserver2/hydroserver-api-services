@@ -224,6 +224,8 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 if DEPLOYMENT_BACKEND == "aws":
     AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
     AWS_DEFAULT_ACL = "private"
+    AWS_CLOUDFRONT_KEY = config("AWS_CLOUDFRONT_KEY", default="").encode("ascii")
+    AWS_CLOUDFRONT_KEY_ID = config("AWS_CLOUDFRONT_KEY_ID", default=None)
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3.S3Storage",
