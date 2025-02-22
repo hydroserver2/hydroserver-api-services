@@ -5,3 +5,4 @@ from .result_qualifier import ResultQualifierService
 from .sensor import SensorService
 from .unit import UnitService
 from .datastream import DatastreamService
+from .observation import ObservationService
