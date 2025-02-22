@@ -18,6 +18,7 @@ class Command(BaseCommand):
             "tests/fixtures/test_sensors.yaml",
             "tests/fixtures/test_units.yaml",
             "tests/fixtures/test_datastreams.yaml",
+            "tests/fixtures/test_observations.yaml",
         ]
 
         for fixture in fixtures:

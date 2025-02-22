@@ -194,6 +194,8 @@ DJANGO_EASY_AUDIT_ADMIN_SHOW_MODEL_EVENTS = ENABLE_AUDITS
 DJANGO_EASY_AUDIT_ADMIN_SHOW_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_ADMIN_SHOW_REQUEST_EVENTS = False
 
+DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = ["sta.Observation"]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -293,5 +295,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # SensorThings Configuration
 
 ST_API_PREFIX = "api/sensorthings"
-ST_API_ID_QUALIFIER = "\""
+ST_API_ID_QUALIFIER = "'"
 ST_API_ID_TYPE = UUID
