@@ -225,7 +225,6 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 if DEPLOYMENT_BACKEND == "aws":
     AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
-    AWS_DEFAULT_ACL = "private"
     AWS_CLOUDFRONT_KEY = config("AWS_CLOUDFRONT_KEY", default="").encode("ascii")
     AWS_CLOUDFRONT_KEY_ID = config("AWS_CLOUDFRONT_KEY_ID", default=None)
     STORAGES = {
@@ -233,34 +232,37 @@ if DEPLOYMENT_BACKEND == "aws":
             "BACKEND": "storages.backends.s3.S3Storage",
             "OPTIONS": {
                 "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
-                "location": "media"
+                "location": "media",
+                "default_acl": "private"
             },
         },
         "staticfiles": {
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
             "OPTIONS": {
                 "bucket_name": config("STATIC_BUCKET_NAME", default=None),
-                "location": "static"
+                "location": "static",
+                "default_acl": "public-read"
             },
         }
     }
 elif DEPLOYMENT_BACKEND == "gcp":
     GS_PROJECT_ID = config("GS_PROJECT_ID", default=None)
     GS_CUSTOM_ENDPOINT = PROXY_BASE_URL
-    GS_DEFAULT_ACL = "authenticatedRead"
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
             "OPTIONS": {
                 "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
-                "location": "media"
+                "location": "media",
+                "default_acl": "authenticatedRead"
             },
         },
         "staticfiles": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
             "OPTIONS": {
                 "bucket_name": config("STATIC_BUCKET_NAME", default=None),
-                "location": "static"
+                "location": "static",
+                "default_acl": "publicRead"
             },
         }
     }
