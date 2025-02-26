@@ -255,7 +255,7 @@ elif DEPLOYMENT_BACKEND == "gcp":
             "OPTIONS": {
                 "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
                 "location": "media",
-                "default_acl": "authenticatedRead"
+                "default_acl": "publicRead"
             },
         },
         "staticfiles": {
