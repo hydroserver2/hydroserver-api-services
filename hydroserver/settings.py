@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.orcid",
     "iam.auth.providers.hydroshare",
     "iam.auth.providers.orcidsandbox",
+    "iam.auth.providers.utahid",
     "corsheaders",
     "easyaudit",
     "sensorthings",
