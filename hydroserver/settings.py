@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.orcid",
     "iam.auth.providers.hydroshare",
     "iam.auth.providers.orcidsandbox",
+    "iam.auth.providers.utahid",
     "corsheaders",
     "easyaudit",
     "sensorthings",
@@ -254,7 +255,7 @@ elif DEPLOYMENT_BACKEND == "gcp":
             "OPTIONS": {
                 "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
                 "location": "media",
-                "default_acl": "authenticatedRead"
+                "default_acl": "publicRead"
             },
         },
         "staticfiles": {
