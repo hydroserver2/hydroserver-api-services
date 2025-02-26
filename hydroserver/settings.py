@@ -240,7 +240,8 @@ if DEPLOYMENT_BACKEND == "aws":
             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
             "OPTIONS": {
                 "bucket_name": config("STATIC_BUCKET_NAME", default=None),
-                "location": "static"
+                "location": "static",
+                "default_acl": None
             },
         }
     }
