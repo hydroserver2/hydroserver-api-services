@@ -36,7 +36,7 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     "keys",
     auth=[session_auth, bearer_auth, anonymous_auth],
     response={
-        200: list[str],
+        200: dict[str, list[str]],
         401: str,
     }
 )
