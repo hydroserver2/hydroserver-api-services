@@ -38,7 +38,7 @@ def test_list_role(get_user, user, workspace, length, message, error_code):
 @pytest.mark.parametrize("user, workspace, role, message, error_code", [
     ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", "60b9d8b1-28d1-4d0d-9bee-4e47219d0118", "Private", None),
     ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", "60b9d8b1-28d1-4d0d-9bee-4e47219d0118", "Private", None),
-    ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", "a7701d22-e716-4584-a18c-055c8c4f2bd6", "Editor", None),
+    ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", "2f05f775-5d8a-4778-9942-3d13a64ec7a3", "Editor", None),
     ("owner", "00000000-0000-0000-0000-000000000000", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace does not exist", 404),
     ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", "00000000-0000-0000-0000-000000000000", "Role does not exist", 404),
     ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "60b9d8b1-28d1-4d0d-9bee-4e47219d0118", "Workspace does not exist", 404),

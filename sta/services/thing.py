@@ -2,6 +2,8 @@ import uuid
 from typing import Optional, Literal
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import F
 from iam.services.utils import ServiceUtils
 from sta.models import Thing, Location, Tag, Photo
 from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody, PhotoDeleteBody
@@ -107,7 +109,9 @@ class ThingService(ServiceUtils):
         if thing_id:
             queryset = queryset.filter(thing_id=thing_id)
 
-        return list(queryset.visible(user=user).values_list("key", flat=True).distinct())
+        tags = queryset.visible(user=user).values("key").annotate(values=ArrayAgg(F("value"), distinct=True))
+
+        return {entry["key"]: entry["values"] for entry in tags}
 
     def add_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
