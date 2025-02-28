@@ -41,6 +41,7 @@ def get_session(request, client: Path[Literal["browser", "app"]]):
     if response.status_code == 200:
         response_content = json.loads(response.content)
         response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        response_content["meta"]["expires"] = str(request.session.get_expiry_date())
         response.content = json.dumps(response_content)
 
     if response.status_code == 401 and request.session.exists(request.session.session_key):
