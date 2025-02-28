@@ -71,7 +71,14 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                         "sensor_manufacturer": sensor.manufacturer
                     },
                 },
-                "properties": {}
+                "properties": {
+                    "workspace": {
+                        "id": sensor.workspace.id,
+                        "name": sensor.workspace.name,
+                        "link": sensor.workspace.link,
+                        "is_private": sensor.workspace.is_private
+                    } if sensor.workspace else None,
+                }
             } for sensor in sensors
         }, count
 

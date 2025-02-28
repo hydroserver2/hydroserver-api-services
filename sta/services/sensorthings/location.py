@@ -84,6 +84,12 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                     "elevation_datum": location.elevation_datum,
                     "state": location.state,
                     "county": location.county,
+                    "workspace": {
+                        "id": location.thing.workspace.id,
+                        "name": location.thing.workspace.name,
+                        "link": location.thing.workspace.link,
+                        "is_private": location.thing.workspace.is_private
+                    }
                 },
                 "thing_ids": [location.thing_id]
             } for location in locations

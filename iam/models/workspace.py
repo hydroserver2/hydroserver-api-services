@@ -48,6 +48,10 @@ class Workspace(models.Model):
     objects = WorkspaceQueryset.as_manager()
 
     @property
+    def link(self):
+        return f"{settings.PROXY_BASE_URL}/api/auth/workspaces/{self.id}"
+
+    @property
     def transfer_details(self):
         return getattr(self, "transfer_confirmation", None)
 

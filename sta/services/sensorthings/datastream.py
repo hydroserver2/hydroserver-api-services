@@ -122,6 +122,12 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                     "aggregation_statistic": datastream.aggregation_statistic,
                     "time_aggregation_interval": datastream.time_aggregation_interval,
                     "time_aggregation_interval_unit_of_measurement": datastream.time_aggregation_interval_unit,
+                    "workspace": {
+                        "id": datastream.thing.workspace.id,
+                        "name": datastream.thing.workspace.name,
+                        "link": datastream.thing.workspace.link,
+                        "is_private": datastream.thing.workspace.is_private
+                    }
                 }
             } for datastream in datastreams
         }, count

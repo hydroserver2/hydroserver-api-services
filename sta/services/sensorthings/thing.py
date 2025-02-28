@@ -33,7 +33,7 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
         if location_ids:
             things = things.filter(locations__id__in=location_ids)
 
-        things = things.prefetch_related("locations").visible(user=self.request.authenticated_user)  # noqa
+        things = things.prefetch_related("locations", "photos", "tags").visible(user=self.request.authenticated_user)  # noqa
 
         if filters:
             things = self.apply_filters(
@@ -72,6 +72,16 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                     "sampling_feature_type": thing.sampling_feature_type,
                     "sampling_feature_code": thing.sampling_feature_code,
                     "site_type": thing.site_type,
+                    "data_disclaimer": thing.data_disclaimer,
+                    "is_private": thing.is_private,
+                    "workspace": {
+                        "id": thing.workspace.id,
+                        "name": thing.workspace.name,
+                        "link": thing.workspace.link,
+                        "is_private": thing.workspace.is_private
+                    },
+                    "tags": {tag.key: tag.value for tag in thing.tags.all()},
+                    "photos": [photo.link for photo in thing.photos.all()]
                 },
                 "location_ids": [location.id for location in thing.locations.all()],
             } for thing in things

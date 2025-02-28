@@ -65,6 +65,12 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 "properties": {
                     "variable_code": observed_property.code,
                     "variable_type": observed_property.observed_property_type,
+                    "workspace": {
+                        "id": observed_property.workspace.id,
+                        "name": observed_property.workspace.name,
+                        "link": observed_property.workspace.link,
+                        "is_private": observed_property.workspace.is_private
+                    } if observed_property.workspace else None
                 }
             } for observed_property in observed_properties
         }, count

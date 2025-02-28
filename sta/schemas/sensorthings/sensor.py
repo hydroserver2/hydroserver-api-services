@@ -5,6 +5,7 @@ from typing import Literal, Optional
 from sensorthings.types import AnyHttpUrlString
 from sensorthings.components.sensors.schemas import (SensorGetResponse as DefaultSensorGetResponse,
                                                      SensorListResponse as DefaultSensorListResponse)
+from .workspace import WorkspaceProperties
 
 
 class SensorModel(Schema):
@@ -23,7 +24,7 @@ sensorEncodingTypes = Literal[
 ]
 
 
-class SensorProperties(Schema):
+class SensorMetadata(Schema):
     method_code: Optional[str] = None
     method_type: str
     method_link: Optional[AnyHttpUrlString] = None
@@ -32,9 +33,14 @@ class SensorProperties(Schema):
     model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel)
 
 
+class SensorProperties(Schema):
+    workspace: Optional[WorkspaceProperties] = None
+
+
 class SensorGetResponse(DefaultSensorGetResponse):
     encoding_type: sensorEncodingTypes
-    sensor_metadata: SensorProperties = Field(..., alias="metadata")
+    sensor_metadata: SensorMetadata = Field(..., alias="metadata")
+    properties: SensorProperties
 
     model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel)
 

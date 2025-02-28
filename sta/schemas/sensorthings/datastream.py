@@ -4,6 +4,7 @@ from pydantic.alias_generators import to_camel
 from typing import Optional, Literal
 from sensorthings.components.datastreams.schemas import (DatastreamGetResponse as DefaultDatastreamGetResponse,
                                                          DatastreamListResponse as DefaultDatastreamListResponse)
+from .workspace import WorkspaceProperties
 
 
 class DatastreamProperties(Schema):
@@ -18,6 +19,7 @@ class DatastreamProperties(Schema):
     aggregation_statistic: Optional[str] = None
     time_aggregation_interval: float
     time_aggregation_interval_unit_of_measurement: Literal["seconds", "minutes", "hours", "days"]
+    workspace: WorkspaceProperties
 
     model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel)
 
