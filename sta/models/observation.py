@@ -34,6 +34,21 @@ class ObservationQuerySet(models.QuerySet):
                   datastream__thing__workspace__collaborators__role__permissions__permission_type__in=["*", "view"])
             )
 
+    def removable(self, user: Optional["User"]):
+        if user is None:
+            return self.none()
+        elif user.account_type == "admin":
+            return self
+        else:
+            return self.filter(
+                Q(datastream__thing__workspace__owner=user) |
+                Q(datastream__thing__workspace__collaborators__user=user,
+                  datastream__thing__workspace__collaborators__role__permissions__resource_type__in=[
+                      "*", "Observation"
+                  ],
+                  datastream__thing__workspace__collaborators__role__permissions__permission_type__in=["*", "delete"])
+            )
+
 
 class Observation(models.Model, PermissionChecker):
     pk = models.CompositePrimaryKey("datastream_id", "phenomenon_time", "id")

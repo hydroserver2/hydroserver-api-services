@@ -24,7 +24,7 @@ class ObservationService(ServiceUtils):
         try:
             observation = Observation.objects.select_related(
                 "datastream", "datastream__thing", "datastream__thing__workspace"
-            ).get(pk=uid)
+            ).get(id=uid)
         except Observation.DoesNotExist:
             raise HttpError(404, "Observation does not exist")
 
