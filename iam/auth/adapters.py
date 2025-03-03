@@ -24,5 +24,7 @@ class AccountAdapter(DefaultAccountAdapter):
             }
         )
         user = AccountService.update(user=user, data=account)
+        user.is_ownership_allowed = settings.ACCOUNT_OWNERSHIP_ENABLED
+        user.save()
 
         return user
