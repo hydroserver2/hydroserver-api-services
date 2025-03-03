@@ -1,9 +1,9 @@
-import random
 from uuid import UUID
 from datetime import datetime, timedelta, timezone
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
-from sta.models import Observation, Datastream
+from sta.models import Datastream
+from sta.management.utils import generate_test_timeseries
 
 
 class Command(BaseCommand):
@@ -31,6 +31,9 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stderr.write(self.style.ERROR(f"Failed to load {fixture}: {e}"))
 
+        phenomenon_begin_time = datetime(2010, 1, 1, tzinfo=timezone.utc)
+        phenomenon_end_time = phenomenon_begin_time + timedelta(minutes=15 * num_observations)
+
         datastream = Datastream.objects.create(
             name=f"Test Datastream with {num_observations} observations.",
             description=f"Test Datastream with {num_observations} observations.",
@@ -50,29 +53,10 @@ class Command(BaseCommand):
             aggregation_statistic="Continuous",
             time_aggregation_interval=0,
             time_aggregation_interval_unit="minutes",
-            phenomenon_begin_time=datetime(2010, 1, 1, tzinfo=timezone.utc),
+            phenomenon_begin_time=phenomenon_begin_time,
+            phenomenon_end_time=phenomenon_end_time,
             is_private=False,
             is_visible=True
         )
 
-        phenomenon_time = datetime(2010, 1, 1, tzinfo=timezone.utc)
-        observations = []
-
-        for i in range(num_observations):
-            phenomenon_time = phenomenon_time + timedelta(minutes=15)
-            observations.append(Observation(
-                datastream=datastream,
-                phenomenon_time=phenomenon_time,
-                result=round(random.gauss(mu=10, sigma=1), 2)
-            ))
-            if len(observations) >= 50000:
-                Observation.objects.bulk_create(observations)
-                print(f"Created {len(observations)} observations...")
-                observations.clear()
-
-        if observations:
-            Observation.objects.bulk_create(observations)
-            print(f"Created {len(observations)} observations...")
-
-        datastream.phenomenon_end_time = phenomenon_time
-        datastream.save()
+        generate_test_timeseries(datastream.id)

@@ -57,3 +57,6 @@ class ObservedProperty(models.Model, PermissionChecker):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
+
+    class Meta:
+        verbose_name_plural = "ObservedProperties"
