@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
                 ('code', models.CharField(max_length=500)),
                 ('workspace', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='observed_properties', to='iam.workspace')),
             ],
+            options={'verbose_name_plural': 'ObservedProperties'},
             bases=(models.Model, iam.models.utils.PermissionChecker),
         ),
         migrations.CreateModel(
