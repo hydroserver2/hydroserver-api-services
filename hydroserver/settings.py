@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
+    "allauth.socialaccount.providers.openid_connect",
     "iam.auth.providers.hydroshare",
     "iam.auth.providers.orcidsandbox",
     "iam.auth.providers.utahid",
