@@ -60,5 +60,7 @@ class Role(models.Model, PermissionChecker):
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from iam.models import Permission, Collaborator
 
-        Collaborator.objects.filter(**{f"role__{filter_suffix}" if filter_suffix else "role": filter_arg}).delete()
-        Permission.objects.filter(**{f"role__{filter_suffix}" if filter_suffix else "role": filter_arg}).delete()
+        role_relation_filter = f"role__{filter_suffix}" if filter_suffix else "role"
+
+        Collaborator.objects.filter(**{role_relation_filter: filter_arg}).delete()
+        Permission.objects.filter(**{role_relation_filter: filter_arg}).delete()

@@ -1,0 +1,25 @@
+# Global ETL System Platform w/Scheduling
+- model: etl.etlsystemplatform
+  pk: ff0f462f-7456-40d7-93b6-77806176d08f
+  fields:
+    name: Global ETL System Platform
+    interval_schedule_supported: True
+    crontab_schedule_supported: True
+
+# Workspace ETL System Platform w/o Scheduling
+- model: etl.etlsystemplatform
+  pk: b3d13d31-95a1-482e-a35b-ae24e78d519e
+  fields:
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    name: Workspace ETL System Platform
+    interval_schedule_supported: False
+    crontab_schedule_supported: False
+
+# Unused ETL System Platform
+- model: etl.etlsystemplatform
+  pk: 8fe5560d-483d-49d8-9bad-3b01d5ef3916
+  fields:
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    name: Unused ETL System Platform
+    interval_schedule_supported: False
+    crontab_schedule_supported: False

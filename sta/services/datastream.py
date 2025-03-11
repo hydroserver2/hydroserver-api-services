@@ -19,29 +19,20 @@ unit_service = UnitService()
 
 class DatastreamService(ServiceUtils):
     @staticmethod
-    def handle_http_404_error(operation, *args, **kwargs):
-        try:
-            return operation(*args, **kwargs)
-        except HttpError as e:
-            if e.status_code == 404:
-                raise HttpError(400, str(e))
-            else:
-                raise e
-
-    @staticmethod
-    def get_datastream_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_datastream_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"],
+                                  raise_400: bool = False):
         try:
             datastream = Datastream.objects.select_related("thing", "thing__workspace").get(pk=uid)
         except Datastream.DoesNotExist:
-            raise HttpError(404, "Datastream does not exist")
+            raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
 
         datastream_permissions = datastream.get_user_permissions(user=user)
 
         if "view" not in datastream_permissions:
-            raise HttpError(404, "Datastream does not exist")
+            raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
 
         if action not in datastream_permissions:
-            raise HttpError(403, f"You do not have permission to {action} this datastream")
+            raise HttpError(403 if not raise_400 else 400, f"You do not have permission to {action} this datastream")
 
         return datastream
 

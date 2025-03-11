@@ -81,27 +81,32 @@ class Workspace(models.Model):
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from iam.models import Role, Collaborator
         from sta.models import Thing, ObservedProperty, ProcessingLevel, ResultQualifier, Sensor, Unit
+        from etl.models import EtlSystemPlatform, EtlSystem, DataSource
 
-        Collaborator.objects.filter(
-            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
-        ).delete()
-        Role.delete_contents(filter_arg=filter_arg,
-                             filter_suffix=f"workspace__{filter_suffix}" if filter_suffix else "workspace")
-        Role.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
-        Thing.delete_contents(filter_arg=filter_arg,
-                              filter_suffix=f"workspace__{filter_suffix}" if filter_suffix else "workspace")
-        Thing.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
-        ObservedProperty.objects.filter(
-            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
-        ).delete()
-        ProcessingLevel.objects.filter(
-            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
-        ).delete()
-        ResultQualifier.objects.filter(
-            **{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}
-        ).delete()
-        Sensor.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
-        Unit.objects.filter(**{f"workspace__{filter_suffix}" if filter_suffix else "workspace": filter_arg}).delete()
+        workspace_relation_filter = f"workspace__{filter_suffix}" if filter_suffix else "workspace"
+
+        Collaborator.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        Role.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        Role.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        Thing.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        Thing.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        ObservedProperty.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        ProcessingLevel.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        ResultQualifier.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        Sensor.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        Unit.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        DataSource.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        DataSource.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        EtlSystem.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        EtlSystem.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        EtlSystemPlatform.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        EtlSystemPlatform.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
 
 class WorkspaceTransferConfirmation(models.Model):

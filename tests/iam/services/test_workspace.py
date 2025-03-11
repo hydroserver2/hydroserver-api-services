@@ -98,8 +98,8 @@ def test_update_workspace(get_user, user, workspace, message, error_code):
 
 
 @pytest.mark.parametrize("user, workspace, message, error_code, max_queries", [
-    ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 21),
-    ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 21),
+    ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 32),
+    ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Workspace deleted", None, 32),
     ("owner", "00000000-0000-0000-0000-000000000000", "Workspace does not exist", 404, 2),
     ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", "Workspace does not exist", 404, 5),
     ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", "You do not have permission to delete this workspace", 403, 3),

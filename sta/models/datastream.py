@@ -87,7 +87,9 @@ class Datastream(models.Model, PermissionChecker):
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from sta.models import Observation
+        from etl.models import LinkedDatastream
 
-        Observation.objects.filter(
-            **{f"datastream__{filter_suffix}" if filter_suffix else "datastream": filter_arg}
-        ).delete()
+        datastream_relation_filter = f"datastream__{filter_suffix}" if filter_suffix else "datastream"
+
+        Observation.objects.filter(**{datastream_relation_filter: filter_arg}).delete()
+        LinkedDatastream.objects.filter(**{datastream_relation_filter: filter_arg}).delete()

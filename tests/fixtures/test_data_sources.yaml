@@ -1,0 +1,40 @@
+# Data Source
+- model: etl.datasource
+  pk: 8bc6ba8b-dc67-4ca2-bed1-5abb4b067024
+  fields:
+    name: Test Data Source
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    etl_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
+    paused: False
+    etl_configuration: 0467a2dd-254c-49f4-9087-2e041f8ebc0c
+    etl_configuration_settings:
+      timestampColumnName: timestamp
+- model: etl.linkeddatastream
+  pk: 1000000010
+  fields:
+    data_source: 8bc6ba8b-dc67-4ca2-bed1-5abb4b067024
+    datastream: 27c70b41-e845-40ea-8cc7-d1b40f89816b
+    etl_configuration: 09e6ad1f-c81c-4f32-aebc-c3f9006fafd4
+    etl_configuration_settings:
+      dataColumnName: result
+
+# Data Source w/Crontab Schedule
+- model: etl.datasource
+  pk: ea1f04db-76dd-4759-af92-88a1f87138e1
+  fields:
+    name: Crontab Data Source
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    etl_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
+    crontab: 0 12 * * 1
+    paused: False
+
+# Data Source w/Interval Schedule
+- model: etl.datasource
+  pk: 1b8cbf94-13c2-4ad6-acb9-09a0442e889c
+  fields:
+    name: Interval Data Source
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    etl_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
+    interval: 7
+    interval_units: days
+    paused: False

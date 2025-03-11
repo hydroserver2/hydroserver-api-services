@@ -73,9 +73,11 @@ class Thing(models.Model, PermissionChecker):
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from sta.models import Datastream, Location, Tag, Photo
 
-        Datastream.delete_contents(filter_arg=filter_arg,
-                                   filter_suffix=f"thing__{filter_suffix}" if filter_suffix else "thing")
-        Datastream.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
-        Location.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
-        Tag.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
-        Photo.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
+        thing_relation_filter = f"thing__{filter_suffix}" if filter_suffix else "thing"
+
+        Datastream.delete_contents(filter_arg=filter_arg, filter_suffix=thing_relation_filter)
+        Datastream.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+
+        Location.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+        Tag.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+        Photo.objects.filter(**{thing_relation_filter: filter_arg}).delete()

@@ -401,8 +401,8 @@ def test_edit_datastream(get_user, user, datastream, thing, observed_property, p
     ("owner", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None, 6),
     ("admin", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None, 6),
     ("admin", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None, 6),
-    ("editor", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None, 6),
-    ("editor", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None, 6),
+    ("editor", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None, 7),
+    ("editor", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None, 7),
 
     # Anonymous and viewers cannot delete datastreams
     ("viewer", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "You do not have permission", 403, 4),

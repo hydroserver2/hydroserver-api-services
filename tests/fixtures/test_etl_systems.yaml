@@ -1,0 +1,22 @@
+# Global ETL System
+- model: etl.etlsystem
+  pk: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
+  fields:
+    name: Global ETL System
+    etl_system_platform: ff0f462f-7456-40d7-93b6-77806176d08f
+
+# Workspace ETL System w/Global Platform
+- model: etl.etlsystem
+  pk: ee44f263-237c-4b62-8dde-2b1b407462e2
+  fields:
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    name: Workspace ETL System 1
+    etl_system_platform: ff0f462f-7456-40d7-93b6-77806176d08f
+
+# Workspace ETL System w/Workspace Platform
+- model: etl.etlsystem
+  pk: 7cb900d2-eb11-4a59-a05b-dd02d95af312
+  fields:
+    workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
+    name: Workspace ETL System 2
+    etl_system_platform: b3d13d31-95a1-482e-a35b-ae24e78d519e
