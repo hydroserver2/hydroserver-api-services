@@ -11,11 +11,20 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 from django.core.management import call_command
+from django.db import connection
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hydroserver.settings')
 
 application = get_wsgi_application()
 
-call_command('migrate')
-call_command('setup_admin_user')
-call_command('collectstatic', '--noinput')
+
+def is_leader():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_try_advisory_lock(%s);", [1])
+        return cursor.fetchone()[0]
+
+
+if is_leader():
+    call_command('migrate')
+    call_command('setup_admin_user')
+    call_command('collectstatic', '--noinput')

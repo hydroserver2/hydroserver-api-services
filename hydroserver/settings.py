@@ -116,11 +116,21 @@ WSGI_APPLICATION = "hydroserver.wsgi.application"
 os.environ["DATABASE_URL"] = config("DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver")
 
 DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=config("CONN_MAX_AGE", default=0),
-        conn_health_checks=config("CONN_HEALTH_CHECKS", default=True, cast=bool),
-        ssl_require=config("SSL_REQUIRED", default=False, cast=bool)
-    )
+    "default": {
+        **dj_database_url.config(
+            engine="django.db.backends.postgresql",
+            conn_health_checks=config("CONN_HEALTH_CHECKS", default=True, cast=bool),
+            ssl_require=config("SSL_REQUIRED", default=False, cast=bool)
+        ),
+        "OPTIONS": {
+            "application_name": "HydroServer",
+            "pool": {
+                "min_size": config("DB_POOL_MIN_SIZE", default=5, cast=int),
+                "max_size": config("DB_POOL_MAX_SIZE", default=10, cast=int),
+                "timeout": config("DB_POOL_TIMEOUT", default=60, cast=int),
+            }
+        }
+    }
 }
 
 
