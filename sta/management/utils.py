@@ -40,11 +40,9 @@ def generate_test_timeseries(datastream_id: UUID):
             result=result
         ))
 
-        if len(observations) >= 50000:
-            Observation.objects.bulk_create(observations)
-            print(f"Created {len(observations)} observations...")
+        if len(observations) >= 100000:
+            Observation.objects.bulk_copy(observations, batch_size=100000)
             observations.clear()
 
     if observations:
-        Observation.objects.bulk_create(observations)
-        print(f"Created {len(observations)} observations...")
+        Observation.objects.bulk_copy(observations)

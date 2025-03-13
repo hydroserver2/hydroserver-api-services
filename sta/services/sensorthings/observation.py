@@ -180,7 +180,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             #     )
 
             try:
-                new_observations_for_datastream = Observation.objects.bulk_create([
+                new_observations_for_datastream = Observation.objects.bulk_copy([
                     Observation(
                         datastream_id=observation.datastream.id,
                         phenomenon_time=observation.phenomenon_time,

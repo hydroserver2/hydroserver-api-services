@@ -1,7 +1,8 @@
+import io
 import uuid
 import typing
 from typing import Literal, Optional
-from django.db import models
+from django.db import models, connection
 from django.db.models import Q
 from iam.models import Workspace
 from iam.models.utils import PermissionChecker
@@ -48,6 +49,34 @@ class ObservationQuerySet(models.QuerySet):
                   ],
                   datastream__thing__workspace__collaborators__role__permissions__permission_type__in=["*", "delete"])
             )
+
+    def bulk_copy(self, observations, batch_size=100_000):
+        db_table_sql = connection.ops.quote_name(self.model._meta.db_table)  # noqa
+        db_fields = [field.column for field in self.model._meta.fields if not field.primary_key]  # noqa
+        db_fields_sql = ", ".join(connection.ops.quote_name(field) for field in db_fields)
+
+        def escape_pg_copy(value):
+            if value is None:
+                return r"\N"
+            if isinstance(value, str):
+                return value.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
+            return str(value)
+
+        with connection.cursor() as cursor:
+            with cursor.copy(f"COPY {db_table_sql} ({db_fields_sql}) FROM STDIN") as copy:
+                buffer = io.StringIO()
+                for i in range(0, len(observations), batch_size):
+                    batch = observations[i: i + batch_size]
+                    buffer.write("\n".join(
+                        "\t".join(escape_pg_copy(getattr(obs, field, None)) for field in db_fields)
+                        for obs in batch
+                    ) + "\n")
+                    buffer.seek(0)
+                    copy.write(buffer.read())
+                    buffer.truncate(0)
+                    buffer.seek(0)
+
+        return observations
 
 
 class Observation(models.Model, PermissionChecker):
