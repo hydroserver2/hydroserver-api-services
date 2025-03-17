@@ -55,3 +55,7 @@ class Unit(models.Model, PermissionChecker):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
+
+
+class UnitType(models.Model):
+    name = models.CharField(max_length=255, unique=True)

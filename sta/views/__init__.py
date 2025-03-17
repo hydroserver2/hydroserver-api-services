@@ -7,3 +7,4 @@ from .result_qualifier import result_qualifier_router
 from .sensor import sensor_router
 from .unit import unit_router
 from .datastream import datastream_router
+from .vocabulary import sta_vocabulary_router

@@ -59,4 +59,8 @@ class ObservedProperty(models.Model, PermissionChecker):
         return user_permissions
 
     class Meta:
-        verbose_name_plural = "ObservedProperties"
+        verbose_name_plural = "Observed properties"
+
+
+class VariableType(models.Model):
+    name = models.CharField(max_length=255, unique=True)

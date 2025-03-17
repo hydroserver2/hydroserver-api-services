@@ -79,3 +79,11 @@ class Thing(models.Model, PermissionChecker):
         Location.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
         Tag.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
         Photo.objects.filter(**{f"thing__{filter_suffix}" if filter_suffix else "thing": filter_arg}).delete()
+
+
+class SamplingFeatureType(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+
+class SiteType(models.Model):
+    name = models.CharField(max_length=200, unique=True)

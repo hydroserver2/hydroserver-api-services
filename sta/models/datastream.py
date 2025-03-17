@@ -91,3 +91,18 @@ class Datastream(models.Model, PermissionChecker):
         Observation.objects.filter(
             **{f"datastream__{filter_suffix}" if filter_suffix else "datastream": filter_arg}
         ).delete()
+
+
+class DatastreamAggregation(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+
+class DatastreamStatus(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        verbose_name_plural = "Datastream statuses"
+
+
+class SampledMedium(models.Model):
+    name = models.CharField(max_length=255, unique=True)

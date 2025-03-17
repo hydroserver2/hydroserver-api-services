@@ -8,17 +8,17 @@ processing_level_service = ProcessingLevelService()
 
 
 @pytest.mark.parametrize("user, workspace, length, max_queries", [
-    ("owner", None, 12, 2),
+    ("owner", None, 6, 2),
     ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
     ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-    ("admin", None, 12, 2),
+    ("admin", None, 6, 2),
     ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
     ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-    ("editor", None, 12, 2),
+    ("editor", None, 6, 2),
     ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-    ("viewer", None, 12, 2),
+    ("viewer", None, 6, 2),
     ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-    ("anonymous", None, 10, 2),
+    ("anonymous", None, 4, 2),
     ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
     ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
     ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),

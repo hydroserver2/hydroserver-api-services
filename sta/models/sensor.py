@@ -61,3 +61,11 @@ class Sensor(models.Model, PermissionChecker):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
+
+
+class SensorEncodingType(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+
+class MethodType(models.Model):
+    name = models.CharField(max_length=255, unique=True)

@@ -4,7 +4,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from hydroserver import __version__
 from hydroserver.renderer import ORJSONRenderer
 from iam.views import (account_router, session_router, email_router, password_router, provider_router, get_auth_methods,
-                       workspace_router, role_router, collaborator_router)
+                       workspace_router, role_router, collaborator_router, iam_vocabulary_router)
 
 
 iam_api = NinjaAPI(
@@ -23,6 +23,7 @@ iam_api.add_router("{client}/account", account_router)
 iam_api.add_router("{client}/session", session_router)
 iam_api.add_router("{client}/provider", provider_router)
 iam_api.add_router("workspaces", workspace_router)
+iam_api.add_router("vocabulary", iam_vocabulary_router)
 
 urlpatterns = [
     path("", iam_api.urls),

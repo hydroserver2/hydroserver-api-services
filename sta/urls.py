@@ -9,7 +9,8 @@ from hydroserver.renderer import ORJSONRenderer
 from sta.api import hydroserver_extension
 from sta.services.sensorthings import HydroServerSensorThingsEngine
 from sta.views import (thing_router, tag_router, tag_key_router, photo_router, observed_property_router,
-                       processing_level_router, result_qualifier_router, sensor_router, unit_router, datastream_router)
+                       processing_level_router, result_qualifier_router, sensor_router, unit_router, datastream_router,
+                       sta_vocabulary_router)
 
 
 data_api = NinjaAPI(
@@ -30,6 +31,7 @@ data_api.add_router("result-qualifiers", result_qualifier_router)
 data_api.add_router("sensors", sensor_router)
 data_api.add_router("units", unit_router)
 data_api.add_router("datastreams", datastream_router)
+data_api.add_router("vocabulary", sta_vocabulary_router)
 
 st_api_1_1 = SensorThingsAPI(
     title='HydroServer SensorThings API',
