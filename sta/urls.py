@@ -39,8 +39,7 @@ st_api_1_1 = SensorThingsAPI(
     description='This is the documentation for the HydroServer SensorThings API implementation.',
     engine=HydroServerSensorThingsEngine,
     extensions=[data_array_extension, quality_control_extension, hydroserver_extension],
-    docs_decorator=ensure_csrf_cookie,
-    csrf=True
+    docs_decorator=ensure_csrf_cookie
 )
 
 urlpatterns = [

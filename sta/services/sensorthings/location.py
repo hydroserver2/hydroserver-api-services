@@ -1,5 +1,6 @@
 from typing import Optional
 from ninja.errors import HttpError
+from django.db.utils import DataError, DatabaseError
 from sta.models import Location
 from sensorthings.components.locations.engine import LocationBaseEngine
 from sensorthings.components.locations.schemas import Location as LocationSchema, LocationPostBody, LocationPatchBody
@@ -62,38 +63,41 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                 skip=pagination.get("skip")
             )
 
-        return {
-            location.id: {
-                "id": location.id,
-                "name": location.name,
-                "description": location.description,
-                "encoding_type": location.encoding_type,
-                "location": {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [
-                            location.latitude,
-                            location.longitude
-                        ]
-                    }
-                },
-                "properties": {
-                    "elevation_m": location.elevation_m,
-                    "elevation_datum": location.elevation_datum,
-                    "state": location.state,
-                    "county": location.county,
-                    "workspace": {
-                        "id": location.thing.workspace.id,
-                        "name": location.thing.workspace.name,
-                        "link": location.thing.workspace.link,
-                        "is_private": location.thing.workspace.is_private
-                    }
-                },
-                "thing_ids": [location.thing_id]
-            } for location in locations
-        }, count
+        try:
+            return {
+                location.id: {
+                    "id": location.id,
+                    "name": location.name,
+                    "description": location.description,
+                    "encoding_type": location.encoding_type,
+                    "location": {
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                location.latitude,
+                                location.longitude
+                            ]
+                        }
+                    },
+                    "properties": {
+                        "elevation_m": location.elevation_m,
+                        "elevation_datum": location.elevation_datum,
+                        "state": location.state,
+                        "county": location.county,
+                        "workspace": {
+                            "id": location.thing.workspace.id,
+                            "name": location.thing.workspace.name,
+                            "link": location.thing.workspace.link,
+                            "is_private": location.thing.workspace.is_private
+                        }
+                    },
+                    "thing_ids": [location.thing_id]
+                } for location in locations
+            }, count
+        except (DatabaseError, DataError,) as e:
+            raise HttpError(400, str(e))
 
     def create_location(
             self,

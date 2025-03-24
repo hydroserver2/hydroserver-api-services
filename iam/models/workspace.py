@@ -64,7 +64,7 @@ class Workspace(models.Model):
         return user.account_type != "limited"
 
     def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        if user == self.owner or user.account_type == "admin":
+        if user and (user == self.owner or user.account_type == "admin"):
             return ["view", "edit", "delete"]
         elif self.is_private is False or self.collaborators.filter(user=user).exists():
             return ["view"]

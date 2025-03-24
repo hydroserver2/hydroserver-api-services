@@ -5,6 +5,7 @@ from pydantic import field_validator, AliasChoices
 from country_list import countries_for_language
 from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 from .tag import TagGetResponse
+from .photo import PhotoGetResponse
 
 valid_country_codes = [code for code, _ in countries_for_language('en')]
 
@@ -46,6 +47,7 @@ class ThingGetResponse(BaseGetResponse, ThingFields, LocationFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
     tags: list[TagGetResponse]
+    photos: list[PhotoGetResponse]
 
 
 class ThingPostBody(BasePostBody, ThingFields, LocationFields):

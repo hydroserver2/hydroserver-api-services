@@ -21,12 +21,19 @@ class SensorThingsUtils:
                 "properties__samplingFeatureType": "sampling_feature_type",
                 "properties__samplingFeatureCode": "sampling_feature_code",
                 "properties__siteType": "site_type",
+                "properties__dataDisclaimer": "data_disclaimer",
+                "properties__isPrivate": "is_private",
+                "properties__workspace__id": "workspace_id",
+                "properties__workspace__name": "workspace__name",
+                "properties__workspace__isPrivate": "workspace__is_private",
                 "Location__id": "location_id"
             }.get(prop, prop)
 
         elif component.__name__ == "Location":
             return {
-                "encodingType": "location__encoding_type",
+                "properties__workspace__id": "thing__workspace_id",
+                "properties__workspace__name": "thing__workspace__name",
+                "properties__workspace__isPrivate": "thing__workspace__is_private",
                 "Thing__id": "id"
             }.get(prop, f"location__{prop}")
 
@@ -36,6 +43,9 @@ class SensorThingsUtils:
         elif component.__name__ == "Sensor":
             return {
                 "encodingType": "encoding_type",
+                "properties__workspace__id": "workspace_id",
+                "properties__workspace__name": "workspace__name",
+                "properties__workspace__isPrivate": "workspace__is_private",
                 "metadata__methodCode": "method_code",
                 "metadata__methodType": "method_type",
                 "metadata__methodLink": "method_link",
@@ -47,7 +57,10 @@ class SensorThingsUtils:
         elif component.__name__ == "ObservedProperty":
             return {
                 "properties__variableCode": "code",
-                "properties__variableType": "type"
+                "properties__variableType": "type",
+                "properties__workspace__id": "workspace_id",
+                "properties__workspace__name": "workspace__name",
+                "properties__workspace__isPrivate": "workspace__is_private"
             }.get(prop, prop)
 
         elif component.__name__ == "Datastream":
@@ -67,6 +80,9 @@ class SensorThingsUtils:
                     "unitOfMeasurement__definition": "unit__definition",
                     "observationType": "observation_type",
                     "observedArea": "observed_area",
+                    "properties__workspace__id": "thing__workspace_id",
+                    "properties__workspace__name": "thing__workspace__name",
+                    "properties__workspace__isPrivate": "thing__workspace__is_private",
                     "properties__resultType": "result_type",
                     "properties__status": "status",
                     "properties__sampledMedium": "sampled_medium",

@@ -15,7 +15,7 @@ class ThingProperties(Schema):
     data_disclaimer: Optional[str] = None
     is_private: bool
     workspace: WorkspaceProperties
-    photos: list[AnyHttpUrlString]
+    photos: dict[str, AnyHttpUrlString]
     tags: dict[str, str]
 
     model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel)

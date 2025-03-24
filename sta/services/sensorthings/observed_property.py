@@ -1,6 +1,7 @@
 from uuid import UUID
 from typing import Optional
 from ninja.errors import HttpError
+from django.db.utils import DataError, DatabaseError
 from sta.models import ObservedProperty
 from sensorthings.components.observedproperties.engine import ObservedPropertyBaseEngine
 from sensorthings.components.observedproperties.schemas import ObservedProperty as ObservedPropertySchema
@@ -56,24 +57,27 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                 skip=pagination.get("skip")
             )
 
-        return {
-            observed_property.id: {
-                "id": observed_property.id,
-                "name": observed_property.name,
-                "description": observed_property.description,
-                "definition": observed_property.definition,
-                "properties": {
-                    "variable_code": observed_property.code,
-                    "variable_type": observed_property.observed_property_type,
-                    "workspace": {
-                        "id": observed_property.workspace.id,
-                        "name": observed_property.workspace.name,
-                        "link": observed_property.workspace.link,
-                        "is_private": observed_property.workspace.is_private
-                    } if observed_property.workspace else None
-                }
-            } for observed_property in observed_properties
-        }, count
+        try:
+            return {
+                observed_property.id: {
+                    "id": observed_property.id,
+                    "name": observed_property.name,
+                    "description": observed_property.description,
+                    "definition": observed_property.definition,
+                    "properties": {
+                        "variable_code": observed_property.code,
+                        "variable_type": observed_property.observed_property_type,
+                        "workspace": {
+                            "id": observed_property.workspace.id,
+                            "name": observed_property.workspace.name,
+                            "link": observed_property.workspace.link,
+                            "is_private": observed_property.workspace.is_private
+                        } if observed_property.workspace else None
+                    }
+                } for observed_property in observed_properties
+            }, count
+        except (DataError, DatabaseError,) as e:
+            raise HttpError(400, str(e))
 
     def create_observed_property(
             self,

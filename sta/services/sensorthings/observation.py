@@ -2,7 +2,8 @@ import math
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
-from django.db.utils import IntegrityError
+from django.db.utils import IntegrityError, DatabaseError, DataError
+from psycopg.errors import UniqueViolation
 from ninja.errors import HttpError
 from sta.models import Observation, Datastream
 from sensorthings.components.observations.engine import ObservationBaseEngine
@@ -102,25 +103,28 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         #     for result_qualifier in result_qualifiers
         # }
 
-        return {
-            observation.id: {
-                "id": observation.id,
-                "phenomenon_time": str(observation.phenomenon_time),
-                "result": observation.result,
-                "result_time": str(observation.result_time) if observation.result_time else None,
-                "datastream_id": observation.datastream_id,
-                "result_quality": None
-                # "result_quality": {
-                #     "quality_code": observation.quality_code,
-                #     "result_qualifiers": [
-                #         {
-                #             "code": result_qualifiers.get(result_qualifier).code,
-                #             "description": result_qualifiers.get(result_qualifier).description
-                #         } for result_qualifier in observation.result_qualifiers
-                #     ] if observation.result_qualifiers is not None else []
-                # }
-            } for observation in observations
-        }, count
+        try:
+            return {
+                observation.id: {
+                    "id": observation.id,
+                    "phenomenon_time": str(observation.phenomenon_time),
+                    "result": observation.result,
+                    "result_time": str(observation.result_time) if observation.result_time else None,
+                    "datastream_id": observation.datastream_id,
+                    "result_quality": None
+                    # "result_quality": {
+                    #     "quality_code": observation.quality_code,
+                    #     "result_qualifiers": [
+                    #         {
+                    #             "code": result_qualifiers.get(result_qualifier).code,
+                    #             "description": result_qualifiers.get(result_qualifier).description
+                    #         } for result_qualifier in observation.result_qualifiers
+                    #     ] if observation.result_qualifiers is not None else []
+                    # }
+                } for observation in observations
+            }, count
+        except (DatabaseError, DataError,) as e:
+            raise HttpError(400, str(e))
 
     def create_observation(
             self,
@@ -192,7 +196,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                     )
                     for observation in datastream_observations
                 ])
-            except IntegrityError:
+            except (IntegrityError, UniqueViolation,):
                 raise HttpError(409, "Duplicate phenomenonTime found on this datastream.")
 
             new_observations.extend(new_observations_for_datastream)

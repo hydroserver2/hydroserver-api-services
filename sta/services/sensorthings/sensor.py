@@ -1,5 +1,6 @@
 from typing import Optional
 from ninja.errors import HttpError
+from django.db.utils import DataError, DatabaseError
 from sensorthings.components.sensors.engine import SensorBaseEngine
 from sensorthings.components.sensors.schemas import Sensor as SensorSchema
 from sta.models import Sensor
@@ -55,32 +56,35 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
                 skip=pagination.get("skip")
             )
 
-        return {
-            sensor.id: {
-                "id": sensor.id,
-                "name": sensor.name,
-                "description": sensor.description,
-                "encoding_type": sensor.encoding_type,
-                "sensor_metadata": {
-                    "method_code": sensor.method_code,
-                    "method_type": sensor.method_type,
-                    "method_link": sensor.method_link,
-                    "sensor_model": {
-                        "sensor_model_name": sensor.sensor_model,
-                        "sensor_model_url": sensor.sensor_model_link,
-                        "sensor_manufacturer": sensor.manufacturer
+        try:
+            return {
+                sensor.id: {
+                    "id": sensor.id,
+                    "name": sensor.name,
+                    "description": sensor.description,
+                    "encoding_type": sensor.encoding_type,
+                    "sensor_metadata": {
+                        "method_code": sensor.method_code,
+                        "method_type": sensor.method_type,
+                        "method_link": sensor.method_link,
+                        "sensor_model": {
+                            "sensor_model_name": sensor.sensor_model,
+                            "sensor_model_url": sensor.sensor_model_link,
+                            "sensor_manufacturer": sensor.manufacturer
+                        },
                     },
-                },
-                "properties": {
-                    "workspace": {
-                        "id": sensor.workspace.id,
-                        "name": sensor.workspace.name,
-                        "link": sensor.workspace.link,
-                        "is_private": sensor.workspace.is_private
-                    } if sensor.workspace else None,
-                }
-            } for sensor in sensors
-        }, count
+                    "properties": {
+                        "workspace": {
+                            "id": sensor.workspace.id,
+                            "name": sensor.workspace.name,
+                            "link": sensor.workspace.link,
+                            "is_private": sensor.workspace.is_private
+                        } if sensor.workspace else None,
+                    }
+                } for sensor in sensors
+            }, count
+        except (DataError, DatabaseError,) as e:
+            raise HttpError(400, str(e))
 
     def create_sensor(
             self,

@@ -80,7 +80,7 @@ def test_get_sensor(get_user, user, sensor, message, error_code):
 ])
 def test_create_sensor(get_user, user, workspace, message, error_code):
     sensor_data = SensorPostBody(
-        name="New", description="New", encoding_type="New", method_type="New", workspace_id=uuid.UUID(workspace)
+        name="New", description="New", encoding_type="application/json", method_type="New", workspace_id=uuid.UUID(workspace)
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -120,7 +120,7 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
 ])
 def test_edit_sensor(get_user, user, sensor, message, error_code):
     sensor_data = SensorPatchBody(
-        name="New", description="New", encoding_type="New", method_type="New"
+        name="New", description="New", encoding_type="application/json", method_type="New"
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:

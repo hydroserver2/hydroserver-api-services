@@ -1,6 +1,7 @@
 from uuid import UUID
 from typing import Optional
 from ninja.errors import HttpError
+from django.db.utils import DataError, DatabaseError
 from sta.models import Thing
 from sensorthings.components.things.engine import ThingBaseEngine
 from sensorthings.components.things.schemas import Thing as ThingSchema
@@ -63,29 +64,32 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                 skip=pagination.get("skip")
             )
 
-        return {
-            thing.id: {
-                "id": thing.id,
-                "name": thing.name,
-                "description": thing.description,
-                "properties": {
-                    "sampling_feature_type": thing.sampling_feature_type,
-                    "sampling_feature_code": thing.sampling_feature_code,
-                    "site_type": thing.site_type,
-                    "data_disclaimer": thing.data_disclaimer,
-                    "is_private": thing.is_private,
-                    "workspace": {
-                        "id": thing.workspace.id,
-                        "name": thing.workspace.name,
-                        "link": thing.workspace.link,
-                        "is_private": thing.workspace.is_private
+        try:
+            return {
+                thing.id: {
+                    "id": thing.id,
+                    "name": thing.name,
+                    "description": thing.description,
+                    "properties": {
+                        "sampling_feature_type": thing.sampling_feature_type,
+                        "sampling_feature_code": thing.sampling_feature_code,
+                        "site_type": thing.site_type,
+                        "data_disclaimer": thing.data_disclaimer,
+                        "is_private": thing.is_private,
+                        "workspace": {
+                            "id": thing.workspace.id,
+                            "name": thing.workspace.name,
+                            "link": thing.workspace.link,
+                            "is_private": thing.workspace.is_private
+                        },
+                        "tags": {tag.key: tag.value for tag in thing.tags.all()},
+                        "photos": {photo.name: photo.link for photo in thing.photos.all()}
                     },
-                    "tags": {tag.key: tag.value for tag in thing.tags.all()},
-                    "photos": [photo.link for photo in thing.photos.all()]
-                },
-                "location_ids": [location.id for location in thing.locations.all()],
-            } for thing in things
-        }, count
+                    "location_ids": [location.id for location in thing.locations.all()],
+                } for thing in things
+            }, count
+        except (DataError, DatabaseError,) as e:
+            raise HttpError(400, str(e))
 
     def create_thing(
             self,
