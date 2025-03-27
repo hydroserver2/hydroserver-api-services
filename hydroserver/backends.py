@@ -7,7 +7,9 @@ user_model = get_user_model()
 
 class UnverifiedUserBackend(BaseBackend):
     def authenticate(self, request, email=None, password=None):
-        unverified_users = user_model.objects.filter(unverified_email=email, is_verified=False)
+        unverified_users = user_model.objects.filter(
+            unverified_email=email, is_verified=False
+        )
 
         for user in unverified_users:
             if user and user.check_password(password):

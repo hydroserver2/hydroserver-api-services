@@ -21,18 +21,34 @@ if typing.TYPE_CHECKING:
 class DatastreamQuerySet(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
-            return self.filter(Q(thing__workspace__is_private=False, thing__is_private=False, is_private=False))
+            return self.filter(
+                Q(
+                    thing__workspace__is_private=False,
+                    thing__is_private=False,
+                    is_private=False,
+                )
+            )
         elif user.account_type == "admin":
             return self
         else:
             return self.filter(
-                Q(thing__workspace__is_private=False,
-                  thing__is_private=False,
-                  is_private=False) |
-                Q(thing__workspace__owner=user) |
-                Q(thing__workspace__collaborators__user=user,
-                  thing__workspace__collaborators__role__permissions__resource_type__in=["*", "Datastream"],
-                  thing__workspace__collaborators__role__permissions__permission_type__in=["*", "view"])
+                Q(
+                    thing__workspace__is_private=False,
+                    thing__is_private=False,
+                    is_private=False,
+                )
+                | Q(thing__workspace__owner=user)
+                | Q(
+                    thing__workspace__collaborators__user=user,
+                    thing__workspace__collaborators__role__permissions__resource_type__in=[
+                        "*",
+                        "Datastream",
+                    ],
+                    thing__workspace__collaborators__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
             )
 
 
@@ -40,11 +56,21 @@ class Datastream(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField()
-    thing = models.ForeignKey(Thing, on_delete=models.DO_NOTHING, related_name="datastreams")
-    sensor = models.ForeignKey(Sensor, on_delete=models.DO_NOTHING, related_name="datastreams")
-    observed_property = models.ForeignKey(ObservedProperty, on_delete=models.DO_NOTHING, related_name="datastreams")
-    processing_level = models.ForeignKey(ProcessingLevel, on_delete=models.DO_NOTHING, related_name="datastreams")
-    unit = models.ForeignKey(Unit, on_delete=models.DO_NOTHING, related_name="datastreams")
+    thing = models.ForeignKey(
+        Thing, on_delete=models.DO_NOTHING, related_name="datastreams"
+    )
+    sensor = models.ForeignKey(
+        Sensor, on_delete=models.DO_NOTHING, related_name="datastreams"
+    )
+    observed_property = models.ForeignKey(
+        ObservedProperty, on_delete=models.DO_NOTHING, related_name="datastreams"
+    )
+    processing_level = models.ForeignKey(
+        ProcessingLevel, on_delete=models.DO_NOTHING, related_name="datastreams"
+    )
+    unit = models.ForeignKey(
+        Unit, on_delete=models.DO_NOTHING, related_name="datastreams"
+    )
     observation_type = models.CharField(max_length=255)
     result_type = models.CharField(max_length=255)
     status = models.CharField(max_length=255, null=True, blank=True)
@@ -68,14 +94,23 @@ class Datastream(models.Model, PermissionChecker):
 
     @classmethod
     def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
-        return cls.check_create_permissions(user=user, workspace=workspace, resource_type="Datastream")
+        return cls.check_create_permissions(
+            user=user, workspace=workspace, resource_type="Datastream"
+        )
 
-    def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        user_permissions = self.check_object_permissions(user=user, workspace=self.thing.workspace,
-                                                         resource_type="Datastream")
+    def get_user_permissions(
+        self, user: Optional["User"]
+    ) -> list[Literal["edit", "delete", "view"]]:
+        user_permissions = self.check_object_permissions(
+            user=user, workspace=self.thing.workspace, resource_type="Datastream"
+        )
 
-        if (not self.thing.workspace.is_private and not self.thing.is_private and not self.is_private
-                and "view" not in list(user_permissions)):
+        if (
+            not self.thing.workspace.is_private
+            and not self.thing.is_private
+            and not self.is_private
+            and "view" not in list(user_permissions)
+        ):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
@@ -89,7 +124,11 @@ class Datastream(models.Model, PermissionChecker):
         from sta.models import Observation
 
         Observation.objects.filter(
-            **{f"datastream__{filter_suffix}" if filter_suffix else "datastream": filter_arg}
+            **{
+                (
+                    f"datastream__{filter_suffix}" if filter_suffix else "datastream"
+                ): filter_arg
+            }
         ).delete()
 
 

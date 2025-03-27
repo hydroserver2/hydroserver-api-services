@@ -12,12 +12,12 @@ session_router = Router(tags=["Session"])
 
 session_view = {
     "browser": SessionView.as_api_view(client=Client.BROWSER),
-    "app": SessionView.as_api_view(client=Client.APP)
+    "app": SessionView.as_api_view(client=Client.APP),
 }
 
 login_view = {
     "browser": LoginView.as_api_view(client=Client.BROWSER),
-    "app": LoginView.as_api_view(client=Client.APP)
+    "app": LoginView.as_api_view(client=Client.APP),
 }
 
 
@@ -40,15 +40,21 @@ def get_session(request, client: Path[Literal["browser", "app"]]):
 
     if response.status_code == 200:
         response_content = json.loads(response.content)
-        response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        response_content["data"]["account"] = AccountGetResponse.from_orm(
+            request.user
+        ).dict(by_alias=True)
         response_content["meta"]["expires"] = str(request.session.get_expiry_date())
         response.content = json.dumps(response_content)
 
-    if response.status_code == 401 and request.session.exists(request.session.session_key):
+    if response.status_code == 401 and request.session.exists(
+        request.session.session_key
+    ):
         user = dict(request.session).get("socialaccount_sociallogin", {}).get("user")
         if user:
             response_content = json.loads(response.content)
-            response_content["data"]["account"] = AccountGetResponse.construct(**user).dict(by_alias=True)
+            response_content["data"]["account"] = AccountGetResponse.construct(
+                **user
+            ).dict(by_alias=True)
             response.content = json.dumps(response_content)
 
     return response
@@ -63,9 +69,11 @@ def get_session(request, client: Path[Literal["browser", "app"]]):
         401: str,
         409: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def create_session(request, client: Path[Literal["browser", "app"]], data: SessionPostBody):
+def create_session(
+    request, client: Path[Literal["browser", "app"]], data: SessionPostBody
+):
     """
     Create a new user session.
     """
@@ -78,7 +86,9 @@ def create_session(request, client: Path[Literal["browser", "app"]], data: Sessi
             user = User.objects.get(pk=response_content["data"]["user"]["id"])
         else:
             user = request.user
-        response_content["data"]["account"] = AccountGetResponse.from_orm(user).dict(by_alias=True)
+        response_content["data"]["account"] = AccountGetResponse.from_orm(user).dict(
+            by_alias=True
+        )
         response.content = json.dumps(response_content)
 
     return response

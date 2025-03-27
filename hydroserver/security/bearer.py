@@ -10,4 +10,4 @@ class BearerAuth(HttpBearer):
             request.authenticated_user = user[0]
             return user[0]
         elif token:
-            raise HttpError(401, 'Invalid token')
+            raise HttpError(401, "Invalid token")

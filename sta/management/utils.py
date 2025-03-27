@@ -15,8 +15,13 @@ def generate_test_timeseries(datastream_id: UUID):
     if not datastream.phenomenon_begin_time:
         raise CommandError("Datastream must have a phenomenon_begin_time.")
 
-    if not datastream.phenomenon_end_time or datastream.phenomenon_begin_time > datastream.phenomenon_end_time:
-        raise CommandError("Datastream phenomenon_end_time must be after phenomenon_start_time.")
+    if (
+        not datastream.phenomenon_end_time
+        or datastream.phenomenon_begin_time > datastream.phenomenon_end_time
+    ):
+        raise CommandError(
+            "Datastream phenomenon_end_time must be after phenomenon_start_time."
+        )
 
     if not datastream.value_count or datastream.value_count < 1:
         raise CommandError("Datastream value_count must be positive.")
@@ -28,17 +33,19 @@ def generate_test_timeseries(datastream_id: UUID):
         raise CommandError("Datastream already has observations loaded.")
 
     observations = []
-    time_interval = (datastream.phenomenon_end_time - datastream.phenomenon_begin_time) / datastream.value_count
+    time_interval = (
+        datastream.phenomenon_end_time - datastream.phenomenon_begin_time
+    ) / datastream.value_count
 
     for i in range(datastream.value_count):
         phenomenon_time = datastream.phenomenon_begin_time + i * time_interval
         result = round(random.gauss(mu=10, sigma=1), 2)
 
-        observations.append(Observation(
-            datastream=datastream,
-            phenomenon_time=phenomenon_time,
-            result=result
-        ))
+        observations.append(
+            Observation(
+                datastream=datastream, phenomenon_time=phenomenon_time, result=result
+            )
+        )
 
         if len(observations) >= 100000:
             Observation.objects.bulk_copy(observations, batch_size=100000)

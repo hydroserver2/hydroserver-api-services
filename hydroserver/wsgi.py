@@ -13,7 +13,7 @@ from django.core.wsgi import get_wsgi_application
 from django.core.management import call_command
 from django.db import connection
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hydroserver.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hydroserver.settings")
 
 application = get_wsgi_application()
 
@@ -25,6 +25,6 @@ def is_leader():
 
 
 if is_leader():
-    call_command('migrate')
-    call_command('setup_admin_user')
-    call_command('collectstatic', '--noinput')
+    call_command("migrate")
+    call_command("setup_admin_user")
+    call_command("collectstatic", "--noinput")

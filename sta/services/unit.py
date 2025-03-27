@@ -12,7 +12,9 @@ User = get_user_model()
 
 class UnitService(ServiceUtils):
     @staticmethod
-    def get_unit_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_unit_for_action(
+        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+    ):
         try:
             unit = Unit.objects.select_related("workspace").get(pk=uid)
         except Unit.DoesNotExist:
@@ -48,14 +50,16 @@ class UnitService(ServiceUtils):
 
         unit = Unit.objects.create(
             workspace=workspace,
-            **data.dict(include=set(UnitFields.model_fields.keys()))
+            **data.dict(include=set(UnitFields.model_fields.keys())),
         )
 
         return unit
 
     def update(self, user: User, uid: uuid.UUID, data: UnitPatchBody):
         unit = self.get_unit_for_action(user=user, uid=uid, action="edit")
-        unit_data = data.dict(include=set(UnitFields.model_fields.keys()), exclude_unset=True)
+        unit_data = data.dict(
+            include=set(UnitFields.model_fields.keys()), exclude_unset=True
+        )
 
         for field, value in unit_data.items():
             setattr(unit, field, value)

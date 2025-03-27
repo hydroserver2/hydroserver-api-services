@@ -22,6 +22,6 @@ class HydroServerSensorThingsEngine(
     ThingEngine,
     SensorThingsBaseEngine,
     DataArrayBaseEngine,
-    QualityControlBaseEngine
+    QualityControlBaseEngine,
 ):
     pass

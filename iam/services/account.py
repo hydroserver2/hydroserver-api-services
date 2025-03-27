@@ -14,12 +14,25 @@ class AccountService:
     @staticmethod
     def create(data: AccountPostBody):
         try:
-            user_body = data.dict(include=set(data.model_fields.keys()), exclude=["organization"], exclude_unset=True)
-            organization_body = data.organization.dict(
-                include=set(data.organization.model_fields.keys()), exclude_unset=True
-            ) if data.organization else None
+            user_body = data.dict(
+                include=set(data.model_fields.keys()),
+                exclude=["organization"],
+                exclude_unset=True,
+            )
+            organization_body = (
+                data.organization.dict(
+                    include=set(data.organization.model_fields.keys()),
+                    exclude_unset=True,
+                )
+                if data.organization
+                else None
+            )
 
-            organization = Organization.objects.create(**organization_body) if organization_body else None
+            organization = (
+                Organization.objects.create(**organization_body)
+                if organization_body
+                else None
+            )
             user = User.objects.create(organization=organization, **user_body)
 
             return user
@@ -30,10 +43,19 @@ class AccountService:
     @staticmethod
     def update(user: User, data: AccountPatchBody):
         try:
-            user_body = data.dict(include=set(data.model_fields.keys()), exclude=["organization"], exclude_unset=True)
-            organization_body = data.organization.dict(
-                include=set(data.organization.model_fields.keys()), exclude_unset=True
-            ) if data.organization else None
+            user_body = data.dict(
+                include=set(data.model_fields.keys()),
+                exclude=["organization"],
+                exclude_unset=True,
+            )
+            organization_body = (
+                data.organization.dict(
+                    include=set(data.organization.model_fields.keys()),
+                    exclude_unset=True,
+                )
+                if data.organization
+                else None
+            )
 
             for field, value in user_body.items():
                 setattr(user, field, value)
@@ -62,6 +84,10 @@ class AccountService:
     @staticmethod
     def get_types():
         return {
-            "user_types": UserType.objects.filter(public=True).values_list("name", flat=True),
-            "organization_types": OrganizationType.objects.filter(public=True).values_list("name", flat=True),
+            "user_types": UserType.objects.filter(public=True).values_list(
+                "name", flat=True
+            ),
+            "organization_types": OrganizationType.objects.filter(
+                public=True
+            ).values_list("name", flat=True),
         }

@@ -35,4 +35,5 @@ def get_user():
             return User.objects.get(email=f"{email}@example.com")
         except User.DoesNotExist:
             return None
+
     return _get_user

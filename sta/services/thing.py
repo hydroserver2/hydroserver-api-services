@@ -6,7 +6,13 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import F
 from iam.services.utils import ServiceUtils
 from sta.models import Thing, Location, Tag, Photo
-from sta.schemas import ThingPostBody, ThingPatchBody, TagPostBody, TagDeleteBody, PhotoDeleteBody
+from sta.schemas import (
+    ThingPostBody,
+    ThingPatchBody,
+    TagPostBody,
+    TagDeleteBody,
+    PhotoDeleteBody,
+)
 from sta.schemas.thing import ThingFields, LocationFields
 
 User = get_user_model()
@@ -14,9 +20,15 @@ User = get_user_model()
 
 class ThingService(ServiceUtils):
     @staticmethod
-    def get_thing_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_thing_for_action(
+        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+    ):
         try:
-            thing = Thing.objects.select_related("workspace").prefetch_related("tags", "photos").get(pk=uid)
+            thing = (
+                Thing.objects.select_related("workspace")
+                .prefetch_related("tags", "photos")
+                .get(pk=uid)
+            )
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
 
@@ -37,7 +49,12 @@ class ThingService(ServiceUtils):
         if workspace_id:
             queryset = queryset.filter(workspace_id=workspace_id)
 
-        return queryset.visible(user=user).prefetch_related("tags").with_location().distinct()
+        return (
+            queryset.visible(user=user)
+            .prefetch_related("tags", "photos")
+            .with_location()
+            .distinct()
+        )
 
     def get(self, user: Optional[User], uid: uuid.UUID):
         return self.get_thing_for_action(user=user, uid=uid, action="view")
@@ -50,15 +67,15 @@ class ThingService(ServiceUtils):
 
         thing = Thing.objects.create(
             workspace=workspace,
-            **data.dict(include=set(ThingFields.model_fields.keys()))
+            **data.dict(include=set(ThingFields.model_fields.keys())),
         )
 
         Location.objects.create(
-            name=f'Location for {data.name}',
-            description='location',
+            name=f"Location for {data.name}",
+            description="location",
             encoding_type="application/geo+json",
             thing=thing,
-            **data.dict(include=set(LocationFields.model_fields.keys()))
+            **data.dict(include=set(LocationFields.model_fields.keys())),
         )
 
         return thing
@@ -67,8 +84,12 @@ class ThingService(ServiceUtils):
         thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
         location = thing.location
 
-        thing_data = data.dict(include=set(ThingFields.model_fields.keys()), exclude_unset=True)
-        location_data = data.dict(include=set(LocationFields.model_fields.keys()), exclude_unset=True)
+        thing_data = data.dict(
+            include=set(ThingFields.model_fields.keys()), exclude_unset=True
+        )
+        location_data = data.dict(
+            include=set(LocationFields.model_fields.keys()), exclude_unset=True
+        )
 
         if thing_data.get("name"):
             location_data["name"] = f"Location for {thing_data['name']}"
@@ -100,7 +121,11 @@ class ThingService(ServiceUtils):
         return thing.tags
 
     @staticmethod
-    def get_tag_keys(user: Optional[User], workspace_id: Optional[uuid.UUID], thing_id: Optional[uuid.UUID]):
+    def get_tag_keys(
+        user: Optional[User],
+        workspace_id: Optional[uuid.UUID],
+        thing_id: Optional[uuid.UUID],
+    ):
         queryset = Tag.objects
 
         if workspace_id:
@@ -109,7 +134,11 @@ class ThingService(ServiceUtils):
         if thing_id:
             queryset = queryset.filter(thing_id=thing_id)
 
-        tags = queryset.visible(user=user).values("key").annotate(values=ArrayAgg(F("value"), distinct=True))
+        tags = (
+            queryset.visible(user=user)
+            .values("key")
+            .annotate(values=ArrayAgg(F("value"), distinct=True))
+        )
 
         return {entry["key"]: entry["values"] for entry in tags}
 

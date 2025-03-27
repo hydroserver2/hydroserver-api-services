@@ -12,9 +12,13 @@ User = get_user_model()
 
 class ProcessingLevelService(ServiceUtils):
     @staticmethod
-    def get_processing_level_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_processing_level_for_action(
+        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+    ):
         try:
-            processing_level = ProcessingLevel.objects.select_related("workspace").get(pk=uid)
+            processing_level = ProcessingLevel.objects.select_related("workspace").get(
+                pk=uid
+            )
         except ProcessingLevel.DoesNotExist:
             raise HttpError(404, "Processing level does not exist")
 
@@ -24,7 +28,9 @@ class ProcessingLevelService(ServiceUtils):
             raise HttpError(404, "Processing level does not exist")
 
         if action not in processing_level_permissions:
-            raise HttpError(403, f"You do not have permission to {action} this processing level")
+            raise HttpError(
+                403, f"You do not have permission to {action} this processing level"
+            )
 
         return processing_level
 
@@ -44,18 +50,24 @@ class ProcessingLevelService(ServiceUtils):
         workspace, _ = self.get_workspace(user=user, workspace_id=data.workspace_id)
 
         if not ProcessingLevel.can_user_create(user=user, workspace=workspace):
-            raise HttpError(403, "You do not have permission to create this processing level")
+            raise HttpError(
+                403, "You do not have permission to create this processing level"
+            )
 
         processing_level = ProcessingLevel.objects.create(
             workspace=workspace,
-            **data.dict(include=set(ProcessingLevelFields.model_fields.keys()))
+            **data.dict(include=set(ProcessingLevelFields.model_fields.keys())),
         )
 
         return processing_level
 
     def update(self, user: User, uid: uuid.UUID, data: ProcessingLevelPatchBody):
-        processing_level = self.get_processing_level_for_action(user=user, uid=uid, action="edit")
-        processing_level_data = data.dict(include=set(ProcessingLevelFields.model_fields.keys()), exclude_unset=True)
+        processing_level = self.get_processing_level_for_action(
+            user=user, uid=uid, action="edit"
+        )
+        processing_level_data = data.dict(
+            include=set(ProcessingLevelFields.model_fields.keys()), exclude_unset=True
+        )
 
         for field, value in processing_level_data.items():
             setattr(processing_level, field, value)
@@ -65,7 +77,9 @@ class ProcessingLevelService(ServiceUtils):
         return processing_level
 
     def delete(self, user: User, uid: uuid.UUID):
-        processing_level = self.get_processing_level_for_action(user=user, uid=uid, action="delete")
+        processing_level = self.get_processing_level_for_action(
+            user=user, uid=uid, action="delete"
+        )
 
         if processing_level.datastreams.exists():
             raise HttpError(409, "Processing level in use by one or more datastreams")

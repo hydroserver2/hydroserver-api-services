@@ -1,6 +1,15 @@
 from django.contrib import admin
 from django.urls import path
-from iam.models import User, UserType, Organization, OrganizationType, Workspace, Role, Permission, Collaborator
+from iam.models import (
+    User,
+    UserType,
+    Organization,
+    OrganizationType,
+    Workspace,
+    Role,
+    Permission,
+    Collaborator,
+)
 from hydroserver.admin import VocabularyAdmin
 
 
@@ -16,14 +25,19 @@ class UserTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-user-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="user_type_load_default_data"),
+            path(
+                "load-default-user-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="user_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:iam_usertype_changelist", [
-            "iam/fixtures/default_user_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:iam_usertype_changelist",
+            ["iam/fixtures/default_user_types.yaml"],
+        )
 
 
 class OrganizationTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -34,14 +48,19 @@ class OrganizationTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-organization-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="organization_type_load_default_data"),
+            path(
+                "load-default-organization-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="organization_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:iam_organizationtype_changelist", [
-            "iam/fixtures/default_organization_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:iam_organizationtype_changelist",
+            ["iam/fixtures/default_organization_types.yaml"],
+        )
 
 
 class WorkspaceAdmin(admin.ModelAdmin):
@@ -56,14 +75,17 @@ class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-role-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="role_load_default_data"),
+            path(
+                "load-default-role-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="role_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:iam_role_changelist", [
-            "iam/fixtures/default_roles.yaml"
-        ])
+        return self.load_fixtures(
+            request, "admin:iam_role_changelist", ["iam/fixtures/default_roles.yaml"]
+        )
 
 
 class CollaboratorAdmin(admin.ModelAdmin):

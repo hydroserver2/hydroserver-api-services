@@ -12,7 +12,7 @@ account_service = AccountService()
 
 signup_view = {
     "browser": SignupView.as_api_view(client=Client.BROWSER),
-    "app": SignupView.as_api_view(client=Client.APP)
+    "app": SignupView.as_api_view(client=Client.APP),
 }
 
 
@@ -23,9 +23,11 @@ signup_view = {
         200: AccountGetResponse,
         401: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def get_account(request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]]):
+def get_account(
+    request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]]
+):
     """
     Get user account details.
     """
@@ -44,9 +46,11 @@ def get_account(request: HydroServerHttpRequest, client: Path[Literal["browser",
         409: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def create_account(request, client: Path[Literal["browser", "app"]], data: AccountPostBody):
+def create_account(
+    request, client: Path[Literal["browser", "app"]], data: AccountPostBody
+):
     """
     Create a new user account.
     """
@@ -59,33 +63,27 @@ def create_account(request, client: Path[Literal["browser", "app"]], data: Accou
 @account_router.patch(
     "",
     auth=[session_auth, bearer_auth],
-    response={
-        200: AccountGetResponse,
-        401: str,
-        422: str
-    },
-    by_alias=True
+    response={200: AccountGetResponse, 401: str, 422: str},
+    by_alias=True,
 )
-def update_account(request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]], data: AccountPatchBody):
+def update_account(
+    request: HydroServerHttpRequest,
+    client: Path[Literal["browser", "app"]],
+    data: AccountPatchBody,
+):
     """
     Update user account details.
     """
 
-    return 200, account_service.update(
-        user=request.authenticated_user,
-        data=data
-    )
+    return 200, account_service.update(user=request.authenticated_user, data=data)
 
 
 @account_router.delete(
-    "",
-    auth=[session_auth, bearer_auth],
-    response={
-        204: str,
-        401: str
-    }
+    "", auth=[session_auth, bearer_auth], response={204: str, 401: str}
 )
-def delete_account(request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]]):
+def delete_account(
+    request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]]
+):
     """
     Delete a user account.
     """

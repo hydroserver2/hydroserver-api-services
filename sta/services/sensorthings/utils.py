@@ -11,9 +11,7 @@ from sta import models as sta_models
 class SensorThingsUtils:
     @staticmethod
     def strings_to_uuids(strings):
-        return [
-            UUID(val) if isinstance(val, str) else val for val in strings
-        ]
+        return [UUID(val) if isinstance(val, str) else val for val in strings]
 
     def transform_model_field(self, component, prop):
         if component.__name__ == "Thing":
@@ -26,7 +24,7 @@ class SensorThingsUtils:
                 "properties__workspace__id": "workspace_id",
                 "properties__workspace__name": "workspace__name",
                 "properties__workspace__isPrivate": "workspace__is_private",
-                "Location__id": "location_id"
+                "Location__id": "location_id",
             }.get(prop, prop)
 
         elif component.__name__ == "Location":
@@ -34,7 +32,7 @@ class SensorThingsUtils:
                 "properties__workspace__id": "thing__workspace_id",
                 "properties__workspace__name": "thing__workspace__name",
                 "properties__workspace__isPrivate": "thing__workspace__is_private",
-                "Thing__id": "id"
+                "Thing__id": "id",
             }.get(prop, f"location__{prop}")
 
         elif component.__name__ == "HistoricalLocation":
@@ -51,7 +49,7 @@ class SensorThingsUtils:
                 "metadata__methodLink": "method_link",
                 "metadata__sensorModel__sensorModelName": "model",
                 "metadata__sensorModel__sensorModelUrl": "model_link",
-                "metadata__sensorModel__sensorManufacturer": "manufacturer"
+                "metadata__sensorModel__sensorManufacturer": "manufacturer",
             }.get(prop, prop)
 
         elif component.__name__ == "ObservedProperty":
@@ -60,18 +58,20 @@ class SensorThingsUtils:
                 "properties__variableType": "type",
                 "properties__workspace__id": "workspace_id",
                 "properties__workspace__name": "workspace__name",
-                "properties__workspace__isPrivate": "workspace__is_private"
+                "properties__workspace__isPrivate": "workspace__is_private",
             }.get(prop, prop)
 
         elif component.__name__ == "Datastream":
-            if prop.split("__")[0] in [
-                "Thing", "Sensor", "ObservedProperty"
-            ]:
-                return getattr(
-                    field_schemas, prop.split("__")[0]
-                ).model_config["json_schema_extra"]["name_ref"][1] + "__" + self.transform_model_field(
-                    component=getattr(field_schemas, prop.split("__")[0]),
-                    prop="__".join(prop.split("__")[1:])
+            if prop.split("__")[0] in ["Thing", "Sensor", "ObservedProperty"]:
+                return (
+                    getattr(field_schemas, prop.split("__")[0]).model_config[
+                        "json_schema_extra"
+                    ]["name_ref"][1]
+                    + "__"
+                    + self.transform_model_field(
+                        component=getattr(field_schemas, prop.split("__")[0]),
+                        prop="__".join(prop.split("__")[1:]),
+                    )
                 )
             else:
                 return {
@@ -100,19 +100,21 @@ class SensorThingsUtils:
             return prop
 
         elif component.__name__ == "Observation":
-            if prop.split("__")[0] in [
-                "Datastream", "FeatureOfInterest"
-            ]:
-                return getattr(
-                    field_schemas, prop.split("__")[0]
-                ).model_config["json_schema_extra"]["name_ref"][1] + "__" + self.transform_model_field(
-                    component=getattr(field_schemas, prop.split("__")[0]),
-                    prop="__".join(prop.split("__")[1:])
+            if prop.split("__")[0] in ["Datastream", "FeatureOfInterest"]:
+                return (
+                    getattr(field_schemas, prop.split("__")[0]).model_config[
+                        "json_schema_extra"
+                    ]["name_ref"][1]
+                    + "__"
+                    + self.transform_model_field(
+                        component=getattr(field_schemas, prop.split("__")[0]),
+                        prop="__".join(prop.split("__")[1:]),
+                    )
                 )
             else:
                 return {
                     "phenomenonTime": "phenomenon_time",
-                    "resultTime": "result_time"
+                    "resultTime": "result_time",
                 }.get(prop, prop)
 
     def apply_filters(self, queryset, component, filters):
@@ -124,7 +126,7 @@ class SensorThingsUtils:
                 model_field = self.transform_model_field(component, prop.name)
                 prop.__dict__ = {
                     "_constructor_args": ((model_field,), {}),
-                    "name": model_field
+                    "name": model_field,
                 }
         try:
             return queryset.filter(query_filter)
@@ -134,15 +136,20 @@ class SensorThingsUtils:
     def apply_order(self, queryset, component, order_by):
         order_by = [
             {
-                "field": self.transform_model_field(component, field["field"].replace("/", "__")),
-                "direction": field["direction"]
-            } for field in order_by
+                "field": self.transform_model_field(
+                    component, field["field"].replace("/", "__")
+                ),
+                "direction": field["direction"],
+            }
+            for field in order_by
         ]
 
-        queryset = queryset.order_by(*[
-            f"{'-' if order_field['direction'] == 'desc' else ''}{order_field['field']}"
-            for order_field in order_by
-        ])
+        queryset = queryset.order_by(
+            *[
+                f"{'-' if order_field['direction'] == 'desc' else ''}{order_field['field']}"
+                for order_field in order_by
+            ]
+        )
 
         return queryset
 
@@ -151,7 +158,7 @@ class SensorThingsUtils:
         top = top if top >= 0 else 0
         skip = skip if skip >= 0 else 0
 
-        return queryset[skip: skip+top]
+        return queryset[skip : skip + top]
 
     @staticmethod
     def apply_window(queryset, partition_field: str, top: int = 100, skip: int = 0):
@@ -162,6 +169,6 @@ class SensorThingsUtils:
             rn=Window(
                 expression=RowNumber(),
                 partition_by=[F(partition_field)],
-                order_by=queryset.query.order_by or ["id"]
+                order_by=queryset.query.order_by or ["id"],
             )
         ).filter(rn__gt=skip, rn__lte=skip + top)

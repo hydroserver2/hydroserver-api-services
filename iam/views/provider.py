@@ -1,35 +1,38 @@
 import json
 from ninja import Router, Path, Form
 from typing import Literal
-from allauth.headless.socialaccount.views import RedirectToProviderView, ProviderSignupView, ManageProvidersView
+from allauth.headless.socialaccount.views import (
+    RedirectToProviderView,
+    ProviderSignupView,
+    ManageProvidersView,
+)
 from allauth.headless.constants import Client
-from iam.schemas import ProviderRedirectPostForm, ProviderSignupPostBody, AccountGetResponse
+from iam.schemas import (
+    ProviderRedirectPostForm,
+    ProviderSignupPostBody,
+    AccountGetResponse,
+)
 
 provider_router = Router(tags=["Provider"])
 
 provider_manage_view = {
     "browser": ManageProvidersView.as_api_view(client=Client.BROWSER),
-    "app": ManageProvidersView.as_api_view(client=Client.APP)
+    "app": ManageProvidersView.as_api_view(client=Client.APP),
 }
 
 provider_redirect_view = {
     "browser": RedirectToProviderView.as_api_view(client=Client.BROWSER),
-    "app": RedirectToProviderView.as_api_view(client=Client.APP)
+    "app": RedirectToProviderView.as_api_view(client=Client.APP),
 }
 
 provider_signup_view = {
     "browser": ProviderSignupView.as_api_view(client=Client.BROWSER),
-    "app": ProviderSignupView.as_api_view(client=Client.APP)
+    "app": ProviderSignupView.as_api_view(client=Client.APP),
 }
 
 
 @provider_router.get(
-    "connections",
-    url_name="get_connections",
-    response={
-        200: str
-    },
-    by_alias=True
+    "connections", url_name="get_connections", response={200: str}, by_alias=True
 )
 def get_providers(request, client: Path[Literal["browser", "app"]]):
     """
@@ -47,9 +50,13 @@ def get_providers(request, client: Path[Literal["browser", "app"]]):
     response={
         302: None,
     },
-    by_alias=True
+    by_alias=True,
 )
-def redirect_to_provider(request, client: Path[Literal["browser", "app"]], form: Form[ProviderRedirectPostForm]):
+def redirect_to_provider(
+    request,
+    client: Path[Literal["browser", "app"]],
+    form: Form[ProviderRedirectPostForm],
+):
     """
     Redirect to provider login window.
     """
@@ -69,9 +76,11 @@ def redirect_to_provider(request, client: Path[Literal["browser", "app"]], form:
         403: str,
         409: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def provider_signup(request, client: Path[Literal["browser", "app"]], body: ProviderSignupPostBody):
+def provider_signup(
+    request, client: Path[Literal["browser", "app"]], body: ProviderSignupPostBody
+):
     """
     Finish signing up with a provider account.
     """
@@ -80,7 +89,9 @@ def provider_signup(request, client: Path[Literal["browser", "app"]], body: Prov
 
     if response.status_code == 200:
         response_content = json.loads(response.content)
-        response_content["data"]["account"] = AccountGetResponse.from_orm(request.user).dict(by_alias=True)
+        response_content["data"]["account"] = AccountGetResponse.from_orm(
+            request.user
+        ).dict(by_alias=True)
         response.content = json.dumps(response_content)
 
     return response

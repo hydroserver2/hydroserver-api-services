@@ -2,10 +2,28 @@ from django.contrib import admin
 from django.db import transaction
 from django.urls import path
 from django.core.management.base import CommandError
-from sta.models import (Thing, Sensor, ObservedProperty, Datastream, Location, Unit, ProcessingLevel,
-                        Photo, Tag, ResultQualifier, Observation, SiteType, SamplingFeatureType, MethodType,
-                        SensorEncodingType, VariableType, UnitType, DatastreamAggregation, DatastreamStatus,
-                        SampledMedium)
+from sta.models import (
+    Thing,
+    Sensor,
+    ObservedProperty,
+    Datastream,
+    Location,
+    Unit,
+    ProcessingLevel,
+    Photo,
+    Tag,
+    ResultQualifier,
+    Observation,
+    SiteType,
+    SamplingFeatureType,
+    MethodType,
+    SensorEncodingType,
+    VariableType,
+    UnitType,
+    DatastreamAggregation,
+    DatastreamStatus,
+    SampledMedium,
+)
 from sta.management.utils import generate_test_timeseries
 from hydroserver.admin import VocabularyAdmin
 
@@ -38,14 +56,19 @@ class ObservedPropertyAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-observed-property-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="observed_property_load_default_data"),
+            path(
+                "load-default-observed-property-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="observed_property_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_observedproperty_changelist", [
-            "sta/fixtures/default_observed_properties.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_observedproperty_changelist",
+            ["sta/fixtures/default_observed_properties.yaml"],
+        )
 
 
 class UnitAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -56,14 +79,17 @@ class UnitAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-unit-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="unit_load_default_data"),
+            path(
+                "load-default-unit-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="unit_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_unit_changelist", [
-            "sta/fixtures/default_units.yaml"
-        ])
+        return self.load_fixtures(
+            request, "admin:sta_unit_changelist", ["sta/fixtures/default_units.yaml"]
+        )
 
 
 class ProcessingLevelAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -74,14 +100,19 @@ class ProcessingLevelAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-processing-level-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="processing_level_load_default_data"),
+            path(
+                "load-default-processing-level-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="processing_level_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_processinglevel_changelist", [
-            "sta/fixtures/default_processing_levels.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_processinglevel_changelist",
+            ["sta/fixtures/default_processing_levels.yaml"],
+        )
 
 
 class DatastreamAdmin(admin.ModelAdmin):
@@ -96,22 +127,36 @@ class DatastreamAdmin(admin.ModelAdmin):
                     for datastream in queryset:
                         generate_test_timeseries(datastream.id)
                 except CommandError as e:
-                    self.message_user(request, f"An error occurred: {str(e)}", level="error")
+                    self.message_user(
+                        request, f"An error occurred: {str(e)}", level="error"
+                    )
             self.message_user(request, "Observations loaded successfully.")
         else:
-            self.message_user(request, "You do not have permission to perform this action", level="error")
+            self.message_user(
+                request,
+                "You do not have permission to perform this action",
+                level="error",
+            )
 
     def delete_observations(self, request, queryset):
         if request.user.is_superuser:
             with transaction.atomic():
                 for datastream in queryset:
-                    observations = Observation.objects.filter(datastream_id=datastream.id)
+                    observations = Observation.objects.filter(
+                        datastream_id=datastream.id
+                    )
                     observations.delete()
             self.message_user(request, "Observations deleted successfully.")
         else:
-            self.message_user(request, "You do not have permission to perform this action", level="error")
+            self.message_user(
+                request,
+                "You do not have permission to perform this action",
+                level="error",
+            )
 
-    populate_with_test_observations.short_description = "Populate with test observations"
+    populate_with_test_observations.short_description = (
+        "Populate with test observations"
+    )
     delete_observations.short_description = "Delete datastream observations"
 
 
@@ -127,14 +172,19 @@ class SiteTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-site-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="site_type_load_default_data"),
+            path(
+                "load-default-site-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="site_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_sitetype_changelist", [
-            "sta/fixtures/default_site_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_sitetype_changelist",
+            ["sta/fixtures/default_site_types.yaml"],
+        )
 
 
 class SamplingFeatureTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -145,14 +195,19 @@ class SamplingFeatureTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-sampling-feature-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="sampling_feature_type_load_default_data"),
+            path(
+                "load-default-sampling-feature-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="sampling_feature_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_samplingfeaturetype_changelist", [
-            "sta/fixtures/default_sampling_feature_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_samplingfeaturetype_changelist",
+            ["sta/fixtures/default_sampling_feature_types.yaml"],
+        )
 
 
 class MethodTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -163,14 +218,19 @@ class MethodTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-method-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="method_type_load_default_data"),
+            path(
+                "load-default-method-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="method_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_methodtype_changelist", [
-            "sta/fixtures/default_method_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_methodtype_changelist",
+            ["sta/fixtures/default_method_types.yaml"],
+        )
 
 
 class SensorEncodingTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -181,14 +241,19 @@ class SensorEncodingTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-sensor-encoding-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="sensor_encoding_type_load_default_data"),
+            path(
+                "load-default-sensor-encoding-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="sensor_encoding_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_sensorencodingtype_changelist", [
-            "sta/fixtures/default_sensor_encoding_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_sensorencodingtype_changelist",
+            ["sta/fixtures/default_sensor_encoding_types.yaml"],
+        )
 
 
 class VariableTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -199,14 +264,19 @@ class VariableTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-variable-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="variable_type_load_default_data"),
+            path(
+                "load-default-variable-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="variable_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_variabletype_changelist", [
-            "sta/fixtures/default_variable_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_variabletype_changelist",
+            ["sta/fixtures/default_variable_types.yaml"],
+        )
 
 
 class UnitTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -217,14 +287,19 @@ class UnitTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-unit-type-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="unit_type_load_default_data"),
+            path(
+                "load-default-unit-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="unit_type_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_unittype_changelist", [
-            "sta/fixtures/default_unit_types.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_unittype_changelist",
+            ["sta/fixtures/default_unit_types.yaml"],
+        )
 
 
 class DatastreamAggregationAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -235,14 +310,19 @@ class DatastreamAggregationAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-datastream-aggregation-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="datastream_aggregation_load_default_data"),
+            path(
+                "load-default-datastream-aggregation-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="datastream_aggregation_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_datastreamaggregation_changelist", [
-            "sta/fixtures/default_datastream_aggregations.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_datastreamaggregation_changelist",
+            ["sta/fixtures/default_datastream_aggregations.yaml"],
+        )
 
 
 class DatastreamStatusAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -253,14 +333,19 @@ class DatastreamStatusAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-datastream-status-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="datastream_status_load_default_data"),
+            path(
+                "load-default-datastream-status-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="datastream_status_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_datastreamstatus_changelist", [
-            "sta/fixtures/default_datastream_statuses.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_datastreamstatus_changelist",
+            ["sta/fixtures/default_datastream_statuses.yaml"],
+        )
 
 
 class SampledMediumAdmin(admin.ModelAdmin, VocabularyAdmin):
@@ -271,14 +356,19 @@ class SampledMediumAdmin(admin.ModelAdmin, VocabularyAdmin):
         urls = super().get_urls()
 
         return [
-            path("load-default-sampled-medium-data/", self.admin_site.admin_view(self.load_default_data),
-                 name="sampled_medium_load_default_data"),
+            path(
+                "load-default-sampled-medium-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="sampled_medium_load_default_data",
+            ),
         ] + urls
 
     def load_default_data(self, request):
-        return self.load_fixtures(request, "admin:sta_sampledmedium_changelist", [
-            "sta/fixtures/default_sampled_mediums.yaml"
-        ])
+        return self.load_fixtures(
+            request,
+            "admin:sta_sampledmedium_changelist",
+            ["sta/fixtures/default_sampled_mediums.yaml"],
+        )
 
 
 admin.site.register(Thing, ThingAdmin)

@@ -1,4 +1,9 @@
-from allauth.socialaccount.providers.orcid.provider import Scope, OrcidAccount, OrcidProvider, extract_from_dict
+from allauth.socialaccount.providers.orcid.provider import (
+    Scope,
+    OrcidAccount,
+    OrcidProvider,
+    extract_from_dict,
+)
 from iam.auth.providers.orcidsandbox.views import SandboxOrcidOAuth2Adapter
 
 

@@ -11,8 +11,12 @@ class VocabularyAdmin:
         try:
             for fixture in fixtures:
                 call_command("loaddata", fixture)
-            self.message_user(request, "Default data loaded successfully!", messages.SUCCESS)  # noqa
+            self.message_user(
+                request, "Default data loaded successfully!", messages.SUCCESS
+            )  # noqa
         except Exception as e:
-            self.message_user(request, f"Error loading data: {str(e)}", messages.ERROR)  # noqa
+            self.message_user(
+                request, f"Error loading data: {str(e)}", messages.ERROR
+            )  # noqa
 
         return HttpResponseRedirect(reverse(redirect))

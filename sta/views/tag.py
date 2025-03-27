@@ -19,7 +19,7 @@ thing_service = ThingService()
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
@@ -38,10 +38,13 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     response={
         200: dict[str, list[str]],
         401: str,
-    }
+    },
 )
-def get_tag_keys(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None,
-                 thing_id: Optional[uuid.UUID] = None):
+def get_tag_keys(
+    request: HydroServerHttpRequest,
+    workspace_id: Optional[uuid.UUID] = None,
+    thing_id: Optional[uuid.UUID] = None,
+):
     """
     Get all existing unique tag keys.
     """
@@ -63,9 +66,11 @@ def get_tag_keys(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UU
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def add_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody):
+def add_tag(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody
+):
     """
     Add a tag to a Thing.
     """
@@ -87,9 +92,11 @@ def add_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: Ta
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def edit_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody):
+def edit_tag(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody
+):
     """
     Edit a tag of a Thing.
     """
@@ -111,9 +118,11 @@ def edit_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: T
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def remove_tag(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagDeleteBody):
+def remove_tag(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagDeleteBody
+):
     """
     Remove a tag from a Thing.
     """

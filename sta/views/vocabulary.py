@@ -1,16 +1,21 @@
 from ninja import Router
-from sta.models import (SiteType, SamplingFeatureType, SensorEncodingType, MethodType, VariableType, UnitType,
-                        DatastreamStatus, DatastreamAggregation, SampledMedium)
+from sta.models import (
+    SiteType,
+    SamplingFeatureType,
+    SensorEncodingType,
+    MethodType,
+    VariableType,
+    UnitType,
+    DatastreamStatus,
+    DatastreamAggregation,
+    SampledMedium,
+)
 
 sta_vocabulary_router = Router(tags=["Vocabulary"])
 
 
 @sta_vocabulary_router.get(
-    "things/site-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "things/site-types", response={200: list[str]}, by_alias=True
 )
 def get_site_types(request):
     """
@@ -21,11 +26,7 @@ def get_site_types(request):
 
 
 @sta_vocabulary_router.get(
-    "things/sampling-feature-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "things/sampling-feature-types", response={200: list[str]}, by_alias=True
 )
 def get_sampling_feature_types(request):
     """
@@ -36,11 +37,7 @@ def get_sampling_feature_types(request):
 
 
 @sta_vocabulary_router.get(
-    "sensors/encoding-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "sensors/encoding-types", response={200: list[str]}, by_alias=True
 )
 def get_sensor_encoding_types(request):
     """
@@ -51,11 +48,7 @@ def get_sensor_encoding_types(request):
 
 
 @sta_vocabulary_router.get(
-    "sensors/method-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "sensors/method-types", response={200: list[str]}, by_alias=True
 )
 def get_method_types(request):
     """
@@ -66,11 +59,7 @@ def get_method_types(request):
 
 
 @sta_vocabulary_router.get(
-    "observed-properties/variable-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "observed-properties/variable-types", response={200: list[str]}, by_alias=True
 )
 def get_variable_types(request):
     """
@@ -80,13 +69,7 @@ def get_variable_types(request):
     return 200, VariableType.objects.values_list("name", flat=True)
 
 
-@sta_vocabulary_router.get(
-    "units/types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@sta_vocabulary_router.get("units/types", response={200: list[str]}, by_alias=True)
 def get_unit_types(request):
     """
     Get unit types.
@@ -96,11 +79,7 @@ def get_unit_types(request):
 
 
 @sta_vocabulary_router.get(
-    "datastreams/statuses",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "datastreams/statuses", response={200: list[str]}, by_alias=True
 )
 def get_datastream_statuses(request):
     """
@@ -111,11 +90,7 @@ def get_datastream_statuses(request):
 
 
 @sta_vocabulary_router.get(
-    "datastreams/aggregations",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "datastreams/aggregations", response={200: list[str]}, by_alias=True
 )
 def get_datastream_aggregations(request):
     """
@@ -126,11 +101,7 @@ def get_datastream_aggregations(request):
 
 
 @sta_vocabulary_router.get(
-    "datastreams/sampled-mediums",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "datastreams/sampled-mediums", response={200: list[str]}, by_alias=True
 )
 def get_sampled_mediums(request):
     """

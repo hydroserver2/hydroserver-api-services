@@ -4,19 +4,21 @@ from ninja.errors import HttpError
 from django.db.utils import DataError, DatabaseError
 from sta.models import ObservedProperty
 from sensorthings.components.observedproperties.engine import ObservedPropertyBaseEngine
-from sensorthings.components.observedproperties.schemas import ObservedProperty as ObservedPropertySchema
+from sensorthings.components.observedproperties.schemas import (
+    ObservedProperty as ObservedPropertySchema,
+)
 from .utils import SensorThingsUtils
 
 
 class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
     def get_observed_properties(
-            self,
-            observed_property_ids: Optional[list[UUID]] = None,
-            pagination: Optional[dict] = None,
-            ordering: Optional[dict] = None,
-            filters: Optional[dict] = None,
-            expanded: bool = False,
-            get_count: bool = False
+        self,
+        observed_property_ids: Optional[list[UUID]] = None,
+        pagination: Optional[dict] = None,
+        ordering: Optional[dict] = None,
+        filters: Optional[dict] = None,
+        expanded: bool = False,
+        get_count: bool = False,
     ) -> (list[dict], int):
 
         if observed_property_ids:
@@ -25,22 +27,26 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
         observed_properties = ObservedProperty.objects
 
         if observed_property_ids:
-            observed_properties = observed_properties.filter(id__in=observed_property_ids)
+            observed_properties = observed_properties.filter(
+                id__in=observed_property_ids
+            )
 
-        observed_properties = observed_properties.visible(user=self.request.authenticated_user)  # noqa
+        observed_properties = observed_properties.visible(
+            user=self.request.authenticated_user
+        )  # noqa
 
         if filters:
             observed_properties = self.apply_filters(
                 queryset=observed_properties,
                 component=ObservedPropertySchema,
-                filters=filters
+                filters=filters,
             )
 
         if ordering:
             observed_properties = self.apply_order(
                 queryset=observed_properties,
                 component=ObservedPropertySchema,
-                order_by=ordering
+                order_by=ordering,
             )
 
         observed_properties = observed_properties.distinct()
@@ -54,7 +60,7 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
             observed_properties = self.apply_pagination(
                 queryset=observed_properties,
                 top=pagination.get("top"),
-                skip=pagination.get("skip")
+                skip=pagination.get("skip"),
             )
 
         try:
@@ -67,33 +73,33 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
                     "properties": {
                         "variable_code": observed_property.code,
                         "variable_type": observed_property.observed_property_type,
-                        "workspace": {
-                            "id": observed_property.workspace.id,
-                            "name": observed_property.workspace.name,
-                            "link": observed_property.workspace.link,
-                            "is_private": observed_property.workspace.is_private
-                        } if observed_property.workspace else None
-                    }
-                } for observed_property in observed_properties
+                        "workspace": (
+                            {
+                                "id": observed_property.workspace.id,
+                                "name": observed_property.workspace.name,
+                                "link": observed_property.workspace.link,
+                                "is_private": observed_property.workspace.is_private,
+                            }
+                            if observed_property.workspace
+                            else None
+                        ),
+                    },
+                }
+                for observed_property in observed_properties
             }, count
-        except (DataError, DatabaseError,) as e:
+        except (
+            DataError,
+            DatabaseError,
+        ) as e:
             raise HttpError(400, str(e))
 
-    def create_observed_property(
-            self,
-            observed_property
-    ) -> str:
+    def create_observed_property(self, observed_property) -> str:
         raise HttpError(403, "You do not have permission to perform this action.")
 
     def update_observed_property(
-            self,
-            observed_property_id: str,
-            observed_property
+        self, observed_property_id: str, observed_property
     ) -> None:
         raise HttpError(403, "You do not have permission to perform this action.")
 
-    def delete_observed_property(
-            self,
-            observed_property_id: str
-    ) -> None:
+    def delete_observed_property(self, observed_property_id: str) -> None:
         raise HttpError(403, "You do not have permission to perform this action.")

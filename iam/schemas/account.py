@@ -31,7 +31,7 @@ class UserContactFields(Schema):
     phone: Optional[str] = Field(None, max_length=15)
     address: Optional[str] = Field(None, max_length=255)
     link: Optional[str] = Field(None, max_length=2000)
-    user_type: str = Field(..., max_length=255, alias='type')
+    user_type: str = Field(..., max_length=255, alias="type")
 
 
 class UserFields(UserContactFields):

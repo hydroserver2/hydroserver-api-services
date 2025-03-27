@@ -1,31 +1,38 @@
 import pytest
-from iam.schemas import (AccountPostBody, AccountPatchBody, OrganizationPostBody, OrganizationPatchBody,
-                         AccountGetResponse)
+from iam.schemas import (
+    AccountPostBody,
+    AccountPatchBody,
+    OrganizationPostBody,
+    OrganizationPatchBody,
+    AccountGetResponse,
+)
 from iam.services.account import AccountService
 
 account_service = AccountService()
 
 
-@pytest.mark.parametrize("user", [
-    "owner",
-    "admin",
-    "limited",
-    "inactive"
-])
+@pytest.mark.parametrize("user", ["owner", "admin", "limited", "inactive"])
 def test_get_account(get_user, user):
-    account = account_service.get(
-        user=get_user(user)
-    )
+    account = account_service.get(user=get_user(user))
     assert account.email.startswith(user)
     assert AccountGetResponse.from_orm(account)
 
 
-@pytest.mark.parametrize("account_data", [
-    AccountPostBody(
-        email="new@example.com", password="test1234!", first_name="New", last_name="User", user_type="Other",
-        organization=OrganizationPostBody(code="TEST", name="Test Org", organization_type="Other")
-    ),
-])
+@pytest.mark.parametrize(
+    "account_data",
+    [
+        AccountPostBody(
+            email="new@example.com",
+            password="test1234!",
+            first_name="New",
+            last_name="User",
+            user_type="Other",
+            organization=OrganizationPostBody(
+                code="TEST", name="Test Org", organization_type="Other"
+            ),
+        ),
+    ],
+)
 def test_create_account(account_data):
     account = account_service.create(data=account_data)
     assert account.email == account_data.email
@@ -37,12 +44,22 @@ def test_create_account(account_data):
     assert AccountGetResponse.from_orm(account)
 
 
-@pytest.mark.parametrize("user, account_data", [
-    ("owner", AccountPatchBody(
-        first_name="New", last_name="User", user_type="Other",
-        organization=OrganizationPatchBody(code="TEST", name="Test Org", organization_type="Other")
-    )),
-])
+@pytest.mark.parametrize(
+    "user, account_data",
+    [
+        (
+            "owner",
+            AccountPatchBody(
+                first_name="New",
+                last_name="User",
+                user_type="Other",
+                organization=OrganizationPatchBody(
+                    code="TEST", name="Test Org", organization_type="Other"
+                ),
+            ),
+        ),
+    ],
+)
 def test_update_account(get_user, user, account_data):
     account = account_service.update(user=get_user(user), data=account_data)
     assert account.first_name == account_data.first_name
@@ -53,11 +70,14 @@ def test_update_account(get_user, user, account_data):
     assert AccountGetResponse.from_orm(account)
 
 
-@pytest.mark.parametrize("user, max_queries", [
-    ("owner", 33),
-    ("admin", 30),
-    ("limited", 30),
-])
+@pytest.mark.parametrize(
+    "user, max_queries",
+    [
+        ("owner", 33),
+        ("admin", 30),
+        ("limited", 30),
+    ],
+)
 def test_delete_account(django_assert_max_num_queries, get_user, user, max_queries):
     with django_assert_max_num_queries(max_queries):
         message = account_service.delete(get_user(user))

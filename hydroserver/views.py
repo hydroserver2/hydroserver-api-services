@@ -6,8 +6,6 @@ from django.conf import settings
 @csrf_exempt
 def index(request):
 
-    context = {
-        "proxy_base_url": settings.PROXY_BASE_URL
-    }
+    context = {"proxy_base_url": settings.PROXY_BASE_URL}
 
     return render(request, "index.html", context)

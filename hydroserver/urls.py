@@ -9,8 +9,14 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("api/auth/", include("iam.urls")),
     path("api/", include("sta.urls")),
-    path("", index)
+    path("", index),
 ]
 
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STORAGES["staticfiles"]["OPTIONS"]["location"])
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.STORAGES["default"]["OPTIONS"]["location"])
+urlpatterns += static(
+    settings.STATIC_URL,
+    document_root=settings.STORAGES["staticfiles"]["OPTIONS"]["location"],
+)
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.STORAGES["default"]["OPTIONS"]["location"],
+)
