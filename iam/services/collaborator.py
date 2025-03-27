@@ -14,7 +14,11 @@ class CollaboratorService(ServiceUtils):
     def list(self, user: User, workspace_id: uuid.UUID):
         workspace, _ = self.get_workspace(user=user, workspace_id=workspace_id)
 
-        return Collaborator.objects.filter(workspace=workspace).visible(user=user).distinct()
+        return (
+            Collaborator.objects.filter(workspace=workspace)
+            .visible(user=user)
+            .distinct()
+        )
 
     def create(self, user: User, workspace_id: uuid.UUID, data: CollaboratorPostBody):
         workspace, _ = self.get_workspace(user=user, workspace_id=workspace_id)
@@ -27,22 +31,29 @@ class CollaboratorService(ServiceUtils):
         except User.DoesNotExist:
             raise HttpError(400, f"No account with email '{data.email}' found")
 
-        workspace_collaborator_emails = Collaborator.objects.filter(
-            workspace=workspace
-        ).select_related("user").values_list("user__email", flat=True)
+        workspace_collaborator_emails = (
+            Collaborator.objects.filter(workspace=workspace)
+            .select_related("user")
+            .values_list("user__email", flat=True)
+        )
 
         if new_collaborator.email in workspace_collaborator_emails:
-            raise HttpError(400, f"Account with email '{data.email}' already collaborates on the workspace")
+            raise HttpError(
+                400,
+                f"Account with email '{data.email}' already collaborates on the workspace",
+            )
 
         if new_collaborator.email == workspace.owner.email:
-            raise HttpError(400, f"Account with email '{data.email}' already owns the workspace")
+            raise HttpError(
+                400, f"Account with email '{data.email}' already owns the workspace"
+            )
 
-        collaborator_role = role_service.get(user=user, workspace_id=workspace_id, uid=data.role_id)
+        collaborator_role = role_service.get(
+            user=user, workspace_id=workspace_id, uid=data.role_id
+        )
 
         return Collaborator.objects.create(
-            workspace=workspace,
-            user=new_collaborator,
-            role_id=collaborator_role.id
+            workspace=workspace, user=new_collaborator, role_id=collaborator_role.id
         )
 
     def update(self, user: User, workspace_id: uuid.UUID, data: CollaboratorPostBody):
@@ -58,9 +69,13 @@ class CollaboratorService(ServiceUtils):
         permissions = collaborator.get_user_permissions(user=user)
 
         if not any(permission in permissions for permission in ("*", "edit")):
-            raise HttpError(403, f"You do not have permission to modify this collaborator's role")
+            raise HttpError(
+                403, f"You do not have permission to modify this collaborator's role"
+            )
 
-        collaborator.role = role_service.get(user=user, workspace_id=workspace_id, uid=data.role_id)
+        collaborator.role = role_service.get(
+            user=user, workspace_id=workspace_id, uid=data.role_id
+        )
         collaborator.save()
 
         return collaborator
@@ -77,9 +92,13 @@ class CollaboratorService(ServiceUtils):
 
         permissions = collaborator.get_user_permissions(user=user)
 
-        if (not any(permission in permissions for permission in ("*", "delete"))
-                and user.email != collaborator.user.email):
-            raise HttpError(403, f"You do not have permission to remove this collaborator")
+        if (
+            not any(permission in permissions for permission in ("*", "delete"))
+            and user.email != collaborator.user.email
+        ):
+            raise HttpError(
+                403, f"You do not have permission to remove this collaborator"
+            )
 
         collaborator.delete()
 

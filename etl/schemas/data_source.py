@@ -18,7 +18,9 @@ class LinkedDatastreamProperties(BaseGetResponse, Schema):
     time_aggregation_interval: float
     time_aggregation_interval_unit: Literal["seconds", "minutes", "hours", "days"]
     intended_time_spacing: Optional[float] = None
-    intended_time_spacing_unit: Optional[Literal["seconds", "minutes", "hours", "days"]] = None
+    intended_time_spacing_unit: Optional[
+        Literal["seconds", "minutes", "hours", "days"]
+    ] = None
 
 
 class LinkedDatastreamFields(Schema):

@@ -23,10 +23,10 @@ class WorkspaceQueryset(models.QuerySet):
             return queryset
         else:
             return queryset.filter(
-                Q(is_private=False) |
-                Q(owner=user) |
-                Q(collaborators__user=user) |
-                Q(transfer_confirmation__new_owner=user)
+                Q(is_private=False)
+                | Q(owner=user)
+                | Q(collaborators__user=user)
+                | Q(transfer_confirmation__new_owner=user)
             )
 
     def associated(self, user: Optional["User"]):
@@ -35,7 +35,9 @@ class WorkspaceQueryset(models.QuerySet):
             return queryset.none()
         else:
             return queryset.filter(
-                Q(owner=user) | Q(collaborators__user=user) | Q(transfer_confirmation__new_owner=user)
+                Q(owner=user)
+                | Q(collaborators__user=user)
+                | Q(transfer_confirmation__new_owner=user)
             )
 
 
@@ -63,8 +65,10 @@ class Workspace(models.Model):
     def can_user_create(cls, user: Optional["User"]):
         return user.account_type != "limited"
 
-    def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        if user == self.owner or user.account_type == "admin":
+    def get_user_permissions(
+        self, user: Optional["User"]
+    ) -> list[Literal["edit", "delete", "view"]]:
+        if user and (user == self.owner or user.account_type == "admin"):
             return ["view", "edit", "delete"]
         elif self.is_private is False or self.collaborators.filter(user=user).exists():
             return ["view"]
@@ -80,41 +84,72 @@ class Workspace(models.Model):
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from iam.models import Role, Collaborator
-        from sta.models import Thing, ObservedProperty, ProcessingLevel, ResultQualifier, Sensor, Unit
+        from sta.models import (
+            Thing,
+            ObservedProperty,
+            ProcessingLevel,
+            ResultQualifier,
+            Sensor,
+            Unit,
+        )
         from etl.models import EtlSystemPlatform, EtlSystem, DataSource
 
-        workspace_relation_filter = f"workspace__{filter_suffix}" if filter_suffix else "workspace"
+        workspace_relation_filter = (
+            f"workspace__{filter_suffix}" if filter_suffix else "workspace"
+        )
 
         Collaborator.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        Role.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        Role.delete_contents(
+            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
+        )
         Role.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        Thing.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        Thing.delete_contents(
+            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
+        )
         Thing.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        ObservedProperty.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
-        ProcessingLevel.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
-        ResultQualifier.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        ObservedProperty.objects.filter(
+            **{workspace_relation_filter: filter_arg}
+        ).delete()
+        ProcessingLevel.objects.filter(
+            **{workspace_relation_filter: filter_arg}
+        ).delete()
+        ResultQualifier.objects.filter(
+            **{workspace_relation_filter: filter_arg}
+        ).delete()
         Sensor.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
         Unit.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        DataSource.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        DataSource.delete_contents(
+            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
+        )
         DataSource.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        EtlSystem.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
+        EtlSystem.delete_contents(
+            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
+        )
         EtlSystem.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        EtlSystemPlatform.delete_contents(filter_arg=filter_arg, filter_suffix=workspace_relation_filter)
-        EtlSystemPlatform.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        EtlSystemPlatform.delete_contents(
+            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
+        )
+        EtlSystemPlatform.objects.filter(
+            **{workspace_relation_filter: filter_arg}
+        ).delete()
 
 
 class WorkspaceTransferConfirmation(models.Model):
-    workspace = models.OneToOneField("Workspace", on_delete=models.CASCADE, related_name="transfer_confirmation")
+    workspace = models.OneToOneField(
+        "Workspace", on_delete=models.CASCADE, related_name="transfer_confirmation"
+    )
     new_owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     initiated = models.DateTimeField()
 
 
 class WorkspaceDeleteConfirmation(models.Model):
-    workspace = models.OneToOneField("Workspace", on_delete=models.CASCADE, related_name="delete_confirmation")
+    workspace = models.OneToOneField(
+        "Workspace", on_delete=models.CASCADE, related_name="delete_confirmation"
+    )
     initiated = models.DateTimeField()

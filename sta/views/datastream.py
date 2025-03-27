@@ -18,18 +18,19 @@ datastream_service = DatastreamService()
         200: list[DatastreamGetResponse],
         401: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def get_datastreams(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None,
-                    thing_id: Optional[uuid.UUID] = None):
+def get_datastreams(
+    request: HydroServerHttpRequest,
+    workspace_id: Optional[uuid.UUID] = None,
+    thing_id: Optional[uuid.UUID] = None,
+):
     """
     Get public Datastreams and Datastreams associated with the authenticated user.
     """
 
     return 200, datastream_service.list(
-        user=request.authenticated_user,
-        workspace_id=workspace_id,
-        thing_id=thing_id
+        user=request.authenticated_user, workspace_id=workspace_id, thing_id=thing_id
     )
 
 
@@ -43,7 +44,7 @@ def get_datastreams(request: HydroServerHttpRequest, workspace_id: Optional[uuid
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
 def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody):
@@ -51,10 +52,7 @@ def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody)
     Create a new Datastream.
     """
 
-    return 201, datastream_service.create(
-        user=request.authenticated_user,
-        data=data
-    )
+    return 201, datastream_service.create(user=request.authenticated_user, data=data)
 
 
 @datastream_router.get(
@@ -66,7 +64,7 @@ def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody)
         403: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
 def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
     """
@@ -74,8 +72,7 @@ def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUI
     """
 
     return 200, datastream_service.get(
-        user=request.authenticated_user,
-        uid=datastream_id
+        user=request.authenticated_user, uid=datastream_id
     )
 
 
@@ -89,18 +86,20 @@ def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUI
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def update_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID], data: DatastreamPatchBody):
+def update_datastream(
+    request: HydroServerHttpRequest,
+    datastream_id: Path[uuid.UUID],
+    data: DatastreamPatchBody,
+):
     """
     Update a Datastream.
     """
 
     return 200, datastream_service.update(
-        user=request.authenticated_user,
-        uid=datastream_id,
-        data=data
+        user=request.authenticated_user, uid=datastream_id, data=data
     )
 
 
@@ -112,7 +111,7 @@ def update_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
 def delete_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
@@ -121,6 +120,5 @@ def delete_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
     """
 
     return 204, datastream_service.delete(
-        user=request.authenticated_user,
-        uid=datastream_id
+        user=request.authenticated_user, uid=datastream_id
     )

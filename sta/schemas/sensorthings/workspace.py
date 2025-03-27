@@ -11,4 +11,6 @@ class WorkspaceProperties(Schema):
     link: AnyHttpUrlString
     is_private: bool
 
-    model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel)
+    model_config = ConfigDict(
+        populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
+    )

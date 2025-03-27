@@ -18,7 +18,7 @@ thing_service = ThingService()
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
@@ -42,17 +42,19 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
         413: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], file: UploadedFile = File(...)):
+def add_photo(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    file: UploadedFile = File(...),
+):
     """
     Add a photo to a thing.
     """
 
     return 201, thing_service.add_photo(
-        user=request.authenticated_user,
-        uid=thing_id,
-        file=file
+        user=request.authenticated_user, uid=thing_id, file=file
     )
 
 
@@ -66,9 +68,11 @@ def add_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], file: 
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def remove_photo(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: PhotoDeleteBody):
+def remove_photo(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: PhotoDeleteBody
+):
     """
     Remove a photo from a thing.
     """

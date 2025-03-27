@@ -17,7 +17,7 @@ role_service = RoleService()
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 def get_roles(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
@@ -25,8 +25,7 @@ def get_roles(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
 
     return 200, role_service.list(
-        user=request.authenticated_user,
-        workspace_id=workspace_id
+        user=request.authenticated_user, workspace_id=workspace_id
     )
 
 
@@ -38,7 +37,7 @@ def get_roles(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 def get_role(request, workspace_id: Path[uuid.UUID], role_id: Path[uuid.UUID]):
     """
@@ -46,7 +45,5 @@ def get_role(request, workspace_id: Path[uuid.UUID], role_id: Path[uuid.UUID]):
     """
 
     return 200, role_service.get(
-        user=request.authenticated_user,
-        uid=role_id,
-        workspace_id=workspace_id
+        user=request.authenticated_user, uid=role_id, workspace_id=workspace_id
     )

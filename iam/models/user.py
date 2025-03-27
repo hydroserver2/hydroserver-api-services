@@ -9,7 +9,7 @@ from django.conf import settings
 
 class UserManager(BaseUserManager):
     def get_queryset(self):
-        return super().get_queryset().select_related('organization')
+        return super().get_queryset().select_related("organization")
 
     def create_user(self, email, password, **extra_fields):
         if email is None:
@@ -18,11 +18,11 @@ class UserManager(BaseUserManager):
         normalized_email = self.normalize_email(email)
 
         user = self.model(
-            username=normalized_email,
-            email=normalized_email,
-            **extra_fields
+            username=normalized_email, email=normalized_email, **extra_fields
         )
-        user.is_ownership_allowed = user.is_superuser or settings.ACCOUNT_OWNERSHIP_ENABLED
+        user.is_ownership_allowed = (
+            user.is_superuser or settings.ACCOUNT_OWNERSHIP_ENABLED
+        )
         user.set_password(password)
         user.save(using=self._db)
 
@@ -35,12 +35,7 @@ class UserManager(BaseUserManager):
 
         user = self.create_user(email, password, **extra_fields)
 
-        EmailAddress.objects.create(
-            user=user,
-            email=email,
-            verified=True,
-            primary=True
-        )
+        EmailAddress.objects.create(user=user, email=email, verified=True, primary=True)
 
         return user
 
@@ -52,8 +47,13 @@ class User(AbstractUser):
     address = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(max_length=2000, blank=True, null=True)
     user_type = models.CharField(max_length=255)
-    organization = models.OneToOneField("Organization", on_delete=models.SET_NULL, blank=True, null=True,
-                                        related_name="user")
+    organization = models.OneToOneField(
+        "Organization",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="user",
+    )
     is_ownership_allowed = models.BooleanField(default=False)
 
     @property
@@ -105,7 +105,9 @@ class User(AbstractUser):
 
         Collaborator.objects.filter(**{user_relation_filter: filter_arg}).delete()
 
-        Workspace.delete_contents(filter_arg=filter_arg, filter_suffix=owner_relation_filter)
+        Workspace.delete_contents(
+            filter_arg=filter_arg, filter_suffix=owner_relation_filter
+        )
         Workspace.objects.filter(**{owner_relation_filter: filter_arg}).delete()
 
     def __str__(self):

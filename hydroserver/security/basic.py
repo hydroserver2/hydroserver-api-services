@@ -10,4 +10,4 @@ class BasicAuth(HttpBasicAuth):
             request.authenticated_user = user
             return user
         elif username or password:
-            raise HttpError(401, 'Invalid username or password')
+            raise HttpError(401, "Invalid username or password")

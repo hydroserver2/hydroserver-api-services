@@ -4,7 +4,11 @@ from typing import Optional
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from sta.schemas import ObservedPropertyGetResponse, ObservedPropertyPostBody, ObservedPropertyPatchBody
+from sta.schemas import (
+    ObservedPropertyGetResponse,
+    ObservedPropertyPostBody,
+    ObservedPropertyPatchBody,
+)
 from sta.services import ObservedPropertyService
 
 observed_property_router = Router(tags=["Observed Properties"])
@@ -18,16 +22,17 @@ observed_property_service = ObservedPropertyService()
         200: list[ObservedPropertyGetResponse],
         401: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def get_observed_properties(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None):
+def get_observed_properties(
+    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+):
     """
     Get public Observed Properties and Observed Properties associated with the authenticated user.
     """
 
     return 200, observed_property_service.list(
-        user=request.authenticated_user,
-        workspace_id=workspace_id
+        user=request.authenticated_user, workspace_id=workspace_id
     )
 
 
@@ -41,17 +46,18 @@ def get_observed_properties(request: HydroServerHttpRequest, workspace_id: Optio
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def create_observed_property(request: HydroServerHttpRequest, data: ObservedPropertyPostBody):
+def create_observed_property(
+    request: HydroServerHttpRequest, data: ObservedPropertyPostBody
+):
     """
     Create a new Observed Property.
     """
 
     return 201, observed_property_service.create(
-        user=request.authenticated_user,
-        data=data
+        user=request.authenticated_user, data=data
     )
 
 
@@ -64,16 +70,17 @@ def create_observed_property(request: HydroServerHttpRequest, data: ObservedProp
         403: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
-def get_observed_property(request: HydroServerHttpRequest, observed_property_id: Path[uuid.UUID]):
+def get_observed_property(
+    request: HydroServerHttpRequest, observed_property_id: Path[uuid.UUID]
+):
     """
     Get an Observed Property.
     """
 
     return 200, observed_property_service.get(
-        user=request.authenticated_user,
-        uid=observed_property_id
+        user=request.authenticated_user, uid=observed_property_id
     )
 
 
@@ -87,18 +94,20 @@ def get_observed_property(request: HydroServerHttpRequest, observed_property_id:
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def update_observed_property(request: HydroServerHttpRequest, observed_property_id: Path[uuid.UUID], data: ObservedPropertyPatchBody):
+def update_observed_property(
+    request: HydroServerHttpRequest,
+    observed_property_id: Path[uuid.UUID],
+    data: ObservedPropertyPatchBody,
+):
     """
     Update an Observed Property.
     """
 
     return 200, observed_property_service.update(
-        user=request.authenticated_user,
-        uid=observed_property_id,
-        data=data
+        user=request.authenticated_user, uid=observed_property_id, data=data
     )
 
 
@@ -111,15 +120,16 @@ def update_observed_property(request: HydroServerHttpRequest, observed_property_
         403: str,
         409: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def delete_observed_property(request: HydroServerHttpRequest, observed_property_id: Path[uuid.UUID]):
+def delete_observed_property(
+    request: HydroServerHttpRequest, observed_property_id: Path[uuid.UUID]
+):
     """
     Delete an Observed Property.
     """
 
     return 204, observed_property_service.delete(
-        user=request.authenticated_user,
-        uid=observed_property_id
+        user=request.authenticated_user, uid=observed_property_id
     )

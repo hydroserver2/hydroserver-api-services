@@ -21,12 +21,19 @@ class ThingQuerySet(models.QuerySet):
             return self
         else:
             return self.filter(
-                Q(workspace__is_private=False,
-                  is_private=False) |
-                Q(workspace__owner=user) |
-                Q(workspace__collaborators__user=user,
-                  workspace__collaborators__role__permissions__resource_type__in=["*", "Thing"],
-                  workspace__collaborators__role__permissions__permission_type__in=["*", "view"])
+                Q(workspace__is_private=False, is_private=False)
+                | Q(workspace__owner=user)
+                | Q(
+                    workspace__collaborators__user=user,
+                    workspace__collaborators__role__permissions__resource_type__in=[
+                        "*",
+                        "Thing",
+                    ],
+                    workspace__collaborators__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
             )
 
     def with_location(self):
@@ -35,7 +42,9 @@ class ThingQuerySet(models.QuerySet):
 
 class Thing(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, related_name="things", on_delete=models.DO_NOTHING)
+    workspace = models.ForeignKey(
+        Workspace, related_name="things", on_delete=models.DO_NOTHING
+    )
     name = models.CharField(max_length=200)
     description = models.TextField()
     sampling_feature_type = models.CharField(max_length=200)
@@ -48,19 +57,32 @@ class Thing(models.Model, PermissionChecker):
 
     @property
     def location(self):
-        if hasattr(self, "_prefetched_objects_cache") and "locations" in self._prefetched_objects_cache:
+        if (
+            hasattr(self, "_prefetched_objects_cache")
+            and "locations" in self._prefetched_objects_cache
+        ):
             locations = self._prefetched_objects_cache["locations"]
             return locations[0] if locations else None
         return self.locations.first()
 
     @classmethod
     def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
-        return cls.check_create_permissions(user=user, workspace=workspace, resource_type="Thing")
+        return cls.check_create_permissions(
+            user=user, workspace=workspace, resource_type="Thing"
+        )
 
-    def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        user_permissions = self.check_object_permissions(user=user, workspace=self.workspace, resource_type="Thing")
+    def get_user_permissions(
+        self, user: Optional["User"]
+    ) -> list[Literal["edit", "delete", "view"]]:
+        user_permissions = self.check_object_permissions(
+            user=user, workspace=self.workspace, resource_type="Thing"
+        )
 
-        if not self.workspace.is_private and not self.is_private and "view" not in list(user_permissions):
+        if (
+            not self.workspace.is_private
+            and not self.is_private
+            and "view" not in list(user_permissions)
+        ):
             user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
@@ -75,9 +97,19 @@ class Thing(models.Model, PermissionChecker):
 
         thing_relation_filter = f"thing__{filter_suffix}" if filter_suffix else "thing"
 
-        Datastream.delete_contents(filter_arg=filter_arg, filter_suffix=thing_relation_filter)
+        Datastream.delete_contents(
+            filter_arg=filter_arg, filter_suffix=thing_relation_filter
+        )
         Datastream.objects.filter(**{thing_relation_filter: filter_arg}).delete()
 
         Location.objects.filter(**{thing_relation_filter: filter_arg}).delete()
         Tag.objects.filter(**{thing_relation_filter: filter_arg}).delete()
         Photo.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+
+
+class SamplingFeatureType(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+
+class SiteType(models.Model):
+    name = models.CharField(max_length=200, unique=True)

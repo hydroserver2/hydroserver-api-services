@@ -18,16 +18,17 @@ etl_system_service = EtlSystemService()
         200: list[EtlSystemGetResponse],
         401: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def get_etl_systems(request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None):
+def get_etl_systems(
+    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+):
     """
     Get public ETL Systems and ETL Systems associated with the authenticated user.
     """
 
     return 200, etl_system_service.list(
-        user=request.authenticated_user,
-        workspace_id=workspace_id
+        user=request.authenticated_user, workspace_id=workspace_id
     )
 
 
@@ -41,7 +42,7 @@ def get_etl_systems(request: HydroServerHttpRequest, workspace_id: Optional[uuid
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
 def create_etl_system(request: HydroServerHttpRequest, data: EtlSystemPostBody):
@@ -49,10 +50,7 @@ def create_etl_system(request: HydroServerHttpRequest, data: EtlSystemPostBody):
     Create a new ETL System.
     """
 
-    return 201, etl_system_service.create(
-        user=request.authenticated_user,
-        data=data
-    )
+    return 201, etl_system_service.create(user=request.authenticated_user, data=data)
 
 
 @etl_system_router.get(
@@ -64,7 +62,7 @@ def create_etl_system(request: HydroServerHttpRequest, data: EtlSystemPostBody):
         403: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
 def get_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.UUID]):
     """
@@ -72,8 +70,7 @@ def get_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.UUI
     """
 
     return 200, etl_system_service.get(
-        user=request.authenticated_user,
-        uid=etl_system_id
+        user=request.authenticated_user, uid=etl_system_id
     )
 
 
@@ -87,18 +84,20 @@ def get_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.UUI
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def update_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.UUID], data: EtlSystemPatchBody):
+def update_etl_system(
+    request: HydroServerHttpRequest,
+    etl_system_id: Path[uuid.UUID],
+    data: EtlSystemPatchBody,
+):
     """
     Update an ETL System.
     """
 
     return 200, etl_system_service.update(
-        user=request.authenticated_user,
-        uid=etl_system_id,
-        data=data
+        user=request.authenticated_user, uid=etl_system_id, data=data
     )
 
 
@@ -111,7 +110,7 @@ def update_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.
         403: str,
         409: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
 def delete_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.UUID]):
@@ -120,6 +119,5 @@ def delete_etl_system(request: HydroServerHttpRequest, etl_system_id: Path[uuid.
     """
 
     return 204, etl_system_service.delete(
-        user=request.authenticated_user,
-        uid=etl_system_id
+        user=request.authenticated_user, uid=etl_system_id
     )

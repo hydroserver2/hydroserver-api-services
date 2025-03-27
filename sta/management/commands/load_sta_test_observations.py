@@ -10,7 +10,9 @@ class Command(BaseCommand):
     help = "Create test datastreams with observations"
 
     def add_arguments(self, parser):
-        parser.add_argument("num_observations", type=int, help="The number of observations to create")
+        parser.add_argument(
+            "num_observations", type=int, help="The number of observations to create"
+        )
 
     def handle(self, *args, **kwargs):
         num_observations = kwargs["num_observations"]
@@ -20,7 +22,7 @@ class Command(BaseCommand):
             "tests/fixtures/test_workspaces.yaml",
             "tests/fixtures/test_roles.yaml",
             "tests/fixtures/test_collaborators.yaml",
-            "tests/fixtures/bulk_test_data.yaml"
+            "tests/fixtures/bulk_test_data.yaml",
         ]
 
         for fixture in fixtures:
@@ -32,7 +34,9 @@ class Command(BaseCommand):
                 self.stderr.write(self.style.ERROR(f"Failed to load {fixture}: {e}"))
 
         phenomenon_begin_time = datetime(2010, 1, 1, tzinfo=timezone.utc)
-        phenomenon_end_time = phenomenon_begin_time + timedelta(minutes=15 * num_observations)
+        phenomenon_end_time = phenomenon_begin_time + timedelta(
+            minutes=15 * num_observations
+        )
 
         datastream = Datastream.objects.create(
             name=f"Test Datastream with {num_observations} observations.",
@@ -56,7 +60,7 @@ class Command(BaseCommand):
             phenomenon_begin_time=phenomenon_begin_time,
             phenomenon_end_time=phenomenon_end_time,
             is_private=False,
-            is_visible=True
+            is_visible=True,
         )
 
         generate_test_timeseries(datastream.id)

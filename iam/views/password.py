@@ -8,12 +8,12 @@ password_router = Router(tags=["Password"])
 
 password_reset_request_view = {
     "browser": RequestPasswordResetView.as_api_view(client=Client.BROWSER),
-    "app": RequestPasswordResetView.as_api_view(client=Client.APP)
+    "app": RequestPasswordResetView.as_api_view(client=Client.APP),
 }
 
 password_reset_view = {
     "browser": ResetPasswordView.as_api_view(client=Client.BROWSER),
-    "app": ResetPasswordView.as_api_view(client=Client.APP)
+    "app": ResetPasswordView.as_api_view(client=Client.APP),
 }
 
 
@@ -25,7 +25,9 @@ password_reset_view = {
     },
     by_alias=True,
 )
-def request_password_reset(request, client: Path[Literal["browser", "app"]], body: RequestResetPasswordPostBody):
+def request_password_reset(
+    request, client: Path[Literal["browser", "app"]], body: RequestResetPasswordPostBody
+):
     """
     Request password reset email.
     """
@@ -44,7 +46,9 @@ def request_password_reset(request, client: Path[Literal["browser", "app"]], bod
     },
     by_alias=True,
 )
-def reset_password(request, client: Path[Literal["browser", "app"]], body: ResetPasswordPostBody):
+def reset_password(
+    request, client: Path[Literal["browser", "app"]], body: ResetPasswordPostBody
+):
     """
     Reset account password.
     """

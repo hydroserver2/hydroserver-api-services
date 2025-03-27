@@ -11,81 +11,196 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('iam', '0002_load_default_data'),
-        ('sta', '0001_initial'),
+        ("iam", "0001_initial"),
+        ("sta", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EtlConfiguration',
+            name="EtlConfiguration",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('etl_configuration_type', models.CharField(max_length=255)),
-                ('etl_configuration_schema', models.JSONField()),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("etl_configuration_type", models.CharField(max_length=255)),
+                ("etl_configuration_schema", models.JSONField()),
             ],
             bases=(models.Model, iam.models.utils.PermissionChecker),
         ),
         migrations.CreateModel(
-            name='EtlSystem',
+            name="EtlSystem",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('workspace', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='etl_systems', to='iam.workspace')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "workspace",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="etl_systems",
+                        to="iam.workspace",
+                    ),
+                ),
             ],
             bases=(models.Model, iam.models.utils.PermissionChecker),
         ),
         migrations.CreateModel(
-            name='DataSource',
+            name="DataSource",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('interval', models.PositiveIntegerField(blank=True, null=True)),
-                ('interval_units', models.CharField(blank=True, max_length=255, null=True)),
-                ('crontab', models.CharField(blank=True, max_length=255, null=True)),
-                ('start_time', models.DateTimeField(blank=True, null=True)),
-                ('end_time', models.DateTimeField(blank=True, null=True)),
-                ('paused', models.BooleanField(default=False)),
-                ('last_run_successful', models.BooleanField(blank=True, null=True)),
-                ('last_run_message', models.TextField(blank=True, null=True)),
-                ('last_run', models.DateTimeField(blank=True, null=True)),
-                ('next_run', models.DateTimeField(blank=True, null=True)),
-                ('etl_configuration_settings', models.JSONField(blank=True, null=True)),
-                ('workspace', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='data_sources', to='iam.workspace')),
-                ('etl_configuration', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='data_sources', to='etl.etlconfiguration')),
-                ('etl_system', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='data_sources', to='etl.etlsystem')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("interval", models.PositiveIntegerField(blank=True, null=True)),
+                (
+                    "interval_units",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("crontab", models.CharField(blank=True, max_length=255, null=True)),
+                ("start_time", models.DateTimeField(blank=True, null=True)),
+                ("end_time", models.DateTimeField(blank=True, null=True)),
+                ("paused", models.BooleanField(default=False)),
+                ("last_run_successful", models.BooleanField(blank=True, null=True)),
+                ("last_run_message", models.TextField(blank=True, null=True)),
+                ("last_run", models.DateTimeField(blank=True, null=True)),
+                ("next_run", models.DateTimeField(blank=True, null=True)),
+                ("etl_configuration_settings", models.JSONField(blank=True, null=True)),
+                (
+                    "workspace",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="data_sources",
+                        to="iam.workspace",
+                    ),
+                ),
+                (
+                    "etl_configuration",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="data_sources",
+                        to="etl.etlconfiguration",
+                    ),
+                ),
+                (
+                    "etl_system",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="data_sources",
+                        to="etl.etlsystem",
+                    ),
+                ),
             ],
             bases=(models.Model, iam.models.utils.PermissionChecker),
         ),
         migrations.CreateModel(
-            name='EtlSystemPlatform',
+            name="EtlSystemPlatform",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('interval_schedule_supported', models.BooleanField(default=False)),
-                ('crontab_schedule_supported', models.BooleanField(default=False)),
-                ('workspace', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='etl_system_platforms', to='iam.workspace')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("interval_schedule_supported", models.BooleanField(default=False)),
+                ("crontab_schedule_supported", models.BooleanField(default=False)),
+                (
+                    "workspace",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="etl_system_platforms",
+                        to="iam.workspace",
+                    ),
+                ),
             ],
             bases=(models.Model, iam.models.utils.PermissionChecker),
         ),
         migrations.AddField(
-            model_name='etlsystem',
-            name='etl_system_platform',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='etl_systems', to='etl.etlsystemplatform'),
+            model_name="etlsystem",
+            name="etl_system_platform",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="etl_systems",
+                to="etl.etlsystemplatform",
+            ),
         ),
         migrations.AddField(
-            model_name='etlconfiguration',
-            name='etl_system_platform',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='etl_configurations', to='etl.etlsystemplatform'),
+            model_name="etlconfiguration",
+            name="etl_system_platform",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="etl_configurations",
+                to="etl.etlsystemplatform",
+            ),
         ),
         migrations.CreateModel(
-            name='LinkedDatastream',
+            name="LinkedDatastream",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('etl_configuration_settings', models.JSONField(blank=True, null=True)),
-                ('data_source', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='linked_datastreams', to='etl.datasource')),
-                ('datastream', models.OneToOneField(on_delete=django.db.models.deletion.DO_NOTHING, related_name='data_source', to='sta.datastream')),
-                ('etl_configuration', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='linked_datastreams', to='etl.etlconfiguration')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("etl_configuration_settings", models.JSONField(blank=True, null=True)),
+                (
+                    "data_source",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="linked_datastreams",
+                        to="etl.datasource",
+                    ),
+                ),
+                (
+                    "datastream",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="data_source",
+                        to="sta.datastream",
+                    ),
+                ),
+                (
+                    "etl_configuration",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="linked_datastreams",
+                        to="etl.etlconfiguration",
+                    ),
+                ),
             ],
         ),
     ]

@@ -11,4 +11,6 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "hydroserver.wsgi:application"]
+ENV WORKERS=3
+
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:8000 --workers ${WORKERS} hydroserver.wsgi:application"]

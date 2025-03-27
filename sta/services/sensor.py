@@ -12,7 +12,9 @@ User = get_user_model()
 
 class SensorService(ServiceUtils):
     @staticmethod
-    def get_sensor_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_sensor_for_action(
+        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+    ):
         try:
             sensor = Sensor.objects.select_related("workspace").get(pk=uid)
         except Sensor.DoesNotExist:
@@ -48,14 +50,16 @@ class SensorService(ServiceUtils):
 
         sensor = Sensor.objects.create(
             workspace=workspace,
-            **data.dict(include=set(SensorFields.model_fields.keys()))
+            **data.dict(include=set(SensorFields.model_fields.keys())),
         )
 
         return sensor
 
     def update(self, user: User, uid: uuid.UUID, data: SensorPatchBody):
         sensor = self.get_sensor_for_action(user=user, uid=uid, action="edit")
-        sensor_data = data.dict(include=set(SensorFields.model_fields.keys()), exclude_unset=True)
+        sensor_data = data.dict(
+            include=set(SensorFields.model_fields.keys()), exclude_unset=True
+        )
 
         for field, value in sensor_data.items():
             setattr(sensor, field, value)

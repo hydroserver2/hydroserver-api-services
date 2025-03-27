@@ -15,7 +15,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY", default="django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4")
+SECRET_KEY = config(
+    "SECRET_KEY",
+    default="django-insecure-zw@4h#ol@0)5fxy=ib6(t&7o4ot9mzvli*d-wd=81kjxqc!5w4",
+)
 
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
@@ -23,8 +26,10 @@ DEPLOYMENT_BACKEND = config("DEPLOYMENT_BACKEND", default="local")
 
 
 # Default Superuser Settings
-DEFAULT_SUPERUSER_EMAIL = config('DEFAULT_SUPERUSER_EMAIL', default='admin@hydroserver.org')
-DEFAULT_SUPERUSER_PASSWORD = config('DEFAULT_SUPERUSER_PASSWORD', default='pass')
+DEFAULT_SUPERUSER_EMAIL = config(
+    "DEFAULT_SUPERUSER_EMAIL", default="admin@hydroserver.org"
+)
+DEFAULT_SUPERUSER_PASSWORD = config("DEFAULT_SUPERUSER_PASSWORD", default="pass")
 
 # Deployment Settings
 
@@ -34,7 +39,9 @@ PROXY_BASE_URL = config("PROXY_BASE_URL", "http://localhost")
 hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=urlparse(PROXY_BASE_URL).netloc).split(",") + [local_ip]
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=urlparse(PROXY_BASE_URL).netloc).split(
+    ","
+) + [local_ip]
 
 CORS_ALLOWED_ORIGINS = [PROXY_BASE_URL]
 CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
@@ -48,7 +55,6 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -64,7 +70,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.openid_connect",
     "iam.auth.providers.hydroshare",
     "iam.auth.providers.orcidsandbox",
-    "iam.auth.providers.utahid",
     "corsheaders",
     "easyaudit",
     "sensorthings",
@@ -72,6 +77,7 @@ INSTALLED_APPS = [
     "iam.apps.IamConfig",
     "sta.apps.StaConfig",
     "etl.apps.EtlConfig",
+    "django.contrib.admin",
 ]
 
 MIDDLEWARE = [
@@ -113,14 +119,26 @@ WSGI_APPLICATION = "hydroserver.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-os.environ["DATABASE_URL"] = config("DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver")
+os.environ["DATABASE_URL"] = config(
+    "DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver"
+)
 
 DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=config("CONN_MAX_AGE", default=0),
-        conn_health_checks=config("CONN_HEALTH_CHECKS", default=True, cast=bool),
-        ssl_require=config("SSL_REQUIRED", default=False, cast=bool)
-    )
+    "default": {
+        **dj_database_url.config(
+            engine="django.db.backends.postgresql",
+            conn_health_checks=config("CONN_HEALTH_CHECKS", default=True, cast=bool),
+            ssl_require=config("SSL_REQUIRED", default=False, cast=bool),
+        ),
+        "OPTIONS": {
+            "application_name": "HydroServer",
+            "pool": {
+                "min_size": config("DB_POOL_MIN_SIZE", default=5, cast=int),
+                "max_size": config("DB_POOL_MAX_SIZE", default=10, cast=int),
+                "timeout": config("DB_POOL_TIMEOUT", default=60, cast=int),
+            },
+        },
+    }
 }
 
 
@@ -153,16 +171,18 @@ ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
 HEADLESS_ONLY = True
 
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email":           f"{PROXY_BASE_URL}/verify-email/{{key}}",
+    "account_confirm_email": f"{PROXY_BASE_URL}/verify-email/{{key}}",
     "account_reset_password_from_key": f"{PROXY_BASE_URL}/reset-password/{{key}}",
-    "account_reset_password":          f"{PROXY_BASE_URL}/reset-password",
-    "account_signup":                  f"{PROXY_BASE_URL}/sign-up",
+    "account_reset_password": f"{PROXY_BASE_URL}/reset-password",
+    "account_signup": f"{PROXY_BASE_URL}/sign-up",
 }
 
 
 # Social Account Settings
 
-SOCIALACCOUNT_SIGNUP_ONLY = config("SOCIALACCOUNT_SIGNUP_ONLY", default=False, cast=bool)
+SOCIALACCOUNT_SIGNUP_ONLY = config(
+    "SOCIALACCOUNT_SIGNUP_ONLY", default=False, cast=bool
+)
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_EMAIL_REQUIRED = True
@@ -235,7 +255,7 @@ if DEPLOYMENT_BACKEND == "aws":
             "OPTIONS": {
                 "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
                 "location": "media",
-                "default_acl": "private"
+                "default_acl": "private",
             },
         },
         "staticfiles": {
@@ -243,9 +263,9 @@ if DEPLOYMENT_BACKEND == "aws":
             "OPTIONS": {
                 "bucket_name": config("STATIC_BUCKET_NAME", default=None),
                 "location": "static",
-                "default_acl": None
+                "default_acl": None,
             },
-        }
+        },
     }
 elif DEPLOYMENT_BACKEND == "gcp":
     GS_PROJECT_ID = config("GS_PROJECT_ID", default=None)
@@ -256,7 +276,7 @@ elif DEPLOYMENT_BACKEND == "gcp":
             "OPTIONS": {
                 "bucket_name": config("MEDIA_BUCKET_NAME", default=None),
                 "location": "media",
-                "default_acl": "publicRead"
+                "default_acl": "publicRead",
             },
         },
         "staticfiles": {
@@ -264,19 +284,19 @@ elif DEPLOYMENT_BACKEND == "gcp":
             "OPTIONS": {
                 "bucket_name": config("STATIC_BUCKET_NAME", default=None),
                 "location": "static",
-                "default_acl": "publicRead"
+                "default_acl": "publicRead",
             },
-        }
+        },
     }
 else:
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "OPTIONS": {"location": "media"}
+            "OPTIONS": {"location": "media"},
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            "OPTIONS": {"location": "static"}
+            "OPTIONS": {"location": "static"},
         },
     }
 

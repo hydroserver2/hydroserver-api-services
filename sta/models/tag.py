@@ -14,17 +14,26 @@ if typing.TYPE_CHECKING:
 class TagQuerySet(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
-            return self.filter(Q(thing__workspace__is_private=False, thing__is_private=False))
+            return self.filter(
+                Q(thing__workspace__is_private=False, thing__is_private=False)
+            )
         elif user.account_type == "admin":
             return self
         else:
             return self.filter(
-                Q(thing__workspace__is_private=False,
-                  thing__is_private=False) |
-                Q(thing__workspace__owner=user) |
-                Q(thing__workspace__collaborators__user=user,
-                  thing__workspace__collaborators__role__permissions__resource_type__in=["*", "Thing"],
-                  thing__workspace__collaborators__role__permissions__permission_type__in=["*", "view"])
+                Q(thing__workspace__is_private=False, thing__is_private=False)
+                | Q(thing__workspace__owner=user)
+                | Q(
+                    thing__workspace__collaborators__user=user,
+                    thing__workspace__collaborators__role__permissions__resource_type__in=[
+                        "*",
+                        "Thing",
+                    ],
+                    thing__workspace__collaborators__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
             )
 
 

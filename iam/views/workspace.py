@@ -3,7 +3,12 @@ from ninja import Router, Path
 from django.db import transaction
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
-from iam.schemas import WorkspaceGetResponse, WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
+from iam.schemas import (
+    WorkspaceGetResponse,
+    WorkspacePostBody,
+    WorkspacePatchBody,
+    WorkspaceTransferBody,
+)
 from iam.services import WorkspaceService
 
 workspace_router = Router(tags=["Workspaces"])
@@ -18,7 +23,7 @@ workspace_service = WorkspaceService()
         401: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
 def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = False):
     """
@@ -26,8 +31,7 @@ def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = Fals
     """
 
     return 200, workspace_service.list(
-        user=request.authenticated_user,
-        associated_only=associated_only
+        user=request.authenticated_user, associated_only=associated_only
     )
 
 
@@ -40,7 +44,7 @@ def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = Fals
         422: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
 @transaction.atomic
 def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
@@ -48,10 +52,7 @@ def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
     Create a new workspace owned by the authenticated user.
     """
 
-    return 201, workspace_service.create(
-        user=request.authenticated_user,
-        data=data
-    )
+    return 201, workspace_service.create(user=request.authenticated_user, data=data)
 
 
 @workspace_router.get(
@@ -63,17 +64,14 @@ def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
         403: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
 def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
     """
     Get workspace details.
     """
 
-    return 200, workspace_service.get(
-        user=request.authenticated_user,
-        uid=workspace_id
-    )
+    return 200, workspace_service.get(user=request.authenticated_user, uid=workspace_id)
 
 
 @workspace_router.patch(
@@ -86,18 +84,20 @@ def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
         422: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
 @transaction.atomic
-def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: WorkspacePatchBody):
+def update_workspace(
+    request: HydroServerHttpRequest,
+    workspace_id: Path[uuid.UUID],
+    data: WorkspacePatchBody,
+):
     """
     Update a workspace owned by the authenticated user.
     """
 
     return 200, workspace_service.update(
-        user=request.authenticated_user,
-        uid=workspace_id,
-        data=data
+        user=request.authenticated_user, uid=workspace_id, data=data
     )
 
 
@@ -109,7 +109,7 @@ def update_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
 def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
@@ -118,8 +118,7 @@ def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
     """
 
     return 204, workspace_service.delete(
-        user=request.authenticated_user,
-        uid=workspace_id
+        user=request.authenticated_user, uid=workspace_id
     )
 
 
@@ -133,18 +132,20 @@ def delete_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UU
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: WorkspaceTransferBody):
+def transfer_workspace(
+    request: HydroServerHttpRequest,
+    workspace_id: Path[uuid.UUID],
+    data: WorkspaceTransferBody,
+):
     """
     Transfer a workspace owned by the authenticated user to another HydroServer user.
     """
 
     return 201, workspace_service.transfer(
-        user=request.authenticated_user,
-        uid=workspace_id,
-        data=data
+        user=request.authenticated_user, uid=workspace_id, data=data
     )
 
 
@@ -157,17 +158,18 @@ def transfer_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def accept_workspace_transfer(
+    request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
+):
     """
     Accept a pending workspace transfer.
     """
 
     return 200, workspace_service.accept_transfer(
-        user=request.authenticated_user,
-        uid=workspace_id
+        user=request.authenticated_user, uid=workspace_id
     )
 
 
@@ -180,15 +182,16 @@ def accept_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Pat
         401: str,
         403: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def reject_workspace_transfer(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def reject_workspace_transfer(
+    request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
+):
     """
     Reject a pending workspace transfer.
     """
 
     return 200, workspace_service.reject_transfer(
-        user=request.authenticated_user,
-        uid=workspace_id
+        user=request.authenticated_user, uid=workspace_id
     )

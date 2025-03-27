@@ -22,18 +22,30 @@ class DataSourceQuerySet(models.QuerySet):
             return self
         else:
             return self.filter(
-                Q(workspace__owner=user) |
-                Q(workspace__collaborators__user=user,
-                  workspace__collaborators__role__permissions__resource_type__in=["*", "DataSource"],
-                  workspace__collaborators__role__permissions__permission_type__in=["*", "view"])
+                Q(workspace__owner=user)
+                | Q(
+                    workspace__collaborators__user=user,
+                    workspace__collaborators__role__permissions__resource_type__in=[
+                        "*",
+                        "DataSource",
+                    ],
+                    workspace__collaborators__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
             )
 
 
 class DataSource(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey(Workspace, related_name="data_sources", on_delete=models.DO_NOTHING)
+    workspace = models.ForeignKey(
+        Workspace, related_name="data_sources", on_delete=models.DO_NOTHING
+    )
     name = models.CharField(max_length=255)
-    etl_system = models.ForeignKey(EtlSystem, related_name="data_sources", on_delete=models.DO_NOTHING)
+    etl_system = models.ForeignKey(
+        EtlSystem, related_name="data_sources", on_delete=models.DO_NOTHING
+    )
     interval = models.PositiveIntegerField(blank=True, null=True)
     interval_units = models.CharField(max_length=255, blank=True, null=True)
     crontab = models.CharField(max_length=255, blank=True, null=True)
@@ -44,19 +56,29 @@ class DataSource(models.Model, PermissionChecker):
     last_run_message = models.TextField(blank=True, null=True)
     last_run = models.DateTimeField(blank=True, null=True)
     next_run = models.DateTimeField(blank=True, null=True)
-    etl_configuration = models.ForeignKey(EtlConfiguration, related_name="data_sources", on_delete=models.DO_NOTHING,
-                                          blank=True, null=True)
+    etl_configuration = models.ForeignKey(
+        EtlConfiguration,
+        related_name="data_sources",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
     etl_configuration_settings = models.JSONField(blank=True, null=True)
 
     objects = DataSourceQuerySet.as_manager()
 
     @classmethod
     def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
-        return cls.check_create_permissions(user=user, workspace=workspace, resource_type="DataSource")
+        return cls.check_create_permissions(
+            user=user, workspace=workspace, resource_type="DataSource"
+        )
 
-    def get_user_permissions(self, user: Optional["User"]) -> list[Literal["edit", "delete", "view"]]:
-        user_permissions = self.check_object_permissions(user=user, workspace=self.workspace,
-                                                         resource_type="DataSource")
+    def get_user_permissions(
+        self, user: Optional["User"]
+    ) -> list[Literal["edit", "delete", "view"]]:
+        user_permissions = self.check_object_permissions(
+            user=user, workspace=self.workspace, resource_type="DataSource"
+        )
 
         return user_permissions
 
@@ -66,13 +88,26 @@ class DataSource(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        data_source_relation_filter = f"data_source__{filter_suffix}" if filter_suffix else "data_source"
-        LinkedDatastream.objects.filter(**{data_source_relation_filter: filter_arg}).delete()
+        data_source_relation_filter = (
+            f"data_source__{filter_suffix}" if filter_suffix else "data_source"
+        )
+        LinkedDatastream.objects.filter(
+            **{data_source_relation_filter: filter_arg}
+        ).delete()
 
 
 class LinkedDatastream(models.Model):
-    data_source = models.ForeignKey(DataSource, related_name="linked_datastreams", on_delete=models.DO_NOTHING)
-    datastream = models.OneToOneField(Datastream, related_name="data_source", on_delete=models.DO_NOTHING)
-    etl_configuration = models.ForeignKey(EtlConfiguration, related_name="linked_datastreams",
-                                          on_delete=models.DO_NOTHING, blank=True, null=True)
+    data_source = models.ForeignKey(
+        DataSource, related_name="linked_datastreams", on_delete=models.DO_NOTHING
+    )
+    datastream = models.OneToOneField(
+        Datastream, related_name="data_source", on_delete=models.DO_NOTHING
+    )
+    etl_configuration = models.ForeignKey(
+        EtlConfiguration,
+        related_name="linked_datastreams",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
     etl_configuration_settings = models.JSONField(blank=True, null=True)

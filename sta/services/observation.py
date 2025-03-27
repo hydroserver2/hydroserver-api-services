@@ -20,7 +20,9 @@ class ObservationService(ServiceUtils):
                 raise e
 
     @staticmethod
-    def get_observation_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_observation_for_action(
+        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+    ):
         try:
             observation = Observation.objects.select_related(
                 "datastream", "datastream__thing", "datastream__thing__workspace"
@@ -34,13 +36,19 @@ class ObservationService(ServiceUtils):
             raise HttpError(404, "Observation does not exist")
 
         if action not in observation_permissions:
-            raise HttpError(403, f"You do not have permission to {action} this observation")
+            raise HttpError(
+                403, f"You do not have permission to {action} this observation"
+            )
 
         return observation
 
     @staticmethod
-    def list(user: Optional[User], workspace_id: Optional[uuid.UUID], thing_id: Optional[uuid.UUID],
-             datastream_id: Optional[uuid.UUID]):
+    def list(
+        user: Optional[User],
+        workspace_id: Optional[uuid.UUID],
+        thing_id: Optional[uuid.UUID],
+        datastream_id: Optional[uuid.UUID],
+    ):
         queryset = Observation.objects
 
         if workspace_id:

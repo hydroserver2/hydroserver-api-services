@@ -11,6 +11,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         call_command("migrate")
 
+        call_command("loaddata", "iam/fixtures/default_roles.yaml")
         call_command("load_iam_test_data")
         call_command("load_sta_test_data")
         call_command("load_etl_test_data")
@@ -35,4 +36,5 @@ def get_user():
             return User.objects.get(email=f"{email}@example.com")
         except User.DoesNotExist:
             return None
+
     return _get_user

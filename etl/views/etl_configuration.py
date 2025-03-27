@@ -4,7 +4,11 @@ from typing import Optional
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from etl.schemas import EtlConfigurationGetResponse, EtlConfigurationPostBody, EtlConfigurationPatchBody
+from etl.schemas import (
+    EtlConfigurationGetResponse,
+    EtlConfigurationPostBody,
+    EtlConfigurationPatchBody,
+)
 from etl.services import EtlConfigurationService
 
 etl_configuration_router = Router(tags=["ETL Configurations"])
@@ -18,10 +22,13 @@ etl_configuration_service = EtlConfigurationService()
         200: list[EtlConfigurationGetResponse],
         401: str,
     },
-    by_alias=True
+    by_alias=True,
 )
-def get_etl_configurations(request: HydroServerHttpRequest, etl_system_platform_id: Path[uuid.UUID],
-                           workspace_id: Optional[uuid.UUID] = None):
+def get_etl_configurations(
+    request: HydroServerHttpRequest,
+    etl_system_platform_id: Path[uuid.UUID],
+    workspace_id: Optional[uuid.UUID] = None,
+):
     """
     Get public ETL Configurations and ETL Configurations associated with the authenticated user.
     """
@@ -29,7 +36,7 @@ def get_etl_configurations(request: HydroServerHttpRequest, etl_system_platform_
     return 200, etl_configuration_service.list(
         user=request.authenticated_user,
         etl_system_platform_id=etl_system_platform_id,
-        workspace_id=workspace_id
+        workspace_id=workspace_id,
     )
 
 
@@ -43,11 +50,14 @@ def get_etl_configurations(request: HydroServerHttpRequest, etl_system_platform_
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def create_etl_configuration(request: HydroServerHttpRequest, etl_system_platform_id: Path[uuid.UUID],
-                             data: EtlConfigurationPostBody):
+def create_etl_configuration(
+    request: HydroServerHttpRequest,
+    etl_system_platform_id: Path[uuid.UUID],
+    data: EtlConfigurationPostBody,
+):
     """
     Create a new ETL Configuration.
     """
@@ -55,7 +65,7 @@ def create_etl_configuration(request: HydroServerHttpRequest, etl_system_platfor
     return 201, etl_configuration_service.create(
         user=request.authenticated_user,
         etl_system_platform_id=etl_system_platform_id,
-        data=data
+        data=data,
     )
 
 
@@ -68,10 +78,13 @@ def create_etl_configuration(request: HydroServerHttpRequest, etl_system_platfor
         403: str,
     },
     by_alias=True,
-    exclude_unset=True
+    exclude_unset=True,
 )
-def get_etl_configuration(request: HydroServerHttpRequest, etl_system_platform_id: Path[uuid.UUID],
-                          etl_configuration_id: Path[uuid.UUID]):
+def get_etl_configuration(
+    request: HydroServerHttpRequest,
+    etl_system_platform_id: Path[uuid.UUID],
+    etl_configuration_id: Path[uuid.UUID],
+):
     """
     Get an ETL Configuration.
     """
@@ -79,7 +92,7 @@ def get_etl_configuration(request: HydroServerHttpRequest, etl_system_platform_i
     return 200, etl_configuration_service.get(
         user=request.authenticated_user,
         uid=etl_configuration_id,
-        etl_system_platform_id=etl_system_platform_id
+        etl_system_platform_id=etl_system_platform_id,
     )
 
 
@@ -93,11 +106,15 @@ def get_etl_configuration(request: HydroServerHttpRequest, etl_system_platform_i
         403: str,
         422: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def update_etl_configuration(request: HydroServerHttpRequest, etl_system_platform_id: Path[uuid.UUID],
-                             etl_configuration_id: Path[uuid.UUID], data: EtlConfigurationPatchBody):
+def update_etl_configuration(
+    request: HydroServerHttpRequest,
+    etl_system_platform_id: Path[uuid.UUID],
+    etl_configuration_id: Path[uuid.UUID],
+    data: EtlConfigurationPatchBody,
+):
     """
     Update an ETL Configuration.
     """
@@ -106,7 +123,7 @@ def update_etl_configuration(request: HydroServerHttpRequest, etl_system_platfor
         user=request.authenticated_user,
         uid=etl_configuration_id,
         etl_system_platform_id=etl_system_platform_id,
-        data=data
+        data=data,
     )
 
 
@@ -119,11 +136,14 @@ def update_etl_configuration(request: HydroServerHttpRequest, etl_system_platfor
         403: str,
         409: str,
     },
-    by_alias=True
+    by_alias=True,
 )
 @transaction.atomic
-def delete_etl_configuration(request: HydroServerHttpRequest, etl_system_platform_id: Path[uuid.UUID],
-                             etl_configuration_id: Path[uuid.UUID]):
+def delete_etl_configuration(
+    request: HydroServerHttpRequest,
+    etl_system_platform_id: Path[uuid.UUID],
+    etl_configuration_id: Path[uuid.UUID],
+):
     """
     Delete an ETL Configuration.
     """
@@ -131,5 +151,5 @@ def delete_etl_configuration(request: HydroServerHttpRequest, etl_system_platfor
     return 204, etl_configuration_service.delete(
         user=request.authenticated_user,
         uid=etl_configuration_id,
-        etl_system_platform_id=etl_system_platform_id
+        etl_system_platform_id=etl_system_platform_id,
     )

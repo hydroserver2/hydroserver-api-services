@@ -30,12 +30,16 @@ class DatastreamFields(Schema):
     unit_id: uuid.UUID
     time_aggregation_interval_unit: Literal["seconds", "minutes", "hours", "days"]
     intended_time_spacing: Optional[float] = None
-    intended_time_spacing_unit: Optional[Literal["seconds", "minutes", "hours", "days"]] = None
+    intended_time_spacing_unit: Optional[
+        Literal["seconds", "minutes", "hours", "days"]
+    ] = None
 
 
 class DatastreamGetResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID] = Field(None, validation_alias=AliasChoices("workspaceId", "thing.workspace_id"))
+    workspace_id: Optional[uuid.UUID] = Field(
+        None, validation_alias=AliasChoices("workspaceId", "thing.workspace_id")
+    )
 
 
 class DatastreamPostBody(BasePostBody, DatastreamFields):

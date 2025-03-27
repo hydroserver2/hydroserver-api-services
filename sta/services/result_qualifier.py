@@ -12,9 +12,13 @@ User = get_user_model()
 
 class ResultQualifierService(ServiceUtils):
     @staticmethod
-    def get_result_qualifier_for_action(user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]):
+    def get_result_qualifier_for_action(
+        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+    ):
         try:
-            result_qualifier = ResultQualifier.objects.select_related("workspace").get(pk=uid)
+            result_qualifier = ResultQualifier.objects.select_related("workspace").get(
+                pk=uid
+            )
         except ResultQualifier.DoesNotExist:
             raise HttpError(404, "Result qualifier does not exist")
 
@@ -24,7 +28,9 @@ class ResultQualifierService(ServiceUtils):
             raise HttpError(404, "Result qualifier does not exist")
 
         if action not in result_qualifier_permissions:
-            raise HttpError(403, f"You do not have permission to {action} this result qualifier")
+            raise HttpError(
+                403, f"You do not have permission to {action} this result qualifier"
+            )
 
         return result_qualifier
 
@@ -44,18 +50,24 @@ class ResultQualifierService(ServiceUtils):
         workspace, _ = self.get_workspace(user=user, workspace_id=data.workspace_id)
 
         if not ResultQualifier.can_user_create(user=user, workspace=workspace):
-            raise HttpError(403, "You do not have permission to create this result qualifier")
+            raise HttpError(
+                403, "You do not have permission to create this result qualifier"
+            )
 
         result_qualifier = ResultQualifier.objects.create(
             workspace=workspace,
-            **data.dict(include=set(ResultQualifierFields.model_fields.keys()))
+            **data.dict(include=set(ResultQualifierFields.model_fields.keys())),
         )
 
         return result_qualifier
 
     def update(self, user: User, uid: uuid.UUID, data: ResultQualifierPatchBody):
-        result_qualifier = self.get_result_qualifier_for_action(user=user, uid=uid, action="edit")
-        result_qualifier_data = data.dict(include=set(ResultQualifierFields.model_fields.keys()), exclude_unset=True)
+        result_qualifier = self.get_result_qualifier_for_action(
+            user=user, uid=uid, action="edit"
+        )
+        result_qualifier_data = data.dict(
+            include=set(ResultQualifierFields.model_fields.keys()), exclude_unset=True
+        )
 
         for field, value in result_qualifier_data.items():
             setattr(result_qualifier, field, value)
@@ -65,7 +77,9 @@ class ResultQualifierService(ServiceUtils):
         return result_qualifier
 
     def delete(self, user: User, uid: uuid.UUID):
-        result_qualifier = self.get_result_qualifier_for_action(user=user, uid=uid, action="delete")
+        result_qualifier = self.get_result_qualifier_for_action(
+            user=user, uid=uid, action="delete"
+        )
         result_qualifier.delete()
 
         return "Result qualifier deleted"

@@ -13,13 +13,19 @@ class Command(BaseCommand):
         if not user_model.objects.filter(is_superuser=True).exists():
             self.stdout.write(self.style.NOTICE(f"\nCreating default superuser..."))
 
-            email = getattr(settings, "DEFAULT_SUPERUSER_EMAIL", "admin@hydroserver.org")
+            email = getattr(
+                settings, "DEFAULT_SUPERUSER_EMAIL", "admin@hydroserver.org"
+            )
             password = getattr(settings, "DEFAULT_SUPERUSER_PASSWORD", "pass")
 
             try:
                 user_model.objects.create_superuser(email=email, password=password)
                 self.stdout.write(self.style.SUCCESS(f"Superuser created: {email}"))
             except ValidationError as e:
-                self.stdout.write(self.style.ERROR(f"Failed to create default superuser: {e}"))
+                self.stdout.write(
+                    self.style.ERROR(f"Failed to create default superuser: {e}")
+                )
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"An unexpected error occurred: {e}"))
+                self.stdout.write(
+                    self.style.ERROR(f"An unexpected error occurred: {e}")
+                )

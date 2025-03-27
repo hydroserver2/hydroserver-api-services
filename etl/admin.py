@@ -1,5 +1,11 @@
 from django.contrib import admin
-from etl.models import EtlSystemPlatform, EtlSystem, EtlConfiguration, DataSource, LinkedDatastream
+from etl.models import (
+    EtlSystemPlatform,
+    EtlSystem,
+    EtlConfiguration,
+    DataSource,
+    LinkedDatastream,
+)
 
 
 admin.site.register(EtlSystemPlatform)
