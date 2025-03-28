@@ -24,8 +24,12 @@ class LinkedDatastreamProperties(BaseGetResponse, Schema):
 
 
 class LinkedDatastreamFields(Schema):
-    etl_configuration_id: Optional[uuid.UUID] = None
-    etl_configuration_settings: Optional[dict] = None
+    extractor_configuration_id: Optional[uuid.UUID] = None
+    extractor_configuration_settings: Optional[dict] = None
+    transformer_configuration_id: Optional[uuid.UUID] = None
+    transformer_configuration_settings: Optional[dict] = None
+    loader_configuration_id: Optional[uuid.UUID] = None
+    loader_configuration_settings: Optional[dict] = None
 
 
 class LinkedDatastreamGetResponse(BaseGetResponse, LinkedDatastreamFields):
@@ -53,8 +57,12 @@ class DataSourceFields(Schema):
     last_run_message: Optional[str] = Field(None, max_length=255)
     last_run: Optional[datetime] = None
     next_run: Optional[datetime] = None
-    etl_configuration_id: Optional[uuid.UUID] = None
-    etl_configuration_settings: Optional[dict] = None
+    extractor_configuration_id: Optional[uuid.UUID] = None
+    extractor_configuration_settings: Optional[dict] = None
+    transformer_configuration_id: Optional[uuid.UUID] = None
+    transformer_configuration_settings: Optional[dict] = None
+    loader_configuration_id: Optional[uuid.UUID] = None
+    loader_configuration_settings: Optional[dict] = None
 
 
 class DataSourceGetResponse(BaseGetResponse, DataSourceFields):

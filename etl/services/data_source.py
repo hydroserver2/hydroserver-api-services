@@ -201,9 +201,21 @@ class DataSourceService(ServiceUtils):
         )
         self.validate_etl_configuration(
             user=user,
-            etl_configuration_id=data.etl_configuration_id,
+            etl_configuration_id=data.extractor_configuration_id,
             etl_system_platform=etl_system.etl_system_platform,
-            etl_configuration_settings=data.etl_configuration_settings,
+            etl_configuration_settings=data.extractor_configuration_settings,
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=data.transformer_configuration_id,
+            etl_system_platform=etl_system.etl_system_platform,
+            etl_configuration_settings=data.transformer_configuration_settings,
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=data.loader_configuration_id,
+            etl_system_platform=etl_system.etl_system_platform,
+            etl_configuration_settings=data.loader_configuration_settings,
         )
         self.validate_scheduling(
             etl_system=etl_system,
@@ -233,11 +245,34 @@ class DataSourceService(ServiceUtils):
         self.validate_etl_configuration(
             user=user,
             etl_configuration_id=data_source_data.get(
-                "etl_configuration_id", data_source.etl_configuration_id
+                "extractor_configuration_id", data_source.extractor_configuration_id
             ),
             etl_system_platform=etl_system.etl_system_platform,
             etl_configuration_settings=data_source_data.get(
-                "etl_configuration_settings", data_source.etl_configuration_settings
+                "extractor_configuration_settings",
+                data_source.extractor_configuration_settings,
+            ),
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=data_source_data.get(
+                "transformer_configuration_id", data_source.transformer_configuration_id
+            ),
+            etl_system_platform=etl_system.etl_system_platform,
+            etl_configuration_settings=data_source_data.get(
+                "transformer_configuration_settings",
+                data_source.transformer_configuration_settings,
+            ),
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=data_source_data.get(
+                "loader_configuration_id", data_source.loader_configuration_id
+            ),
+            etl_system_platform=etl_system.etl_system_platform,
+            etl_configuration_settings=data_source_data.get(
+                "loader_configuration_settings",
+                data_source.loader_configuration_settings,
             ),
         )
         self.validate_scheduling(
@@ -294,9 +329,21 @@ class DataSourceService(ServiceUtils):
 
         self.validate_etl_configuration(
             user=user,
-            etl_configuration_id=data.etl_configuration_id,
+            etl_configuration_id=data.extractor_configuration_id,
             etl_system_platform=data_source.etl_system.etl_system_platform,
-            etl_configuration_settings=data.etl_configuration_settings,
+            etl_configuration_settings=data.extractor_configuration_settings,
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=data.transformer_configuration_id,
+            etl_system_platform=data_source.etl_system.etl_system_platform,
+            etl_configuration_settings=data.transformer_configuration_settings,
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=data_source.loader_configuration_id,
+            etl_system_platform=data_source.etl_system.etl_system_platform,
+            etl_configuration_settings=data.loader_configuration_settings,
         )
 
         linked_datastream = LinkedDatastream.objects.create(
@@ -332,12 +379,36 @@ class DataSourceService(ServiceUtils):
         self.validate_etl_configuration(
             user=user,
             etl_configuration_id=linked_datastream_data.get(
-                "etl_configuration_id", linked_datastream.etl_configuration_id
+                "extractor_configuration_id",
+                linked_datastream.extractor_configuration_id,
             ),
             etl_system_platform=linked_datastream.data_source.etl_system.etl_system_platform,
             etl_configuration_settings=linked_datastream_data.get(
-                "etl_configuration_settings",
-                linked_datastream.etl_configuration_settings,
+                "extractor_configuration_settings",
+                linked_datastream.extractor_configuration_settings,
+            ),
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=linked_datastream_data.get(
+                "transformer_configuration_id",
+                linked_datastream.transformer_configuration_id,
+            ),
+            etl_system_platform=linked_datastream.data_source.etl_system.etl_system_platform,
+            etl_configuration_settings=linked_datastream_data.get(
+                "transformer_configuration_settings",
+                linked_datastream.transformer_configuration_settings,
+            ),
+        )
+        self.validate_etl_configuration(
+            user=user,
+            etl_configuration_id=linked_datastream_data.get(
+                "loader_configuration_id", linked_datastream.loader_configuration_id
+            ),
+            etl_system_platform=linked_datastream.data_source.etl_system.etl_system_platform,
+            etl_configuration_settings=linked_datastream_data.get(
+                "loader_configuration_settings",
+                linked_datastream.loader_configuration_settings,
             ),
         )
 

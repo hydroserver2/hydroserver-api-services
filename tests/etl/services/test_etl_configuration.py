@@ -244,7 +244,8 @@ def test_create_etl_configuration(
 ):
     etl_configuration_data = EtlConfigurationPostBody(
         name="New",
-        etl_configuration_type="DataSource",
+        etl_configuration_model="datasource",
+        etl_configuration_type="extractor",
         etl_configuration_schema=etl_configuration_schema,
     )
     if error_code:
@@ -386,7 +387,8 @@ def test_edit_etl_configuration(
 ):
     etl_configuration_data = EtlConfigurationPatchBody(
         name="New",
-        etl_configuration_type="DataSource",
+        etl_configuration_model="datasource",
+        etl_configuration_type="extractor",
         etl_configuration_schema=etl_configuration_schema,
     )
     if error_code:

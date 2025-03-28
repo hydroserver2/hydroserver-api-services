@@ -6,16 +6,16 @@
     workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
     etl_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
     paused: False
-    etl_configuration: 0467a2dd-254c-49f4-9087-2e041f8ebc0c
-    etl_configuration_settings:
+    extractor_configuration: 0467a2dd-254c-49f4-9087-2e041f8ebc0c
+    extractor_configuration_settings:
       timestampColumnName: timestamp
 - model: etl.linkeddatastream
   pk: 1000000010
   fields:
     data_source: 8bc6ba8b-dc67-4ca2-bed1-5abb4b067024
     datastream: 27c70b41-e845-40ea-8cc7-d1b40f89816b
-    etl_configuration: 09e6ad1f-c81c-4f32-aebc-c3f9006fafd4
-    etl_configuration_settings:
+    extractor_configuration: 09e6ad1f-c81c-4f32-aebc-c3f9006fafd4
+    extractor_configuration_settings:
       dataColumnName: result
 
 # Data Source w/Crontab Schedule

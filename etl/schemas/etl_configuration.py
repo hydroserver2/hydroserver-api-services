@@ -7,7 +7,8 @@ from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 class EtlConfigurationFields(Schema):
     name: str = Field(..., max_length=255)
-    etl_configuration_type: Literal["DataSource", "Datastream"] = Field(
+    etl_configuration_model: Literal["datasource", "datastream"]
+    etl_configuration_type: Literal["extractor", "transformer", "loader"] = Field(
         ..., alias="type"
     )
     etl_configuration_schema: dict = Field(..., alias="schema")

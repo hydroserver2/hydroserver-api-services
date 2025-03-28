@@ -4,7 +4,8 @@
   fields:
     etl_system_platform: ff0f462f-7456-40d7-93b6-77806176d08f
     name: Global Data Source Configuration
-    etl_configuration_type: DataSource
+    etl_configuration_model: datasource
+    etl_configuration_type: extractor
     etl_configuration_schema:
       type: object
       properties:
@@ -20,7 +21,8 @@
   fields:
     etl_system_platform: ff0f462f-7456-40d7-93b6-77806176d08f
     name: Global Datastream Configuration
-    etl_configuration_type: Datastream
+    etl_configuration_model: datastream
+    etl_configuration_type: extractor
     etl_configuration_schema:
       type: object
       properties:
@@ -36,7 +38,8 @@
   fields:
     etl_system_platform: b3d13d31-95a1-482e-a35b-ae24e78d519e
     name: Workspace Data Source Configuration
-    etl_configuration_type: DataSource
+    etl_configuration_model: datasource
+    etl_configuration_type: extractor
     etl_configuration_schema:
       type: object
       properties:
@@ -52,7 +55,8 @@
   fields:
     etl_system_platform: b3d13d31-95a1-482e-a35b-ae24e78d519e
     name: Workspace Datastream Configuration
-    etl_configuration_type: Datastream
+    etl_configuration_model: datastream
+    etl_configuration_type: extractor
     etl_configuration_schema:
       type: object
       properties:
@@ -68,7 +72,8 @@
   fields:
     etl_system_platform: 8fe5560d-483d-49d8-9bad-3b01d5ef3916
     name: Unused Data Source Configuration
-    etl_configuration_type: DataSource
+    etl_configuration_model: datasource
+    etl_configuration_type: extractor
     etl_configuration_schema:
       type: object
       properties:

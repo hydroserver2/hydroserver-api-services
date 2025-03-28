@@ -3,11 +3,7 @@ import typing
 from typing import Literal, Optional
 from django.db import models
 from django.db.models import Q
-from iam.models import Workspace
 from iam.models.utils import PermissionChecker
-from sta.models import Datastream
-from .etl_system import EtlSystem
-from .etl_configuration import EtlConfiguration
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -40,11 +36,11 @@ class DataSourceQuerySet(models.QuerySet):
 class DataSource(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
-        Workspace, related_name="data_sources", on_delete=models.DO_NOTHING
+        "iam.Workspace", related_name="data_sources", on_delete=models.DO_NOTHING
     )
     name = models.CharField(max_length=255)
     etl_system = models.ForeignKey(
-        EtlSystem, related_name="data_sources", on_delete=models.DO_NOTHING
+        "EtlSystem", related_name="data_sources", on_delete=models.DO_NOTHING
     )
     interval = models.PositiveIntegerField(blank=True, null=True)
     interval_units = models.CharField(max_length=255, blank=True, null=True)
@@ -56,14 +52,30 @@ class DataSource(models.Model, PermissionChecker):
     last_run_message = models.TextField(blank=True, null=True)
     last_run = models.DateTimeField(blank=True, null=True)
     next_run = models.DateTimeField(blank=True, null=True)
-    etl_configuration = models.ForeignKey(
-        EtlConfiguration,
-        related_name="data_sources",
+    extractor_configuration = models.ForeignKey(
+        "EtlConfiguration",
+        related_name="data_source_extractor_set",
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
     )
-    etl_configuration_settings = models.JSONField(blank=True, null=True)
+    extractor_configuration_settings = models.JSONField(blank=True, null=True)
+    transformer_configuration = models.ForeignKey(
+        "EtlConfiguration",
+        related_name="data_source_transformer_set",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
+    transformer_configuration_settings = models.JSONField(blank=True, null=True)
+    loader_configuration = models.ForeignKey(
+        "EtlConfiguration",
+        related_name="data_source_loader_set",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
+    loader_configuration_settings = models.JSONField(blank=True, null=True)
 
     objects = DataSourceQuerySet.as_manager()
 
@@ -101,13 +113,29 @@ class LinkedDatastream(models.Model):
         DataSource, related_name="linked_datastreams", on_delete=models.DO_NOTHING
     )
     datastream = models.OneToOneField(
-        Datastream, related_name="data_source", on_delete=models.DO_NOTHING
+        "sta.Datastream", related_name="data_source", on_delete=models.DO_NOTHING
     )
-    etl_configuration = models.ForeignKey(
-        EtlConfiguration,
-        related_name="linked_datastreams",
+    extractor_configuration = models.ForeignKey(
+        "EtlConfiguration",
+        related_name="linked_datastreams_extractor",
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
     )
-    etl_configuration_settings = models.JSONField(blank=True, null=True)
+    extractor_configuration_settings = models.JSONField(blank=True, null=True)
+    transformer_configuration = models.ForeignKey(
+        "EtlConfiguration",
+        related_name="linked_datastreams_transformer",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
+    transformer_configuration_settings = models.JSONField(blank=True, null=True)
+    loader_configuration = models.ForeignKey(
+        "EtlConfiguration",
+        related_name="linked_datastreams_loader",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
+    loader_configuration_settings = models.JSONField(blank=True, null=True)

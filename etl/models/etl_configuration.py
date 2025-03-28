@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Q
 from iam.models import Workspace
 from iam.models.utils import PermissionChecker
-from .etl_system_platform import EtlSystemPlatform
+from .data_source import DataSource, LinkedDatastream
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -41,13 +41,30 @@ class EtlConfigurationQuerySet(models.QuerySet):
 class EtlConfiguration(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     etl_system_platform = models.ForeignKey(
-        EtlSystemPlatform,
+        "EtlSystemPlatform",
         related_name="etl_configurations",
         on_delete=models.DO_NOTHING,
     )
     name = models.CharField(max_length=255)
+    etl_configuration_model = models.CharField(max_length=255)
     etl_configuration_type = models.CharField(max_length=255)
     etl_configuration_schema = models.JSONField()
+
+    @property
+    def data_sources(self):
+        return DataSource.objects.filter(
+            models.Q(extractor_configuration=self) |
+            models.Q(transformer_configuration=self) |
+            models.Q(loader_configuration=self)
+        ).distinct()
+
+    @property
+    def linked_datastreams(self):
+        return LinkedDatastream.objects.filter(
+            models.Q(extractor_configuration=self) |
+            models.Q(transformer_configuration=self) |
+            models.Q(loader_configuration=self)
+        ).distinct()
 
     objects = EtlConfigurationQuerySet.as_manager()
 
@@ -74,17 +91,17 @@ class EtlConfiguration(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from etl.models import DataSource, LinkedDatastream
+        etl_configuration_relation_filters = [
+            "extractor_configuration",
+            "transformer_configuration",
+            "loader_configuration",
+        ]
 
-        etl_configuration_relation_filter = (
-            f"etl_configuration__{filter_suffix}"
-            if filter_suffix
-            else "etl_configuration"
-        )
+        if filter_suffix:
+            etl_configuration_relation_filters = [
+                f"{relation}__{filter_suffix}" for relation in etl_configuration_relation_filters
+            ]
 
-        DataSource.objects.filter(
-            **{etl_configuration_relation_filter: filter_arg}
-        ).update(etl_configuration=None)
-        LinkedDatastream.objects.filter(
-            **{etl_configuration_relation_filter: filter_arg}
-        ).update(etl_configuration=None)
+        for relation in etl_configuration_relation_filters:
+            DataSource.objects.filter(**{relation: filter_arg}).update(**{relation: None})
+            LinkedDatastream.objects.filter(**{relation: filter_arg}).update(**{relation: None})

@@ -4,8 +4,9 @@ from jsonschema.validators import validator_for
 from jsonschema.exceptions import SchemaError
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from iam.services.utils import ServiceUtils
-from etl.models import EtlConfiguration, EtlSystemPlatform
+from etl.models import EtlConfiguration, EtlSystemPlatform, DataSource, LinkedDatastream
 from etl.schemas import EtlConfigurationPostBody, EtlConfigurationPatchBody
 from etl.schemas.etl_configuration import EtlConfigurationFields
 from etl.services.etl_system_platform import EtlSystemPlatformService
@@ -157,10 +158,18 @@ class EtlConfigurationService(ServiceUtils):
             action="delete",
         )
 
-        if etl_configuration.data_sources.exists():
+        if DataSource.objects.filter(
+            Q(extractor_configuration=etl_configuration) |
+            Q(transformer_configuration=etl_configuration) |
+            Q(loader_configuration=etl_configuration)
+        ).exists():
             raise HttpError(409, "ETL configuration in use by one or more data sources")
 
-        if etl_configuration.linked_datastreams.exists():
+        if LinkedDatastream.objects.filter(
+            Q(extractor_configuration=etl_configuration) |
+            Q(transformer_configuration=etl_configuration) |
+            Q(loader_configuration=etl_configuration)
+        ).exists():
             raise HttpError(409, "ETL configuration in use by one or more datastreams")
 
         etl_configuration.delete()
