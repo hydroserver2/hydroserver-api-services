@@ -18,3 +18,8 @@ from .etl_configuration import (
     EtlConfigurationPostBody,
     EtlConfigurationPatchBody,
 )
+from .hydroshare_archival import (
+    HydroShareArchivalGetResponse,
+    HydroShareArchivalPostBody,
+    HydroShareArchivalPatchBody
+)
