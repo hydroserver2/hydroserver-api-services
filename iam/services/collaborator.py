@@ -92,9 +92,8 @@ class CollaboratorService(ServiceUtils):
 
         permissions = collaborator.get_user_permissions(user=user)
 
-        if (
-            not any(permission in permissions for permission in ("*", "delete"))
-            and user.email != collaborator.user.email
+        if not any(permission in permissions for permission in ("*", "delete")) and (
+            not user or user.email != collaborator.user.email
         ):
             raise HttpError(
                 403, f"You do not have permission to remove this collaborator"

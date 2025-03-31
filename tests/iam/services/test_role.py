@@ -21,11 +21,19 @@ role_service = RoleService()
             "Workspace does not exist",
             404,
         ),
+        (
+            None,
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            0,
+            "Workspace does not exist",
+            404,
+        ),
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None, None),
         ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None, None),
         ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None, None),
         ("viewer", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None, None),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None, None),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None, None),
     ],
 )
 def test_list_role(get_user, user, workspace, length, message, error_code):
@@ -67,6 +75,13 @@ def test_list_role(get_user, user, workspace, length, message, error_code):
             None,
         ),
         (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "Editor",
+            None,
+        ),
+        (
             "owner",
             "00000000-0000-0000-0000-000000000000",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
@@ -82,6 +97,13 @@ def test_list_role(get_user, user, workspace, length, message, error_code):
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "60b9d8b1-28d1-4d0d-9bee-4e47219d0118",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "60b9d8b1-28d1-4d0d-9bee-4e47219d0118",
             "Workspace does not exist",

@@ -33,7 +33,7 @@ class PermissionChecker:
         user: Optional["User"], workspace: "Workspace", resource_type: str
     ):
         if not workspace:
-            if user.account_type in ["admin", "staff"]:
+            if user and user.account_type in ["admin", "staff"]:
                 return ["view", "edit", "delete"]
             else:
                 return ["view"]

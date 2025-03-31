@@ -25,6 +25,13 @@ collaborator_service = CollaboratorService()
             "Workspace does not exist",
             404,
         ),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None),
+        (
+            None,
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
     ],
 )
 def test_list_collaborator(get_user, user, workspace, message, error_code):
@@ -106,7 +113,23 @@ def test_list_collaborator(get_user, user, workspace, message, error_code):
             403,
         ),
         (
+            None,
             "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
             "anonymous",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
@@ -241,6 +264,22 @@ def test_create_collaborator(
             404,
         ),
         (
+            None,
+            "editor",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "editor",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "owner",
             "fake",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
@@ -347,6 +386,20 @@ def test_update_collaborator(
         ),
         (
             "anonymous",
+            "editor",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "editor",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",

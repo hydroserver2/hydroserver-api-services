@@ -24,6 +24,10 @@ unit_service = UnitService()
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
         ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
+        (None, None, 4, 2),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
     ],
 )
 def test_list_unit(
@@ -63,6 +67,20 @@ def test_list_unit(
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Unit does not exist",
+            404,
+        ),
+        (None, "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
+        (None, "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
+        (
+            None,
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Unit does not exist",
             404,
@@ -110,6 +128,18 @@ def test_get_unit(get_user, user, unit, message, error_code):
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -198,6 +228,30 @@ def test_create_unit(get_user, user, workspace, message, error_code):
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Unit does not exist",
+            404,
+        ),
+        (
+            None,
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Unit does not exist",
             404,
@@ -292,6 +346,30 @@ def test_edit_unit(get_user, user, unit, message, error_code):
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Unit does not exist",
+            404,
+        ),
+        (
+            None,
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Unit does not exist",
             404,
