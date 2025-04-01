@@ -24,6 +24,10 @@ sensor_service = SensorService()
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
         ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
+        (None, None, 4, 2),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
     ],
 )
 def test_list_sensor(
@@ -63,6 +67,20 @@ def test_list_sensor(
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Sensor does not exist",
+            404,
+        ),
+        (None, "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
+        (None, "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
+        (
+            None,
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Sensor does not exist",
             404,
@@ -110,6 +128,18 @@ def test_get_sensor(get_user, user, sensor, message, error_code):
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -198,6 +228,30 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Sensor does not exist",
+            404,
+        ),
+        (
+            None,
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Sensor does not exist",
             404,
@@ -295,6 +349,30 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Sensor does not exist",
+            404,
+        ),
+        (
+            None,
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Sensor does not exist",
             404,

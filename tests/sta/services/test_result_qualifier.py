@@ -28,6 +28,10 @@ result_qualifier_service = ResultQualifierService()
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
         ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
+        (None, None, 2, 2),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
     ],
 )
 def test_list_result_qualifier(
@@ -144,6 +148,30 @@ def test_list_result_qualifier(
             "Result qualifier does not exist",
             404,
         ),
+        (
+            None,
+            "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
+            "SystemResultQualifier",
+            None,
+        ),
+        (
+            None,
+            "c66e9597-f474-4a77-afa0-f2b5a673249e",
+            "PublicResultQualifier",
+            None,
+        ),
+        (
+            None,
+            "932dffca-0277-4dc2-8129-cb10212c4185",
+            "Result qualifier does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Result qualifier does not exist",
+            404,
+        ),
     ],
 )
 def test_get_result_qualifier(get_user, user, result_qualifier, message, error_code):
@@ -191,6 +219,18 @@ def test_get_result_qualifier(get_user, user, result_qualifier, message, error_c
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -284,6 +324,30 @@ def test_create_result_qualifier(get_user, user, workspace, message, error_code)
             "Result qualifier does not exist",
             404,
         ),
+        (
+            None,
+            "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "c66e9597-f474-4a77-afa0-f2b5a673249e",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "932dffca-0277-4dc2-8129-cb10212c4185",
+            "Result qualifier does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Result qualifier does not exist",
+            404,
+        ),
     ],
 )
 def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_code):
@@ -368,6 +432,30 @@ def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Result qualifier does not exist",
+            404,
+        ),
+        (
+            None,
+            "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "c66e9597-f474-4a77-afa0-f2b5a673249e",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "932dffca-0277-4dc2-8129-cb10212c4185",
+            "Result qualifier does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Result qualifier does not exist",
             404,

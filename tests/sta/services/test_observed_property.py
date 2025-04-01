@@ -28,6 +28,10 @@ observed_property_service = ObservedPropertyService()
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
         ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
+        (None, None, 4, 2),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
     ],
 )
 def test_list_observed_property(
@@ -144,6 +148,30 @@ def test_list_observed_property(
             "Observed property does not exist",
             404,
         ),
+        (
+            None,
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            None,
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        (
+            None,
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Observed property does not exist",
+            404,
+        ),
     ],
 )
 def test_get_observed_property(get_user, user, observed_property, message, error_code):
@@ -191,6 +219,18 @@ def test_get_observed_property(get_user, user, observed_property, message, error
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -296,6 +336,30 @@ def test_create_observed_property(get_user, user, workspace, message, error_code
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Observed property does not exist",
+            404,
+        ),
+        (
+            None,
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Observed property does not exist",
             404,
@@ -407,6 +471,30 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Observed property does not exist",
+            404,
+        ),
+        (
+            None,
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Observed property does not exist",
             404,

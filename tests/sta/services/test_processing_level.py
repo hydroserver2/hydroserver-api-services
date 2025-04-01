@@ -28,6 +28,10 @@ processing_level_service = ProcessingLevelService()
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
         ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
+        (None, None, 4, 2),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
     ],
 )
 def test_list_processing_level(
@@ -144,6 +148,30 @@ def test_list_processing_level(
             "Processing level does not exist",
             404,
         ),
+        (
+            None,
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "System Processing Level",
+            None,
+        ),
+        (
+            None,
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "Public Processing Level",
+            None,
+        ),
+        (
+            None,
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Processing level does not exist",
+            404,
+        ),
     ],
 )
 def test_get_processing_level(get_user, user, processing_level, message, error_code):
@@ -191,6 +219,18 @@ def test_get_processing_level(get_user, user, processing_level, message, error_c
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -280,6 +320,30 @@ def test_create_processing_level(get_user, user, workspace, message, error_code)
         ),
         (
             "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Processing level does not exist",
+            404,
+        ),
+        (
+            None,
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
+        ),
+        (
+            None,
             "00000000-0000-0000-0000-000000000000",
             "Processing level does not exist",
             404,

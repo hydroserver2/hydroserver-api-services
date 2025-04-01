@@ -25,6 +25,8 @@ workspace_service = WorkspaceService()
         ("viewer", 2, True),
         ("anonymous", 2, False),
         ("anonymous", 1, True),
+        (None, 1, False),
+        (None, 0, True),
         ("limited", 1, False),
         ("limited", 0, True),
     ],
@@ -44,6 +46,7 @@ def test_list_workspace(get_user, user, length, associated):
         ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", None),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
         ("anonymous", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Transfer", None),
+        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
         (
             "owner",
             "00000000-0000-0000-0000-000000000000",
@@ -52,6 +55,12 @@ def test_list_workspace(get_user, user, length, associated):
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -120,6 +129,18 @@ def test_create_workspace(get_user, user, message, error_code):
             "You do not have permission to edit this workspace",
             403,
         ),
+        (
+            None,
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission to edit this workspace",
+            403,
+        ),
     ],
 )
 def test_update_workspace(get_user, user, workspace, message, error_code):
@@ -168,6 +189,13 @@ def test_update_workspace(get_user, user, workspace, message, error_code):
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+            5,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -230,6 +258,13 @@ def test_delete_workspace(
         ),
         (
             "anonymous",
+            "viewer",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
             "viewer",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
@@ -311,6 +346,12 @@ def test_transfer_workspace(
             404,
         ),
         (
+            None,
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "owner",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "No workspace transfer is pending",
@@ -360,6 +401,12 @@ def test_accept_workspace_transfer(get_user, user, workspace, message, error_cod
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,

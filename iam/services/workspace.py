@@ -53,7 +53,10 @@ class WorkspaceService(ServiceUtils):
 
     def get(self, user: Optional[User], uid: uuid.UUID):
         workspace, _ = self.get_workspace(user=user, workspace_id=uid)
-        user.collaborator_roles = list(user.workspace_roles.all()) if user else []
+
+        if user:
+            user.collaborator_roles = list(user.workspace_roles.all())
+
         workspace = self.attach_role_and_transfer_fields(workspace, user)
 
         return workspace
