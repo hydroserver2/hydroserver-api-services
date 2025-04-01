@@ -41,8 +41,8 @@ class EtlSystemService(ServiceUtils):
     @staticmethod
     def list(
         user: Optional[User],
-        workspace_id: Optional[uuid.UUID],
-        etl_system_platform_id: uuid.UUID,
+        workspace_id: Optional[uuid.UUID] = None,
+        etl_system_platform_id: Optional[uuid.UUID] = None,
     ):
         queryset = EtlSystem.objects
 
