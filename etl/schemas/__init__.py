@@ -19,7 +19,8 @@ from .etl_configuration import (
     EtlConfigurationPatchBody,
 )
 from .hydroshare_archival import (
+    HydroShareArchivalFields,
     HydroShareArchivalGetResponse,
     HydroShareArchivalPostBody,
-    HydroShareArchivalPatchBody
+    HydroShareArchivalPatchBody,
 )

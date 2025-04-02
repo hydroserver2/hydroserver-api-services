@@ -13,6 +13,7 @@
   pk: 529b62fc-84bf-4173-8add-c9fc9126d3db
   fields:
     name: HydroShare Archive Loader Settings
+    etl_system_platform: eb1a26e0-75c9-415d-9895-8b0be8466139
     etl_configuration_model: datasource
     etl_configuration_type: loader
     etl_configuration_schema:

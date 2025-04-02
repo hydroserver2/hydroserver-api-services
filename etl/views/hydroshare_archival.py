@@ -5,7 +5,7 @@ from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from etl.schemas import (
     HydroShareArchivalGetResponse,
     HydroShareArchivalPostBody,
-    HydroShareArchivalPatchBody
+    HydroShareArchivalPatchBody,
 )
 from etl.services import HydroShareArchivalService
 
@@ -38,7 +38,7 @@ def get_thing_archive(request, thing_id: Path[uuid.UUID]):
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: HydroShareArchivalGetResponse,
+        201: HydroShareArchivalGetResponse,
         400: str,
         401: str,
         403: str,
@@ -47,7 +47,9 @@ def get_thing_archive(request, thing_id: Path[uuid.UUID]):
     by_alias=True,
     exclude_unset=True,
 )
-def create_thing_archive(request, data: HydroShareArchivalPostBody, thing_id: Path[uuid.UUID]):
+def create_thing_archive(
+    request, data: HydroShareArchivalPostBody, thing_id: Path[uuid.UUID]
+):
     """
     Create a HydroShare data archive for a thing.
     """
@@ -57,8 +59,8 @@ def create_thing_archive(request, data: HydroShareArchivalPostBody, thing_id: Pa
     )
 
 
-@hydroshare_archival_router.put(
-    "",
+@hydroshare_archival_router.post(
+    "/trigger",
     auth=[session_auth, bearer_auth],
     response={
         200: HydroShareArchivalGetResponse,
@@ -91,7 +93,9 @@ def run_thing_archival(request, thing_id: Path[uuid.UUID]):
     by_alias=True,
     exclude_unset=True,
 )
-def update_archive(request, data: HydroShareArchivalPatchBody, thing_id: Path[uuid.UUID]):
+def update_archive(
+    request, data: HydroShareArchivalPatchBody, thing_id: Path[uuid.UUID]
+):
     """
     Update HydroShare data archive details for a thing.
     """

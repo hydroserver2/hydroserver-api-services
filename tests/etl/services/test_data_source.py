@@ -613,7 +613,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "view",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -621,7 +625,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "edit",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -629,7 +637,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "delete",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -709,7 +721,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "view",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -717,7 +733,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "edit",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -725,7 +745,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "delete",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -733,7 +757,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "view",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -741,7 +769,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "edit",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -749,7 +781,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "delete",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (
@@ -757,7 +793,11 @@ def test_list_linked_datastreams(
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
             "view",
-            {"extractor_configuration_id": UUID("09e6ad1f-c81c-4f32-aebc-c3f9006fafd4")},
+            {
+                "extractor_configuration_id": UUID(
+                    "09e6ad1f-c81c-4f32-aebc-c3f9006fafd4"
+                )
+            },
             None,
         ),
         (

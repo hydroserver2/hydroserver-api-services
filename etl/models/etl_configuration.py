@@ -53,17 +53,17 @@ class EtlConfiguration(models.Model, PermissionChecker):
     @property
     def data_sources(self):
         return DataSource.objects.filter(
-            models.Q(extractor_configuration=self) |
-            models.Q(transformer_configuration=self) |
-            models.Q(loader_configuration=self)
+            models.Q(extractor_configuration=self)
+            | models.Q(transformer_configuration=self)
+            | models.Q(loader_configuration=self)
         ).distinct()
 
     @property
     def linked_datastreams(self):
         return LinkedDatastream.objects.filter(
-            models.Q(extractor_configuration=self) |
-            models.Q(transformer_configuration=self) |
-            models.Q(loader_configuration=self)
+            models.Q(extractor_configuration=self)
+            | models.Q(transformer_configuration=self)
+            | models.Q(loader_configuration=self)
         ).distinct()
 
     objects = EtlConfigurationQuerySet.as_manager()
@@ -99,9 +99,14 @@ class EtlConfiguration(models.Model, PermissionChecker):
 
         if filter_suffix:
             etl_configuration_relation_filters = [
-                f"{relation}__{filter_suffix}" for relation in etl_configuration_relation_filters
+                f"{relation}__{filter_suffix}"
+                for relation in etl_configuration_relation_filters
             ]
 
         for relation in etl_configuration_relation_filters:
-            DataSource.objects.filter(**{relation: filter_arg}).update(**{relation: None})
-            LinkedDatastream.objects.filter(**{relation: filter_arg}).update(**{relation: None})
+            DataSource.objects.filter(**{relation: filter_arg}).update(
+                **{relation: None}
+            )
+            LinkedDatastream.objects.filter(**{relation: filter_arg}).update(
+                **{relation: None}
+            )

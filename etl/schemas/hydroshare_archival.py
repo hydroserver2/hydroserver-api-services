@@ -7,7 +7,7 @@ from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 class HydroShareArchivalFields(Schema):
     link: Optional[AnyHttpUrl] = None
-    frequency: Optional[Literal["daily", "weekly", "monthly"]]
+    frequency: Optional[Literal["daily", "weekly", "monthly"]] = None
     path: str = Field(..., max_length=255)
     datastream_ids: list[UUID]
 

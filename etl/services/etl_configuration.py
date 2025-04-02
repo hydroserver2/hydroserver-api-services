@@ -159,16 +159,16 @@ class EtlConfigurationService(ServiceUtils):
         )
 
         if DataSource.objects.filter(
-            Q(extractor_configuration=etl_configuration) |
-            Q(transformer_configuration=etl_configuration) |
-            Q(loader_configuration=etl_configuration)
+            Q(extractor_configuration=etl_configuration)
+            | Q(transformer_configuration=etl_configuration)
+            | Q(loader_configuration=etl_configuration)
         ).exists():
             raise HttpError(409, "ETL configuration in use by one or more data sources")
 
         if LinkedDatastream.objects.filter(
-            Q(extractor_configuration=etl_configuration) |
-            Q(transformer_configuration=etl_configuration) |
-            Q(loader_configuration=etl_configuration)
+            Q(extractor_configuration=etl_configuration)
+            | Q(transformer_configuration=etl_configuration)
+            | Q(loader_configuration=etl_configuration)
         ).exists():
             raise HttpError(409, "ETL configuration in use by one or more datastreams")
 

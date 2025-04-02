@@ -26,6 +26,7 @@ from etl.views import (
     etl_configuration_router,
     data_source_router,
     etl_system_platform_router,
+    hydroshare_archival_router,
 )
 
 
@@ -39,6 +40,7 @@ data_api = NinjaAPI(
 
 thing_router.add_router("{thing_id}/tags", tag_router)
 thing_router.add_router("{thing_id}/photos", photo_router)
+thing_router.add_router("{thing_id}/archive", hydroshare_archival_router)
 data_api.add_router("things", thing_router)
 data_api.add_router("tags", tag_key_router)
 data_api.add_router("observed-properties", observed_property_router)
