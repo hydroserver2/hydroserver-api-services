@@ -1,23 +1,21 @@
-from .data_source import (
-    DataSourceGetResponse,
-    DataSourcePostBody,
-    DataSourcePatchBody,
+from .data_connector import (
+    DataConnectorStatusFields,
+    DataConnectorScheduleFields,
+    DataConnectorFields,
+    DataConnectorGetResponse,
+    DataConnectorPostBody,
+    DataConnectorPatchBody,
     LinkedDatastreamGetResponse,
-    LinkedDatastreamFields,
     LinkedDatastreamPostBody,
-    LinkedDatastreamPatchBody,
+    LinkedDatastreamDeleteBody
 )
-from .etl_system_platform import (
-    EtlSystemPlatformGetResponse,
-    EtlSystemPlatformPostBody,
-    EtlSystemPlatformPatchBody,
+
+from .orchestration_system import (
+    OrchestrationSystemGetResponse,
+    OrchestrationSystemPostBody,
+    OrchestrationSystemPatchBody
 )
-from .etl_system import EtlSystemGetResponse, EtlSystemPostBody, EtlSystemPatchBody
-from .etl_configuration import (
-    EtlConfigurationGetResponse,
-    EtlConfigurationPostBody,
-    EtlConfigurationPatchBody,
-)
+
 from .hydroshare_archival import (
     HydroShareArchivalFields,
     HydroShareArchivalGetResponse,

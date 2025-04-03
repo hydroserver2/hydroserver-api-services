@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
     User = get_user_model()
 
 
-class EtlSystemPlatformQuerySet(models.QuerySet):
+class OrchestrationSystemQuerySet(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
             return self.filter(Q(workspace__isnull=True))
@@ -27,7 +27,7 @@ class EtlSystemPlatformQuerySet(models.QuerySet):
                     workspace__collaborators__user=user,
                     workspace__collaborators__role__permissions__resource_type__in=[
                         "*",
-                        "EtlSystemPlatform",
+                        "EtlSystem",
                     ],
                     workspace__collaborators__role__permissions__permission_type__in=[
                         "*",
@@ -37,32 +37,31 @@ class EtlSystemPlatformQuerySet(models.QuerySet):
             )
 
 
-class EtlSystemPlatform(models.Model, PermissionChecker):
+class OrchestrationSystem(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
         Workspace,
-        related_name="etl_system_platforms",
+        related_name="orchestration_systems",
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
     )
     name = models.CharField(max_length=255)
-    interval_schedule_supported = models.BooleanField(default=False)
-    crontab_schedule_supported = models.BooleanField(default=False)
+    orchestration_system_type = models.CharField(max_length=255)
 
-    objects = EtlSystemPlatformQuerySet.as_manager()
+    objects = OrchestrationSystemQuerySet.as_manager()
 
     @classmethod
     def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
         return cls.check_create_permissions(
-            user=user, workspace=workspace, resource_type="EtlSystemPlatform"
+            user=user, workspace=workspace, resource_type="OrchestrationSystem"
         )
 
     def get_user_permissions(
         self, user: Optional["User"]
     ) -> list[Literal["edit", "delete", "view"]]:
         user_permissions = self.check_object_permissions(
-            user=user, workspace=self.workspace, resource_type="EtlSystemPlatform"
+            user=user, workspace=self.workspace, resource_type="OrchestrationSystem"
         )
 
         return user_permissions
@@ -73,20 +72,13 @@ class EtlSystemPlatform(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from etl.models import EtlSystem, EtlConfiguration
+        from etl.models import DataConnector
 
-        etl_system_platform_relation_filter = (
-            f"etl_system_platform__{filter_suffix}"
-            if filter_suffix
-            else "etl_system_platform"
+        orchestration_system_relation_filter = (
+            f"orchestration_system__{filter_suffix}" if filter_suffix else "orchestration_system"
         )
 
-        EtlSystem.delete_contents(
-            filter_arg=filter_arg, filter_suffix=etl_system_platform_relation_filter
+        DataConnector.delete_contents(
+            filter_arg=filter_arg, filter_suffix=orchestration_system_relation_filter
         )
-        EtlSystem.objects.filter(
-            **{etl_system_platform_relation_filter: filter_arg}
-        ).delete()
-        EtlConfiguration.objects.filter(
-            **{etl_system_platform_relation_filter: filter_arg}
-        ).delete()
+        DataConnector.objects.filter(**{orchestration_system_relation_filter: filter_arg}).delete()

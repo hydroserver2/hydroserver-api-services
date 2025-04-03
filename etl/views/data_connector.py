@@ -5,39 +5,39 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
-    DataSourceGetResponse,
-    DataSourcePostBody,
-    DataSourcePatchBody,
+    DataConnectorGetResponse,
+    DataConnectorPostBody,
+    DataConnectorPatchBody,
     LinkedDatastreamGetResponse,
     LinkedDatastreamPostBody,
-    LinkedDatastreamPatchBody,
+    LinkedDatastreamPatchBody
 )
-from etl.services import DataSourceService
+from etl.services import DataConnectorService
 
-data_source_router = Router(tags=["ETL Data Sources"])
-data_source_service = DataSourceService()
+data_connector_router = Router(tags=["Data Connectors"])
+data_connector_service = DataConnectorService()
 
 
-@data_source_router.get(
+@data_connector_router.get(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: list[DataSourceGetResponse],
+        200: list[DataConnectorGetResponse],
         401: str,
     },
     by_alias=True,
 )
-def get_data_sources(
+def get_data_connectors(
     request: HydroServerHttpRequest,
     workspace_id: Optional[uuid.UUID] = None,
     etl_system_platform_id: Optional[uuid.UUID] = None,
     etl_system_id: Optional[uuid.UUID] = None,
 ):
     """
-    Get public Data Sources and Data Sources associated with the authenticated user.
+    Get public Data Connectors and Data Connectors associated with the authenticated user.
     """
 
-    return 200, data_source_service.list(
+    return 200, data_connector_service.list(
         user=request.authenticated_user,
         workspace_id=workspace_id,
         etl_system_platform_id=etl_system_platform_id,
@@ -45,11 +45,11 @@ def get_data_sources(
     )
 
 
-@data_source_router.post(
+@data_connector_router.post(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: DataSourceGetResponse,
+        201: DataConnectorGetResponse,
         400: str,
         401: str,
         403: str,
@@ -58,40 +58,40 @@ def get_data_sources(
     by_alias=True,
 )
 @transaction.atomic
-def create_data_source(request: HydroServerHttpRequest, data: DataSourcePostBody):
+def create_data_connector(request: HydroServerHttpRequest, data: DataConnectorPostBody):
     """
-    Create a new Data Source.
+    Create a new Data Connector.
     """
 
-    return 201, data_source_service.create(user=request.authenticated_user, data=data)
+    return 201, data_connector_service.create(user=request.authenticated_user, data=data)
 
 
-@data_source_router.get(
-    "/{data_source_id}",
+@data_connector_router.get(
+    "/{data_connector_id}",
     auth=[session_auth, bearer_auth],
     response={
-        200: DataSourceGetResponse,
+        200: DataConnectorGetResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_data_source(request: HydroServerHttpRequest, data_source_id: Path[uuid.UUID]):
+def get_data_connector(request: HydroServerHttpRequest, data_connector_id: Path[uuid.UUID]):
     """
-    Get a Data Source.
+    Get a Data Connector.
     """
 
-    return 200, data_source_service.get(
-        user=request.authenticated_user, uid=data_source_id
+    return 200, data_connector_service.get(
+        user=request.authenticated_user, uid=data_connector_id
     )
 
 
-@data_source_router.patch(
-    "/{data_source_id}",
+@data_connector_router.patch(
+    "/{data_connector_id}",
     auth=[session_auth, bearer_auth],
     response={
-        200: DataSourceGetResponse,
+        200: DataConnectorGetResponse,
         400: str,
         401: str,
         403: str,
@@ -100,22 +100,22 @@ def get_data_source(request: HydroServerHttpRequest, data_source_id: Path[uuid.U
     by_alias=True,
 )
 @transaction.atomic
-def update_data_source(
+def update_data_connector(
     request: HydroServerHttpRequest,
-    data_source_id: Path[uuid.UUID],
-    data: DataSourcePatchBody,
+    data_connector_id: Path[uuid.UUID],
+    data: DataConnectorPatchBody,
 ):
     """
-    Update a Data Source.
+    Update a Data Connector.
     """
 
-    return 200, data_source_service.update(
-        user=request.authenticated_user, uid=data_source_id, data=data
+    return 200, data_connector_service.update(
+        user=request.authenticated_user, uid=data_connector_id, data=data
     )
 
 
-@data_source_router.delete(
-    "/{data_source_id}",
+@data_connector_router.delete(
+    "/{data_connector_id}",
     auth=[session_auth, bearer_auth],
     response={
         204: str,
@@ -126,20 +126,20 @@ def update_data_source(
     by_alias=True,
 )
 @transaction.atomic
-def delete_data_source(
-    request: HydroServerHttpRequest, data_source_id: Path[uuid.UUID]
+def delete_data_connector(
+    request: HydroServerHttpRequest, data_connector_id: Path[uuid.UUID]
 ):
     """
-    Delete a Data Source.
+    Delete a Data Connector.
     """
 
-    return 204, data_source_service.delete(
-        user=request.authenticated_user, uid=data_source_id
+    return 204, data_connector_service.delete(
+        user=request.authenticated_user, uid=data_connector_id
     )
 
 
-@data_source_router.get(
-    "/{data_source_id}/datastreams",
+@data_connector_router.get(
+    "/{data_connector_id}/datastreams",
     auth=[session_auth, bearer_auth],
     response={
         200: list[LinkedDatastreamGetResponse],
@@ -148,19 +148,19 @@ def delete_data_source(
     by_alias=True,
 )
 def get_linked_datastreams(
-    request: HydroServerHttpRequest, data_source_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest, data_connector_id: Path[uuid.UUID]
 ):
     """
-    Get public Datastreams and Datastreams associated with the authenticated user linked to a Data Source.
+    Get public Datastreams and Datastreams associated with the authenticated user linked to a Data Connector.
     """
 
-    return 200, data_source_service.list_linked_datastreams(
-        user=request.authenticated_user, uid=data_source_id
+    return 200, data_connector_service.list_linked_datastreams(
+        user=request.authenticated_user, uid=data_connector_id
     )
 
 
-@data_source_router.post(
-    "/{data_source_id}/datastreams/{datastream_id}",
+@data_connector_router.post(
+    "/{data_connector_id}/datastreams/{datastream_id}",
     auth=[session_auth, bearer_auth],
     response={
         201: LinkedDatastreamGetResponse,
@@ -174,24 +174,24 @@ def get_linked_datastreams(
 @transaction.atomic
 def link_datastream(
     request: HydroServerHttpRequest,
-    data_source_id: Path[uuid.UUID],
+    data_connector_id: Path[uuid.UUID],
     datastream_id: Path[uuid.UUID],
     data: LinkedDatastreamPostBody,
 ):
     """
-    Link a Datastream to a Data Source.
+    Link a Datastream to a Data Connector.
     """
 
-    return 201, data_source_service.link_datastream(
+    return 201, data_connector_service.link_datastream(
         user=request.authenticated_user,
-        uid=data_source_id,
+        uid=data_connector_id,
         datastream_id=datastream_id,
         data=data,
     )
 
 
-@data_source_router.get(
-    "/{data_source_id}/datastreams/{datastream_id}",
+@data_connector_router.get(
+    "/{data_connector_id}/datastreams/{datastream_id}",
     auth=[session_auth, bearer_auth],
     response={
         200: LinkedDatastreamGetResponse,
@@ -203,20 +203,20 @@ def link_datastream(
 )
 def get_linked_datastream(
     request: HydroServerHttpRequest,
-    data_source_id: Path[uuid.UUID],
+    data_connector_id: Path[uuid.UUID],
     datastream_id: Path[uuid.UUID],
 ):
     """
-    Get a Datastream linked to a Data Source.
+    Get a Datastream linked to a Data Connector.
     """
 
-    return 200, data_source_service.get_linked_datastream(
-        user=request.authenticated_user, uid=data_source_id, datastream_id=datastream_id
+    return 200, data_connector_service.get_linked_datastream(
+        user=request.authenticated_user, uid=data_connector_id, datastream_id=datastream_id
     )
 
 
-@data_source_router.patch(
-    "/{data_source_id}/datastreams/{datastream_id}",
+@data_connector_router.patch(
+    "/{data_connector_id}/datastreams/{datastream_id}",
     auth=[session_auth, bearer_auth],
     response={
         200: LinkedDatastreamGetResponse,
@@ -230,7 +230,7 @@ def get_linked_datastream(
 @transaction.atomic
 def update_linked_datastream(
     request: HydroServerHttpRequest,
-    data_source_id: Path[uuid.UUID],
+    data_connector_id: Path[uuid.UUID],
     datastream_id: Path[uuid.UUID],
     data: LinkedDatastreamPatchBody,
 ):
@@ -238,16 +238,16 @@ def update_linked_datastream(
     Update a linked Datastream.
     """
 
-    return 200, data_source_service.update_linked_datastream(
+    return 200, data_connector_service.update_linked_datastream(
         user=request.authenticated_user,
-        uid=data_source_id,
+        uid=data_connector_id,
         datastream_id=datastream_id,
         data=data,
     )
 
 
-@data_source_router.delete(
-    "/{data_source_id}/datastreams/{datastream_id}",
+@data_connector_router.delete(
+    "/{data_connector_id}/datastreams/{datastream_id}",
     auth=[session_auth, bearer_auth],
     response={
         204: str,
@@ -260,13 +260,13 @@ def update_linked_datastream(
 @transaction.atomic
 def unlink_datastream(
     request: HydroServerHttpRequest,
-    data_source_id: Path[uuid.UUID],
+    data_connector_id: Path[uuid.UUID],
     datastream_id: Path[uuid.UUID],
 ):
     """
-    Unlink a Datastream from a Data Source.
+    Unlink a Datastream from a Data Connector.
     """
 
-    return 204, data_source_service.unlink_datastream(
-        user=request.authenticated_user, uid=data_source_id, datastream_id=datastream_id
+    return 204, data_connector_service.unlink_datastream(
+        user=request.authenticated_user, uid=data_connector_id, datastream_id=datastream_id
     )
