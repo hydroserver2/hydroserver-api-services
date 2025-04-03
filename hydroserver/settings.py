@@ -124,13 +124,15 @@ os.environ["DATABASE_URL"] = config(
     "DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver"
 )
 
+dj_database_config = dj_database_url.config(
+    engine="django.db.backends.postgresql",
+    conn_health_checks=config("CONN_HEALTH_CHECKS", default=True, cast=bool),
+    ssl_require=config("SSL_REQUIRED", default=False, cast=bool),
+)
+
 DATABASES = {
     "default": {
-        **dj_database_url.config(
-            engine="django.db.backends.postgresql",
-            conn_health_checks=config("CONN_HEALTH_CHECKS", default=True, cast=bool),
-            ssl_require=config("SSL_REQUIRED", default=False, cast=bool),
-        ),
+        **dj_database_config,
         "OPTIONS": {
             "application_name": "HydroServer",
             "pool": {
@@ -138,6 +140,7 @@ DATABASES = {
                 "max_size": config("DB_POOL_MAX_SIZE", default=10, cast=int),
                 "timeout": config("DB_POOL_TIMEOUT", default=60, cast=int),
             },
+            **dj_database_config.get("OPTIONS", {})
         },
     }
 }
