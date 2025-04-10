@@ -18,10 +18,10 @@ class Command(BaseCommand):
             "tests/fixtures/test_sensors.yaml",
             "tests/fixtures/test_units.yaml",
             "tests/fixtures/test_datastreams.yaml",
-            "tests/fixtures/test_etl_system_platforms.yaml",
-            "tests/fixtures/test_etl_configurations.yaml",
-            "tests/fixtures/test_etl_systems.yaml",
+            "tests/fixtures/test_orchestration_systems.yaml",
             "tests/fixtures/test_data_sources.yaml",
+            "tests/fixtures/test_data_archives.yaml",
+            "tests/fixtures/test_etl_datastreams.yaml",
         ]
 
         for fixture in fixtures:

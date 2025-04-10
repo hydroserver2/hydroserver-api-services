@@ -60,10 +60,9 @@ class PermissionChecker:
             if resource_type not in [
                 "Thing",
                 "Datastream",
-                "EtlSystemPlatform",
-                "EtlSystem",
-                "EtlConfiguration",
+                "OrchestrationSystem",
                 "DataSource",
+                "DataArchive",
             ]:
                 permissions.append("view")
 

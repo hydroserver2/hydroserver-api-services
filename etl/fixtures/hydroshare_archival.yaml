@@ -1,39 +1,5 @@
-- model: etl.etlsystemplatform
-  pk: eb1a26e0-75c9-415d-9895-8b0be8466139
-  fields:
-    name: HydroShare Archival
-    interval_schedule_supported: False
-    crontab_schedule_supported: False
-- model: etl.etlsystem
+- model: etl.orchestrationsystem
   pk: 77380670-5d80-4ffc-86d0-7522e95bfbe7
   fields:
     name: HydroShare Archival Manager
-    etl_system_platform: eb1a26e0-75c9-415d-9895-8b0be8466139
-- model: etl.etlconfiguration
-  pk: 529b62fc-84bf-4173-8add-c9fc9126d3db
-  fields:
-    name: HydroShare Archive Loader Settings
-    etl_system_platform: eb1a26e0-75c9-415d-9895-8b0be8466139
-    etl_configuration_model: datasource
-    etl_configuration_type: loader
-    etl_configuration_schema:
-      type: object
-      properties:
-        thingId:
-          type: string
-          format: uuid
-        link:
-          type: string
-        path:
-          type: string
-        datastreamIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-      required:
-        - thingId
-        - link
-        - path
-        - datastreamIds
-      additionalProperties: false
+    orchestration_system_type: HydroShare

@@ -1,27 +1,27 @@
-# Data Source
-- model: etl.datasource
-  pk: 8bc6ba8b-dc67-4ca2-bed1-5abb4b067024
+# Data Archive
+- model: etl.dataarchive
+  pk: 6ff5de63-753b-458e-9735-e1ea68f9816c
   fields:
-    name: Test Data Source
+    name: Test Data Archive
     workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
     orchestration_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
     paused: False
 
-# Data Source w/Crontab Schedule
-- model: etl.datasource
-  pk: ea1f04db-76dd-4759-af92-88a1f87138e1
+# Data Archive w/Crontab Schedule
+- model: etl.dataarchive
+  pk: a2e90827-bb13-4c06-b0e0-eb5efbe9e077
   fields:
-    name: Crontab Data Source
+    name: Crontab Data Archive
     workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
     orchestration_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
     crontab: 0 12 * * 1
     paused: False
 
-# Data Source w/Interval Schedule
-- model: etl.datasource
-  pk: 1b8cbf94-13c2-4ad6-acb9-09a0442e889c
+# Data Archive w/Interval Schedule
+- model: etl.dataarchive
+  pk: aaa06734-b6c5-4fe9-a793-2055180b5d7f
   fields:
-    name: Interval Data Source
+    name: Interval Data Archive
     workspace: 6e0deaf2-a92b-421b-9ece-86783265596f
     orchestration_system: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
     interval: 7

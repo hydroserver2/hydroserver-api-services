@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def test_service_method(schema=None, response=None, error_code=None):
+def test_service_method(schema=None, response=None, error_code=None, fields=None):
     result_container = {}
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -25,6 +25,7 @@ def test_service_method(schema=None, response=None, error_code=None):
             if schema and isinstance(response, dict):
                 result_obj = schema.from_orm(result)
                 for field, value in response.items():
-                    assert getattr(result_obj, field) == value
+                    if not fields or field in fields:
+                        assert getattr(result_obj, field) == value
             if isinstance(response, str):
                 assert result == response

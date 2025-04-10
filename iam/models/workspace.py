@@ -92,7 +92,7 @@ class Workspace(models.Model):
             Sensor,
             Unit,
         )
-        from etl.models import EtlSystemPlatform, EtlSystem, DataSource
+        from etl.models import OrchestrationSystem, DataSource, DataArchive
 
         workspace_relation_filter = (
             f"workspace__{filter_suffix}" if filter_suffix else "workspace"
@@ -127,15 +127,15 @@ class Workspace(models.Model):
         )
         DataSource.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        EtlSystem.delete_contents(
+        DataArchive.delete_contents(
             filter_arg=filter_arg, filter_suffix=workspace_relation_filter
         )
-        EtlSystem.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+        DataArchive.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
-        EtlSystemPlatform.delete_contents(
+        OrchestrationSystem.delete_contents(
             filter_arg=filter_arg, filter_suffix=workspace_relation_filter
         )
-        EtlSystemPlatform.objects.filter(
+        OrchestrationSystem.objects.filter(
             **{workspace_relation_filter: filter_arg}
         ).delete()
 

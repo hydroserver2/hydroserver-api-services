@@ -127,11 +127,7 @@ def delete_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
 @datastream_router.get(
     "/{datastream_id}/csv",
     auth=[session_auth, bearer_auth, anonymous_auth],
-    response={
-        200: None,
-        403: str,
-        404: str
-    },
+    response={200: None, 403: str, 404: str},
 )
 def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
     """

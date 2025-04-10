@@ -352,6 +352,8 @@ class DatastreamService(ServiceUtils):
         response = StreamingHttpResponse(
             self.generate_csv(datastream), content_type="text/csv"
         )
-        response["Content-Disposition"] = f'attachment; filename="{datastream.name}.csv"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="{datastream.name}.csv"'
+        )
 
         return response

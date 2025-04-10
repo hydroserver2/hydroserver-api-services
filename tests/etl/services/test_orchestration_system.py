@@ -1,0 +1,498 @@
+import pytest
+import uuid
+from ninja.errors import HttpError
+from etl.services import OrchestrationSystemService
+from etl.schemas import (
+    OrchestrationSystemPostBody,
+    OrchestrationSystemPatchBody,
+    OrchestrationSystemGetResponse,
+)
+
+orchestration_system_service = OrchestrationSystemService()
+
+
+@pytest.mark.parametrize(
+    "user, workspace, length, max_queries",
+    [
+        ("owner", None, 2, 2),
+        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
+        ("admin", None, 2, 2),
+        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
+        ("editor", None, 2, 2),
+        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
+        ("viewer", None, 2, 2),
+        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
+        ("anonymous", None, 1, 2),
+        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
+        (None, None, 1, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
+        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+    ],
+)
+def test_list_orchestration_system(
+    django_assert_num_queries,
+    get_user,
+    user,
+    workspace,
+    length,
+    max_queries,
+):
+    with django_assert_num_queries(max_queries):
+        orchestration_system_list = orchestration_system_service.list(
+            user=get_user(user),
+            workspace_id=uuid.UUID(workspace) if workspace else None,
+        )
+        assert len(orchestration_system_list) == length
+        assert (
+            OrchestrationSystemGetResponse.from_orm(orchestration_system)
+            for orchestration_system in orchestration_system_list
+        )
+
+
+@pytest.mark.parametrize(
+    "user, orchestration_system, message, error_code",
+    [
+        (
+            "owner",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            "owner",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Workspace Orchestration System",
+            None,
+        ),
+        (
+            "admin",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            "admin",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Workspace Orchestration System",
+            None,
+        ),
+        (
+            "editor",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            "editor",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Workspace Orchestration System",
+            None,
+        ),
+        (
+            "viewer",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            "viewer",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Workspace Orchestration System",
+            None,
+        ),
+        (
+            "anonymous",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            "anonymous",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            None,
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Orchestration system does not exist",
+            404,
+        ),
+    ],
+)
+def test_get_orchestration_system(
+    get_user, user, orchestration_system, message, error_code
+):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            orchestration_system_service.get(
+                user=get_user(user), uid=uuid.UUID(orchestration_system)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        orchestration_system_get = orchestration_system_service.get(
+            user=get_user(user), uid=uuid.UUID(orchestration_system)
+        )
+        assert orchestration_system_get.name == message
+        assert OrchestrationSystemGetResponse.from_orm(orchestration_system_get)
+
+
+@pytest.mark.parametrize(
+    "user, workspace, message, error_code",
+    [
+        (
+            "admin",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "00000000-0000-0000-0000-000000000000",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            "owner",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            None,
+            None,
+        ),
+        (
+            "viewer",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Workspace does not exist",
+            404,
+        ),
+    ],
+)
+def test_create_orchestration_system(get_user, user, workspace, message, error_code):
+    orchestration_system_data = OrchestrationSystemPostBody(
+        name="New", workspace_id=uuid.UUID(workspace), orchestration_system_type="Test"
+    )
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            orchestration_system_service.create(
+                user=get_user(user), data=orchestration_system_data
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        orchestration_system_create = orchestration_system_service.create(
+            user=get_user(user), data=orchestration_system_data
+        )
+        assert orchestration_system_create.name == orchestration_system_data.name
+        assert OrchestrationSystemGetResponse.from_orm(orchestration_system_create)
+
+
+@pytest.mark.parametrize(
+    "user, orchestration_system, message, error_code",
+    [
+        ("admin", "320ad0e1-1426-47f6-8a3a-886a7111a7c2", None, None),
+        ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        (
+            "owner",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        (
+            "editor",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        (
+            "viewer",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Orchestration system does not exist",
+            404,
+        ),
+    ],
+)
+def test_edit_orchestration_system(
+    get_user, user, orchestration_system, message, error_code
+):
+    orchestration_system_data = OrchestrationSystemPatchBody(
+        name="New", orchestration_system_type="Test"
+    )
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            orchestration_system_service.update(
+                user=get_user(user),
+                uid=uuid.UUID(orchestration_system),
+                data=orchestration_system_data,
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        orchestration_system_update = orchestration_system_service.update(
+            user=get_user(user),
+            uid=uuid.UUID(orchestration_system),
+            data=orchestration_system_data,
+        )
+        assert orchestration_system_update.name == orchestration_system_data.name
+        assert OrchestrationSystemGetResponse.from_orm(orchestration_system_update)
+
+
+@pytest.mark.parametrize(
+    "user, orchestration_system, message, error_code",
+    [
+        (
+            "admin",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Orchestration system in use",
+            409,
+        ),
+        ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        (
+            "owner",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        (
+            "editor",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
+        (
+            "viewer",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "00000000-0000-0000-0000-000000000000",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            None,
+            "00000000-0000-0000-0000-000000000000",
+            "Orchestration system does not exist",
+            404,
+        ),
+    ],
+)
+def test_delete_orchestration_system(
+    get_user, user, orchestration_system, message, error_code
+):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            orchestration_system_service.delete(
+                user=get_user(user), uid=uuid.UUID(orchestration_system)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        orchestration_system_delete = orchestration_system_service.delete(
+            user=get_user(user), uid=uuid.UUID(orchestration_system)
+        )
+        assert orchestration_system_delete == "Orchestration system deleted"

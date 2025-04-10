@@ -8,7 +8,7 @@ from hsmodels.schemas.fields import PointCoverage
 from allauth.socialaccount.models import SocialToken, SocialApp
 from django.contrib.auth import get_user_model
 from iam.services.utils import ServiceUtils
-from etl.models import DataSource, EtlSystem, EtlConfiguration
+from etl.models import DataArchive, OrchestrationSystem
 from etl.schemas import (
     HydroShareArchivalFields,
     HydroShareArchivalPostBody,
@@ -31,7 +31,7 @@ class HydroShareArchivalService(ServiceUtils):
         thing = thing_service.get_thing_for_action(user=user, uid=uid, action="view")
         etl_system = self.get_hydroshare_archival_system()
 
-        return DataSource.objects.filter(
+        return DataArchive.objects.filter(
             etl_system=etl_system,
             workspace=thing.workspace,
             loader_configuration_settings__thingId=str(thing.id),
@@ -40,20 +40,10 @@ class HydroShareArchivalService(ServiceUtils):
     @staticmethod
     def get_hydroshare_archival_system():
         try:
-            return EtlSystem.objects.select_related("etl_system_platform").get(
+            return OrchestrationSystem.objects.get(
                 name="HydroShare Archival Manager", workspace=None
             )
-        except EtlSystem.DoesNotExist:
-            raise HttpError(400, "HydroShare archival has not been configured")
-
-    @staticmethod
-    def get_hydroshare_loader(hydroshare_archival_system: EtlSystem):
-        try:
-            return EtlConfiguration.objects.get(
-                name="HydroShare Archive Loader Settings",
-                etl_system_platform=hydroshare_archival_system.etl_system_platform,
-            )
-        except EtlConfiguration.DoesNotExist:
+        except OrchestrationSystem.DoesNotExist:
             raise HttpError(400, "HydroShare archival has not been configured")
 
     @staticmethod
@@ -97,11 +87,9 @@ class HydroShareArchivalService(ServiceUtils):
 
         return {
             "thing_id": str(uid),
-            "link": str(thing_archive.loader_configuration_settings["link"]),
-            "path": thing_archive.loader_configuration_settings["path"],
-            "datastreamIds": thing_archive.loader_configuration_settings[
-                "datastreamIds"
-            ],
+            "link": str(thing_archive.settings["link"]),
+            "path": thing_archive.settings["path"],
+            "datastreamIds": thing_archive.settings["datastreamIds"],
         }
 
     def create(self, user: User, uid: uuid.UUID, data: HydroShareArchivalPostBody):
@@ -112,7 +100,6 @@ class HydroShareArchivalService(ServiceUtils):
             raise HttpError(400, "Thing archive already exists")
 
         hydroshare_archival_system = self.get_hydroshare_archival_system()
-        hydroshare_loader = self.get_hydroshare_loader(hydroshare_archival_system)
         hs_connection = self.get_hydroshare_connection(user=user)
 
         try:
@@ -145,12 +132,11 @@ class HydroShareArchivalService(ServiceUtils):
             raise HttpError(400, str(e))
 
         try:
-            thing_archive = DataSource.objects.create(
+            thing_archive = DataArchive.objects.create(
                 workspace=thing.workspace,
                 name=f"HydroShare Archive for Thing: {thing.name}",
-                etl_system=hydroshare_archival_system,
-                loader_configuration=hydroshare_loader,
-                loader_configuration_settings={
+                orchestration_system=hydroshare_archival_system,
+                settings={
                     "thingId": str(thing.id),
                     "link": f"https://www.hydroshare.org/resource/{archive_resource.resource_id}/",
                     "path": data.path,
@@ -168,11 +154,9 @@ class HydroShareArchivalService(ServiceUtils):
 
         return {
             "thing_id": str(uid),
-            "link": str(thing_archive.loader_configuration_settings["link"]),
-            "path": thing_archive.loader_configuration_settings["path"],
-            "datastreamIds": thing_archive.loader_configuration_settings[
-                "datastreamIds"
-            ],
+            "link": str(thing_archive.settings["link"]),
+            "path": thing_archive.settings["path"],
+            "datastreamIds": thing_archive.settings["datastreamIds"],
         }
 
     def update(self, user: User, uid: uuid.UUID, data: HydroShareArchivalPatchBody):
@@ -190,19 +174,17 @@ class HydroShareArchivalService(ServiceUtils):
         )
 
         if "path" in archive_data:
-            thing_archive.loader_configuration_settings["path"] = archive_data["path"]
+            thing_archive.settings["path"] = archive_data["path"]
 
         if "link" in archive_data:
             try:
                 hs_connection.resource(data.link.split("/")[-2])
-                thing_archive.loader_configuration_settings["link"] = archive_data[
-                    "link"
-                ]
+                thing_archive.settings["link"] = archive_data["link"]
             except (Exception,):
                 raise HttpError(400, "Provided HydroShare resource does not exist.")
 
         if "datastream_ids" in archive_data:
-            thing_archive.loader_configuration_settings["datastreamIds"] = (
+            thing_archive.settings["datastreamIds"] = (
                 [str(datastream_id) for datastream_id in archive_data["datastream_ids"]]
                 if archive_data["datastream_ids"] is not None
                 else [str(datastream.id) for datastream in thing.datastreams]
@@ -214,11 +196,9 @@ class HydroShareArchivalService(ServiceUtils):
 
         return {
             "thing_id": str(uid),
-            "link": str(thing_archive.loader_configuration_settings["link"]),
-            "path": thing_archive.loader_configuration_settings["path"],
-            "datastreamIds": thing_archive.loader_configuration_settings[
-                "datastreamIds"
-            ],
+            "link": str(thing_archive.settings["link"]),
+            "path": thing_archive.settings["path"],
+            "datastreamIds": thing_archive.settings["datastreamIds"],
         }
 
     def delete(self, user: Optional[User], uid: uuid.UUID):
@@ -243,12 +223,12 @@ class HydroShareArchivalService(ServiceUtils):
 
         try:
             archive_resource = hs_connection.resource(
-                thing_archive.loader_configuration_settings["link"].split("/")[-2]
+                thing_archive.settings["link"].split("/")[-2]
             )
         except (Exception,):
             raise HttpError(400, "Provided HydroShare resource does not exist.")
 
-        archive_folder = thing_archive.loader_configuration_settings["path"]
+        archive_folder = thing_archive.settings["path"]
 
         if not archive_folder.endswith("/"):
             archive_folder += "/"
@@ -257,9 +237,7 @@ class HydroShareArchivalService(ServiceUtils):
             archive_folder = ""
 
         datastreams = (
-            thing.datastreams.filter(
-                pk__in=thing_archive.loader_configuration_settings["datastreamIds"]
-            )
+            thing.datastreams.filter(pk__in=thing_archive.settings["datastreamIds"])
             .select_related("processing_level", "observed_property")
             .all()
         )

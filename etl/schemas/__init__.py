@@ -1,19 +1,21 @@
-from .data_connector import (
-    DataConnectorStatusFields,
-    DataConnectorScheduleFields,
-    DataConnectorFields,
-    DataConnectorGetResponse,
-    DataConnectorPostBody,
-    DataConnectorPatchBody,
-    LinkedDatastreamGetResponse,
-    LinkedDatastreamPostBody,
-    LinkedDatastreamDeleteBody
+from .data_source import (
+    DataSourceFields,
+    DataSourceGetResponse,
+    DataSourcePostBody,
+    DataSourcePatchBody,
+)
+
+from .data_archive import (
+    DataArchiveFields,
+    DataArchiveGetResponse,
+    DataArchivePostBody,
+    DataArchivePatchBody,
 )
 
 from .orchestration_system import (
     OrchestrationSystemGetResponse,
     OrchestrationSystemPostBody,
-    OrchestrationSystemPatchBody
+    OrchestrationSystemPatchBody,
 )
 
 from .hydroshare_archival import (

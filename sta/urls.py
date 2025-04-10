@@ -22,10 +22,9 @@ from sta.views import (
     sta_vocabulary_router,
 )
 from etl.views import (
-    etl_system_router,
-    etl_configuration_router,
+    orchestration_system_router,
     data_source_router,
-    etl_system_platform_router,
+    data_archive_router,
     hydroshare_archival_router,
 )
 
@@ -51,12 +50,9 @@ data_api.add_router("units", unit_router)
 data_api.add_router("datastreams", datastream_router)
 data_api.add_router("vocabulary", sta_vocabulary_router)
 
-etl_system_platform_router.add_router(
-    "{etl_system_platform_id}/etl-configurations", etl_configuration_router
-)
-data_api.add_router("etl-system-platforms", etl_system_platform_router)
-data_api.add_router("etl-systems", etl_system_router)
+data_api.add_router("orchestration-systems", orchestration_system_router)
 data_api.add_router("data-sources", data_source_router)
+data_api.add_router("data-archives", data_archive_router)
 
 st_api_1_1 = SensorThingsAPI(
     title="HydroServer SensorThings API",
