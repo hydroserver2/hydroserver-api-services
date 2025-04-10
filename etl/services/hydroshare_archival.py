@@ -29,12 +29,12 @@ class HydroShareArchivalService(ServiceUtils):
         uid: uuid.UUID,
     ):
         thing = thing_service.get_thing_for_action(user=user, uid=uid, action="view")
-        etl_system = self.get_hydroshare_archival_system()
+        orchestration_system = self.get_hydroshare_archival_system()
 
         return DataArchive.objects.filter(
-            etl_system=etl_system,
+            orchestration_system=orchestration_system,
             workspace=thing.workspace,
-            loader_configuration_settings__thingId=str(thing.id),
+            settings__thingId=str(thing.id),
         ).first()
 
     @staticmethod
@@ -293,9 +293,9 @@ class HydroShareArchivalService(ServiceUtils):
 
         return {
             "thing_id": str(uid),
-            "link": str(thing_archive.loader_configuration_settings["link"]),
-            "path": thing_archive.loader_configuration_settings["path"],
-            "datastreamIds": thing_archive.loader_configuration_settings[
+            "link": str(thing_archive.settings["link"]),
+            "path": thing_archive.settings["path"],
+            "datastreamIds": thing_archive.settings[
                 "datastreamIds"
             ],
         }
