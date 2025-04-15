@@ -2,8 +2,10 @@ import uuid
 from typing import Optional, Literal
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.http import StreamingHttpResponse
 from iam.services.utils import ServiceUtils
-from sta.models import Datastream
+from sta.models import Datastream, Observation
 from sta.schemas import DatastreamPostBody, DatastreamPatchBody
 from sta.schemas.datastream import DatastreamFields
 from sta.services import (
@@ -36,23 +38,27 @@ class DatastreamService(ServiceUtils):
 
     @staticmethod
     def get_datastream_for_action(
-        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+        user: User,
+        uid: uuid.UUID,
+        action: Literal["view", "edit", "delete"],
+        raise_400: bool = False,
     ):
         try:
             datastream = Datastream.objects.select_related(
                 "thing", "thing__workspace"
             ).get(pk=uid)
         except Datastream.DoesNotExist:
-            raise HttpError(404, "Datastream does not exist")
+            raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
 
         datastream_permissions = datastream.get_user_permissions(user=user)
 
         if "view" not in datastream_permissions:
-            raise HttpError(404, "Datastream does not exist")
+            raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
 
         if action not in datastream_permissions:
             raise HttpError(
-                403, f"You do not have permission to {action} this datastream"
+                403 if not raise_400 else 400,
+                f"You do not have permission to {action} this datastream",
             )
 
         return datastream
@@ -223,3 +229,131 @@ class DatastreamService(ServiceUtils):
         datastream.delete()
 
         return "Datastream deleted"
+
+    @staticmethod
+    def generate_csv(datastream: Datastream):
+        observations = (
+            Observation.objects.filter(datastream=datastream)
+            .only("phenomenon_time", "result", "quality_code")
+            .order_by("phenomenon_time")
+        )
+
+        latitude = (
+            round(datastream.thing.location.latitude, 6)
+            if datastream.thing.location.latitude
+            else "None"
+        )
+        longitude = (
+            round(datastream.thing.location.longitude, 6)
+            if datastream.thing.location.longitude
+            else "None"
+        )
+        elevation_m = (
+            round(datastream.thing.location.elevation_m, 6)
+            if datastream.thing.location.elevation_m
+            else "None"
+        )
+
+        yield (
+            f"# =============================================================================\n"
+            f"# Generated on: {timezone.now().isoformat()}\n"
+            f"# \n"
+            f"# Workspace:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.thing.workspace.name}\n"
+            f"# Owner: {datastream.thing.workspace.owner.name()}\n"
+            f"# Contact Email: {datastream.thing.workspace.owner.email}\n"
+            f"#\n"
+            f"# Site Information:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.thing.name}\n"
+            f"# Description: {datastream.thing.description}\n"
+            f"# SamplingFeatureType: {datastream.thing.sampling_feature_type}\n"
+            f"# SamplingFeatureCode: {datastream.thing.sampling_feature_code}\n"
+            f"# SiteType: {datastream.thing.site_type}\n"
+            f"#\n"
+            f"# Location Information:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.thing.location.name}\n"
+            f"# Description: {datastream.thing.location.description}\n"
+            f"# Latitude: {latitude}\n"
+            f"# Longitude: {longitude}\n"
+            f"# Elevation_m: {elevation_m}\n"
+            f"# ElevationDatum: {datastream.thing.location.elevation_datum}\n"
+            f"# State: {datastream.thing.location.state}\n"
+            f"# County: {datastream.thing.location.county}\n"
+            f"#\n"
+            f"# Datastream Information:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.name}\n"
+            f"# Description: {datastream.description}\n"
+            f"# ObservationType: {datastream.observation_type}\n"
+            f"# ResultType: {datastream.result_type}\n"
+            f"# Status: {datastream.status}\n"
+            f"# SampledMedium: {datastream.sampled_medium}\n"
+            f"# ValueCount: {datastream.value_count}\n"
+            f"# NoDataValue: {datastream.no_data_value}\n"
+            f"# IntendedTimeSpacing: {datastream.intended_time_spacing}\n"
+            f"# IntendedTimeSpacingUnit: {datastream.intended_time_spacing_unit}\n"
+            f"# AggregationStatistic: {datastream.aggregation_statistic}\n"
+            f"# TimeAggregationInterval: {datastream.time_aggregation_interval}\n"
+            f"# TimeAggregationIntervalUnit: {datastream.time_aggregation_interval_unit}\n"
+            f"#\n"
+            f"# Method Information:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.sensor.name}\n"
+            f"# Description: {datastream.sensor.description}\n"
+            f"# MethodCode: {datastream.sensor.method_code}\n"
+            f"# MethodType: {datastream.sensor.method_type}\n"
+            f"# MethodLink: {datastream.sensor.method_link}\n"
+            f"# SensorManufacturerName: {datastream.sensor.manufacturer}\n"
+            f"# SensorModelName: {datastream.sensor.sensor_model}\n"
+            f"# SensorModelLink: {datastream.sensor.sensor_model_link}\n"
+            f"#\n"
+            f"# Observed Property Information:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.observed_property.name}\n"
+            f"# Definition: {datastream.observed_property.definition}\n"
+            f"# Description: {datastream.observed_property.description}\n"
+            f"# VariableType: {datastream.observed_property.observed_property_type}\n"
+            f"# VariableCode: {datastream.observed_property.code}\n"
+            f"#\n"
+            f"# Unit Information:\n"
+            f"# -------------------------------------\n"
+            f"# Name: {datastream.unit.name}\n"
+            f"# Symbol: {datastream.unit.symbol}\n"
+            f"# Definition: {datastream.unit.definition}\n"
+            f"# UnitType: {datastream.unit.unit_type}\n"
+            f"#\n"
+            f"# Processing Level Information:\n"
+            f"# -------------------------------------\n"
+            f"# Code: {datastream.processing_level.code}\n"
+            f"# Definition: {datastream.processing_level.definition}\n"
+            f"# Explanation: {datastream.processing_level.explanation}\n"
+            f"#\n"
+            f"# Data Disclaimer:\n"
+            f"# -------------------------------------\n"
+            f"# Output date/time values are in UTC unless they were input to HydroServer without time zone offset information. In that case, date/time values are output as they were supplied to HydroServer.\n"
+            f"# {datastream.thing.data_disclaimer if datastream.thing.data_disclaimer else ''}\n"
+            f"# =============================================================================\n"
+        )
+
+        yield "ResultTime,Result,ResultQualifiers\n"
+
+        for observation in observations.all():
+            if observation.quality_code:
+                yield f'{observation.phenomenon_time.isoformat()},{observation.result},"{observation.quality_code}"\n'
+            else:
+                yield f"{observation.phenomenon_time.isoformat()},{observation.result},\n"
+
+    def get_csv(self, user: User, uid: uuid.UUID):
+        datastream = self.get_datastream_for_action(user=user, uid=uid, action="view")
+
+        response = StreamingHttpResponse(
+            self.generate_csv(datastream), content_type="text/csv"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="{datastream.name}.csv"'
+        )
+
+        return response

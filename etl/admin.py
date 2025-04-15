@@ -1,3 +1,7 @@
 from django.contrib import admin
+from etl.models import OrchestrationSystem, DataSource, DataArchive
 
-# Register your models here.
+
+admin.site.register(OrchestrationSystem)
+admin.site.register(DataSource)
+admin.site.register(DataArchive)

@@ -21,6 +21,12 @@ from sta.views import (
     datastream_router,
     sta_vocabulary_router,
 )
+from etl.views import (
+    orchestration_system_router,
+    data_source_router,
+    data_archive_router,
+    hydroshare_archival_router,
+)
 
 
 data_api = NinjaAPI(
@@ -33,6 +39,7 @@ data_api = NinjaAPI(
 
 thing_router.add_router("{thing_id}/tags", tag_router)
 thing_router.add_router("{thing_id}/photos", photo_router)
+thing_router.add_router("{thing_id}/archive", hydroshare_archival_router)
 data_api.add_router("things", thing_router)
 data_api.add_router("tags", tag_key_router)
 data_api.add_router("observed-properties", observed_property_router)
@@ -42,6 +49,10 @@ data_api.add_router("sensors", sensor_router)
 data_api.add_router("units", unit_router)
 data_api.add_router("datastreams", datastream_router)
 data_api.add_router("vocabulary", sta_vocabulary_router)
+
+data_api.add_router("orchestration-systems", orchestration_system_router)
+data_api.add_router("data-sources", data_source_router)
+data_api.add_router("data-archives", data_archive_router)
 
 st_api_1_1 = SensorThingsAPI(
     title="HydroServer SensorThings API",

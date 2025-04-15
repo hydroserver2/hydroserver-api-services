@@ -100,16 +100,15 @@ class User(AbstractUser):
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from iam.models import Workspace, Collaborator
 
-        Collaborator.objects.filter(
-            **{f"user__{filter_suffix}" if filter_suffix else "user": filter_arg}
-        ).delete()
+        user_relation_filter = f"user__{filter_suffix}" if filter_suffix else "user"
+        owner_relation_filter = f"owner__{filter_suffix}" if filter_suffix else "owner"
+
+        Collaborator.objects.filter(**{user_relation_filter: filter_arg}).delete()
+
         Workspace.delete_contents(
-            filter_arg=filter_arg,
-            filter_suffix=f"owner__{filter_suffix}" if filter_suffix else "owner",
+            filter_arg=filter_arg, filter_suffix=owner_relation_filter
         )
-        Workspace.objects.filter(
-            **{f"owner__{filter_suffix}" if filter_suffix else "owner": filter_arg}
-        ).delete()
+        Workspace.objects.filter(**{owner_relation_filter: filter_arg}).delete()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip()

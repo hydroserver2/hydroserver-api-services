@@ -1,0 +1,5 @@
+- model: etl.orchestrationsystem
+  pk: 77380670-5d80-4ffc-86d0-7522e95bfbe7
+  fields:
+    name: HydroShare Archival Manager
+    orchestration_system_type: HydroShare

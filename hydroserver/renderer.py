@@ -6,4 +6,4 @@ class ORJSONRenderer(BaseRenderer):
     media_type = "application/json"
 
     def render(self, request, data, *, response_status):
-        return orjson.dumps(data)
+        return orjson.dumps(data, default=str)

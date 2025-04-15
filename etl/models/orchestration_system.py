@@ -3,33 +3,31 @@ import typing
 from typing import Literal, Optional
 from django.db import models
 from django.db.models import Q
-from .workspace import Workspace
-from .utils import PermissionChecker
+from iam.models import Workspace
+from iam.models.utils import PermissionChecker
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
+    from iam.models import Workspace
 
     User = get_user_model()
 
 
-class RoleQueryset(models.QuerySet):
+class OrchestrationSystemQuerySet(models.QuerySet):
     def visible(self, user: Optional["User"]):
         if user is None:
-            return self.filter(
-                Q(workspace__isnull=True) | Q(workspace__is_private=False)
-            )
+            return self.filter(Q(workspace__isnull=True))
         elif user.account_type == "admin":
             return self
         else:
             return self.filter(
                 Q(workspace__isnull=True)
-                | Q(workspace__is_private=False)
                 | Q(workspace__owner=user)
                 | Q(
                     workspace__collaborators__user=user,
                     workspace__collaborators__role__permissions__resource_type__in=[
                         "*",
-                        "Role",
+                        "OrchestrationSystem",
                     ],
                     workspace__collaborators__role__permissions__permission_type__in=[
                         "*",
@@ -39,37 +37,32 @@ class RoleQueryset(models.QuerySet):
             )
 
 
-class Role(models.Model, PermissionChecker):
+class OrchestrationSystem(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
-        "Workspace",
+        Workspace,
+        related_name="orchestration_systems",
         on_delete=models.DO_NOTHING,
-        related_name="roles",
         blank=True,
         null=True,
     )
     name = models.CharField(max_length=255)
-    description = models.TextField(null=True, blank=True)
+    orchestration_system_type = models.CharField(max_length=255)
 
-    objects = RoleQueryset.as_manager()
+    objects = OrchestrationSystemQuerySet.as_manager()
 
     @classmethod
-    def can_user_create(cls, user: Optional["User"], workspace: Workspace):
+    def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
         return cls.check_create_permissions(
-            user=user, workspace=workspace, resource_type="Role"
+            user=user, workspace=workspace, resource_type="OrchestrationSystem"
         )
 
     def get_user_permissions(
         self, user: Optional["User"]
     ) -> list[Literal["edit", "delete", "view"]]:
         user_permissions = self.check_object_permissions(
-            user=user, workspace=self.workspace, resource_type="Role"
+            user=user, workspace=self.workspace, resource_type="OrchestrationSystem"
         )
-
-        if (not self.workspace or not self.workspace.is_private) and "view" not in list(
-            user_permissions
-        ):
-            user_permissions = list(user_permissions) + ["view"]
 
         return user_permissions
 
@@ -79,9 +72,23 @@ class Role(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from iam.models import Permission, Collaborator
+        from etl.models import DataSource, DataArchive
 
-        role_relation_filter = f"role__{filter_suffix}" if filter_suffix else "role"
+        orchestration_system_relation_filter = (
+            f"orchestration_system__{filter_suffix}"
+            if filter_suffix
+            else "orchestration_system"
+        )
 
-        Collaborator.objects.filter(**{role_relation_filter: filter_arg}).delete()
-        Permission.objects.filter(**{role_relation_filter: filter_arg}).delete()
+        DataSource.delete_contents(
+            filter_arg=filter_arg, filter_suffix=orchestration_system_relation_filter
+        )
+        DataSource.objects.filter(
+            **{orchestration_system_relation_filter: filter_arg}
+        ).delete()
+        DataArchive.delete_contents(
+            filter_arg=filter_arg, filter_suffix=orchestration_system_relation_filter
+        )
+        DataArchive.objects.filter(
+            **{orchestration_system_relation_filter: filter_arg}
+        ).delete()

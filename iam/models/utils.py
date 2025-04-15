@@ -57,7 +57,13 @@ class PermissionChecker:
             permissions = ["view", "edit", "delete"]
 
         if not workspace.is_private and "view" not in permissions:
-            if resource_type not in ["Thing", "Datastream"]:
+            if resource_type not in [
+                "Thing",
+                "Datastream",
+                "OrchestrationSystem",
+                "DataSource",
+                "DataArchive",
+            ]:
                 permissions.append("view")
 
         return permissions

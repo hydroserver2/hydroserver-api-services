@@ -26,3 +26,13 @@ class ServiceUtils:
             raise HttpError(404, "Workspace does not exist")
 
         return workspace, workspace_permissions
+
+    @staticmethod
+    def handle_http_404_error(operation, *args, **kwargs):
+        try:
+            return operation(*args, **kwargs)
+        except HttpError as e:
+            if e.status_code == 404:
+                raise HttpError(400, str(e))
+            else:
+                raise e

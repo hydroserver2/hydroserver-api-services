@@ -12,12 +12,13 @@ gunicorn==23.0.0
 hydroserver-sensorthings==0.4.2
 pandas==2.2.3
 orjson==3.10.15
+croniter==6.0.0
 python-decouple==3.8
 pyyaml==6.0.2
 psycopg==3.2.5
 psycopg-binary==3.2.5
 psycopg-pool==3.2.6
 country-list==1.1.0
-hsclient==1.0.5
+hsclient==1.1.6
 boto3==1.36.15
 google-cloud-storage==3.0.0

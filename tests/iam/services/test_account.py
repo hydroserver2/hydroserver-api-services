@@ -73,9 +73,9 @@ def test_update_account(get_user, user, account_data):
 @pytest.mark.parametrize(
     "user, max_queries",
     [
-        ("owner", 33),
-        ("admin", 30),
-        ("limited", 30),
+        ("owner", 47),
+        ("admin", 41),
+        ("limited", 41),
     ],
 )
 def test_delete_account(django_assert_max_num_queries, get_user, user, max_queries):
