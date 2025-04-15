@@ -1,5 +1,5 @@
 import io
-import uuid
+import uuid6
 import typing
 from typing import Literal, Optional
 from django.db import models, connection
@@ -96,7 +96,7 @@ class ObservationQuerySet(models.QuerySet):
             ) as copy:
                 buffer = io.StringIO()
                 for i in range(0, len(observations), batch_size):
-                    batch = observations[i : i + batch_size]
+                    batch = observations[i: i + batch_size]
                     buffer.write(
                         "\n".join(
                             "\t".join(
@@ -116,8 +116,8 @@ class ObservationQuerySet(models.QuerySet):
 
 
 class Observation(models.Model, PermissionChecker):
-    pk = models.CompositePrimaryKey("datastream_id", "phenomenon_time", "id")
-    id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    pk = models.CompositePrimaryKey("datastream_id", "phenomenon_time")
+    id = models.UUIDField(default=uuid6.uuid7, editable=False)
     datastream = models.ForeignKey(Datastream, on_delete=models.DO_NOTHING)
     phenomenon_time = models.DateTimeField()
     result = models.FloatField()
@@ -152,9 +152,6 @@ class Observation(models.Model, PermissionChecker):
         return user_permissions
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["datastream_id", "phenomenon_time"],
-                name="unique_datastream_timestamps",
-            )
+        indexes = [
+            models.Index(fields=["id"])
         ]

@@ -12,6 +12,7 @@ gunicorn==23.0.0
 hydroserver-sensorthings==0.4.2
 pandas==2.2.3
 orjson==3.10.15
+uuid6==2024.7.10
 croniter==6.0.0
 python-decouple==3.8
 pyyaml==6.0.2

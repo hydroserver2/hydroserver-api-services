@@ -1,4 +1,4 @@
-import uuid
+import uuid6
 import typing
 from typing import Literal, Optional
 from django.db import models
@@ -37,7 +37,7 @@ class DataSourceQuerySet(models.QuerySet):
 
 
 class DataSource(OrchestrationConfiguration, PermissionChecker):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     workspace = models.ForeignKey(
         "iam.Workspace", related_name="data_sources", on_delete=models.DO_NOTHING
     )

@@ -1,4 +1,4 @@
-import uuid
+import uuid6
 import typing
 from typing import Literal, Optional
 from django.db import models
@@ -41,7 +41,7 @@ class ObservedPropertyQuerySet(models.QuerySet):
 
 
 class ObservedProperty(models.Model, PermissionChecker):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     workspace = models.ForeignKey(
         Workspace,
         related_name="observed_properties",
