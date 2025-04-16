@@ -137,3 +137,18 @@ def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid
     return datastream_service.get_csv(
         user=request.authenticated_user, uid=datastream_id
     )
+
+
+@datastream_router.get(
+    "/{datastream_id}/observations",
+    auth=[session_auth, bearer_auth, anonymous_auth],
+    response={200: list[list], 403: str, 404: str},
+)
+def get_datastream_observations(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
+    """
+    Get Datastream Observations
+    """
+
+    return datastream_service.list_observations(
+        user=request.authenticated_user, uid=datastream_id
+    )

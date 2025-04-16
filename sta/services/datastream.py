@@ -357,3 +357,8 @@ class DatastreamService(ServiceUtils):
         )
 
         return response
+
+    def list_observations(self, user: User, uid: uuid.UUID, ):
+        datastream = self.get_datastream_for_action(user=user, uid=uid, action="view")
+
+        return Observation.objects.filter(datastream=datastream).values_list("phenomenon_time", "result")
