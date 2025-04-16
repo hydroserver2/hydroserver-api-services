@@ -1,6 +1,7 @@
 import uuid
 from typing import Optional, Literal
 from ninja.errors import HttpError
+from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.http import StreamingHttpResponse
@@ -358,7 +359,43 @@ class DatastreamService(ServiceUtils):
 
         return response
 
-    def list_observations(self, user: User, uid: uuid.UUID, ):
+    def list_observations(
+        self,
+        user: User,
+        uid: uuid.UUID,
+        phenomenon_start_time: Optional[datetime] = None,
+        phenomenon_end_time: Optional[datetime] = None,
+        page: int = 1,
+        page_size: Optional[int] = None,
+        order: Literal["asc", "desc"] = "desc",
+    ):
         datastream = self.get_datastream_for_action(user=user, uid=uid, action="view")
 
-        return Observation.objects.filter(datastream=datastream).values_list("phenomenon_time", "result")
+        fields = ["phenomenon_time", "result"]
+
+        queryset = Observation.objects.filter(datastream=datastream)
+        ordering = "phenomenon_time" if order == "asc" else "-phenomenon_time"
+
+        if phenomenon_start_time:
+            queryset = queryset.filter(phenomenon_time__gte=phenomenon_start_time)
+        if phenomenon_end_time:
+            queryset = queryset.filter(phenomenon_time__lte=phenomenon_end_time)
+
+        queryset = queryset.order_by(ordering)
+
+        if page_size is not None:
+            page = max(1, page)
+            page_size = max(0, page_size)
+            start = (page - 1) * page_size
+            end = start + page_size
+
+            queryset = queryset[start:end]
+
+        observations = list(queryset.values_list(*fields))
+
+        if observations:
+            response = dict(zip(fields, zip(*observations)))
+        else:
+            response = {field: [] for field in fields}
+
+        return response

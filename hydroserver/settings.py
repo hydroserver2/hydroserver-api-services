@@ -140,7 +140,7 @@ DATABASES = {
                 "max_size": config("DB_POOL_MAX_SIZE", default=10, cast=int),
                 "timeout": config("DB_POOL_TIMEOUT", default=60, cast=int),
             },
-            **dj_database_config.get("OPTIONS", {})
+            **dj_database_config.get("OPTIONS", {}),
         },
     }
 }

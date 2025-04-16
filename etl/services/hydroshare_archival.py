@@ -295,7 +295,5 @@ class HydroShareArchivalService(ServiceUtils):
             "thing_id": str(uid),
             "link": str(thing_archive.settings["link"]),
             "path": thing_archive.settings["path"],
-            "datastreamIds": thing_archive.settings[
-                "datastreamIds"
-            ],
+            "datastreamIds": thing_archive.settings["datastreamIds"],
         }

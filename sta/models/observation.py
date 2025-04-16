@@ -96,7 +96,7 @@ class ObservationQuerySet(models.QuerySet):
             ) as copy:
                 buffer = io.StringIO()
                 for i in range(0, len(observations), batch_size):
-                    batch = observations[i: i + batch_size]
+                    batch = observations[i : i + batch_size]
                     buffer.write(
                         "\n".join(
                             "\t".join(
@@ -152,6 +152,4 @@ class Observation(models.Model, PermissionChecker):
         return user_permissions
 
     class Meta:
-        indexes = [
-            models.Index(fields=["id"])
-        ]
+        indexes = [models.Index(fields=["id"])]

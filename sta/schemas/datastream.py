@@ -48,3 +48,8 @@ class DatastreamPostBody(BasePostBody, DatastreamFields):
 
 class DatastreamPatchBody(BasePatchBody, DatastreamFields):
     pass
+
+
+class ObservationsGetResponse(BaseGetResponse):
+    phenomenon_time: list
+    result: list

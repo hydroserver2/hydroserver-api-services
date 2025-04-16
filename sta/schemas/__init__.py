@@ -18,4 +18,9 @@ from .result_qualifier import (
 )
 from .sensor import SensorGetResponse, SensorPostBody, SensorPatchBody
 from .unit import UnitGetResponse, UnitPostBody, UnitPatchBody
-from .datastream import DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody
+from .datastream import (
+    DatastreamGetResponse,
+    DatastreamPostBody,
+    DatastreamPatchBody,
+    ObservationsGetResponse,
+)

@@ -1,10 +1,16 @@
 import uuid
 from ninja import Router, Path
-from typing import Optional
+from typing import Optional, Literal
+from datetime import datetime
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from sta.schemas import DatastreamGetResponse, DatastreamPostBody, DatastreamPatchBody
+from sta.schemas import (
+    DatastreamGetResponse,
+    DatastreamPostBody,
+    DatastreamPatchBody,
+    ObservationsGetResponse,
+)
 from sta.services import DatastreamService
 
 datastream_router = Router(tags=["Datastreams"])
@@ -142,13 +148,27 @@ def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid
 @datastream_router.get(
     "/{datastream_id}/observations",
     auth=[session_auth, bearer_auth, anonymous_auth],
-    response={200: list[list], 403: str, 404: str},
+    response={200: ObservationsGetResponse, 403: str, 404: str},
 )
-def get_datastream_observations(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
+def get_datastream_observations(
+    request: HydroServerHttpRequest,
+    datastream_id: Path[uuid.UUID],
+    phenomenon_start_time: Optional[datetime] = None,
+    phenomenon_end_time: Optional[datetime] = None,
+    page: int = 1,
+    page_size: Optional[int] = None,
+    order: Literal["asc", "desc"] = "desc",
+):
     """
     Get Datastream Observations
     """
 
     return datastream_service.list_observations(
-        user=request.authenticated_user, uid=datastream_id
+        user=request.authenticated_user,
+        uid=datastream_id,
+        phenomenon_start_time=phenomenon_start_time,
+        phenomenon_end_time=phenomenon_end_time,
+        page=page,
+        page_size=page_size,
+        order=order,
     )
