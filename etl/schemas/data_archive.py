@@ -37,6 +37,6 @@ class DataArchivePostBody(BasePostBody, DataArchiveFields):
 
 
 class DataArchivePatchBody(BasePatchBody, DataArchiveFields):
-    orchestration_system_id: uuid.UUID
+    orchestration_system_id: Optional[uuid.UUID] = None
     schedule: Optional[OrchestrationConfigurationSchedulePatchBody] = None
     status: Optional[OrchestrationConfigurationStatusPatchBody] = None
