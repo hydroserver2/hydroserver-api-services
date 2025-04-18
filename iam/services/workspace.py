@@ -3,6 +3,7 @@ from typing import Optional
 from ninja.errors import HttpError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.db.utils import IntegrityError
 from iam.models import Workspace, WorkspaceTransferConfirmation
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
 from .utils import ServiceUtils
@@ -66,7 +67,12 @@ class WorkspaceService(ServiceUtils):
         if not Workspace.can_user_create(user):
             raise HttpError(403, "You do not have permission to create this workspace")
 
-        return Workspace.objects.create(owner=user, **data.dict())
+        try:
+            workspace = Workspace.objects.create(owner=user, **data.dict())
+        except IntegrityError:
+            raise HttpError(409, "Workspace name conflicts with an owned workspace")
+
+        return workspace
 
     def update(self, user: User, uid: uuid.UUID, data: WorkspacePatchBody):
         workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
@@ -79,7 +85,10 @@ class WorkspaceService(ServiceUtils):
         for field, value in workspace_body.items():
             setattr(workspace, field, value)
 
-        workspace.save()
+        try:
+            workspace.save()
+        except IntegrityError:
+            raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
         user.collaborator_roles = list(user.workspace_roles.all())
         workspace = self.attach_role_and_transfer_fields(workspace, user)
@@ -143,8 +152,13 @@ class WorkspaceService(ServiceUtils):
             )
 
         workspace.owner = user
+
+        try:
+            workspace.save()
+        except IntegrityError:
+            raise HttpError(409, "Workspace name conflicts with an owned workspace")
+
         workspace.transfer_details.delete()
-        workspace.save()
 
         return "Workspace transfer accepted"
 

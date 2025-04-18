@@ -49,6 +49,11 @@ class Workspace(models.Model):
 
     objects = WorkspaceQueryset.as_manager()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["name", "owner"], name="unique_workspace_name_per_owner")
+        ]
+
     @property
     def link(self):
         return f"{settings.PROXY_BASE_URL}/api/auth/workspaces/{self.id}"

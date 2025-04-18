@@ -82,19 +82,20 @@ def test_get_workspace(get_user, user, workspace, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, message, error_code",
+    "user, name, message, error_code",
     [
-        ("owner", "New", None),
-        ("admin", "New", None),
-        ("limited", "You do not have permission to create this workspace", 403),
+        ("owner", "New", "New", None),
+        ("owner", "Public", "Workspace name conflicts with an owned workspace", 409),
+        ("admin", "New", "New", None),
+        ("limited", "New", "You do not have permission to create this workspace", 403),
     ],
 )
-def test_create_workspace(get_user, user, message, error_code):
+def test_create_workspace(get_user, user, name, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.create(
                 user=get_user(user),
-                data=WorkspacePostBody(name="New", is_private=False),
+                data=WorkspacePostBody(name=name, is_private=False),
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
@@ -107,49 +108,61 @@ def test_create_workspace(get_user, user, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "user, workspace, name, message, error_code",
     [
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Updated", None),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Updated", None),
+        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Updated", "Updated", None),
+        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Updated", "Updated", None),
         (
             "owner",
             "00000000-0000-0000-0000-000000000000",
+            "Updated",
             "Workspace does not exist",
             404,
         ),
         (
+            "owner",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "Private",
+            "Workspace name conflicts with an owned workspace",
+            409,
+        ),
+        (
             "anonymous",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Updated",
             "Workspace does not exist",
             404,
         ),
         (
             "anonymous",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "Updated",
             "You do not have permission to edit this workspace",
             403,
         ),
         (
             None,
             "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Updated",
             "Workspace does not exist",
             404,
         ),
         (
             None,
             "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "Updated",
             "You do not have permission to edit this workspace",
             403,
         ),
     ],
 )
-def test_update_workspace(get_user, user, workspace, message, error_code):
+def test_update_workspace(get_user, user, workspace, name, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.update(
                 user=get_user(user),
                 uid=uuid.UUID(workspace),
-                data=WorkspacePatchBody(name="Updated", is_private=False),
+                data=WorkspacePatchBody(name=name, is_private=False),
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
