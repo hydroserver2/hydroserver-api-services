@@ -2,6 +2,7 @@ import math
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
+from django.db.models import Min, Max, Count
 from django.db.utils import IntegrityError, DatabaseError, DataError
 from psycopg.errors import UniqueViolation
 from ninja.errors import HttpError
@@ -312,9 +313,16 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     @staticmethod
     def update_value_count(datastream_id: UUID) -> None:
 
-        observation_query = Observation.objects.filter(datastream_id=datastream_id)
+        aggregate = Observation.objects.filter(datastream_id=datastream_id).aggregate(
+            min_time=Min("phenomenon_time"),
+            max_time=Max("phenomenon_time"),
+            count=Count("id"),
+        )
 
         datastream = Datastream.objects.get(pk=datastream_id)
 
-        datastream.value_count = int(observation_query.count())
+        datastream.phenomenon_begin_time = aggregate["min_time"]
+        datastream.phenomenon_end_time = aggregate["max_time"]
+        datastream.value_count = aggregate["count"]
+
         datastream.save()
