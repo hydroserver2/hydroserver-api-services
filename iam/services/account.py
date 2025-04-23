@@ -48,6 +48,11 @@ class AccountService:
                 exclude=["organization"],
                 exclude_unset=True,
             )
+            update_organization = "organization" in data.dict(
+                include=["organization"],
+                exclude_unset=True,
+            )
+
             organization_body = (
                 data.organization.dict(
                     include=set(data.organization.model_fields.keys()),
@@ -60,13 +65,18 @@ class AccountService:
             for field, value in user_body.items():
                 setattr(user, field, value)
 
-            if organization_body:
-                if user.organization:
-                    for field, value in organization_body.items():
-                        setattr(user.organization, field, value)
-                    user.organization.save()
+            if update_organization:
+                if organization_body:
+                    if user.organization:
+                        for field, value in organization_body.items():
+                            setattr(user.organization, field, value)
+                        user.organization.save()
+                    else:
+                        user.organization = Organization.objects.create(**organization_body)
                 else:
-                    user.organization = Organization.objects.create(**organization_body)
+                    if user.organization:
+                        user.organization.delete()
+                        user.organization = None
 
         except ValueError as e:
             raise HttpError(422, str(e))
