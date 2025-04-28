@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import hsclient
 import tempfile
@@ -105,7 +106,7 @@ class HydroShareArchivalService(ServiceUtils):
         try:
             if data.link:
                 try:
-                    archive_resource = hs_connection.resource(data.link.split("/")[-2])
+                    archive_resource = hs_connection.resource(str(data.link).split("/")[-2])
                 except (Exception,):
                     raise HttpError(400, "Provided HydroShare resource does not exist.")
             else:
@@ -228,7 +229,7 @@ class HydroShareArchivalService(ServiceUtils):
         except (Exception,):
             raise HttpError(400, "Provided HydroShare resource does not exist.")
 
-        archive_folder = thing_archive.settings["path"]
+        archive_folder = thing_archive.settings["path"].strip()
 
         if not archive_folder.endswith("/"):
             archive_folder += "/"
@@ -256,7 +257,9 @@ class HydroShareArchivalService(ServiceUtils):
                     )
                 except (Exception,):
                     pass
-                archive_resource.folder_create(f"{archive_folder}{processing_level}")
+                archive_sub_folder = f"{archive_folder}{processing_level}"
+                archive_sub_folder = re.sub(r"\s+", "_", archive_sub_folder)
+                archive_resource.folder_create(archive_sub_folder)
                 os.mkdir(os.path.join(temp_dir, processing_level))
             for datastream in datastreams:
                 temp_file_name = datastream.observed_property.code
@@ -279,9 +282,11 @@ class HydroShareArchivalService(ServiceUtils):
                 with open(temp_file_path, "w") as csv_file:
                     for line in datastream_service.generate_csv(datastream):
                         csv_file.write(line)
+                dest_path = f"{archive_folder}{datastream.processing_level.definition}"
+                dest_path = re.sub(r"\s+", "_", dest_path)
                 archive_resource.file_upload(
                     temp_file_path,
-                    destination_path=f"{archive_folder}{datastream.processing_level.definition}",
+                    destination_path=dest_path,
                 )
 
             if make_public is True:
