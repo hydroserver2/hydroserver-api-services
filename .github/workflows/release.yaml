@@ -2,16 +2,7 @@ name: Build and Push HydroServer Docker Image to GHCR
 
 on:
   release:
-    types: [created]
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to build the Docker image from'
-        required: false
-        default: 'main'
-      tag_name:
-        description: 'Tag to apply to the Docker image'
-        required: true
+    types: [created, edited]
 
 jobs:
   build:
@@ -21,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.branch || 'main' }}
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -40,5 +31,5 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name || github.event.inputs.tag_name }}
+            ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }}
             ghcr.io/${{ github.repository }}:latest
