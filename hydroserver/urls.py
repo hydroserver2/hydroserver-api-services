@@ -5,12 +5,18 @@ from django.urls import path, include
 from hydroserver.views import index
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/data/', include('core.urls')),
-    path('api/account/', include('accounts.urls')),
-    path('api/sensorthings/', include('stapi.urls')),
-    path('', index)
+    path("admin/", admin.site.urls),
+    path("accounts/", include("allauth.urls")),
+    path("api/auth/", include("iam.urls")),
+    path("api/", include("sta.urls")),
+    path("", index),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(
+    settings.STATIC_URL,
+    document_root=settings.STORAGES["staticfiles"]["OPTIONS"]["location"],
+)
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.STORAGES["default"]["OPTIONS"]["location"],
+)

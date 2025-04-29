@@ -2,7 +2,7 @@ name: Build and Push HydroServer Docker Image to GHCR
 
 on:
   release:
-    types: [created]
+    types: [created, edited]
 
 jobs:
   build:

@@ -1,0 +1,190 @@
+import uuid
+from ninja import Router, Path
+from typing import Optional
+from django.db import transaction
+from hydroserver.security import bearer_auth, session_auth
+from hydroserver.http import HydroServerHttpRequest
+from etl.schemas import (
+    DataArchiveGetResponse,
+    DataArchivePostBody,
+    DataArchivePatchBody,
+)
+from etl.services import DataArchiveService
+
+data_archive_router = Router(tags=["Data Archives"])
+data_archive_service = DataArchiveService()
+
+
+@data_archive_router.get(
+    "",
+    auth=[session_auth, bearer_auth],
+    response={
+        200: list[DataArchiveGetResponse],
+        401: str,
+    },
+    by_alias=True,
+)
+def get_data_archives(
+    request: HydroServerHttpRequest,
+    workspace_id: Optional[uuid.UUID] = None,
+    orchestration_system_id: Optional[uuid.UUID] = None,
+):
+    """
+    Get public Data Archives and Data Archives associated with the authenticated user.
+    """
+
+    return 200, data_archive_service.list(
+        user=request.authenticated_user,
+        workspace_id=workspace_id,
+        orchestration_system_id=orchestration_system_id,
+    )
+
+
+@data_archive_router.post(
+    "",
+    auth=[session_auth, bearer_auth],
+    response={
+        201: DataArchiveGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+@transaction.atomic
+def create_data_archive(request: HydroServerHttpRequest, data: DataArchivePostBody):
+    """
+    Create a new Data Archive.
+    """
+
+    return 201, data_archive_service.create(user=request.authenticated_user, data=data)
+
+
+@data_archive_router.get(
+    "/{data_archive_id}",
+    auth=[session_auth, bearer_auth],
+    response={
+        200: DataArchiveGetResponse,
+        401: str,
+        403: str,
+    },
+    by_alias=True,
+    exclude_unset=True,
+)
+def get_data_archive(request: HydroServerHttpRequest, data_archive_id: Path[uuid.UUID]):
+    """
+    Get a Data Archive.
+    """
+
+    return 200, data_archive_service.get(
+        user=request.authenticated_user, uid=data_archive_id
+    )
+
+
+@data_archive_router.patch(
+    "/{data_archive_id}",
+    auth=[session_auth, bearer_auth],
+    response={
+        200: DataArchiveGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+@transaction.atomic
+def update_data_archive(
+    request: HydroServerHttpRequest,
+    data_archive_id: Path[uuid.UUID],
+    data: DataArchivePatchBody,
+):
+    """
+    Update a Data Archive.
+    """
+
+    return 200, data_archive_service.update(
+        user=request.authenticated_user, uid=data_archive_id, data=data
+    )
+
+
+@data_archive_router.delete(
+    "/{data_archive_id}",
+    auth=[session_auth, bearer_auth],
+    response={
+        204: str,
+        401: str,
+        403: str,
+        409: str,
+    },
+    by_alias=True,
+)
+@transaction.atomic
+def delete_data_archive(
+    request: HydroServerHttpRequest, data_archive_id: Path[uuid.UUID]
+):
+    """
+    Delete a Data Archive.
+    """
+
+    return 204, data_archive_service.delete(
+        user=request.authenticated_user, uid=data_archive_id
+    )
+
+
+@data_archive_router.post(
+    "/{data_archive_id}/datastreams/{datastream_id}",
+    auth=[session_auth, bearer_auth],
+    response={
+        201: str,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+@transaction.atomic
+def link_datastream(
+    request: HydroServerHttpRequest,
+    data_archive_id: Path[uuid.UUID],
+    datastream_id: Path[uuid.UUID],
+):
+    """
+    Link a Datastream to a Data Archive.
+    """
+
+    return 201, data_archive_service.link_datastream(
+        user=request.authenticated_user,
+        uid=data_archive_id,
+        datastream_id=datastream_id,
+    )
+
+
+@data_archive_router.delete(
+    "/{data_archive_id}/datastreams/{datastream_id}",
+    auth=[session_auth, bearer_auth],
+    response={
+        204: str,
+        401: str,
+        403: str,
+        409: str,
+    },
+    by_alias=True,
+)
+@transaction.atomic
+def unlink_datastream(
+    request: HydroServerHttpRequest,
+    data_archive_id: Path[uuid.UUID],
+    datastream_id: Path[uuid.UUID],
+):
+    """
+    Unlink a Datastream from a Data Archive.
+    """
+
+    return 204, data_archive_service.unlink_datastream(
+        user=request.authenticated_user,
+        uid=data_archive_id,
+        datastream_id=datastream_id,
+    )

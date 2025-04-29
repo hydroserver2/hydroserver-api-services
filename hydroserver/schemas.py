@@ -1,5 +1,5 @@
 from ninja import Schema
-from pydantic import AliasGenerator, AliasChoices
+from pydantic import AliasGenerator, AliasChoices, ConfigDict, field_validator
 from pydantic.alias_generators import to_camel
 from sensorthings.validators import PartialSchema
 
@@ -11,15 +11,30 @@ base_alias_generator = AliasGenerator(
 
 
 class BaseGetResponse(Schema):
-    class Config:
-        alias_generator = base_alias_generator
+    model_config = ConfigDict(
+        populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
+    )
 
 
 class BasePostBody(Schema):
-    class Config:
-        alias_generator = base_alias_generator
+    @field_validator("*", mode="before")
+    def empty_str_to_none(cls, value):
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
+
+    model_config = ConfigDict(
+        populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
+    )
 
 
 class BasePatchBody(Schema, metaclass=PartialSchema):
-    class Config:
-        alias_generator = base_alias_generator
+    @field_validator("*", mode="before")
+    def empty_str_to_none(cls, value):
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
+
+    model_config = ConfigDict(
+        populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
+    )

@@ -3,7 +3,12 @@
 .pytest_cache
 __pycache__/
 db.sqlite3
+/static/
+!*/static/
+/media/
 staticfiles/
+/static
+!/static/**/
 *.db
 *test.ipynb
 *test.yaml
@@ -11,6 +16,7 @@ staticfiles/
 .coverage
 coverage.txt
 photos/
+csrf_test.py
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

@@ -1,0 +1,601 @@
+import pytest
+from uuid import UUID
+from iam.models import Workspace
+from etl.services import DataSourceService
+from etl.schemas import (
+    DataSourcePostBody,
+    DataSourcePatchBody,
+    DataSourceGetResponse,
+    OrchestrationSystemGetResponse,
+)
+from tests.utils import test_service_method
+
+data_source_service = DataSourceService()
+
+
+@pytest.mark.parametrize(
+    "user, workspace, etl_system, length, max_queries",
+    [
+        ("admin", None, None, 3, 4),
+        ("admin", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
+        ("admin", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        ("owner", None, None, 3, 4),
+        ("owner", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
+        ("owner", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        ("editor", None, None, 3, 4),
+        ("editor", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
+        ("editor", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        ("viewer", None, None, 3, 4),
+        ("viewer", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
+        ("viewer", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        ("anonymous", None, None, 0, 4),
+        ("anonymous", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
+        ("anonymous", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        (None, None, None, 0, 4),
+        (None, UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
+        (None, None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+    ],
+)
+def test_list_data_source(
+    django_assert_max_num_queries,
+    get_user,
+    user,
+    workspace,
+    etl_system,
+    length,
+    max_queries,
+):
+    with django_assert_max_num_queries(max_queries):
+        with test_service_method(
+            schema=DataSourceGetResponse, response=length
+        ) as context:
+            context["result"] = data_source_service.list(
+                user=get_user(user),
+                workspace_id=workspace if workspace else None,
+                orchestration_system_id=etl_system if etl_system else None,
+            )
+
+
+@pytest.mark.parametrize(
+    "user, data_source, action, response, error_code",
+    [
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "admin",
+            UUID("00000000-0000-0000-0000-000000000000"),
+            "view",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            "admin",
+            UUID("00000000-0000-0000-0000-000000000000"),
+            "edit",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            "admin",
+            UUID("00000000-0000-0000-0000-000000000000"),
+            "delete",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            "owner",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "owner",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "owner",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "editor",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "editor",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "editor",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            None,
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            None,
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            "Data source does not exist",
+            404,
+        ),
+        (
+            None,
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            "Data source does not exist",
+            404,
+        ),
+    ],
+)
+def test_get_data_source_for_action(
+    get_user, user, data_source, action, response, error_code
+):
+    with test_service_method(
+        schema=DataSourceGetResponse, response=response, error_code=error_code
+    ) as context:
+        context["result"] = data_source_service.get_data_source_for_action(
+            user=get_user(user), uid=data_source, action=action
+        )
+
+
+@pytest.mark.parametrize(
+    "user, orchestration_system, workspace, response, error_code",
+    [
+        (
+            "owner",
+            UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+            {"name": "Global Orchestration System"},
+            None,
+        ),
+        (
+            "owner",
+            UUID("7cb900d2-eb11-4a59-a05b-dd02d95af312"),
+            UUID("b27c51a0-7374-462d-8a53-d97d47176c10"),
+            {"name": "Workspace Orchestration System"},
+            None,
+        ),
+        (
+            "owner",
+            UUID("7cb900d2-eb11-4a59-a05b-dd02d95af312"),
+            UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+            "The given orchestration system cannot",
+            400,
+        ),
+    ],
+)
+def test_validate_orchestration_system(
+    get_user, user, orchestration_system, workspace, response, error_code
+):
+    with test_service_method(
+        schema=OrchestrationSystemGetResponse, response=response, error_code=error_code
+    ) as context:
+        workspace = Workspace.objects.get(pk=workspace)
+        context["result"] = data_source_service.validate_orchestration_system(
+            user=get_user(user),
+            orchestration_system_id=orchestration_system,
+            workspace=workspace,
+        )
+
+
+@pytest.mark.parametrize(
+    "crontab, interval, interval_units, data_source, response, error_code",
+    [
+        (
+            "* * * * *",
+            None,
+            None,
+            None,
+            None,
+            None,
+        ),
+        (
+            None,
+            5,
+            "minutes",
+            None,
+            None,
+            None,
+        ),
+        (
+            "* * * * *",
+            5,
+            "minutes",
+            None,
+            "Only one of",
+            400,
+        ),
+        (
+            "* * * * *",
+            5,
+            None,
+            None,
+            "Only one of",
+            400,
+        ),
+        (
+            "* * * * *",
+            None,
+            "minutes",
+            None,
+            "Only one of",
+            400,
+        ),
+        (
+            "invalid",
+            None,
+            None,
+            None,
+            "Invalid crontab schedule",
+            400,
+        ),
+        (
+            None,
+            5,
+            None,
+            None,
+            "Both interval and interval units",
+            400,
+        ),
+        (
+            None,
+            None,
+            "minutes",
+            None,
+            "Both interval and interval units",
+            400,
+        ),
+    ],
+)
+def test_validate_scheduling(
+    crontab, interval, interval_units, data_source, response, error_code
+):
+    with test_service_method(response=response, error_code=error_code) as context:
+        context["result"] = data_source_service.validate_scheduling(
+            interval=interval,
+            interval_units=interval_units,
+            crontab=crontab,
+        )
+
+
+@pytest.mark.parametrize(
+    "user, data, response, error_code",
+    [
+        (
+            "admin",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
+            "owner",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
+            "editor",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
+            "viewer",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "You do not have permission",
+            403,
+        ),
+    ],
+)
+def test_create_data_source(get_user, user, data, response, error_code):
+    data_source_body = DataSourcePostBody(
+        name=data["name"],
+        workspace_id=data["workspace_id"],
+        orchestration_system_id=data["orchestration_system_id"],
+    )
+    with test_service_method(
+        schema=DataSourceGetResponse,
+        response=response or data,
+        error_code=error_code,
+        fields=(
+            "name",
+            "workspace_id",
+        ),
+    ) as context:
+        context["result"] = data_source_service.create(
+            user=get_user(user), data=data_source_body
+        )
+
+
+@pytest.mark.parametrize(
+    "user, data_source, data, response, error_code",
+    [
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
+            "owner",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
+            "editor",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
+            "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "Data source does not exist",
+            404,
+        ),
+        (
+            None,
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "Data source does not exist",
+            404,
+        ),
+    ],
+)
+def test_update_data_source(get_user, user, data_source, data, response, error_code):
+    data_source_body = DataSourcePatchBody(
+        name=data["name"], orchestration_system_id=data["orchestration_system_id"]
+    )
+    with test_service_method(
+        schema=DataSourceGetResponse,
+        response=response or data,
+        error_code=error_code,
+        fields=("name",),
+    ) as context:
+        context["result"] = data_source_service.update(
+            user=get_user(user), uid=data_source, data=data_source_body
+        )
+
+
+@pytest.mark.parametrize(
+    "user, data_source, response, error_code",
+    [
+        ("admin", UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"), None, None),
+        ("owner", UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"), None, None),
+        ("editor", UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"), None, None),
+        (
+            "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "Data source does not exist",
+            404,
+        ),
+        (
+            None,
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "Data source does not exist",
+            404,
+        ),
+    ],
+)
+def test_delete_data_source(get_user, user, data_source, response, error_code):
+    with test_service_method(response=response, error_code=error_code) as context:
+        context["result"] = data_source_service.delete(
+            user=get_user(user),
+            uid=data_source,
+        )
+
+
+@pytest.mark.parametrize(
+    "user, data_source, datastream, response, error_code",
+    [
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            UUID("e0506cac-3e50-4d0a-814d-7ae0146705b2"),
+            None,
+            None,
+        ),
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
+            "Datastream has already been linked",
+            400,
+        ),
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            UUID("9f96957b-ee20-4c7b-bf2b-673a0cda3a04"),
+            "The datastream must share a workspace",
+            400,
+        ),
+    ],
+)
+def test_link_datastream(get_user, user, data_source, datastream, response, error_code):
+    with test_service_method(response=response, error_code=error_code) as context:
+        context["result"] = data_source_service.link_datastream(
+            user=get_user(user),
+            uid=data_source,
+            datastream_id=datastream,
+        )
+
+
+@pytest.mark.parametrize(
+    "user, data_source, datastream, response, error_code",
+    [
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
+            None,
+            None,
+        ),
+        (
+            "admin",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            UUID("e0506cac-3e50-4d0a-814d-7ae0146705b2"),
+            "The given data source is not configured",
+            400,
+        ),
+    ],
+)
+def test_unlink_datastream(
+    get_user, user, data_source, datastream, response, error_code
+):
+    with test_service_method(response=response, error_code=error_code) as context:
+        context["result"] = data_source_service.unlink_datastream(
+            user=get_user(user), uid=data_source, datastream_id=datastream
+        )
