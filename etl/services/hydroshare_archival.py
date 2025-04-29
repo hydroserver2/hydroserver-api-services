@@ -246,10 +246,10 @@ class HydroShareArchivalService(ServiceUtils):
         processing_levels = {}
 
         for datastream in datastreams:
-            if datastream.processing_level.definition in processing_levels:
-                processing_levels[datastream.processing_level.definition].append(datastream)
+            if datastream.processing_level.code in processing_levels:
+                processing_levels[datastream.processing_level.code].append(datastream)
             else:
-                processing_levels[datastream.processing_level.definition] = [datastream]
+                processing_levels[datastream.processing_level.code] = [datastream]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             for processing_level, datastreams in processing_levels.items():
