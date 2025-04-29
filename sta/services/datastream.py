@@ -233,11 +233,7 @@ class DatastreamService(ServiceUtils):
 
     @staticmethod
     def generate_csv(datastream: Datastream):
-        observations = (
-            Observation.objects.filter(datastream=datastream)
-            .only("phenomenon_time", "result", "quality_code")
-            .order_by("phenomenon_time")
-        )
+        observations = Observation.objects.filter(datastream=datastream).order_by("phenomenon_time")
 
         latitude = (
             round(datastream.thing.location.latitude, 6)
@@ -341,11 +337,11 @@ class DatastreamService(ServiceUtils):
 
         yield "ResultTime,Result,ResultQualifiers\n"
 
-        for observation in observations.all():
-            if observation.quality_code:
-                yield f'{observation.phenomenon_time.isoformat()},{observation.result},"{observation.quality_code}"\n'
+        for observation in observations.values_list("phenomenon_time", "result", "quality_code"):
+            if observation[2]:
+                yield f'{observation[0].isoformat()},{observation[1]},"{observation[2]}"\n'
             else:
-                yield f"{observation.phenomenon_time.isoformat()},{observation.result},\n"
+                yield f"{observation[0].isoformat()},{observation[1]},\n"
 
     def get_csv(self, user: User, uid: uuid.UUID):
         datastream = self.get_datastream_for_action(user=user, uid=uid, action="view")

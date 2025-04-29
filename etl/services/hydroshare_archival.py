@@ -243,51 +243,58 @@ class HydroShareArchivalService(ServiceUtils):
             .all()
         )
 
-        datastream_file_names = []
+        processing_levels = {}
 
-        processing_levels = list(
-            set([datastream.processing_level.definition for datastream in datastreams])
-        )
+        for datastream in datastreams:
+            if datastream.processing_level.definition in processing_levels:
+                processing_levels[datastream.processing_level.definition].append(datastream)
+            else:
+                processing_levels[datastream.processing_level.definition] = [datastream]
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            for processing_level in processing_levels:
+            for processing_level, datastreams in processing_levels.items():
+                processing_level_directory = f"{archive_folder}{processing_level}"
+                processing_level_directory = re.sub(r"\s+", "_", processing_level_directory)
+
                 try:
-                    archive_resource.folder_delete(
-                        f"{archive_folder}{processing_level}"
-                    )
+                    archive_resource.folder_delete(processing_level_directory)
                 except (Exception,):
                     pass
-                archive_sub_folder = f"{archive_folder}{processing_level}"
-                archive_sub_folder = re.sub(r"\s+", "_", archive_sub_folder)
-                archive_resource.folder_create(archive_sub_folder)
+
+                archive_resource.folder_create(processing_level_directory)
                 os.mkdir(os.path.join(temp_dir, processing_level))
-            for datastream in datastreams:
-                temp_file_name = datastream.observed_property.code
-                temp_file_index = 2
-                while (
-                    f"{datastream.processing_level.definition}_{temp_file_name}"
-                    in datastream_file_names
-                ):
-                    temp_file_name = (
-                        f"{datastream.observed_property.code} - {str(temp_file_index)}"
+
+                datastream_files = []
+
+                for datastream in datastreams:
+                    file_name = f"{datastream.observed_property.code}.csv"
+                    file_index = 2
+
+                    while file_name in datastream_files:
+                        file_name = (
+                            f"{datastream.observed_property.code}_{str(file_index)}.csv"
+                        )
+                        file_index += 1
+
+                    datastream_files.append(file_name)
+
+                    temp_file_path = os.path.join(
+                        temp_dir, processing_level, file_name
                     )
-                    temp_file_index += 1
-                datastream_file_names.append(
-                    f"{datastream.processing_level.definition}_{temp_file_name}"
-                )
-                temp_file_name = f"{temp_file_name}.csv"
-                temp_file_path = os.path.join(
-                    temp_dir, datastream.processing_level.definition, temp_file_name
-                )
-                with open(temp_file_path, "w") as csv_file:
-                    for line in datastream_service.generate_csv(datastream):
-                        csv_file.write(line)
-                dest_path = f"{archive_folder}{datastream.processing_level.definition}"
-                dest_path = re.sub(r"\s+", "_", dest_path)
-                archive_resource.file_upload(
-                    temp_file_path,
-                    destination_path=dest_path,
-                )
+                    with open(temp_file_path, "w") as csv_file:
+                        for line in datastream_service.generate_csv(datastream):
+                            csv_file.write(line)
+
+                datastream_file_paths = [
+                    os.path.join(temp_dir, processing_level, datastream_file)
+                    for datastream_file in datastream_files
+                ]
+
+                if datastream_file_paths:
+                    archive_resource.file_upload(
+                        *datastream_file_paths,
+                        destination_path=processing_level_directory,
+                    )
 
             if make_public is True:
                 try:
