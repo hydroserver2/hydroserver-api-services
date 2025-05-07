@@ -37,7 +37,7 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
         if thing_ids:
             locations = locations.filter(thing_id__in=thing_ids)
 
-        locations = locations.visible(user=self.request.authenticated_user)  # noqa
+        locations = locations.visible(principal=self.request.principal)  # noqa
 
         if filters:
             locations = self.apply_filters(

@@ -3,7 +3,7 @@ from ninja import Router, Path
 from typing import Optional, Literal
 from datetime import datetime
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
     DatastreamGetResponse,
@@ -19,7 +19,7 @@ datastream_service = DatastreamService()
 
 @datastream_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[DatastreamGetResponse],
         401: str,
@@ -36,13 +36,13 @@ def get_datastreams(
     """
 
     return 200, datastream_service.list(
-        user=request.authenticated_user, workspace_id=workspace_id, thing_id=thing_id
+        principal=request.principal, workspace_id=workspace_id, thing_id=thing_id
     )
 
 
 @datastream_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: DatastreamGetResponse,
         400: str,
@@ -58,12 +58,12 @@ def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody)
     Create a new Datastream.
     """
 
-    return 201, datastream_service.create(user=request.authenticated_user, data=data)
+    return 201, datastream_service.create(principal=request.principal, data=data)
 
 
 @datastream_router.get(
     "/{datastream_id}",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: DatastreamGetResponse,
         401: str,
@@ -77,14 +77,12 @@ def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUI
     Get a Datastream.
     """
 
-    return 200, datastream_service.get(
-        user=request.authenticated_user, uid=datastream_id
-    )
+    return 200, datastream_service.get(principal=request.principal, uid=datastream_id)
 
 
 @datastream_router.patch(
     "/{datastream_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: DatastreamGetResponse,
         400: str,
@@ -105,13 +103,13 @@ def update_datastream(
     """
 
     return 200, datastream_service.update(
-        user=request.authenticated_user, uid=datastream_id, data=data
+        principal=request.principal, uid=datastream_id, data=data
     )
 
 
 @datastream_router.delete(
     "/{datastream_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -126,13 +124,13 @@ def delete_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
     """
 
     return 204, datastream_service.delete(
-        user=request.authenticated_user, uid=datastream_id
+        principal=request.principal, uid=datastream_id
     )
 
 
 @datastream_router.get(
     "/{datastream_id}/csv",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={200: None, 403: str, 404: str},
 )
 def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
@@ -140,14 +138,12 @@ def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid
     Get a CSV representation of the Datastream.
     """
 
-    return datastream_service.get_csv(
-        user=request.authenticated_user, uid=datastream_id
-    )
+    return datastream_service.get_csv(principal=request.principal, uid=datastream_id)
 
 
 @datastream_router.get(
     "/{datastream_id}/observations",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={200: ObservationsGetResponse, 403: str, 404: str},
 )
 def get_datastream_observations(
@@ -164,7 +160,7 @@ def get_datastream_observations(
     """
 
     return datastream_service.list_observations(
-        user=request.authenticated_user,
+        principal=request.principal,
         uid=datastream_id,
         phenomenon_start_time=phenomenon_start_time,
         phenomenon_end_time=phenomenon_end_time,

@@ -8,7 +8,7 @@ datastream_service = DatastreamService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, thing, length, max_queries",
+    "principal, workspace, thing, length, max_queries",
     [
         # Owners can filter datastreams by thing and workspace
         ("owner", None, None, 9, 2),
@@ -110,6 +110,31 @@ datastream_service = DatastreamService()
             0,
             2,
         ),
+        # API keys can filter datastreams by thing and workspace
+        ("apikey", None, None, 5, 3),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 5, 3),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            3,
+            3,
+        ),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 3),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            0,
+            3,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            0,
+            3,
+        ),
         # Anonymous can filter datastreams by thing and workspace
         ("anonymous", None, None, 2, 2),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 2, 2),
@@ -137,7 +162,7 @@ datastream_service = DatastreamService()
         ),
         ("anonymous", "00000000-0000-0000-0000-000000000000", None, 0, 2),
         ("anonymous", None, "00000000-0000-0000-0000-000000000000", 0, 2),
-        # Unauthenticated users can filter datastreams by thing and workspace
+        # Unauthenticated principals can filter datastreams by thing and workspace
         (None, None, None, 2, 2),
         (None, "6e0deaf2-a92b-421b-9ece-86783265596f", None, 2, 2),
         (
@@ -167,11 +192,17 @@ datastream_service = DatastreamService()
     ],
 )
 def test_list_datastream(
-    django_assert_max_num_queries, get_user, user, workspace, thing, length, max_queries
+    django_assert_max_num_queries,
+    get_principal,
+    principal,
+    workspace,
+    thing,
+    length,
+    max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
         datastream_list = datastream_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
             thing_id=uuid.UUID(thing) if thing else None,
         )
@@ -182,9 +213,9 @@ def test_list_datastream(
 
 
 @pytest.mark.parametrize(
-    "user, datastream, message, error_code",
+    "principal, datastream, message, error_code",
     [
-        # Owners, admins, editors, and viewers can get public and private datastreams
+        # Owners, admins, editors, viewers, and API keys can get public and private datastreams
         ("owner", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
         ("owner", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
         ("admin", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
@@ -202,6 +233,13 @@ def test_list_datastream(
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
+        ),
+        ("apikey", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
+        (
+            "apikey",
+            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
+            "Datastream does not exist",
+            404,
         ),
         # Anonymous can get public but not private or non-existent datastreams
         (
@@ -258,7 +296,7 @@ def test_list_datastream(
             "Datastream does not exist",
             404,
         ),
-        # Unauthenticated users can get public but not private or non-existent datastreams
+        # Unauthenticated principals can get public but not private or non-existent datastreams
         (
             None,
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
@@ -315,22 +353,24 @@ def test_list_datastream(
         ),
     ],
 )
-def test_get_datastream(get_user, user, datastream, message, error_code):
+def test_get_datastream(get_principal, principal, datastream, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            datastream_service.get(user=get_user(user), uid=uuid.UUID(datastream))
+            datastream_service.get(
+                principal=get_principal(principal), uid=uuid.UUID(datastream)
+            )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         datastream_get = datastream_service.get(
-            user=get_user(user), uid=uuid.UUID(datastream)
+            principal=get_principal(principal), uid=uuid.UUID(datastream)
         )
         assert datastream_get.name == message
         assert DatastreamGetResponse.from_orm(datastream_get)
 
 
 @pytest.mark.parametrize(
-    "user, thing, observed_property, processing_level, sensor, unit, message, error_code",
+    "principal, thing, observed_property, processing_level, sensor, unit, message, error_code",
     [
         # Owner can create datastream with system metadata
         (
@@ -603,6 +643,57 @@ def test_get_datastream(get_user, user, datastream, message, error_code):
             "You do not have permission",
             403,
         ),
+        # API keys cannot create datastreams
+        (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "Thing does not exist",
+            400,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "Thing does not exist",
+            400,
+        ),
+        (
+            "apikey",
+            "00000000-0000-0000-0000-000000000000",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "Thing does not exist",
+            400,
+        ),
         # Anonymous cannot create datastreams
         (
             "anonymous",
@@ -654,7 +745,7 @@ def test_get_datastream(get_user, user, datastream, message, error_code):
             "Thing does not exist",
             400,
         ),
-        # Unauthenticated users cannot create datastreams
+        # Unauthenticated principals cannot create datastreams
         (
             None,
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
@@ -708,8 +799,8 @@ def test_get_datastream(get_user, user, datastream, message, error_code):
     ],
 )
 def test_create_datastream(
-    get_user,
-    user,
+    get_principal,
+    principal,
     thing,
     observed_property,
     processing_level,
@@ -736,13 +827,15 @@ def test_create_datastream(
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            datastream_service.create(user=get_user(user), data=datastream_data)
+            datastream_service.create(
+                principal=get_principal(principal), data=datastream_data
+            )
         assert exc_info.value.status_code == error_code
         if isinstance(message, str):
             assert exc_info.value.message.startswith(message)
     else:
         datastream_create = datastream_service.create(
-            user=get_user(user), data=datastream_data
+            principal=get_principal(principal), data=datastream_data
         )
         assert datastream_create.name == datastream_data.name
         assert datastream_create.description == datastream_data.description
@@ -779,7 +872,7 @@ def test_create_datastream(
 
 
 @pytest.mark.parametrize(
-    "user, datastream, thing, observed_property, processing_level, sensor, unit, message, error_code",
+    "principal, datastream, thing, observed_property, processing_level, sensor, unit, message, error_code",
     [
         # Owners, editors, and admins can assign system and workspace metadata to public and private datastreams
         (
@@ -1270,6 +1363,105 @@ def test_create_datastream(
             403,
         ),
         (
+            "apikey",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "cad40a75-99ca-4317-b534-0fc7880c905f",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "fcd47d93-4cae-411a-9e1e-26ef473840ed",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "42e08eea-27bb-4ea3-8ced-63acff0f3334",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "00000000-0000-0000-0000-000000000000",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "Datastream does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             None,
@@ -1470,8 +1662,8 @@ def test_create_datastream(
     ],
 )
 def test_edit_datastream(
-    get_user,
-    user,
+    get_principal,
+    principal,
     datastream,
     thing,
     observed_property,
@@ -1496,13 +1688,17 @@ def test_edit_datastream(
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             datastream_service.update(
-                user=get_user(user), uid=uuid.UUID(datastream), data=datastream_data
+                principal=get_principal(principal),
+                uid=uuid.UUID(datastream),
+                data=datastream_data,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         datastream_update = datastream_service.update(
-            user=get_user(user), uid=uuid.UUID(datastream), data=datastream_data
+            principal=get_principal(principal),
+            uid=uuid.UUID(datastream),
+            data=datastream_data,
         )
         if thing:
             assert datastream_update.thing_id == datastream_data.thing_id
@@ -1523,7 +1719,7 @@ def test_edit_datastream(
 
 
 @pytest.mark.parametrize(
-    "user, datastream, message, error_code, max_queries",
+    "principal, datastream, message, error_code, max_queries",
     [
         # Owners, admins, editors can delete public and private datastreams
         (
@@ -1582,6 +1778,69 @@ def test_edit_datastream(
             "You do not have permission",
             403,
             4,
+        ),
+        (
+            "apikey",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            "You do not have permission",
+            403,
+            5,
+        ),
+        (
+            "apikey",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            "You do not have permission",
+            403,
+            5,
+        ),
+        (
+            "apikey",
+            "cad40a75-99ca-4317-b534-0fc7880c905f",
+            "You do not have permission",
+            403,
+            5,
+        ),
+        (
+            "apikey",
+            "fcd47d93-4cae-411a-9e1e-26ef473840ed",
+            "You do not have permission",
+            403,
+            5,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            "Datastream does not exist",
+            404,
+            5,
+        ),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            "Datastream does not exist",
+            404,
+            5,
+        ),
+        (
+            "apikey",
+            "42e08eea-27bb-4ea3-8ced-63acff0f3334",
+            "Datastream does not exist",
+            404,
+            5,
+        ),
+        (
+            "apikey",
+            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
+            "Datastream does not exist",
+            404,
+            5,
+        ),
+        (
+            "apikey",
+            "00000000-0000-0000-0000-000000000000",
+            "Datastream does not exist",
+            404,
+            5,
         ),
         (
             "anonymous",
@@ -1713,8 +1972,8 @@ def test_edit_datastream(
 )
 def test_delete_datastream(
     django_assert_max_num_queries,
-    get_user,
-    user,
+    get_principal,
+    principal,
     datastream,
     message,
     error_code,
@@ -1724,12 +1983,12 @@ def test_delete_datastream(
         if error_code:
             with pytest.raises(HttpError) as exc_info:
                 datastream_service.delete(
-                    user=get_user(user), uid=uuid.UUID(datastream)
+                    principal=get_principal(principal), uid=uuid.UUID(datastream)
                 )
             assert exc_info.value.status_code == error_code
             assert exc_info.value.message.startswith(message)
         else:
             datastream_delete = datastream_service.delete(
-                user=get_user(user), uid=uuid.UUID(datastream)
+                principal=get_principal(principal), uid=uuid.UUID(datastream)
             )
             assert datastream_delete == "Datastream deleted"

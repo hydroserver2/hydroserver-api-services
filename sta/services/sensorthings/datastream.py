@@ -41,8 +41,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
         datastreams = datastreams.select_related(
             "processing_level", "unit", "thing__workspace"
         ).visible(
-            user=self.request.authenticated_user
-        )  # noqa
+            principal=self.request.principal  # noqa
+        )
 
         if filters:
             datastreams = self.apply_filters(
@@ -146,7 +146,7 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
     ) -> None:
 
         datastream_obj = datastream_service.get_datastream_for_action(
-            user=self.request.authenticated_user,  # noqa
+            principal=self.request.principal,  # noqa
             uid=datastream_id,
             action="edit",
         )

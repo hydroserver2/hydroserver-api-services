@@ -14,7 +14,7 @@ data_archive_service = DataArchiveService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, etl_system, length, max_queries",
+    "principal, workspace, etl_system, length, max_queries",
     [
         ("admin", None, None, 3, 4),
         ("admin", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
@@ -28,6 +28,9 @@ data_archive_service = DataArchiveService()
         ("viewer", None, None, 3, 4),
         ("viewer", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
         ("viewer", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        ("apikey", None, None, 3, 5),
+        ("apikey", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 3),
+        ("apikey", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 3),
         ("anonymous", None, None, 0, 4),
         ("anonymous", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
         ("anonymous", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
@@ -38,8 +41,8 @@ data_archive_service = DataArchiveService()
 )
 def test_list_data_archive(
     django_assert_max_num_queries,
-    get_user,
-    user,
+    get_principal,
+    principal,
     workspace,
     etl_system,
     length,
@@ -50,14 +53,14 @@ def test_list_data_archive(
             schema=DataArchiveGetResponse, response=length
         ) as context:
             context["result"] = data_archive_service.list(
-                user=get_user(user),
+                principal=get_principal(principal),
                 workspace_id=workspace if workspace else None,
                 orchestration_system_id=etl_system if etl_system else None,
             )
 
 
 @pytest.mark.parametrize(
-    "user, data_archive, action, response, error_code",
+    "principal, data_archive, action, response, error_code",
     [
         (
             "admin",
@@ -159,6 +162,27 @@ def test_list_data_archive(
         ),
         (
             "viewer",
+            UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
+            "delete",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
+            "view",
+            {"name": "Test Data Archive"},
+            None,
+        ),
+        (
+            "apikey",
+            UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
+            "edit",
+            {"name": "Test Data Archive"},
+            None,
+        ),
+        (
+            "apikey",
             UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
             "delete",
             "You do not have permission",
@@ -209,18 +233,18 @@ def test_list_data_archive(
     ],
 )
 def test_get_data_archive_for_action(
-    get_user, user, data_archive, action, response, error_code
+    get_principal, principal, data_archive, action, response, error_code
 ):
     with test_service_method(
         schema=DataArchiveGetResponse, response=response, error_code=error_code
     ) as context:
         context["result"] = data_archive_service.get_data_archive_for_action(
-            user=get_user(user), uid=data_archive, action=action
+            principal=get_principal(principal), uid=data_archive, action=action
         )
 
 
 @pytest.mark.parametrize(
-    "user, orchestration_system, workspace, response, error_code",
+    "principal, orchestration_system, workspace, response, error_code",
     [
         (
             "owner",
@@ -246,14 +270,14 @@ def test_get_data_archive_for_action(
     ],
 )
 def test_validate_orchestration_system(
-    get_user, user, orchestration_system, workspace, response, error_code
+    get_principal, principal, orchestration_system, workspace, response, error_code
 ):
     with test_service_method(
         schema=OrchestrationSystemGetResponse, response=response, error_code=error_code
     ) as context:
         workspace = Workspace.objects.get(pk=workspace)
         context["result"] = data_archive_service.validate_orchestration_system(
-            user=get_user(user),
+            principal=get_principal(principal),
             orchestration_system_id=orchestration_system,
             workspace=workspace,
         )
@@ -330,7 +354,7 @@ def test_validate_scheduling(crontab, interval, interval_units, response, error_
 
 
 @pytest.mark.parametrize(
-    "user, data, response, error_code",
+    "principal, data, response, error_code",
     [
         (
             "admin",
@@ -373,6 +397,16 @@ def test_validate_scheduling(crontab, interval, interval_units, response, error_
             403,
         ),
         (
+            "apikey",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "You do not have permission",
+            403,
+        ),
+        (
             "anonymous",
             {
                 "name": "New",
@@ -394,7 +428,7 @@ def test_validate_scheduling(crontab, interval, interval_units, response, error_
         ),
     ],
 )
-def test_create_data_archive(get_user, user, data, response, error_code):
+def test_create_data_archive(get_principal, principal, data, response, error_code):
     data_archive_body = DataArchivePostBody(
         name=data["name"],
         workspace_id=data["workspace_id"],
@@ -410,12 +444,12 @@ def test_create_data_archive(get_user, user, data, response, error_code):
         ),
     ) as context:
         context["result"] = data_archive_service.create(
-            user=get_user(user), data=data_archive_body
+            principal=get_principal(principal), data=data_archive_body
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_archive, data, response, error_code",
+    "principal, data_archive, data, response, error_code",
     [
         (
             "admin",
@@ -448,6 +482,16 @@ def test_create_data_archive(get_user, user, data, response, error_code):
             None,
         ),
         (
+            "apikey",
+            UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
             "viewer",
             UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
             {
@@ -479,7 +523,9 @@ def test_create_data_archive(get_user, user, data, response, error_code):
         ),
     ],
 )
-def test_update_data_archive(get_user, user, data_archive, data, response, error_code):
+def test_update_data_archive(
+    get_principal, principal, data_archive, data, response, error_code
+):
     data_archive_body = DataArchivePatchBody(
         name=data["name"], orchestration_system_id=data["orchestration_system_id"]
     )
@@ -490,16 +536,22 @@ def test_update_data_archive(get_user, user, data_archive, data, response, error
         fields=("name",),
     ) as context:
         context["result"] = data_archive_service.update(
-            user=get_user(user), uid=data_archive, data=data_archive_body
+            principal=get_principal(principal), uid=data_archive, data=data_archive_body
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_archive, response, error_code",
+    "principal, data_archive, response, error_code",
     [
         ("admin", UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"), None, None),
         ("owner", UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"), None, None),
         ("editor", UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"), None, None),
+        (
+            "apikey",
+            UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
+            "You do not have permission",
+            403,
+        ),
         (
             "viewer",
             UUID("6ff5de63-753b-458e-9735-e1ea68f9816c"),
@@ -520,16 +572,18 @@ def test_update_data_archive(get_user, user, data_archive, data, response, error
         ),
     ],
 )
-def test_delete_data_archive(get_user, user, data_archive, response, error_code):
+def test_delete_data_archive(
+    get_principal, principal, data_archive, response, error_code
+):
     with test_service_method(response=response, error_code=error_code) as context:
         context["result"] = data_archive_service.delete(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=data_archive,
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_archive, datastream, response, error_code",
+    "principal, data_archive, datastream, response, error_code",
     [
         (
             "admin",
@@ -555,18 +609,18 @@ def test_delete_data_archive(get_user, user, data_archive, response, error_code)
     ],
 )
 def test_link_datastream(
-    get_user, user, data_archive, datastream, response, error_code
+    get_principal, principal, data_archive, datastream, response, error_code
 ):
     with test_service_method(response=response, error_code=error_code) as context:
         context["result"] = data_archive_service.link_datastream(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=data_archive,
             datastream_id=datastream,
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_archive, datastream, response, error_code",
+    "principal, data_archive, datastream, response, error_code",
     [
         (
             "admin",
@@ -585,9 +639,11 @@ def test_link_datastream(
     ],
 )
 def test_unlink_datastream(
-    get_user, user, data_archive, datastream, response, error_code
+    get_principal, principal, data_archive, datastream, response, error_code
 ):
     with test_service_method(response=response, error_code=error_code) as context:
         context["result"] = data_archive_service.unlink_datastream(
-            user=get_user(user), uid=data_archive, datastream_id=datastream
+            principal=get_principal(principal),
+            uid=data_archive,
+            datastream_id=datastream,
         )

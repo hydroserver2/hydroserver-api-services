@@ -13,7 +13,7 @@ workspace_service = WorkspaceService()
 
 
 @pytest.mark.parametrize(
-    "user, length, associated",
+    "principal, length, associated",
     [
         ("owner", 3, False),
         ("owner", 3, True),
@@ -23,6 +23,8 @@ workspace_service = WorkspaceService()
         ("editor", 2, True),
         ("viewer", 2, False),
         ("viewer", 2, True),
+        ("apikey", 1, False),
+        ("apikey", 1, True),
         ("anonymous", 2, False),
         ("anonymous", 1, True),
         (None, 1, False),
@@ -31,25 +33,32 @@ workspace_service = WorkspaceService()
         ("limited", 0, True),
     ],
 )
-def test_list_workspace(get_user, user, length, associated):
+def test_list_workspace(get_principal, principal, length, associated):
     workspace_list = workspace_service.list(
-        user=get_user(user), associated_only=associated
+        principal=get_principal(principal), associated_only=associated
     )
     assert len(workspace_list) == length
     assert (WorkspaceGetResponse.from_orm(workspace) for workspace in workspace_list)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", None),
         ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", None),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
         ("anonymous", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Transfer", None),
         (None, "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
         (
             "owner",
             "00000000-0000-0000-0000-000000000000",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
         ),
@@ -67,48 +76,52 @@ def test_list_workspace(get_user, user, length, associated):
         ),
     ],
 )
-def test_get_workspace(get_user, user, workspace, message, error_code):
+def test_get_workspace(get_principal, principal, workspace, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            workspace_service.get(user=get_user(user), uid=uuid.UUID(workspace))
+            workspace_service.get(
+                principal=get_principal(principal), uid=uuid.UUID(workspace)
+            )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_get = workspace_service.get(
-            user=get_user(user), uid=uuid.UUID(workspace)
+            principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
         assert workspace_get.name == message
         assert WorkspaceGetResponse.from_orm(workspace_get)
 
 
 @pytest.mark.parametrize(
-    "user, name, message, error_code",
+    "principal, name, message, error_code",
     [
         ("owner", "New", "New", None),
         ("owner", "Public", "Workspace name conflicts with an owned workspace", 409),
         ("admin", "New", "New", None),
         ("limited", "New", "You do not have permission to create this workspace", 403),
+        ("apikey", "New", "You do not have permission to create this workspace", 403),
     ],
 )
-def test_create_workspace(get_user, user, name, message, error_code):
+def test_create_workspace(get_principal, principal, name, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.create(
-                user=get_user(user),
+                principal=get_principal(principal),
                 data=WorkspacePostBody(name=name, is_private=False),
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_create = workspace_service.create(
-            user=get_user(user), data=WorkspacePostBody(name="New", is_private=False)
+            principal=get_principal(principal),
+            data=WorkspacePostBody(name="New", is_private=False),
         )
         assert workspace_create.name == message
         assert WorkspaceGetResponse.from_orm(workspace_create)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, name, message, error_code",
+    "principal, workspace, name, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", "Updated", "Updated", None),
         ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", "Updated", "Updated", None),
@@ -127,11 +140,25 @@ def test_create_workspace(get_user, user, name, message, error_code):
             409,
         ),
         (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Updated",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Updated",
             "Workspace does not exist",
             404,
+        ),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "Updated",
+            "You do not have permission to edit this workspace",
+            403,
         ),
         (
             "anonymous",
@@ -156,11 +183,13 @@ def test_create_workspace(get_user, user, name, message, error_code):
         ),
     ],
 )
-def test_update_workspace(get_user, user, workspace, name, message, error_code):
+def test_update_workspace(
+    get_principal, principal, workspace, name, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.update(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(workspace),
                 data=WorkspacePatchBody(name=name, is_private=False),
             )
@@ -168,7 +197,7 @@ def test_update_workspace(get_user, user, workspace, name, message, error_code):
         assert exc_info.value.message.startswith(message)
     else:
         workspace_update = workspace_service.update(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(workspace),
             data=WorkspacePatchBody(name="Updated", is_private=False),
         )
@@ -177,21 +206,21 @@ def test_update_workspace(get_user, user, workspace, name, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code, max_queries",
+    "principal, workspace, message, error_code, max_queries",
     [
         (
             "owner",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "Workspace deleted",
             None,
-            35,
+            37,
         ),
         (
             "admin",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "Workspace deleted",
             None,
-            35,
+            37,
         ),
         (
             "owner",
@@ -199,6 +228,13 @@ def test_update_workspace(get_user, user, workspace, name, message, error_code):
             "Workspace does not exist",
             404,
             2,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+            5,
         ),
         (
             "anonymous",
@@ -225,8 +261,8 @@ def test_update_workspace(get_user, user, workspace, name, message, error_code):
 )
 def test_delete_workspace(
     django_assert_max_num_queries,
-    get_user,
-    user,
+    get_principal,
+    principal,
     workspace,
     message,
     error_code,
@@ -235,12 +271,14 @@ def test_delete_workspace(
     with django_assert_max_num_queries(max_queries):
         if error_code:
             with pytest.raises(HttpError) as exc_info:
-                workspace_service.delete(user=get_user(user), uid=uuid.UUID(workspace))
+                workspace_service.delete(
+                    principal=get_principal(principal), uid=uuid.UUID(workspace)
+                )
             assert exc_info.value.status_code == error_code
             assert exc_info.value.message.startswith(message)
         else:
             workspace_delete = workspace_service.delete(
-                user=get_user(user), uid=uuid.UUID(workspace)
+                principal=get_principal(principal), uid=uuid.UUID(workspace)
             )
             assert workspace_delete == message
 
@@ -266,6 +304,13 @@ def test_delete_workspace(
             "owner",
             "anonymous",
             "00000000-0000-0000-0000-000000000000",
+            "Workspace does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "viewer",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
         ),
@@ -321,36 +366,44 @@ def test_delete_workspace(
     ],
 )
 def test_transfer_workspace(
-    get_user, from_user, to_user, workspace, message, error_code
+    get_principal, from_user, to_user, workspace, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.transfer(
-                user=get_user(from_user),
+                principal=get_principal(from_user),
                 uid=uuid.UUID(workspace),
                 data=WorkspaceTransferBody(
-                    new_owner=getattr(get_user(to_user), "email", "fake@example.com")
+                    new_owner=getattr(
+                        get_principal(to_user), "email", "fake@example.com"
+                    )
                 ),
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_transfer = workspace_service.transfer(
-            user=get_user(from_user),
+            principal=get_principal(from_user),
             uid=uuid.UUID(workspace),
-            data=WorkspaceTransferBody(new_owner=get_user(to_user).email),
+            data=WorkspaceTransferBody(new_owner=get_principal(to_user).email),
         )
         assert workspace_transfer == message
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         (
             "anonymous",
             "caf4b92e-6914-4449-8c8a-efa5a7fd1826",
             "Workspace transfer accepted",
             None,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -378,27 +431,29 @@ def test_transfer_workspace(
         ),
     ],
 )
-def test_accept_workspace_transfer(get_user, user, workspace, message, error_code):
+def test_accept_workspace_transfer(
+    get_principal, principal, workspace, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.accept_transfer(
-                user=get_user(user), uid=uuid.UUID(workspace)
+                principal=get_principal(principal), uid=uuid.UUID(workspace)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_transfer = workspace_service.accept_transfer(
-            user=get_user(user), uid=uuid.UUID(workspace)
+            principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
         workspace_get = workspace_service.get(
-            user=get_user(user), uid=uuid.UUID(workspace)
+            principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
         assert workspace_transfer == message
-        assert workspace_get.owner == get_user(user)
+        assert workspace_get.owner == get_principal(principal)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         (
             "anonymous",
@@ -411,6 +466,12 @@ def test_accept_workspace_transfer(get_user, user, workspace, message, error_cod
             "caf4b92e-6914-4449-8c8a-efa5a7fd1826",
             "Workspace transfer rejected",
             None,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -432,16 +493,18 @@ def test_accept_workspace_transfer(get_user, user, workspace, message, error_cod
         ),
     ],
 )
-def test_reject_workspace_transfer(get_user, user, workspace, message, error_code):
+def test_reject_workspace_transfer(
+    get_principal, principal, workspace, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.reject_transfer(
-                user=get_user(user), uid=uuid.UUID(workspace)
+                principal=get_principal(principal), uid=uuid.UUID(workspace)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_transfer = workspace_service.reject_transfer(
-            user=get_user(user), uid=uuid.UUID(workspace)
+            principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
         assert workspace_transfer == message

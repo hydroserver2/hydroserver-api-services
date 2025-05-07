@@ -26,10 +26,12 @@ datastream_service = DatastreamService()
 class HydroShareArchivalService(ServiceUtils):
     def get_hydroshare_thing_archive(
         self,
-        user: User,
+        principal: User,
         uid: uuid.UUID,
     ):
-        thing = thing_service.get_thing_for_action(user=user, uid=uid, action="view")
+        thing = thing_service.get_thing_for_action(
+            principal=principal, uid=uid, action="view"
+        )
         orchestration_system = self.get_hydroshare_archival_system()
 
         return DataArchive.objects.filter(
@@ -49,7 +51,7 @@ class HydroShareArchivalService(ServiceUtils):
 
     @staticmethod
     def get_hydroshare_connection(
-        user: User,
+        principal: User,
     ):
         hs_client_id = (
             SocialApp.objects.filter(provider="hydroshare")
@@ -58,7 +60,7 @@ class HydroShareArchivalService(ServiceUtils):
         )
         hs_access_token = (
             SocialToken.objects.filter(
-                account__user=user, account__provider="hydroshare"
+                account__user=principal, account__provider="hydroshare"
             )
             .values_list("token", flat=True)
             .first()
@@ -80,8 +82,8 @@ class HydroShareArchivalService(ServiceUtils):
 
         return hs_conn
 
-    def get(self, user: Optional[User], uid: uuid.UUID):
-        thing_archive = self.get_hydroshare_thing_archive(user=user, uid=uid)
+    def get(self, principal: Optional[User], uid: uuid.UUID):
+        thing_archive = self.get_hydroshare_thing_archive(principal=principal, uid=uid)
 
         if not thing_archive:
             raise HttpError(404, "Thing archive not found")
@@ -93,20 +95,24 @@ class HydroShareArchivalService(ServiceUtils):
             "datastreamIds": thing_archive.settings["datastreamIds"],
         }
 
-    def create(self, user: User, uid: uuid.UUID, data: HydroShareArchivalPostBody):
-        thing = thing_service.get_thing_for_action(user=user, uid=uid, action="edit")
-        thing_archive = self.get_hydroshare_thing_archive(user=user, uid=uid)
+    def create(self, principal: User, uid: uuid.UUID, data: HydroShareArchivalPostBody):
+        thing = thing_service.get_thing_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
+        thing_archive = self.get_hydroshare_thing_archive(principal=principal, uid=uid)
 
         if thing_archive:
             raise HttpError(400, "Thing archive already exists")
 
         hydroshare_archival_system = self.get_hydroshare_archival_system()
-        hs_connection = self.get_hydroshare_connection(user=user)
+        hs_connection = self.get_hydroshare_connection(principal=principal)
 
         try:
             if data.link:
                 try:
-                    archive_resource = hs_connection.resource(str(data.link).split("/")[-2])
+                    archive_resource = hs_connection.resource(
+                        str(data.link).split("/")[-2]
+                    )
                 except (Exception,):
                     raise HttpError(400, "Provided HydroShare resource does not exist.")
             else:
@@ -151,7 +157,7 @@ class HydroShareArchivalService(ServiceUtils):
         except (Exception,) as e:
             raise HttpError(400, str(e))
 
-        self.run(user=user, uid=uid, make_public=data.public_resource)
+        self.run(principal=principal, uid=uid, make_public=data.public_resource)
 
         return {
             "thing_id": str(uid),
@@ -160,14 +166,18 @@ class HydroShareArchivalService(ServiceUtils):
             "datastreamIds": thing_archive.settings["datastreamIds"],
         }
 
-    def update(self, user: User, uid: uuid.UUID, data: HydroShareArchivalPatchBody):
-        thing = thing_service.get_thing_for_action(user=user, uid=uid, action="edit")
-        thing_archive = self.get_hydroshare_thing_archive(user=user, uid=uid)
+    def update(
+        self, principal: User, uid: uuid.UUID, data: HydroShareArchivalPatchBody
+    ):
+        thing = thing_service.get_thing_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
+        thing_archive = self.get_hydroshare_thing_archive(principal=principal, uid=uid)
 
         if not thing_archive:
             raise HttpError(404, "Thing archive not found")
 
-        hs_connection = self.get_hydroshare_connection(user=user)
+        hs_connection = self.get_hydroshare_connection(principal=principal)
 
         archive_data = data.dict(
             include=set(HydroShareArchivalFields.model_fields.keys()),
@@ -193,7 +203,7 @@ class HydroShareArchivalService(ServiceUtils):
 
         thing_archive.save()
 
-        self.run(user=user, uid=uid)
+        self.run(principal=principal, uid=uid)
 
         return {
             "thing_id": str(uid),
@@ -202,9 +212,9 @@ class HydroShareArchivalService(ServiceUtils):
             "datastreamIds": thing_archive.settings["datastreamIds"],
         }
 
-    def delete(self, user: Optional[User], uid: uuid.UUID):
-        thing_service.get_thing_for_action(user=user, uid=uid, action="edit")
-        thing_archive = self.get_hydroshare_thing_archive(user=user, uid=uid)
+    def delete(self, principal: Optional[User], uid: uuid.UUID):
+        thing_service.get_thing_for_action(principal=principal, uid=uid, action="edit")
+        thing_archive = self.get_hydroshare_thing_archive(principal=principal, uid=uid)
 
         if not thing_archive:
             raise HttpError(404, "Thing archive not found")
@@ -213,14 +223,16 @@ class HydroShareArchivalService(ServiceUtils):
 
         return "HydroShare archive configuration removed"
 
-    def run(self, user: Optional[User], uid: uuid.UUID, make_public=False):
-        thing = thing_service.get_thing_for_action(user=user, uid=uid, action="edit")
-        thing_archive = self.get_hydroshare_thing_archive(user=user, uid=uid)
+    def run(self, principal: Optional[User], uid: uuid.UUID, make_public=False):
+        thing = thing_service.get_thing_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
+        thing_archive = self.get_hydroshare_thing_archive(principal=principal, uid=uid)
 
         if not thing_archive:
             raise HttpError(404, "Thing archive not found")
 
-        hs_connection = self.get_hydroshare_connection(user=user)
+        hs_connection = self.get_hydroshare_connection(principal=principal)
 
         try:
             archive_resource = hs_connection.resource(
@@ -254,7 +266,9 @@ class HydroShareArchivalService(ServiceUtils):
         with tempfile.TemporaryDirectory() as temp_dir:
             for processing_level, datastreams in processing_levels.items():
                 processing_level_directory = f"{archive_folder}{processing_level}"
-                processing_level_directory = re.sub(r"\s+", "_", processing_level_directory)
+                processing_level_directory = re.sub(
+                    r"\s+", "_", processing_level_directory
+                )
 
                 try:
                     archive_resource.folder_delete(processing_level_directory)
@@ -278,9 +292,7 @@ class HydroShareArchivalService(ServiceUtils):
 
                     datastream_files.append(file_name)
 
-                    temp_file_path = os.path.join(
-                        temp_dir, processing_level, file_name
-                    )
+                    temp_file_path = os.path.join(temp_dir, processing_level, file_name)
                     with open(temp_file_path, "w") as csv_file:
                         for line in datastream_service.generate_csv(datastream):
                             csv_file.write(line)

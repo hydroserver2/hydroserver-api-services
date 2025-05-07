@@ -1,8 +1,9 @@
 import uuid
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from iam.services.utils import ServiceUtils
+from iam.models import APIKey
 from sta.services.datastream import DatastreamService
 from etl.models import DataSource
 from etl.schemas import DataSourcePostBody, DataSourcePatchBody
@@ -23,7 +24,7 @@ datastream_service = DatastreamService()
 class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
     @staticmethod
     def get_data_source_for_action(
-        user: User,
+        principal: Union[User, APIKey],
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
         fetch_datastreams: bool = False,
@@ -40,7 +41,9 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         except DataSource.DoesNotExist:
             raise HttpError(404 if not raise_400 else 400, "Data source does not exist")
 
-        data_source_permissions = data_source.get_user_permissions(user=user)
+        data_source_permissions = data_source.get_principal_permissions(
+            principal=principal
+        )
 
         if "view" not in data_source_permissions:
             raise HttpError(404 if not raise_400 else 400, "Data source does not exist")
@@ -55,7 +58,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
     @staticmethod
     def list(
-        user: User,
+        principal: Union[User, APIKey],
         workspace_id: Optional[uuid.UUID],
         orchestration_system_id: Optional[uuid.UUID],
     ):
@@ -70,25 +73,29 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         return (
             queryset.select_related("orchestration_system")
             .prefetch_related("datastreams")
-            .visible(user=user)
+            .visible(principal=principal)
             .distinct()
         )
 
-    def get(self, user: User, uid: uuid.UUID):
+    def get(self, principal: Union[User, APIKey], uid: uuid.UUID):
         return self.get_data_source_for_action(
-            user=user, uid=uid, action="view", fetch_datastreams=True
+            principal=principal, uid=uid, action="view", fetch_datastreams=True
         )
 
-    def create(self, user: User, data: DataSourcePostBody):
-        workspace, _ = self.get_workspace(user=user, workspace_id=data.workspace_id)
+    def create(self, principal: Union[User, APIKey], data: DataSourcePostBody):
+        workspace, _ = self.get_workspace(
+            principal=principal, workspace_id=data.workspace_id
+        )
 
-        if not DataSource.can_user_create(user=user, workspace=workspace):
+        if not DataSource.can_principal_create(
+            principal=principal, workspace=workspace
+        ):
             raise HttpError(
                 403, "You do not have permission to create this data source"
             )
 
         orchestration_system = self.validate_orchestration_system(
-            user=user,
+            principal=principal,
             orchestration_system_id=data.orchestration_system_id,
             workspace=workspace,
         )
@@ -127,13 +134,17 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         if data.datastream_ids:
             for datastream_id in data.datastream_ids:
                 self.link_datastream(
-                    user=user, uid=data_source.id, datastream_id=datastream_id
+                    principal=principal, uid=data_source.id, datastream_id=datastream_id
                 )
 
         return data_source
 
-    def update(self, user: User, uid: uuid.UUID, data: DataSourcePatchBody):
-        data_source = self.get_data_source_for_action(user=user, uid=uid, action="edit")
+    def update(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: DataSourcePatchBody
+    ):
+        data_source = self.get_data_source_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
         data_source_data = data.dict(
             include=set(DataSourceFields.model_fields.keys()),
             exclude_unset=True,
@@ -141,7 +152,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         if data.orchestration_system_id:
             orchestration_system = self.validate_orchestration_system(
-                user=user,
+                principal=principal,
                 orchestration_system_id=data.orchestration_system_id,
                 workspace=data_source.workspace,
             )
@@ -195,9 +206,9 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return data_source
 
-    def delete(self, user: User, uid: uuid.UUID):
+    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
         data_source = self.get_data_source_for_action(
-            user=user, uid=uid, action="delete"
+            principal=principal, uid=uid, action="delete"
         )
 
         data_source.delete()
@@ -206,13 +217,15 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
     def link_datastream(
         self,
-        user: User,
+        principal: Union[User, APIKey],
         uid: uuid.UUID,
         datastream_id: uuid.UUID,
     ):
-        data_source = self.get_data_source_for_action(user=user, uid=uid, action="edit")
+        data_source = self.get_data_source_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
         datastream = datastream_service.get_datastream_for_action(
-            user=user, uid=datastream_id, action="edit"
+            principal=principal, uid=datastream_id, action="edit"
         )
 
         if datastream.data_source is not None:
@@ -228,10 +241,14 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return "Data source configured for datastream"
 
-    def unlink_datastream(self, user: User, uid: uuid.UUID, datastream_id: uuid.UUID):
-        data_source = self.get_data_source_for_action(user=user, uid=uid, action="edit")
+    def unlink_datastream(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, datastream_id: uuid.UUID
+    ):
+        data_source = self.get_data_source_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
         datastream = datastream_service.get_datastream_for_action(
-            user=user, uid=datastream_id, action="edit"
+            principal=principal, uid=datastream_id, action="edit"
         )
 
         if datastream.data_source != data_source:

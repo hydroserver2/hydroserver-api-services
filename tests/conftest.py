@@ -2,6 +2,7 @@ import pytest
 from django.db import transaction
 from django.core.management import call_command
 from django.contrib.auth import get_user_model
+from iam.models import APIKey
 
 User = get_user_model()
 
@@ -30,11 +31,17 @@ def enable_db_access_for_all_tests(db):
 
 
 @pytest.fixture
-def get_user():
-    def _get_user(email):
-        try:
-            return User.objects.get(email=f"{email}@example.com")
-        except User.DoesNotExist:
-            return None
+def get_principal():
+    def _get_principal(identifier):
+        if identifier and identifier.startswith("apikey"):
+            try:
+                return APIKey.objects.get(name=identifier)
+            except APIKey.DoesNotExist:
+                return None
+        else:
+            try:
+                return User.objects.get(email=f"{identifier}@example.com")
+            except User.DoesNotExist:
+                return None
 
-    return _get_user
+    return _get_principal

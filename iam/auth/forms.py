@@ -26,6 +26,6 @@ class UserSignupForm(forms.Form):
 
     def signup(self, request, user):
         account = AccountPatchBody(**self.cleaned_data)
-        AccountService.update(user=user, data=account)
+        AccountService.update(principal=user, data=account)
         user.is_ownership_allowed = settings.ACCOUNT_OWNERSHIP_ENABLED
         user.save()

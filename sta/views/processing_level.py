@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
     ProcessingLevelGetResponse,
@@ -17,7 +17,7 @@ processing_level_service = ProcessingLevelService()
 
 @processing_level_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[ProcessingLevelGetResponse],
         401: str,
@@ -32,13 +32,13 @@ def get_processing_levels(
     """
 
     return 200, processing_level_service.list(
-        user=request.authenticated_user, workspace_id=workspace_id
+        principal=request.principal, workspace_id=workspace_id
     )
 
 
 @processing_level_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: ProcessingLevelGetResponse,
         400: str,
@@ -56,14 +56,12 @@ def create_processing_level(
     Create a new Processing Level.
     """
 
-    return 201, processing_level_service.create(
-        user=request.authenticated_user, data=data
-    )
+    return 201, processing_level_service.create(principal=request.principal, data=data)
 
 
 @processing_level_router.get(
     "/{processing_level_id}",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: ProcessingLevelGetResponse,
         401: str,
@@ -80,13 +78,13 @@ def get_processing_level(
     """
 
     return 200, processing_level_service.get(
-        user=request.authenticated_user, uid=processing_level_id
+        principal=request.principal, uid=processing_level_id
     )
 
 
 @processing_level_router.patch(
     "/{processing_level_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: ProcessingLevelGetResponse,
         400: str,
@@ -107,13 +105,13 @@ def update_processing_level(
     """
 
     return 200, processing_level_service.update(
-        user=request.authenticated_user, uid=processing_level_id, data=data
+        principal=request.principal, uid=processing_level_id, data=data
     )
 
 
 @processing_level_router.delete(
     "/{processing_level_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -131,5 +129,5 @@ def delete_processing_level(
     """
 
     return 204, processing_level_service.delete(
-        user=request.authenticated_user, uid=processing_level_id
+        principal=request.principal, uid=processing_level_id
     )

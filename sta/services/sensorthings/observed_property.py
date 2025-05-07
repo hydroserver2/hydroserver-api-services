@@ -32,8 +32,8 @@ class ObservedPropertyEngine(ObservedPropertyBaseEngine, SensorThingsUtils):
             )
 
         observed_properties = observed_properties.visible(
-            user=self.request.authenticated_user
-        )  # noqa
+            principal=self.request.principal  # noqa
+        )
 
         if filters:
             observed_properties = self.apply_filters(

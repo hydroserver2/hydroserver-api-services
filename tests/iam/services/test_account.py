@@ -11,10 +11,10 @@ from iam.services.account import AccountService
 account_service = AccountService()
 
 
-@pytest.mark.parametrize("user", ["owner", "admin", "limited", "inactive"])
-def test_get_account(get_user, user):
-    account = account_service.get(user=get_user(user))
-    assert account.email.startswith(user)
+@pytest.mark.parametrize("principal", ["owner", "admin", "limited", "inactive"])
+def test_get_account(get_principal, principal):
+    account = account_service.get(principal=get_principal(principal))
+    assert account.email.startswith(principal)
     assert AccountGetResponse.from_orm(account)
 
 
@@ -45,7 +45,7 @@ def test_create_account(account_data):
 
 
 @pytest.mark.parametrize(
-    "user, account_data",
+    "principal, account_data",
     [
         (
             "owner",
@@ -60,8 +60,10 @@ def test_create_account(account_data):
         ),
     ],
 )
-def test_update_account(get_user, user, account_data):
-    account = account_service.update(user=get_user(user), data=account_data)
+def test_update_account(get_principal, principal, account_data):
+    account = account_service.update(
+        principal=get_principal(principal), data=account_data
+    )
     assert account.first_name == account_data.first_name
     assert account.last_name == account_data.last_name
     assert account.user_type == account_data.user_type
@@ -71,14 +73,16 @@ def test_update_account(get_user, user, account_data):
 
 
 @pytest.mark.parametrize(
-    "user, max_queries",
+    "principal, max_queries",
     [
-        ("owner", 47),
-        ("admin", 41),
-        ("limited", 41),
+        ("owner", 49),
+        ("admin", 42),
+        ("limited", 42),
     ],
 )
-def test_delete_account(django_assert_max_num_queries, get_user, user, max_queries):
+def test_delete_account(
+    django_assert_max_num_queries, get_principal, principal, max_queries
+):
     with django_assert_max_num_queries(max_queries):
-        message = account_service.delete(get_user(user))
+        message = account_service.delete(get_principal(principal))
         assert message == "User account has been deleted"

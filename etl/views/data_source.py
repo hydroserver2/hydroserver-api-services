@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import DataSourceGetResponse, DataSourcePostBody, DataSourcePatchBody
 from etl.services import DataSourceService
@@ -13,7 +13,7 @@ data_source_service = DataSourceService()
 
 @data_source_router.get(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: list[DataSourceGetResponse],
         401: str,
@@ -30,7 +30,7 @@ def get_data_sources(
     """
 
     return 200, data_source_service.list(
-        user=request.authenticated_user,
+        principal=request.principal,
         workspace_id=workspace_id,
         orchestration_system_id=orchestration_system_id,
     )
@@ -38,7 +38,7 @@ def get_data_sources(
 
 @data_source_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: DataSourceGetResponse,
         400: str,
@@ -54,12 +54,12 @@ def create_data_source(request: HydroServerHttpRequest, data: DataSourcePostBody
     Create a new Data Source.
     """
 
-    return 201, data_source_service.create(user=request.authenticated_user, data=data)
+    return 201, data_source_service.create(principal=request.principal, data=data)
 
 
 @data_source_router.get(
     "/{data_source_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: DataSourceGetResponse,
         401: str,
@@ -73,14 +73,12 @@ def get_data_source(request: HydroServerHttpRequest, data_source_id: Path[uuid.U
     Get a Data Source.
     """
 
-    return 200, data_source_service.get(
-        user=request.authenticated_user, uid=data_source_id
-    )
+    return 200, data_source_service.get(principal=request.principal, uid=data_source_id)
 
 
 @data_source_router.patch(
     "/{data_source_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: DataSourceGetResponse,
         400: str,
@@ -101,13 +99,13 @@ def update_data_source(
     """
 
     return 200, data_source_service.update(
-        user=request.authenticated_user, uid=data_source_id, data=data
+        principal=request.principal, uid=data_source_id, data=data
     )
 
 
 @data_source_router.delete(
     "/{data_source_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -125,13 +123,13 @@ def delete_data_source(
     """
 
     return 204, data_source_service.delete(
-        user=request.authenticated_user, uid=data_source_id
+        principal=request.principal, uid=data_source_id
     )
 
 
 @data_source_router.post(
     "/{data_source_id}/datastreams/{datastream_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: str,
         400: str,
@@ -152,13 +150,13 @@ def link_datastream(
     """
 
     return 201, data_source_service.link_datastream(
-        user=request.authenticated_user, uid=data_source_id, datastream_id=datastream_id
+        principal=request.principal, uid=data_source_id, datastream_id=datastream_id
     )
 
 
 @data_source_router.delete(
     "/{data_source_id}/datastreams/{datastream_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -178,5 +176,5 @@ def unlink_datastream(
     """
 
     return 204, data_source_service.unlink_datastream(
-        user=request.authenticated_user, uid=data_source_id, datastream_id=datastream_id
+        principal=request.principal, uid=data_source_id, datastream_id=datastream_id
     )

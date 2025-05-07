@@ -35,8 +35,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
             things = things.filter(locations__id__in=location_ids)
 
         things = things.prefetch_related("locations", "photos", "tags").visible(
-            user=self.request.authenticated_user
-        )  # noqa
+            principal=self.request.principal  # noqa
+        )
 
         if filters:
             things = self.apply_filters(

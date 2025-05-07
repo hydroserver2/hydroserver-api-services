@@ -8,8 +8,8 @@ User = get_user_model()
 
 class AccountService:
     @staticmethod
-    def get(user: User):
-        return user
+    def get(principal: User):
+        return principal
 
     @staticmethod
     def create(data: AccountPostBody):
@@ -41,7 +41,7 @@ class AccountService:
             raise HttpError(422, str(e))
 
     @staticmethod
-    def update(user: User, data: AccountPatchBody):
+    def update(principal: User, data: AccountPatchBody):
         try:
             user_body = data.dict(
                 include=set(data.model_fields.keys()),
@@ -63,31 +63,33 @@ class AccountService:
             )
 
             for field, value in user_body.items():
-                setattr(user, field, value)
+                setattr(principal, field, value)
 
             if update_organization:
                 if organization_body:
-                    if user.organization:
+                    if principal.organization:
                         for field, value in organization_body.items():
-                            setattr(user.organization, field, value)
-                        user.organization.save()
+                            setattr(principal.organization, field, value)
+                        principal.organization.save()
                     else:
-                        user.organization = Organization.objects.create(**organization_body)
+                        principal.organization = Organization.objects.create(
+                            **organization_body
+                        )
                 else:
-                    if user.organization:
-                        user.organization.delete()
-                        user.organization = None
+                    if principal.organization:
+                        principal.organization.delete()
+                        principal.organization = None
 
         except ValueError as e:
             raise HttpError(422, str(e))
 
-        user.save()
+        principal.save()
 
-        return user
+        return principal
 
     @staticmethod
-    def delete(user: User):
-        user.delete()
+    def delete(principal: User):
+        principal.delete()
 
         return "User account has been deleted"
 

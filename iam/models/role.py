@@ -13,29 +13,34 @@ if typing.TYPE_CHECKING:
 
 
 class RoleQueryset(models.QuerySet):
-    def visible(self, user: Optional["User"]):
-        if user is None:
+    def visible(self, principal: Optional["User"]):
+        if principal is None:
             return self.filter(
                 Q(workspace__isnull=True) | Q(workspace__is_private=False)
             )
-        elif user.account_type == "admin":
-            return self
+        elif hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return self
+            else:
+                return self.filter(
+                    Q(workspace__isnull=True)
+                    | Q(workspace__is_private=False)
+                    | Q(workspace__owner=principal)
+                    | Q(
+                        workspace__collaborators__user=principal,
+                        workspace__collaborators__role__permissions__resource_type__in=[
+                            "*",
+                            "Role",
+                        ],
+                        workspace__collaborators__role__permissions__permission_type__in=[
+                            "*",
+                            "view",
+                        ],
+                    )
+                )
         else:
             return self.filter(
-                Q(workspace__isnull=True)
-                | Q(workspace__is_private=False)
-                | Q(workspace__owner=user)
-                | Q(
-                    workspace__collaborators__user=user,
-                    workspace__collaborators__role__permissions__resource_type__in=[
-                        "*",
-                        "Role",
-                    ],
-                    workspace__collaborators__role__permissions__permission_type__in=[
-                        "*",
-                        "view",
-                    ],
-                )
+                Q(workspace__isnull=True) | Q(workspace__is_private=False)
             )
 
 
@@ -50,28 +55,25 @@ class Role(models.Model, PermissionChecker):
     )
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
+    is_user_role = models.BooleanField(default=True)
+    is_apikey_role = models.BooleanField(default=False)
 
     objects = RoleQueryset.as_manager()
 
     @classmethod
-    def can_user_create(cls, user: Optional["User"], workspace: Workspace):
+    def can_principal_create(cls, principal: Optional["User"], workspace: Workspace):
         return cls.check_create_permissions(
-            user=user, workspace=workspace, resource_type="Role"
+            principal=principal, workspace=workspace, resource_type="Role"
         )
 
-    def get_user_permissions(
-        self, user: Optional["User"]
+    def get_principal_permissions(
+        self, principal: Optional["User"]
     ) -> list[Literal["edit", "delete", "view"]]:
-        user_permissions = self.check_object_permissions(
-            user=user, workspace=self.workspace, resource_type="Role"
+        permissions = self.check_object_permissions(
+            principal=principal, workspace=self.workspace, resource_type="Role"
         )
 
-        if (not self.workspace or not self.workspace.is_private) and "view" not in list(
-            user_permissions
-        ):
-            user_permissions = list(user_permissions) + ["view"]
-
-        return user_permissions
+        return permissions
 
     def delete(self, *args, **kwargs):
         self.delete_contents(filter_arg=self, filter_suffix="")
@@ -79,9 +81,10 @@ class Role(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from iam.models import Permission, Collaborator
+        from iam.models import Permission, Collaborator, APIKey
 
         role_relation_filter = f"role__{filter_suffix}" if filter_suffix else "role"
 
+        APIKey.objects.filter(**{role_relation_filter: filter_arg}).delete()
         Collaborator.objects.filter(**{role_relation_filter: filter_arg}).delete()
         Permission.objects.filter(**{role_relation_filter: filter_arg}).delete()

@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import UnitGetResponse, UnitPostBody, UnitPatchBody
 from sta.services import UnitService
@@ -13,7 +13,7 @@ unit_service = UnitService()
 
 @unit_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[UnitGetResponse],
         401: str,
@@ -28,13 +28,13 @@ def get_units(
     """
 
     return 200, unit_service.list(
-        user=request.authenticated_user, workspace_id=workspace_id
+        principal=request.principal, workspace_id=workspace_id
     )
 
 
 @unit_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: UnitGetResponse,
         400: str,
@@ -49,12 +49,12 @@ def create_unit(request: HydroServerHttpRequest, data: UnitPostBody):
     Create a new Unit.
     """
 
-    return 201, unit_service.create(user=request.authenticated_user, data=data)
+    return 201, unit_service.create(principal=request.principal, data=data)
 
 
 @unit_router.get(
     "/{unit_id}",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: UnitGetResponse,
         401: str,
@@ -68,12 +68,12 @@ def get_unit(request: HydroServerHttpRequest, unit_id: Path[uuid.UUID]):
     Get a Unit.
     """
 
-    return 200, unit_service.get(user=request.authenticated_user, uid=unit_id)
+    return 200, unit_service.get(principal=request.principal, uid=unit_id)
 
 
 @unit_router.patch(
     "/{unit_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: UnitGetResponse,
         400: str,
@@ -91,14 +91,12 @@ def update_unit(
     Update a Unit.
     """
 
-    return 200, unit_service.update(
-        user=request.authenticated_user, uid=unit_id, data=data
-    )
+    return 200, unit_service.update(principal=request.principal, uid=unit_id, data=data)
 
 
 @unit_router.delete(
     "/{unit_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -113,4 +111,4 @@ def delete_unit(request: HydroServerHttpRequest, unit_id: Path[uuid.UUID]):
     Delete a Unit.
     """
 
-    return 204, unit_service.delete(user=request.authenticated_user, uid=unit_id)
+    return 204, unit_service.delete(principal=request.principal, uid=unit_id)

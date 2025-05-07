@@ -1,9 +1,10 @@
 import uuid
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import F
+from iam.models import APIKey
 from iam.services.utils import ServiceUtils
 from sta.models import Thing, Location, Tag, Photo
 from sta.schemas import (
@@ -21,7 +22,9 @@ User = get_user_model()
 class ThingService(ServiceUtils):
     @staticmethod
     def get_thing_for_action(
-        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+        principal: Union[User, APIKey],
+        uid: uuid.UUID,
+        action: Literal["view", "edit", "delete"],
     ):
         try:
             thing = (
@@ -32,7 +35,7 @@ class ThingService(ServiceUtils):
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
 
-        thing_permissions = thing.get_user_permissions(user=user)
+        thing_permissions = thing.get_principal_permissions(principal=principal)
 
         if "view" not in thing_permissions:
             raise HttpError(404, "Thing does not exist")
@@ -43,26 +46,30 @@ class ThingService(ServiceUtils):
         return thing
 
     @staticmethod
-    def list(user: Optional[User], workspace_id: Optional[uuid.UUID]):
+    def list(
+        principal: Optional[Union[User, APIKey]], workspace_id: Optional[uuid.UUID]
+    ):
         queryset = Thing.objects
 
         if workspace_id:
             queryset = queryset.filter(workspace_id=workspace_id)
 
         return (
-            queryset.visible(user=user)
+            queryset.visible(principal=principal)
             .prefetch_related("tags", "photos")
             .with_location()
             .distinct()
         )
 
-    def get(self, user: Optional[User], uid: uuid.UUID):
-        return self.get_thing_for_action(user=user, uid=uid, action="view")
+    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+        return self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-    def create(self, user: User, data: ThingPostBody):
-        workspace, _ = self.get_workspace(user=user, workspace_id=data.workspace_id)
+    def create(self, principal: Union[User, APIKey], data: ThingPostBody):
+        workspace, _ = self.get_workspace(
+            principal=principal, workspace_id=data.workspace_id
+        )
 
-        if not Thing.can_user_create(user=user, workspace=workspace):
+        if not Thing.can_principal_create(principal=principal, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this Thing")
 
         thing = Thing.objects.create(
@@ -80,8 +87,10 @@ class ThingService(ServiceUtils):
 
         return thing
 
-    def update(self, user: User, uid: uuid.UUID, data: ThingPatchBody):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+    def update(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: ThingPatchBody
+    ):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
         location = thing.location
 
         thing_data = data.dict(
@@ -106,8 +115,8 @@ class ThingService(ServiceUtils):
 
         return thing
 
-    def delete(self, user: User, uid: uuid.UUID):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="delete")
+    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="delete")
         location = thing.location
 
         thing.delete()
@@ -115,14 +124,14 @@ class ThingService(ServiceUtils):
 
         return "Thing deleted"
 
-    def get_tags(self, user: Optional[User], uid: uuid.UUID):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="view")
+    def get_tags(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
         return thing.tags
 
     @staticmethod
     def get_tag_keys(
-        user: Optional[User],
+        principal: Optional[Union[User, APIKey]],
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
     ):
@@ -135,23 +144,27 @@ class ThingService(ServiceUtils):
             queryset = queryset.filter(thing_id=thing_id)
 
         tags = (
-            queryset.visible(user=user)
+            queryset.visible(principal=principal)
             .values("key")
             .annotate(values=ArrayAgg(F("value"), distinct=True))
         )
 
         return {entry["key"]: entry["values"] for entry in tags}
 
-    def add_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+    def add_tag(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: TagPostBody
+    ):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         if Tag.objects.filter(thing=thing, key=data.key).exists():
             raise HttpError(400, "Tag already exists")
 
         return Tag.objects.create(thing=thing, key=data.key, value=data.value)
 
-    def update_tag(self, user: User, uid: uuid.UUID, data: TagPostBody):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+    def update_tag(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: TagPostBody
+    ):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
             tag = Tag.objects.get(thing=thing, key=data.key)
@@ -163,8 +176,10 @@ class ThingService(ServiceUtils):
 
         return tag
 
-    def remove_tag(self, user: User, uid: uuid.UUID, data: TagDeleteBody):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+    def remove_tag(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: TagDeleteBody
+    ):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
             tag = Tag.objects.get(thing=thing, key=data.key)
@@ -175,21 +190,23 @@ class ThingService(ServiceUtils):
 
         return "Tag deleted"
 
-    def get_photos(self, user: Optional[User], uid: uuid.UUID):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="view")
+    def get_photos(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
         return thing.photos
 
-    def add_photo(self, user: User, uid: uuid.UUID, file):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+    def add_photo(self, principal: Union[User, APIKey], uid: uuid.UUID, file):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         if Photo.objects.filter(thing=thing, name=file.name).exists():
             raise HttpError(400, "Photo already exists")
 
         return Photo.objects.create(thing=thing, name=file.name, photo=file)
 
-    def remove_photo(self, user: User, uid: uuid.UUID, data: PhotoDeleteBody):
-        thing = self.get_thing_for_action(user=user, uid=uid, action="edit")
+    def remove_photo(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: PhotoDeleteBody
+    ):
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
             photo = Photo.objects.get(thing=thing, name=data.name)

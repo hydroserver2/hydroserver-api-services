@@ -13,6 +13,7 @@ from iam.views import (
     workspace_router,
     role_router,
     collaborator_router,
+    api_key_router,
     iam_vocabulary_router,
 )
 
@@ -29,6 +30,7 @@ account_router.add_router("email", email_router)
 account_router.add_router("password", password_router)
 workspace_router.add_router("{workspace_id}/roles", role_router)
 workspace_router.add_router("{workspace_id}/collaborators", collaborator_router)
+workspace_router.add_router("{workspace_id}/api-keys", api_key_router)
 iam_api.add_router("{client}/account", account_router)
 iam_api.add_router("{client}/session", session_router)
 iam_api.add_router("{client}/provider", provider_router)

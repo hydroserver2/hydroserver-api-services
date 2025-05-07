@@ -1,9 +1,10 @@
 import uuid
+from typing import Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from croniter import croniter
 from datetime import datetime
-from iam.models import Workspace
+from iam.models import Workspace, APIKey
 from .orchestration_system import OrchestrationSystemService
 
 User = get_user_model()
@@ -41,11 +42,16 @@ class OrchestrationConfigurationUtils:
 
     @staticmethod
     def validate_orchestration_system(
-        user: User, orchestration_system_id: uuid.UUID, workspace: Workspace
+        principal: Union[User, APIKey],
+        orchestration_system_id: uuid.UUID,
+        workspace: Workspace,
     ):
         orchestration_system = (
             orchestration_system_service.get_orchestration_system_for_action(
-                user=user, uid=orchestration_system_id, action="view", raise_400=True
+                principal=principal,
+                uid=orchestration_system_id,
+                action="view",
+                raise_400=True,
             )
         )
 
