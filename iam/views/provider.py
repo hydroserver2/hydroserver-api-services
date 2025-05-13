@@ -47,9 +47,9 @@ def get_providers(request, client: Path[Literal["browser", "app"]]):
 @provider_router.delete(
     "connections", url_name="delete_connections", response={200: str}, by_alias=True
 )
-def get_providers(request, client: Path[Literal["browser", "app"]]):
+def delete_provider(request, client: Path[Literal["browser", "app"]]):
     """
-    Disconnect a provider accounts.
+    Disconnect a provider account.
     """
 
     response = provider_manage_view[client](request)

@@ -126,7 +126,7 @@ def update_api_key(
     by_alias=True,
 )
 @transaction.atomic
-def delete_workspace(
+def delete_api_key(
     request: HydroServerHttpRequest,
     workspace_id: Path[uuid.UUID],
     api_key_id: Path[uuid.UUID],
