@@ -16,6 +16,10 @@ from hydroserver.admin import VocabularyAdmin
 class UserAdmin(admin.ModelAdmin):
     list_display = ("email", "name", "account_type", "is_active")
 
+    def delete_queryset(self, request, queryset):
+        User.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
+
 
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
@@ -70,6 +74,10 @@ class OrganizationTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
 class WorkspaceAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "owner", "is_private")
 
+    def delete_queryset(self, request, queryset):
+        Workspace.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
+
 
 class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
     list_display = ("id", "name", "workspace__name")
@@ -90,6 +98,10 @@ class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request, "admin:iam_role_changelist", ["iam/fixtures/default_roles.yaml"]
         )
+
+    def delete_queryset(self, request, queryset):
+        Role.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
 
 
 class PermissionAdmin(admin.ModelAdmin):
