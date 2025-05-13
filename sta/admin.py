@@ -31,6 +31,10 @@ from hydroserver.admin import VocabularyAdmin
 class ThingAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "workspace__name", "is_private")
 
+    def delete_queryset(self, request, queryset):
+        Thing.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
+
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "thing__name", "thing__workspace__name")
@@ -153,6 +157,10 @@ class DatastreamAdmin(admin.ModelAdmin):
                 "You do not have permission to perform this action",
                 level="error",
             )
+
+    def delete_queryset(self, request, queryset):
+        Datastream.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
 
     populate_with_test_observations.short_description = (
         "Populate with test observations"

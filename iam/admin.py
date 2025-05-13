@@ -16,6 +16,14 @@ from hydroserver.admin import VocabularyAdmin
 class UserAdmin(admin.ModelAdmin):
     list_display = ("email", "name", "account_type", "is_active")
 
+    def delete_queryset(self, request, queryset):
+        User.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
+
+
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+
 
 class UserTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
     list_display = ("id", "name")
@@ -66,6 +74,10 @@ class OrganizationTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
 class WorkspaceAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "owner", "is_private")
 
+    def delete_queryset(self, request, queryset):
+        Workspace.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
+
 
 class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
     list_display = ("id", "name", "workspace__name")
@@ -87,16 +99,24 @@ class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
             request, "admin:iam_role_changelist", ["iam/fixtures/default_roles.yaml"]
         )
 
+    def delete_queryset(self, request, queryset):
+        Role.delete_contents(filter_arg=queryset, filter_suffix="in")
+        queryset.delete()
+
+
+class PermissionAdmin(admin.ModelAdmin):
+    list_display = ("id", "role__name", "permission_type", "resource_type", "role__workspace__name")
+
 
 class CollaboratorAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "role__name", "workspace__name")
 
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Organization)
+admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(UserType, UserTypeAdmin)
 admin.site.register(OrganizationType, OrganizationTypeAdmin)
 admin.site.register(Workspace, WorkspaceAdmin)
 admin.site.register(Role, RoleAdmin)
-admin.site.register(Permission)
+admin.site.register(Permission, PermissionAdmin)
 admin.site.register(Collaborator, CollaboratorAdmin)
