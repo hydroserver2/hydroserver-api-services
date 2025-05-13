@@ -17,6 +17,10 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ("email", "name", "account_type", "is_active")
 
 
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+
+
 class UserTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
     list_display = ("id", "name")
     change_list_template = "admin/iam/usertype/change_list.html"
@@ -88,15 +92,19 @@ class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
         )
 
 
+class PermissionAdmin(admin.ModelAdmin):
+    list_display = ("id", "role__name", "permission_type", "resource_type", "role__workspace__name")
+
+
 class CollaboratorAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "role__name", "workspace__name")
 
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Organization)
+admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(UserType, UserTypeAdmin)
 admin.site.register(OrganizationType, OrganizationTypeAdmin)
 admin.site.register(Workspace, WorkspaceAdmin)
 admin.site.register(Role, RoleAdmin)
-admin.site.register(Permission)
+admin.site.register(Permission, PermissionAdmin)
 admin.site.register(Collaborator, CollaboratorAdmin)
