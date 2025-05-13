@@ -8,7 +8,7 @@ sensor_service = SensorService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 6, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
@@ -20,6 +20,9 @@ sensor_service = SensorService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
         ("viewer", None, 6, 2),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
+        ("apikey", None, 4, 3),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
         ("anonymous", None, 4, 2),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
@@ -31,11 +34,11 @@ sensor_service = SensorService()
     ],
 )
 def test_list_sensor(
-    django_assert_num_queries, get_user, user, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
 ):
     with django_assert_num_queries(max_queries):
         sensor_list = sensor_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(sensor_list) == length
@@ -43,7 +46,7 @@ def test_list_sensor(
 
 
 @pytest.mark.parametrize(
-    "user, sensor, message, error_code",
+    "principal, sensor, message, error_code",
     [
         ("owner", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("owner", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
@@ -57,6 +60,14 @@ def test_list_sensor(
         ("viewer", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("viewer", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
         ("viewer", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
+        ("apikey", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
+        ("apikey", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
+        (
+            "apikey",
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
+        ),
         ("anonymous", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("anonymous", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
         (
@@ -87,20 +98,24 @@ def test_list_sensor(
         ),
     ],
 )
-def test_get_sensor(get_user, user, sensor, message, error_code):
+def test_get_sensor(get_principal, principal, sensor, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            sensor_service.get(user=get_user(user), uid=uuid.UUID(sensor))
+            sensor_service.get(
+                principal=get_principal(principal), uid=uuid.UUID(sensor)
+            )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        sensor_get = sensor_service.get(user=get_user(user), uid=uuid.UUID(sensor))
+        sensor_get = sensor_service.get(
+            principal=get_principal(principal), uid=uuid.UUID(sensor)
+        )
         assert sensor_get.name == message
         assert SensorGetResponse.from_orm(sensor_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
@@ -119,6 +134,18 @@ def test_get_sensor(get_user, user, sensor, message, error_code):
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -146,7 +173,7 @@ def test_get_sensor(get_user, user, sensor, message, error_code):
         ),
     ],
 )
-def test_create_sensor(get_user, user, workspace, message, error_code):
+def test_create_sensor(get_principal, principal, workspace, message, error_code):
     sensor_data = SensorPostBody(
         name="New",
         description="New",
@@ -156,11 +183,13 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            sensor_service.create(user=get_user(user), data=sensor_data)
+            sensor_service.create(principal=get_principal(principal), data=sensor_data)
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        sensor_create = sensor_service.create(user=get_user(user), data=sensor_data)
+        sensor_create = sensor_service.create(
+            principal=get_principal(principal), data=sensor_data
+        )
         assert sensor_create.description == sensor_data.description
         assert sensor_create.name == sensor_data.name
         assert sensor_create.encoding_type == sensor_data.encoding_type
@@ -169,7 +198,7 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, sensor, message, error_code",
+    "principal, sensor, message, error_code",
     [
         (
             "owner",
@@ -209,6 +238,24 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "a947c551-8e21-4848-a89b-3048aec69574",
             "You do not have permission",
@@ -258,7 +305,7 @@ def test_create_sensor(get_user, user, workspace, message, error_code):
         ),
     ],
 )
-def test_edit_sensor(get_user, user, sensor, message, error_code):
+def test_edit_sensor(get_principal, principal, sensor, message, error_code):
     sensor_data = SensorPatchBody(
         name="New",
         description="New",
@@ -268,13 +315,15 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             sensor_service.update(
-                user=get_user(user), uid=uuid.UUID(sensor), data=sensor_data
+                principal=get_principal(principal),
+                uid=uuid.UUID(sensor),
+                data=sensor_data,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         sensor_update = sensor_service.update(
-            user=get_user(user), uid=uuid.UUID(sensor), data=sensor_data
+            principal=get_principal(principal), uid=uuid.UUID(sensor), data=sensor_data
         )
         assert sensor_update.description == sensor_data.description
         assert sensor_update.name == sensor_data.name
@@ -284,7 +333,7 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, sensor, message, error_code",
+    "principal, sensor, message, error_code",
     [
         (
             "owner",
@@ -330,6 +379,24 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "a947c551-8e21-4848-a89b-3048aec69574",
             "You do not have permission",
@@ -379,14 +446,16 @@ def test_edit_sensor(get_user, user, sensor, message, error_code):
         ),
     ],
 )
-def test_delete_sensor(get_user, user, sensor, message, error_code):
+def test_delete_sensor(get_principal, principal, sensor, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            sensor_service.delete(user=get_user(user), uid=uuid.UUID(sensor))
+            sensor_service.delete(
+                principal=get_principal(principal), uid=uuid.UUID(sensor)
+            )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         sensor_delete = sensor_service.delete(
-            user=get_user(user), uid=uuid.UUID(sensor)
+            principal=get_principal(principal), uid=uuid.UUID(sensor)
         )
         assert sensor_delete == "Sensor deleted"

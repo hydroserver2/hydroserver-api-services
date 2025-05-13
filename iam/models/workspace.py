@@ -15,30 +15,41 @@ class WorkspaceQueryset(models.QuerySet):
     def get_queryset(self):
         return self.select_related("transfer_confirmation", "delete_confirmation")
 
-    def visible(self, user: Optional["User"]):
+    def visible(self, principal: Optional["User"]):
         queryset = self.get_queryset()
-        if user is None:
-            return queryset.filter(is_private=False)
-        elif user.account_type == "admin":
-            return queryset
-        else:
-            return queryset.filter(
-                Q(is_private=False)
-                | Q(owner=user)
-                | Q(collaborators__user=user)
-                | Q(transfer_confirmation__new_owner=user)
-            )
 
-    def associated(self, user: Optional["User"]):
-        queryset = self.get_queryset()
-        if user is None:
-            return queryset.none()
+        if principal is None:
+            return queryset.filter(is_private=False)
+        elif hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return queryset
+            else:
+                return queryset.filter(
+                    Q(is_private=False)
+                    | Q(owner=principal)
+                    | Q(collaborators__user=principal)
+                    | Q(transfer_confirmation__new_owner=principal)
+                )
+        elif hasattr(principal, "workspace"):
+            return queryset.filter(Q(is_private=False) | Q(pk=principal.workspace.pk))
         else:
+            return queryset.filter(is_private=False)
+
+    def associated(self, principal: Optional["User"]):
+        queryset = self.get_queryset()
+
+        if principal is None:
+            return queryset.none()
+        elif hasattr(principal, "account_type"):
             return queryset.filter(
-                Q(owner=user)
-                | Q(collaborators__user=user)
-                | Q(transfer_confirmation__new_owner=user)
+                Q(owner=principal)
+                | Q(collaborators__user=principal)
+                | Q(transfer_confirmation__new_owner=principal)
             )
+        elif hasattr(principal, "workspace"):
+            return queryset.filter(id=principal.workspace.id)
+        else:
+            return queryset.none()
 
 
 class Workspace(models.Model):
@@ -51,7 +62,9 @@ class Workspace(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["name", "owner"], name="unique_workspace_name_per_owner")
+            models.UniqueConstraint(
+                fields=["name", "owner"], name="unique_workspace_name_per_owner"
+            )
         ]
 
     @property
@@ -67,20 +80,36 @@ class Workspace(models.Model):
         return getattr(self, "delete_confirmation", None)
 
     @classmethod
-    def can_user_create(cls, user: Optional["User"]):
-        return user.account_type != "limited"
+    def can_principal_create(cls, principal: Optional["User"]):
+        return (
+            hasattr(principal, "account_type") and principal.account_type != "limited"
+        )
 
-    def get_user_permissions(
-        self, user: Optional["User"]
+    def get_principal_permissions(
+        self, principal: Optional["User"]
     ) -> list[Literal["edit", "delete", "view"]]:
-        if user and (user == self.owner or user.account_type == "admin"):
-            return ["view", "edit", "delete"]
-        elif self.is_private is False or self.collaborators.filter(user=user).exists():
-            return ["view"]
-        elif self.transfer_details and self.transfer_details.new_owner == user:
-            return ["view"]
+        if hasattr(principal, "account_type"):
+            if principal == self.owner or principal.account_type == "admin":
+                return ["view", "edit", "delete"]
+            elif (
+                self.is_private is False
+                or self.collaborators.filter(user=principal).exists()
+            ):
+                return ["view"]
+            elif self.transfer_details and self.transfer_details.new_owner == principal:
+                return ["view"]
+            else:
+                return []
+        elif hasattr(principal, "workspace"):
+            if self.is_private is False or principal.workspace == self:
+                return ["view"]
+            else:
+                return []
         else:
-            return []
+            if self.is_private is False:
+                return ["view"]
+            else:
+                return []
 
     def delete(self, *args, **kwargs):
         self.delete_contents(filter_arg=self, filter_suffix="")
@@ -88,7 +117,7 @@ class Workspace(models.Model):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from iam.models import Role, Collaborator
+        from iam.models import Role, Collaborator, APIKey
         from sta.models import (
             Thing,
             ObservedProperty,
@@ -109,6 +138,8 @@ class Workspace(models.Model):
             filter_arg=filter_arg, filter_suffix=workspace_relation_filter
         )
         Role.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
+
+        APIKey.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
 
         Thing.delete_contents(
             filter_arg=filter_arg, filter_suffix=workspace_relation_filter

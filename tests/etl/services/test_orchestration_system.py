@@ -12,7 +12,7 @@ orchestration_system_service = OrchestrationSystemService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 2, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
@@ -22,6 +22,9 @@ orchestration_system_service = OrchestrationSystemService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
         ("viewer", None, 2, 2),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
+        ("apikey", None, 1, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
+        ("apikey", "00000000-0000-0000-0000-000000000000", 0, 3),
         ("anonymous", None, 1, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
         ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
@@ -32,15 +35,15 @@ orchestration_system_service = OrchestrationSystemService()
 )
 def test_list_orchestration_system(
     django_assert_num_queries,
-    get_user,
-    user,
+    get_principal,
+    principal,
     workspace,
     length,
     max_queries,
 ):
     with django_assert_num_queries(max_queries):
         orchestration_system_list = orchestration_system_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(orchestration_system_list) == length
@@ -51,7 +54,7 @@ def test_list_orchestration_system(
 
 
 @pytest.mark.parametrize(
-    "user, orchestration_system, message, error_code",
+    "principal, orchestration_system, message, error_code",
     [
         (
             "owner",
@@ -100,6 +103,18 @@ def test_list_orchestration_system(
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
             "Workspace Orchestration System",
             None,
+        ),
+        (
+            "apikey",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "Global Orchestration System",
+            None,
+        ),
+        (
+            "apikey",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -140,25 +155,25 @@ def test_list_orchestration_system(
     ],
 )
 def test_get_orchestration_system(
-    get_user, user, orchestration_system, message, error_code
+    get_principal, principal, orchestration_system, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             orchestration_system_service.get(
-                user=get_user(user), uid=uuid.UUID(orchestration_system)
+                principal=get_principal(principal), uid=uuid.UUID(orchestration_system)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         orchestration_system_get = orchestration_system_service.get(
-            user=get_user(user), uid=uuid.UUID(orchestration_system)
+            principal=get_principal(principal), uid=uuid.UUID(orchestration_system)
         )
         assert orchestration_system_get.name == message
         assert OrchestrationSystemGetResponse.from_orm(orchestration_system_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         (
             "admin",
@@ -213,6 +228,18 @@ def test_get_orchestration_system(
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            None,
+            None,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -252,27 +279,29 @@ def test_get_orchestration_system(
         ),
     ],
 )
-def test_create_orchestration_system(get_user, user, workspace, message, error_code):
+def test_create_orchestration_system(
+    get_principal, principal, workspace, message, error_code
+):
     orchestration_system_data = OrchestrationSystemPostBody(
         name="New", workspace_id=uuid.UUID(workspace), orchestration_system_type="Test"
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             orchestration_system_service.create(
-                user=get_user(user), data=orchestration_system_data
+                principal=get_principal(principal), data=orchestration_system_data
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         orchestration_system_create = orchestration_system_service.create(
-            user=get_user(user), data=orchestration_system_data
+            principal=get_principal(principal), data=orchestration_system_data
         )
         assert orchestration_system_create.name == orchestration_system_data.name
         assert OrchestrationSystemGetResponse.from_orm(orchestration_system_create)
 
 
 @pytest.mark.parametrize(
-    "user, orchestration_system, message, error_code",
+    "principal, orchestration_system, message, error_code",
     [
         ("admin", "320ad0e1-1426-47f6-8a3a-886a7111a7c2", None, None),
         ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
@@ -310,6 +339,24 @@ def test_create_orchestration_system(get_user, user, workspace, message, error_c
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -362,7 +409,7 @@ def test_create_orchestration_system(get_user, user, workspace, message, error_c
     ],
 )
 def test_edit_orchestration_system(
-    get_user, user, orchestration_system, message, error_code
+    get_principal, principal, orchestration_system, message, error_code
 ):
     orchestration_system_data = OrchestrationSystemPatchBody(
         name="New", orchestration_system_type="Test"
@@ -370,7 +417,7 @@ def test_edit_orchestration_system(
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             orchestration_system_service.update(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(orchestration_system),
                 data=orchestration_system_data,
             )
@@ -378,7 +425,7 @@ def test_edit_orchestration_system(
         assert exc_info.value.message.startswith(message)
     else:
         orchestration_system_update = orchestration_system_service.update(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(orchestration_system),
             data=orchestration_system_data,
         )
@@ -387,7 +434,7 @@ def test_edit_orchestration_system(
 
 
 @pytest.mark.parametrize(
-    "user, orchestration_system, message, error_code",
+    "principal, orchestration_system, message, error_code",
     [
         (
             "admin",
@@ -430,6 +477,24 @@ def test_edit_orchestration_system(
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "7cb900d2-eb11-4a59-a05b-dd02d95af312",
+            "Orchestration system does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -482,17 +547,17 @@ def test_edit_orchestration_system(
     ],
 )
 def test_delete_orchestration_system(
-    get_user, user, orchestration_system, message, error_code
+    get_principal, principal, orchestration_system, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             orchestration_system_service.delete(
-                user=get_user(user), uid=uuid.UUID(orchestration_system)
+                principal=get_principal(principal), uid=uuid.UUID(orchestration_system)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         orchestration_system_delete = orchestration_system_service.delete(
-            user=get_user(user), uid=uuid.UUID(orchestration_system)
+            principal=get_principal(principal), uid=uuid.UUID(orchestration_system)
         )
         assert orchestration_system_delete == "Orchestration system deleted"

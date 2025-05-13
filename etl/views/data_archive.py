@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
     DataArchiveGetResponse,
@@ -17,7 +17,7 @@ data_archive_service = DataArchiveService()
 
 @data_archive_router.get(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: list[DataArchiveGetResponse],
         401: str,
@@ -34,7 +34,7 @@ def get_data_archives(
     """
 
     return 200, data_archive_service.list(
-        user=request.authenticated_user,
+        principal=request.principal,
         workspace_id=workspace_id,
         orchestration_system_id=orchestration_system_id,
     )
@@ -42,7 +42,7 @@ def get_data_archives(
 
 @data_archive_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: DataArchiveGetResponse,
         400: str,
@@ -58,12 +58,12 @@ def create_data_archive(request: HydroServerHttpRequest, data: DataArchivePostBo
     Create a new Data Archive.
     """
 
-    return 201, data_archive_service.create(user=request.authenticated_user, data=data)
+    return 201, data_archive_service.create(principal=request.principal, data=data)
 
 
 @data_archive_router.get(
     "/{data_archive_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: DataArchiveGetResponse,
         401: str,
@@ -78,13 +78,13 @@ def get_data_archive(request: HydroServerHttpRequest, data_archive_id: Path[uuid
     """
 
     return 200, data_archive_service.get(
-        user=request.authenticated_user, uid=data_archive_id
+        principal=request.principal, uid=data_archive_id
     )
 
 
 @data_archive_router.patch(
     "/{data_archive_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: DataArchiveGetResponse,
         400: str,
@@ -105,13 +105,13 @@ def update_data_archive(
     """
 
     return 200, data_archive_service.update(
-        user=request.authenticated_user, uid=data_archive_id, data=data
+        principal=request.principal, uid=data_archive_id, data=data
     )
 
 
 @data_archive_router.delete(
     "/{data_archive_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -129,13 +129,13 @@ def delete_data_archive(
     """
 
     return 204, data_archive_service.delete(
-        user=request.authenticated_user, uid=data_archive_id
+        principal=request.principal, uid=data_archive_id
     )
 
 
 @data_archive_router.post(
     "/{data_archive_id}/datastreams/{datastream_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: str,
         400: str,
@@ -156,7 +156,7 @@ def link_datastream(
     """
 
     return 201, data_archive_service.link_datastream(
-        user=request.authenticated_user,
+        principal=request.principal,
         uid=data_archive_id,
         datastream_id=datastream_id,
     )
@@ -164,7 +164,7 @@ def link_datastream(
 
 @data_archive_router.delete(
     "/{data_archive_id}/datastreams/{datastream_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -184,7 +184,7 @@ def unlink_datastream(
     """
 
     return 204, data_archive_service.unlink_datastream(
-        user=request.authenticated_user,
+        principal=request.principal,
         uid=data_archive_id,
         datastream_id=datastream_id,
     )

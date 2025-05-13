@@ -1,10 +1,10 @@
 import uuid
-from typing import Optional
+from typing import Optional, Union
 from ninja.errors import HttpError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
-from iam.models import Workspace, WorkspaceTransferConfirmation
+from iam.models import Workspace, WorkspaceTransferConfirmation, APIKey
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
 from .utils import ServiceUtils
 
@@ -13,69 +13,77 @@ User = get_user_model()
 
 class WorkspaceService(ServiceUtils):
     @staticmethod
-    def attach_role_and_transfer_fields(workspace: Workspace, user: Optional[User]):
-        if not user:
+    def attach_role_and_transfer_fields(
+        workspace: Workspace, principal: Optional[Union[User, APIKey]]
+    ):
+        if not principal:
             return workspace
 
         if workspace.transfer_details and (
-            workspace.transfer_details.new_owner == user or workspace.owner == user
+            workspace.transfer_details.new_owner == principal
+            or workspace.owner == principal
         ):
             workspace.pending_transfer_to = workspace.transfer_details.new_owner
 
-        collaborator = next(
-            (
-                i
-                for i in user.collaborator_roles
-                if i.user == user and i.workspace == workspace
-            ),
-            None,
-        )
+        if hasattr(principal, "collaborator_roles"):
+            collaborator = next(
+                (
+                    i
+                    for i in principal.collaborator_roles
+                    if i.user == principal and i.workspace == workspace
+                ),
+                None,
+            )
 
-        if collaborator:
-            workspace.collaborator_role = collaborator.role
+            if collaborator:
+                workspace.collaborator_role = collaborator.role
 
         return workspace
 
-    def list(self, user: Optional[User], associated_only: bool = False):
-        workspaces = Workspace.objects.visible(user=user).distinct()
+    def list(
+        self, principal: Optional[Union[User, APIKey]], associated_only: bool = False
+    ):
+        workspaces = Workspace.objects.visible(principal=principal).distinct()
 
-        if user:
-            user.collaborator_roles = list(user.workspace_roles.all())
+        if isinstance(principal, User):
+            principal.collaborator_roles = list(principal.workspace_roles.all())
 
         if associated_only:
-            workspaces = workspaces.associated(user=user)
+            workspaces = workspaces.associated(principal=principal)
 
         workspaces = [
-            self.attach_role_and_transfer_fields(workspace, user)
+            self.attach_role_and_transfer_fields(workspace, principal)
             for workspace in workspaces
         ]
 
         return workspaces
 
-    def get(self, user: Optional[User], uid: uuid.UUID):
-        workspace, _ = self.get_workspace(user=user, workspace_id=uid)
+    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+        workspace, _ = self.get_workspace(principal=principal, workspace_id=uid)
 
-        if user:
-            user.collaborator_roles = list(user.workspace_roles.all())
+        if isinstance(principal, User):
+            principal.collaborator_roles = list(principal.workspace_roles.all())
 
-        workspace = self.attach_role_and_transfer_fields(workspace, user)
+        workspace = self.attach_role_and_transfer_fields(workspace, principal)
 
         return workspace
 
     @staticmethod
-    def create(user: User, data: WorkspacePostBody):
-        if not Workspace.can_user_create(user):
+    def create(principal: User, data: WorkspacePostBody):
+        if not Workspace.can_principal_create(principal):
             raise HttpError(403, "You do not have permission to create this workspace")
 
         try:
-            workspace = Workspace.objects.create(owner=user, **data.dict())
+            workspace = Workspace.objects.create(owner=principal, **data.dict())
         except IntegrityError:
             raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
         return workspace
 
-    def update(self, user: User, uid: uuid.UUID, data: WorkspacePatchBody):
-        workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
+    def update(self, principal: User, uid: uuid.UUID, data: WorkspacePatchBody):
+        workspace, permissions = self.get_workspace(
+            principal=principal, workspace_id=uid
+        )
 
         if "edit" not in permissions:
             raise HttpError(403, "You do not have permission to edit this workspace")
@@ -90,13 +98,15 @@ class WorkspaceService(ServiceUtils):
         except IntegrityError:
             raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
-        user.collaborator_roles = list(user.workspace_roles.all())
-        workspace = self.attach_role_and_transfer_fields(workspace, user)
+        principal.collaborator_roles = list(principal.workspace_roles.all())
+        workspace = self.attach_role_and_transfer_fields(workspace, principal)
 
         return workspace
 
-    def delete(self, user: User, uid: uuid.UUID):
-        workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
+    def delete(self, principal: User, uid: uuid.UUID):
+        workspace, permissions = self.get_workspace(
+            principal=principal, workspace_id=uid
+        )
 
         if "delete" not in permissions:
             raise HttpError(403, "You do not have permission to delete this workspace")
@@ -105,8 +115,10 @@ class WorkspaceService(ServiceUtils):
 
         return "Workspace deleted"
 
-    def transfer(self, user: User, uid: uuid.UUID, data: WorkspaceTransferBody):
-        workspace, permissions = self.get_workspace(user=user, workspace_id=uid)
+    def transfer(self, principal: User, uid: uuid.UUID, data: WorkspaceTransferBody):
+        workspace, permissions = self.get_workspace(
+            principal=principal, workspace_id=uid
+        )
 
         if "edit" not in permissions:
             raise HttpError(
@@ -121,7 +133,7 @@ class WorkspaceService(ServiceUtils):
         except User.DoesNotExist:
             raise HttpError(400, f"No account with email '{data.new_owner}' found")
 
-        if not Workspace.can_user_create(new_owner):
+        if not Workspace.can_principal_create(new_owner):
             raise HttpError(
                 400, f"Workspace cannot be transferred to user '{data.new_owner}'"
             )
@@ -135,9 +147,9 @@ class WorkspaceService(ServiceUtils):
 
         return "Workspace transfer initiated"
 
-    def accept_transfer(self, user: User, uid: uuid.UUID):
+    def accept_transfer(self, principal: User, uid: uuid.UUID):
         workspace, permissions = self.get_workspace(
-            user=user, workspace_id=uid, override_view_permissions=True
+            principal=principal, workspace_id=uid, override_view_permissions=True
         )
 
         if "view" not in permissions:
@@ -146,12 +158,12 @@ class WorkspaceService(ServiceUtils):
         if not workspace.transfer_details:
             raise HttpError(400, "No workspace transfer is pending")
 
-        if workspace.transfer_details.new_owner != user:
+        if workspace.transfer_details.new_owner != principal:
             raise HttpError(
                 403, "You do not have permission to accept this workspace transfer"
             )
 
-        workspace.owner = user
+        workspace.owner = principal
 
         try:
             workspace.save()
@@ -162,9 +174,9 @@ class WorkspaceService(ServiceUtils):
 
         return "Workspace transfer accepted"
 
-    def reject_transfer(self, user: User, uid: uuid.UUID):
+    def reject_transfer(self, principal: User, uid: uuid.UUID):
         workspace, permissions = self.get_workspace(
-            user=user, workspace_id=uid, override_view_permissions=True
+            principal=principal, workspace_id=uid, override_view_permissions=True
         )
 
         if "view" not in permissions:
@@ -174,7 +186,8 @@ class WorkspaceService(ServiceUtils):
             raise HttpError(400, "No workspace transfer is pending")
 
         if not (
-            workspace.transfer_details.new_owner == user or workspace.owner == user
+            workspace.transfer_details.new_owner == principal
+            or workspace.owner == principal
         ):
             raise HttpError(
                 403, "You do not have permission to reject this workspace transfer"

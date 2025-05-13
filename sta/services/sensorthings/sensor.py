@@ -26,7 +26,7 @@ class SensorEngine(SensorBaseEngine, SensorThingsUtils):
         if sensor_ids:
             sensors = sensors.filter(id__in=sensor_ids)
 
-        sensors = sensors.visible(user=self.request.authenticated_user)  # noqa
+        sensors = sensors.visible(principal=self.request.principal)  # noqa
 
         if filters:
             sensors = self.apply_filters(

@@ -8,7 +8,7 @@ unit_service = UnitService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 6, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
@@ -20,6 +20,9 @@ unit_service = UnitService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
         ("viewer", None, 6, 2),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
+        ("apikey", None, 4, 3),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
         ("anonymous", None, 4, 2),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
@@ -31,11 +34,11 @@ unit_service = UnitService()
     ],
 )
 def test_list_unit(
-    django_assert_num_queries, get_user, user, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
 ):
     with django_assert_num_queries(max_queries):
         unit_list = unit_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(unit_list) == length
@@ -43,7 +46,7 @@ def test_list_unit(
 
 
 @pytest.mark.parametrize(
-    "user, unit, message, error_code",
+    "principal, unit, message, error_code",
     [
         ("owner", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
@@ -57,6 +60,14 @@ def test_list_unit(
         ("viewer", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("viewer", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
         ("viewer", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
+        ("apikey", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
+        ("apikey", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
+        (
+            "apikey",
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
+        ),
         ("anonymous", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("anonymous", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
         (
@@ -87,20 +98,22 @@ def test_list_unit(
         ),
     ],
 )
-def test_get_unit(get_user, user, unit, message, error_code):
+def test_get_unit(get_principal, principal, unit, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            unit_service.get(user=get_user(user), uid=uuid.UUID(unit))
+            unit_service.get(principal=get_principal(principal), uid=uuid.UUID(unit))
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        unit_get = unit_service.get(user=get_user(user), uid=uuid.UUID(unit))
+        unit_get = unit_service.get(
+            principal=get_principal(principal), uid=uuid.UUID(unit)
+        )
         assert unit_get.name == message
         assert UnitGetResponse.from_orm(unit_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
@@ -119,6 +132,18 @@ def test_get_unit(get_user, user, unit, message, error_code):
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -146,7 +171,7 @@ def test_get_unit(get_user, user, unit, message, error_code):
         ),
     ],
 )
-def test_create_unit(get_user, user, workspace, message, error_code):
+def test_create_unit(get_principal, principal, workspace, message, error_code):
     unit_data = UnitPostBody(
         name="New",
         symbol="New",
@@ -156,11 +181,13 @@ def test_create_unit(get_user, user, workspace, message, error_code):
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            unit_service.create(user=get_user(user), data=unit_data)
+            unit_service.create(principal=get_principal(principal), data=unit_data)
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        unit_create = unit_service.create(user=get_user(user), data=unit_data)
+        unit_create = unit_service.create(
+            principal=get_principal(principal), data=unit_data
+        )
         assert unit_create.symbol == unit_data.symbol
         assert unit_create.name == unit_data.name
         assert unit_create.definition == unit_data.definition
@@ -169,7 +196,7 @@ def test_create_unit(get_user, user, workspace, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, unit, message, error_code",
+    "principal, unit, message, error_code",
     [
         (
             "owner",
@@ -209,6 +236,24 @@ def test_create_unit(get_user, user, workspace, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
             "You do not have permission",
@@ -258,20 +303,20 @@ def test_create_unit(get_user, user, workspace, message, error_code):
         ),
     ],
 )
-def test_edit_unit(get_user, user, unit, message, error_code):
+def test_edit_unit(get_principal, principal, unit, message, error_code):
     unit_data = UnitPatchBody(
         name="New", symbol="New", definition="New", unit_type="New"
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             unit_service.update(
-                user=get_user(user), uid=uuid.UUID(unit), data=unit_data
+                principal=get_principal(principal), uid=uuid.UUID(unit), data=unit_data
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         unit_update = unit_service.update(
-            user=get_user(user), uid=uuid.UUID(unit), data=unit_data
+            principal=get_principal(principal), uid=uuid.UUID(unit), data=unit_data
         )
         assert unit_update.definition == unit_data.definition
         assert unit_update.name == unit_data.name
@@ -281,7 +326,7 @@ def test_edit_unit(get_user, user, unit, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, unit, message, error_code",
+    "principal, unit, message, error_code",
     [
         (
             "owner",
@@ -327,6 +372,24 @@ def test_edit_unit(get_user, user, unit, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
             "You do not have permission",
@@ -376,12 +439,14 @@ def test_edit_unit(get_user, user, unit, message, error_code):
         ),
     ],
 )
-def test_delete_unit(get_user, user, unit, message, error_code):
+def test_delete_unit(get_principal, principal, unit, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            unit_service.delete(user=get_user(user), uid=uuid.UUID(unit))
+            unit_service.delete(principal=get_principal(principal), uid=uuid.UUID(unit))
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        unit_delete = unit_service.delete(user=get_user(user), uid=uuid.UUID(unit))
+        unit_delete = unit_service.delete(
+            principal=get_principal(principal), uid=uuid.UUID(unit)
+        )
         assert unit_delete == "Unit deleted"

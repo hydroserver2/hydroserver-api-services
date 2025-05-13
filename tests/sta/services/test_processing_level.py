@@ -12,7 +12,7 @@ processing_level_service = ProcessingLevelService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 6, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
@@ -24,6 +24,9 @@ processing_level_service = ProcessingLevelService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
         ("viewer", None, 6, 2),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
+        ("apikey", None, 4, 3),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
         ("anonymous", None, 4, 2),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
@@ -35,11 +38,11 @@ processing_level_service = ProcessingLevelService()
     ],
 )
 def test_list_processing_level(
-    django_assert_num_queries, get_user, user, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
 ):
     with django_assert_num_queries(max_queries):
         processing_level_list = processing_level_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(processing_level_list) == length
@@ -50,7 +53,7 @@ def test_list_processing_level(
 
 
 @pytest.mark.parametrize(
-    "user, processing_level, message, error_code",
+    "principal, processing_level, message, error_code",
     [
         (
             "owner",
@@ -125,6 +128,24 @@ def test_list_processing_level(
             None,
         ),
         (
+            "apikey",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "System Processing Level",
+            None,
+        ),
+        (
+            "apikey",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "Public Processing Level",
+            None,
+        ),
+        (
+            "apikey",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
             "System Processing Level",
@@ -174,24 +195,26 @@ def test_list_processing_level(
         ),
     ],
 )
-def test_get_processing_level(get_user, user, processing_level, message, error_code):
+def test_get_processing_level(
+    get_principal, principal, processing_level, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             processing_level_service.get(
-                user=get_user(user), uid=uuid.UUID(processing_level)
+                principal=get_principal(principal), uid=uuid.UUID(processing_level)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         processing_level_get = processing_level_service.get(
-            user=get_user(user), uid=uuid.UUID(processing_level)
+            principal=get_principal(principal), uid=uuid.UUID(processing_level)
         )
         assert processing_level_get.code == message
         assert ProcessingLevelGetResponse.from_orm(processing_level_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
@@ -212,6 +235,18 @@ def test_get_processing_level(get_user, user, processing_level, message, error_c
             403,
         ),
         (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
@@ -237,20 +272,22 @@ def test_get_processing_level(get_user, user, processing_level, message, error_c
         ),
     ],
 )
-def test_create_processing_level(get_user, user, workspace, message, error_code):
+def test_create_processing_level(
+    get_principal, principal, workspace, message, error_code
+):
     processing_level_data = ProcessingLevelPostBody(
         code="New", definition="New", workspace_id=uuid.UUID(workspace)
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             processing_level_service.create(
-                user=get_user(user), data=processing_level_data
+                principal=get_principal(principal), data=processing_level_data
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         processing_level_create = processing_level_service.create(
-            user=get_user(user), data=processing_level_data
+            principal=get_principal(principal), data=processing_level_data
         )
         assert processing_level_create.definition == processing_level_data.definition
         assert processing_level_create.code == processing_level_data.code
@@ -261,7 +298,7 @@ def test_create_processing_level(get_user, user, workspace, message, error_code)
 
 
 @pytest.mark.parametrize(
-    "user, processing_level, message, error_code",
+    "principal, processing_level, message, error_code",
     [
         (
             "owner",
@@ -301,6 +338,24 @@ def test_create_processing_level(get_user, user, workspace, message, error_code)
             403,
         ),
         (
+            "apikey",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
             "You do not have permission",
@@ -350,12 +405,14 @@ def test_create_processing_level(get_user, user, workspace, message, error_code)
         ),
     ],
 )
-def test_edit_processing_level(get_user, user, processing_level, message, error_code):
+def test_edit_processing_level(
+    get_principal, principal, processing_level, message, error_code
+):
     processing_level_data = ProcessingLevelPatchBody(code="New", definition="New")
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             processing_level_service.update(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(processing_level),
                 data=processing_level_data,
             )
@@ -363,7 +420,7 @@ def test_edit_processing_level(get_user, user, processing_level, message, error_
         assert exc_info.value.message.startswith(message)
     else:
         processing_level_update = processing_level_service.update(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(processing_level),
             data=processing_level_data,
         )
@@ -373,7 +430,7 @@ def test_edit_processing_level(get_user, user, processing_level, message, error_
 
 
 @pytest.mark.parametrize(
-    "user, processing_level, message, error_code",
+    "principal, processing_level, message, error_code",
     [
         (
             "owner",
@@ -419,6 +476,24 @@ def test_edit_processing_level(get_user, user, processing_level, message, error_
             403,
         ),
         (
+            "apikey",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
             "You do not have permission",
@@ -444,16 +519,18 @@ def test_edit_processing_level(get_user, user, processing_level, message, error_
         ),
     ],
 )
-def test_delete_processing_level(get_user, user, processing_level, message, error_code):
+def test_delete_processing_level(
+    get_principal, principal, processing_level, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             processing_level_service.delete(
-                user=get_user(user), uid=uuid.UUID(processing_level)
+                principal=get_principal(principal), uid=uuid.UUID(processing_level)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         processing_level_delete = processing_level_service.delete(
-            user=get_user(user), uid=uuid.UUID(processing_level)
+            principal=get_principal(principal), uid=uuid.UUID(processing_level)
         )
         assert processing_level_delete == "Processing level deleted"

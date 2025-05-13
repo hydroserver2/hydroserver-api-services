@@ -42,9 +42,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         if observation_ids:
             observations = observations.filter(id__in=observation_ids)
 
-        observations = observations.visible(
-            user=self.request.authenticated_user
-        )  # noqa
+        observations = observations.visible(principal=self.request.principal)  # noqa
 
         if filters:
             observations = self.apply_filters(
@@ -146,13 +144,13 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
     def create_observation(self, observation: ObservationPostBody) -> UUID:
         datastream = datastream_service.get_datastream_for_action(
-            user=self.request.authenticated_user,
+            principal=self.request.principal,  # noqa
             uid=observation.datastream.id,
-            action="view",  # noqa
+            action="view",
         )
 
-        if not Observation.can_user_create(
-            user=self.request.authenticated_user,  # noqa
+        if not Observation.can_principal_create(
+            principal=self.request.principal,  # noqa
             workspace=datastream.thing.workspace,
         ):
             raise HttpError(
@@ -189,13 +187,13 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
 
         for datastream_id, datastream_observations in observations.items():
             datastream = datastream_service.get_datastream_for_action(
-                user=self.request.authenticated_user,
+                principal=self.request.principal,  # noqa
                 uid=datastream_id,
-                action="view",  # noqa
+                action="view",
             )
 
-            if not Observation.can_user_create(
-                user=self.request.authenticated_user,  # noqa
+            if not Observation.can_principal_create(
+                principal=self.request.principal,  # noqa
                 workspace=datastream.thing.workspace,
             ):
                 raise HttpError(
@@ -209,7 +207,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             # ] for result_qualifier in result_qualifiers])):
             #     ResultQualifier.objects.get_by_id(
             #         result_qualifier_id=result_qualifier_id,
-            #         user=getattr(self, "request").authenticated_user,
+            #         principal=getattr(self, "request").principal,
             #         method="GET",
             #         fetch=False,
             #         raise_404=True
@@ -260,9 +258,9 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     def delete_observation(self, observation_id: str) -> None:
 
         observation = observation_service.get_observation_for_action(
-            user=self.request.authenticated_user,
+            principal=self.request.principal,  # noqa
             uid=observation_id,
-            action="delete",  # noqa
+            action="delete",
         )
 
         datastream_id = observation.datastream.id
@@ -278,9 +276,9 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
     ) -> None:
 
         datastream = datastream_service.get_datastream_for_action(
-            user=self.request.authenticated_user,
+            principal=self.request.principal,  # noqa
             uid=datastream_id,
-            action="view",  # noqa
+            action="view",
         )
 
         observations_count = Observation.objects.filter(
@@ -294,8 +292,8 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
             phenomenon_time__gte=start_time,
             phenomenon_time__lte=end_time,
         ).removable(
-            user=self.request.authenticated_user
-        )  # noqa
+            principal=self.request.principal  # noqa
+        )
 
         if observations_count == 0:
             raise HttpError(400, "No observations to delete within the given range")

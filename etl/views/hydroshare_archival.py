@@ -30,7 +30,7 @@ def get_thing_archive(request, thing_id: Path[uuid.UUID]):
     """
 
     return 200, hydroshare_archival_service.get(
-        user=request.authenticated_user, uid=thing_id
+        principal=request.principal, uid=thing_id
     )
 
 
@@ -55,7 +55,7 @@ def create_thing_archive(
     """
 
     return 201, hydroshare_archival_service.create(
-        user=request.authenticated_user, uid=thing_id, data=data
+        principal=request.principal, uid=thing_id, data=data
     )
 
 
@@ -76,7 +76,7 @@ def run_thing_archival(request, thing_id: Path[uuid.UUID]):
     """
 
     return 200, hydroshare_archival_service.run(
-        user=request.authenticated_user, uid=thing_id
+        principal=request.principal, uid=thing_id
     )
 
 
@@ -101,7 +101,7 @@ def update_archive(
     """
 
     return 200, hydroshare_archival_service.update(
-        user=request.authenticated_user, uid=thing_id, data=data
+        principal=request.principal, uid=thing_id, data=data
     )
 
 
@@ -122,5 +122,5 @@ def delete_archive(request, thing_id: Path[uuid.UUID]):
     """
 
     return 204, hydroshare_archival_service.delete(
-        user=request.authenticated_user, uid=thing_id
+        principal=request.principal, uid=thing_id
     )

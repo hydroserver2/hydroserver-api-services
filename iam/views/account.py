@@ -32,7 +32,7 @@ def get_account(
     Get user account details.
     """
 
-    return 200, account_service.get(user=request.authenticated_user)
+    return 200, account_service.get(principal=request.principal)
 
 
 @account_router.post(
@@ -75,7 +75,7 @@ def update_account(
     Update user account details.
     """
 
-    return 200, account_service.update(user=request.authenticated_user, data=data)
+    return 200, account_service.update(principal=request.principal, data=data)
 
 
 @account_router.delete(
@@ -89,5 +89,5 @@ def delete_account(
     """
 
     return 204, account_service.delete(
-        user=request.authenticated_user,
+        principal=request.principal,
     )

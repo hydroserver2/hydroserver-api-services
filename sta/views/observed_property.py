@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
     ObservedPropertyGetResponse,
@@ -17,7 +17,7 @@ observed_property_service = ObservedPropertyService()
 
 @observed_property_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[ObservedPropertyGetResponse],
         401: str,
@@ -32,13 +32,13 @@ def get_observed_properties(
     """
 
     return 200, observed_property_service.list(
-        user=request.authenticated_user, workspace_id=workspace_id
+        principal=request.principal, workspace_id=workspace_id
     )
 
 
 @observed_property_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: ObservedPropertyGetResponse,
         400: str,
@@ -56,14 +56,12 @@ def create_observed_property(
     Create a new Observed Property.
     """
 
-    return 201, observed_property_service.create(
-        user=request.authenticated_user, data=data
-    )
+    return 201, observed_property_service.create(principal=request.principal, data=data)
 
 
 @observed_property_router.get(
     "/{observed_property_id}",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: ObservedPropertyGetResponse,
         401: str,
@@ -80,13 +78,13 @@ def get_observed_property(
     """
 
     return 200, observed_property_service.get(
-        user=request.authenticated_user, uid=observed_property_id
+        principal=request.principal, uid=observed_property_id
     )
 
 
 @observed_property_router.patch(
     "/{observed_property_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: ObservedPropertyGetResponse,
         400: str,
@@ -107,13 +105,13 @@ def update_observed_property(
     """
 
     return 200, observed_property_service.update(
-        user=request.authenticated_user, uid=observed_property_id, data=data
+        principal=request.principal, uid=observed_property_id, data=data
     )
 
 
 @observed_property_router.delete(
     "/{observed_property_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -131,5 +129,5 @@ def delete_observed_property(
     """
 
     return 204, observed_property_service.delete(
-        user=request.authenticated_user, uid=observed_property_id
+        principal=request.principal, uid=observed_property_id
     )

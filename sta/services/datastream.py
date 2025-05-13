@@ -1,10 +1,11 @@
 import uuid
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 from ninja.errors import HttpError
 from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.http import StreamingHttpResponse
+from iam.models import APIKey
 from iam.services.utils import ServiceUtils
 from sta.models import Datastream, Observation
 from sta.schemas import DatastreamPostBody, DatastreamPatchBody
@@ -39,7 +40,7 @@ class DatastreamService(ServiceUtils):
 
     @staticmethod
     def get_datastream_for_action(
-        user: User,
+        principal: Union[User, APIKey],
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
         raise_400: bool = False,
@@ -51,7 +52,9 @@ class DatastreamService(ServiceUtils):
         except Datastream.DoesNotExist:
             raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
 
-        datastream_permissions = datastream.get_user_permissions(user=user)
+        datastream_permissions = datastream.get_principal_permissions(
+            principal=principal
+        )
 
         if "view" not in datastream_permissions:
             raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
@@ -66,7 +69,7 @@ class DatastreamService(ServiceUtils):
 
     @staticmethod
     def list(
-        user: Optional[User],
+        principal: Optional[Union[User, APIKey]],
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
     ):
@@ -78,21 +81,31 @@ class DatastreamService(ServiceUtils):
         if thing_id:
             queryset = queryset.filter(thing_id=thing_id)
 
-        return queryset.visible(user=user).select_related("thing__workspace").distinct()
-
-    def get(self, user: Optional[User], uid: uuid.UUID):
-        return self.get_datastream_for_action(user=user, uid=uid, action="view")
-
-    def create(self, user: User, data: DatastreamPostBody):
-        thing = self.handle_http_404_error(
-            thing_service.get, user=user, uid=data.thing_id
+        return (
+            queryset.visible(principal=principal)
+            .select_related("thing__workspace")
+            .distinct()
         )
 
-        if not Datastream.can_user_create(user=user, workspace=thing.workspace):
+    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+        return self.get_datastream_for_action(
+            principal=principal, uid=uid, action="view"
+        )
+
+    def create(self, principal: Union[User, APIKey], data: DatastreamPostBody):
+        thing = self.handle_http_404_error(
+            thing_service.get, principal=principal, uid=data.thing_id
+        )
+
+        if not Datastream.can_principal_create(
+            principal=principal, workspace=thing.workspace
+        ):
             raise HttpError(403, "You do not have permission to create this datastream")
 
         observed_property = self.handle_http_404_error(
-            observed_property_service.get, user=user, uid=data.observed_property_id
+            observed_property_service.get,
+            principal=principal,
+            uid=data.observed_property_id,
         )
         if observed_property.workspace not in (
             thing.workspace,
@@ -104,7 +117,9 @@ class DatastreamService(ServiceUtils):
             )
 
         processing_level = self.handle_http_404_error(
-            processing_level_service.get, user=user, uid=data.processing_level_id
+            processing_level_service.get,
+            principal=principal,
+            uid=data.processing_level_id,
         )
         if processing_level.workspace not in (
             thing.workspace,
@@ -116,7 +131,7 @@ class DatastreamService(ServiceUtils):
             )
 
         sensor = self.handle_http_404_error(
-            sensor_service.get, user=user, uid=data.sensor_id
+            sensor_service.get, principal=principal, uid=data.sensor_id
         )
         if sensor.workspace not in (
             thing.workspace,
@@ -126,7 +141,9 @@ class DatastreamService(ServiceUtils):
                 400, "The given sensor cannot be associated with this datastream"
             )
 
-        unit = self.handle_http_404_error(unit_service.get, user=user, uid=data.unit_id)
+        unit = self.handle_http_404_error(
+            unit_service.get, principal=principal, uid=data.unit_id
+        )
         if unit.workspace not in (
             thing.workspace,
             None,
@@ -141,14 +158,20 @@ class DatastreamService(ServiceUtils):
 
         return datastream
 
-    def update(self, user: User, uid: uuid.UUID, data: DatastreamPatchBody):
-        datastream = self.get_datastream_for_action(user=user, uid=uid, action="edit")
+    def update(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: DatastreamPatchBody
+    ):
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
         datastream_data = data.dict(
             include=set(DatastreamFields.model_fields.keys()), exclude_unset=True
         )
 
         thing = (
-            self.handle_http_404_error(thing_service.get, user=user, uid=data.thing_id)
+            self.handle_http_404_error(
+                thing_service.get, principal=principal, uid=data.thing_id
+            )
             if data.thing_id
             else None
         )
@@ -160,7 +183,9 @@ class DatastreamService(ServiceUtils):
 
         observed_property = (
             self.handle_http_404_error(
-                observed_property_service.get, user=user, uid=data.observed_property_id
+                observed_property_service.get,
+                principal=principal,
+                uid=data.observed_property_id,
             )
             if data.observed_property_id
             else None
@@ -176,7 +201,9 @@ class DatastreamService(ServiceUtils):
 
         processing_level = (
             self.handle_http_404_error(
-                processing_level_service.get, user=user, uid=data.processing_level_id
+                processing_level_service.get,
+                principal=principal,
+                uid=data.processing_level_id,
             )
             if data.processing_level_id
             else None
@@ -192,7 +219,7 @@ class DatastreamService(ServiceUtils):
 
         sensor = (
             self.handle_http_404_error(
-                sensor_service.get, user=user, uid=data.sensor_id
+                sensor_service.get, principal=principal, uid=data.sensor_id
             )
             if data.sensor_id
             else None
@@ -206,7 +233,9 @@ class DatastreamService(ServiceUtils):
             )
 
         unit = (
-            self.handle_http_404_error(unit_service.get, user=user, uid=data.unit_id)
+            self.handle_http_404_error(
+                unit_service.get, principal=principal, uid=data.unit_id
+            )
             if data.unit_id
             else None
         )
@@ -225,15 +254,19 @@ class DatastreamService(ServiceUtils):
 
         return datastream
 
-    def delete(self, user: User, uid: uuid.UUID):
-        datastream = self.get_datastream_for_action(user=user, uid=uid, action="delete")
+    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="delete"
+        )
         datastream.delete()
 
         return "Datastream deleted"
 
     @staticmethod
     def generate_csv(datastream: Datastream):
-        observations = Observation.objects.filter(datastream=datastream).order_by("phenomenon_time")
+        observations = Observation.objects.filter(datastream=datastream).order_by(
+            "phenomenon_time"
+        )
 
         latitude = (
             round(datastream.thing.location.latitude, 6)
@@ -337,14 +370,18 @@ class DatastreamService(ServiceUtils):
 
         yield "ResultTime,Result,ResultQualifiers\n"
 
-        for observation in observations.values_list("phenomenon_time", "result", "quality_code"):
+        for observation in observations.values_list(
+            "phenomenon_time", "result", "quality_code"
+        ):
             if observation[2]:
                 yield f'{observation[0].isoformat()},{observation[1]},"{observation[2]}"\n'
             else:
                 yield f"{observation[0].isoformat()},{observation[1]},\n"
 
-    def get_csv(self, user: User, uid: uuid.UUID):
-        datastream = self.get_datastream_for_action(user=user, uid=uid, action="view")
+    def get_csv(self, principal: Union[User, APIKey], uid: uuid.UUID):
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="view"
+        )
 
         response = StreamingHttpResponse(
             self.generate_csv(datastream), content_type="text/csv"
@@ -357,7 +394,7 @@ class DatastreamService(ServiceUtils):
 
     def list_observations(
         self,
-        user: User,
+        principal: Union[User, APIKey],
         uid: uuid.UUID,
         phenomenon_start_time: Optional[datetime] = None,
         phenomenon_end_time: Optional[datetime] = None,
@@ -365,7 +402,9 @@ class DatastreamService(ServiceUtils):
         page_size: Optional[int] = None,
         order: Literal["asc", "desc"] = "desc",
     ):
-        datastream = self.get_datastream_for_action(user=user, uid=uid, action="view")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="view"
+        )
 
         fields = ["phenomenon_time", "result"]
 

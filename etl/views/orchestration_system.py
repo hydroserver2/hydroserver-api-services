@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
     OrchestrationSystemGetResponse,
@@ -17,7 +17,7 @@ orchestration_system_service = OrchestrationSystemService()
 
 @orchestration_system_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[OrchestrationSystemGetResponse],
         401: str,
@@ -32,13 +32,13 @@ def get_orchestration_systems(
     """
 
     return 200, orchestration_system_service.list(
-        user=request.authenticated_user, workspace_id=workspace_id
+        principal=request.principal, workspace_id=workspace_id
     )
 
 
 @orchestration_system_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: OrchestrationSystemGetResponse,
         400: str,
@@ -57,13 +57,13 @@ def create_orchestration_system(
     """
 
     return 201, orchestration_system_service.create(
-        user=request.authenticated_user, data=data
+        principal=request.principal, data=data
     )
 
 
 @orchestration_system_router.get(
     "/{orchestration_system_id}",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: OrchestrationSystemGetResponse,
         401: str,
@@ -80,13 +80,13 @@ def get_orchestration_system(
     """
 
     return 200, orchestration_system_service.get(
-        user=request.authenticated_user, uid=orchestration_system_id
+        principal=request.principal, uid=orchestration_system_id
     )
 
 
 @orchestration_system_router.patch(
     "/{orchestration_system_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: OrchestrationSystemGetResponse,
         400: str,
@@ -107,13 +107,13 @@ def update_orchestration_system(
     """
 
     return 200, orchestration_system_service.update(
-        user=request.authenticated_user, uid=orchestration_system_id, data=data
+        principal=request.principal, uid=orchestration_system_id, data=data
     )
 
 
 @orchestration_system_router.delete(
     "/{orchestration_system_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -131,5 +131,5 @@ def delete_orchestration_system(
     """
 
     return 204, orchestration_system_service.delete(
-        user=request.authenticated_user, uid=orchestration_system_id
+        principal=request.principal, uid=orchestration_system_id
     )

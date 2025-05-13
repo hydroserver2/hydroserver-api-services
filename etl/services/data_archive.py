@@ -1,7 +1,8 @@
 import uuid
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
+from iam.models import APIKey
 from iam.services.utils import ServiceUtils
 from sta.services.datastream import DatastreamService
 from etl.models import DataArchive
@@ -23,7 +24,7 @@ datastream_service = DatastreamService()
 class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
     @staticmethod
     def get_data_archive_for_action(
-        user: User,
+        principal: Union[User, APIKey],
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
         fetch_datastreams: bool = False,
@@ -42,7 +43,9 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
                 404 if not raise_400 else 400, "Data archive does not exist"
             )
 
-        data_archive_permissions = data_archive.get_user_permissions(user=user)
+        data_archive_permissions = data_archive.get_principal_permissions(
+            principal=principal
+        )
 
         if "view" not in data_archive_permissions:
             raise HttpError(
@@ -59,7 +62,7 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
     @staticmethod
     def list(
-        user: User,
+        principal: Union[User, APIKey],
         workspace_id: Optional[uuid.UUID],
         orchestration_system_id: Optional[uuid.UUID],
     ):
@@ -74,25 +77,29 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         return (
             queryset.select_related("orchestration_system")
             .prefetch_related("datastreams")
-            .visible(user=user)
+            .visible(principal=principal)
             .distinct()
         )
 
-    def get(self, user: User, uid: uuid.UUID):
+    def get(self, principal: Union[User, APIKey], uid: uuid.UUID):
         return self.get_data_archive_for_action(
-            user=user, uid=uid, action="view", fetch_datastreams=True
+            principal=principal, uid=uid, action="view", fetch_datastreams=True
         )
 
-    def create(self, user: User, data: DataArchivePostBody):
-        workspace, _ = self.get_workspace(user=user, workspace_id=data.workspace_id)
+    def create(self, principal: Union[User, APIKey], data: DataArchivePostBody):
+        workspace, _ = self.get_workspace(
+            principal=principal, workspace_id=data.workspace_id
+        )
 
-        if not DataArchive.can_user_create(user=user, workspace=workspace):
+        if not DataArchive.can_principal_create(
+            principal=principal, workspace=workspace
+        ):
             raise HttpError(
                 403, "You do not have permission to create this data archive"
             )
 
         orchestration_system = self.validate_orchestration_system(
-            user=user,
+            principal=principal,
             orchestration_system_id=data.orchestration_system_id,
             workspace=workspace,
         )
@@ -131,14 +138,18 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         if data.datastream_ids:
             for datastream_id in data.datastream_ids:
                 self.link_datastream(
-                    user=user, uid=data_archive.id, datastream_id=datastream_id
+                    principal=principal,
+                    uid=data_archive.id,
+                    datastream_id=datastream_id,
                 )
 
         return data_archive
 
-    def update(self, user: User, uid: uuid.UUID, data: DataArchivePatchBody):
+    def update(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, data: DataArchivePatchBody
+    ):
         data_archive = self.get_data_archive_for_action(
-            user=user, uid=uid, action="edit"
+            principal=principal, uid=uid, action="edit"
         )
         data_archive_data = data.dict(
             include=set(DataArchiveFields.model_fields.keys()),
@@ -147,7 +158,7 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         if data.orchestration_system_id:
             orchestration_system = self.validate_orchestration_system(
-                user=user,
+                principal=principal,
                 orchestration_system_id=data.orchestration_system_id,
                 workspace=data_archive.workspace,
             )
@@ -199,9 +210,9 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return data_archive
 
-    def delete(self, user: User, uid: uuid.UUID):
+    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
         data_archive = self.get_data_archive_for_action(
-            user=user, uid=uid, action="delete"
+            principal=principal, uid=uid, action="delete"
         )
 
         data_archive.delete()
@@ -210,15 +221,15 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
     def link_datastream(
         self,
-        user: User,
+        principal: Union[User, APIKey],
         uid: uuid.UUID,
         datastream_id: uuid.UUID,
     ):
         data_archive = self.get_data_archive_for_action(
-            user=user, uid=uid, action="edit"
+            principal=principal, uid=uid, action="edit"
         )
         datastream = datastream_service.get_datastream_for_action(
-            user=user, uid=datastream_id, action="edit"
+            principal=principal, uid=datastream_id, action="edit"
         )
 
         if data_archive.datastreams.filter(pk=datastream.id).exists():
@@ -235,12 +246,14 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return "Data archive configured for datastream"
 
-    def unlink_datastream(self, user: User, uid: uuid.UUID, datastream_id: uuid.UUID):
+    def unlink_datastream(
+        self, principal: Union[User, APIKey], uid: uuid.UUID, datastream_id: uuid.UUID
+    ):
         data_archive = self.get_data_archive_for_action(
-            user=user, uid=uid, action="edit"
+            principal=principal, uid=uid, action="edit"
         )
         datastream = datastream_service.get_datastream_for_action(
-            user=user, uid=datastream_id, action="edit"
+            principal=principal, uid=datastream_id, action="edit"
         )
 
         if not data_archive.datastreams.filter(pk=datastream.id).exists():

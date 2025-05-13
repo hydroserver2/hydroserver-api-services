@@ -1,7 +1,7 @@
 import uuid
 from ninja import Router, Path
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from iam.schemas import (
     CollaboratorGetResponse,
@@ -16,7 +16,7 @@ collaborator_service = CollaboratorService()
 
 @collaborator_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[CollaboratorGetResponse],
         401: str,
@@ -30,7 +30,7 @@ def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.U
     """
 
     return 200, collaborator_service.list(
-        user=request.authenticated_user,
+        principal=request.principal,
         workspace_id=workspace_id,
     )
 
@@ -57,7 +57,7 @@ def add_collaborator(
     """
 
     return 201, collaborator_service.create(
-        user=request.authenticated_user,
+        principal=request.principal,
         workspace_id=workspace_id,
         data=data,
     )
@@ -85,7 +85,7 @@ def edit_collaborator_role(
     """
 
     return 200, collaborator_service.update(
-        user=request.authenticated_user,
+        principal=request.principal,
         workspace_id=workspace_id,
         data=data,
     )
@@ -113,7 +113,7 @@ def remove_collaborator(
     """
 
     return 204, collaborator_service.delete(
-        user=request.authenticated_user,
+        principal=request.principal,
         workspace_id=workspace_id,
         data=data,
     )

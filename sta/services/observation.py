@@ -1,7 +1,8 @@
 import uuid
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
+from iam.models import APIKey
 from iam.services.utils import ServiceUtils
 from sta.models import Observation
 
@@ -21,7 +22,9 @@ class ObservationService(ServiceUtils):
 
     @staticmethod
     def get_observation_for_action(
-        user: User, uid: uuid.UUID, action: Literal["view", "edit", "delete"]
+        principal: Union[User, APIKey],
+        uid: uuid.UUID,
+        action: Literal["view", "edit", "delete"],
     ):
         try:
             observation = Observation.objects.select_related(
@@ -30,7 +33,9 @@ class ObservationService(ServiceUtils):
         except Observation.DoesNotExist:
             raise HttpError(404, "Observation does not exist")
 
-        observation_permissions = observation.get_user_permissions(user=user)
+        observation_permissions = observation.get_principal_permissions(
+            principal=principal
+        )
 
         if "view" not in observation_permissions:
             raise HttpError(404, "Observation does not exist")
@@ -44,7 +49,7 @@ class ObservationService(ServiceUtils):
 
     @staticmethod
     def list(
-        user: Optional[User],
+        principal: Optional[Union[User, APIKey]],
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
         datastream_id: Optional[uuid.UUID],
@@ -60,7 +65,9 @@ class ObservationService(ServiceUtils):
         if datastream_id:
             queryset = queryset.filter(datastream_id=datastream_id)
 
-        return queryset.visible(user=user).distinct()
+        return queryset.visible(principal=principal).distinct()
 
-    def get(self, user: Optional[User], uid: uuid.UUID):
-        return self.get_observation_for_action(user=user, uid=uid, action="view")
+    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+        return self.get_observation_for_action(
+            principal=principal, uid=uid, action="view"
+        )

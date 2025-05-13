@@ -12,7 +12,7 @@ result_qualifier_service = ResultQualifierService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 3, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
@@ -24,6 +24,9 @@ result_qualifier_service = ResultQualifierService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
         ("viewer", None, 3, 2),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
+        ("apikey", None, 2, 3),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
         ("anonymous", None, 2, 2),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
@@ -35,11 +38,11 @@ result_qualifier_service = ResultQualifierService()
     ],
 )
 def test_list_result_qualifier(
-    django_assert_num_queries, get_user, user, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
 ):
     with django_assert_num_queries(max_queries):
         result_qualifier_list = result_qualifier_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(result_qualifier_list) == length
@@ -50,7 +53,7 @@ def test_list_result_qualifier(
 
 
 @pytest.mark.parametrize(
-    "user, result_qualifier, message, error_code",
+    "principal, result_qualifier, message, error_code",
     [
         (
             "owner",
@@ -125,6 +128,24 @@ def test_list_result_qualifier(
             None,
         ),
         (
+            "apikey",
+            "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
+            "SystemResultQualifier",
+            None,
+        ),
+        (
+            "apikey",
+            "c66e9597-f474-4a77-afa0-f2b5a673249e",
+            "PublicResultQualifier",
+            None,
+        ),
+        (
+            "apikey",
+            "932dffca-0277-4dc2-8129-cb10212c4185",
+            "Result qualifier does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
             "SystemResultQualifier",
@@ -174,24 +195,26 @@ def test_list_result_qualifier(
         ),
     ],
 )
-def test_get_result_qualifier(get_user, user, result_qualifier, message, error_code):
+def test_get_result_qualifier(
+    get_principal, principal, result_qualifier, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             result_qualifier_service.get(
-                user=get_user(user), uid=uuid.UUID(result_qualifier)
+                principal=get_principal(principal), uid=uuid.UUID(result_qualifier)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         result_qualifier_get = result_qualifier_service.get(
-            user=get_user(user), uid=uuid.UUID(result_qualifier)
+            principal=get_principal(principal), uid=uuid.UUID(result_qualifier)
         )
         assert result_qualifier_get.code == message
         assert ResultQualifierGetResponse.from_orm(result_qualifier_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
@@ -212,6 +235,18 @@ def test_get_result_qualifier(get_user, user, result_qualifier, message, error_c
             403,
         ),
         (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
@@ -237,20 +272,22 @@ def test_get_result_qualifier(get_user, user, result_qualifier, message, error_c
         ),
     ],
 )
-def test_create_result_qualifier(get_user, user, workspace, message, error_code):
+def test_create_result_qualifier(
+    get_principal, principal, workspace, message, error_code
+):
     result_qualifier_data = ResultQualifierPostBody(
         code="New", description="New", workspace_id=uuid.UUID(workspace)
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             result_qualifier_service.create(
-                user=get_user(user), data=result_qualifier_data
+                principal=get_principal(principal), data=result_qualifier_data
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         result_qualifier_create = result_qualifier_service.create(
-            user=get_user(user), data=result_qualifier_data
+            principal=get_principal(principal), data=result_qualifier_data
         )
         assert result_qualifier_create.description == result_qualifier_data.description
         assert result_qualifier_create.code == result_qualifier_data.code
@@ -261,7 +298,7 @@ def test_create_result_qualifier(get_user, user, workspace, message, error_code)
 
 
 @pytest.mark.parametrize(
-    "user, result_qualifier, message, error_code",
+    "principal, result_qualifier, message, error_code",
     [
         (
             "owner",
@@ -299,6 +336,24 @@ def test_create_result_qualifier(get_user, user, workspace, message, error_code)
             "932dffca-0277-4dc2-8129-cb10212c4185",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "c66e9597-f474-4a77-afa0-f2b5a673249e",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "932dffca-0277-4dc2-8129-cb10212c4185",
+            "Result qualifier does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -350,12 +405,14 @@ def test_create_result_qualifier(get_user, user, workspace, message, error_code)
         ),
     ],
 )
-def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_code):
+def test_edit_result_qualifier(
+    get_principal, principal, result_qualifier, message, error_code
+):
     result_qualifier_data = ResultQualifierPatchBody(code="New", description="New")
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             result_qualifier_service.update(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(result_qualifier),
                 data=result_qualifier_data,
             )
@@ -363,7 +420,7 @@ def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_
         assert exc_info.value.message.startswith(message)
     else:
         result_qualifier_update = result_qualifier_service.update(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(result_qualifier),
             data=result_qualifier_data,
         )
@@ -373,7 +430,7 @@ def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_
 
 
 @pytest.mark.parametrize(
-    "user, result_qualifier, message, error_code",
+    "principal, result_qualifier, message, error_code",
     [
         (
             "owner",
@@ -411,6 +468,24 @@ def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_
             "932dffca-0277-4dc2-8129-cb10212c4185",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "667b63fb-e7a9-4b10-b6d8-9a4bafdf11bf",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "c66e9597-f474-4a77-afa0-f2b5a673249e",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "932dffca-0277-4dc2-8129-cb10212c4185",
+            "Result qualifier does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -462,16 +537,18 @@ def test_edit_result_qualifier(get_user, user, result_qualifier, message, error_
         ),
     ],
 )
-def test_delete_result_qualifier(get_user, user, result_qualifier, message, error_code):
+def test_delete_result_qualifier(
+    get_principal, principal, result_qualifier, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             result_qualifier_service.delete(
-                user=get_user(user), uid=uuid.UUID(result_qualifier)
+                principal=get_principal(principal), uid=uuid.UUID(result_qualifier)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         result_qualifier_delete = result_qualifier_service.delete(
-            user=get_user(user), uid=uuid.UUID(result_qualifier)
+            principal=get_principal(principal), uid=uuid.UUID(result_qualifier)
         )
         assert result_qualifier_delete == "Result qualifier deleted"

@@ -11,6 +11,7 @@ class Command(BaseCommand):
             "tests/fixtures/test_workspaces.yaml",
             "tests/fixtures/test_roles.yaml",
             "tests/fixtures/test_collaborators.yaml",
+            "tests/fixtures/test_api_keys.yaml",
         ]
 
         for fixture in fixtures:

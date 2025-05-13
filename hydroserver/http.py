@@ -1,7 +1,10 @@
-from typing import Optional
+from typing import Optional, Union, TYPE_CHECKING
 from django.http import HttpRequest
 from django.conf import settings
 
+if TYPE_CHECKING:
+    from iam.models import APIKey
+
 
 class HydroServerHttpRequest(HttpRequest):
-    authenticated_user: Optional[settings.AUTH_USER_MODEL]
+    principal: Optional[Union[settings.AUTH_USER_MODEL, "APIKey"]]

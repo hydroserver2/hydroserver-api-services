@@ -1,10 +1,10 @@
 import typing
-from typing import Optional
+from typing import Optional, Union
 from .permission import Permission
 
 if typing.TYPE_CHECKING:
+    from iam.models import Workspace, APIKey
     from django.contrib.auth import get_user_model
-    from iam.models import Workspace
 
     User = get_user_model()
 
@@ -12,46 +12,88 @@ if typing.TYPE_CHECKING:
 class PermissionChecker:
     @classmethod
     def check_create_permissions(
-        cls, user: Optional["User"], workspace: "Workspace", resource_type: str
+        cls,
+        principal: Optional[Union["User", "APIKey"]],
+        workspace: "Workspace",
+        resource_type: str,
     ):
-        if not user:
+        if not principal:
             return False
 
-        if workspace.owner == user or user.account_type in ["admin", "staff"]:
-            return True
+        if hasattr(principal, "account_type"):
+            if workspace.owner == principal or principal.account_type in [
+                "admin",
+                "staff",
+            ]:
+                return True
 
-        permissions = Permission.objects.filter(
-            role__collaborator_assignments__user=user,
-            role__collaborator_assignments__workspace=workspace,
-            resource_type__in=["*", resource_type],
-        ).values_list("permission_type", flat=True)
+            permissions = Permission.objects.filter(
+                role__collaborator_assignments__user=principal,
+                role__collaborator_assignments__workspace=workspace,
+                resource_type__in=["*", resource_type],
+            ).values_list("permission_type", flat=True)
+
+        elif hasattr(principal, "workspace"):
+            if principal.workspace != workspace:
+                return False
+
+            permissions = Permission.objects.filter(
+                role=principal.role,
+                resource_type__in=["*", resource_type],
+            ).values_list("permission_type", flat=True)
+
+        else:
+            return False
 
         return any(perm in permissions for perm in ["*", "create"])
 
     @staticmethod
     def check_object_permissions(
-        user: Optional["User"], workspace: "Workspace", resource_type: str
+        principal: Optional[Union["User", "APIKey"]],
+        workspace: Optional["Workspace"],
+        resource_type: str,
     ):
         if not workspace:
-            if user and user.account_type in ["admin", "staff"]:
+            if hasattr(principal, "account_type") and principal.account_type in [
+                "admin",
+                "staff",
+            ]:
                 return ["view", "edit", "delete"]
             else:
                 return ["view"]
 
-        if user and (
-            user == workspace.owner or user.account_type in ["admin", "staff"]
-        ):
-            return ["view", "edit", "delete"]
+        if hasattr(principal, "account_type"):
+            if workspace.owner == principal or principal.account_type in [
+                "admin",
+                "staff",
+            ]:
+                return ["view", "edit", "delete"]
 
-        permissions = list(
-            Permission.objects.exclude(permission_type="create")
-            .filter(
-                role__collaborator_assignments__user=user,
-                role__collaborator_assignments__workspace=workspace,
-                resource_type__in=["*", resource_type],
+            permissions = list(
+                Permission.objects.exclude(permission_type="create")
+                .filter(
+                    role__collaborator_assignments__user=principal,
+                    role__collaborator_assignments__workspace=workspace,
+                    resource_type__in=["*", resource_type],
+                )
+                .values_list("permission_type", flat=True)
             )
-            .values_list("permission_type", flat=True)
-        )
+
+        elif hasattr(principal, "workspace"):
+            if principal.workspace != workspace:
+                permissions = []
+            else:
+                permissions = list(
+                    Permission.objects.exclude(permission_type="create")
+                    .filter(
+                        role=principal.role,
+                        resource_type__in=["*", resource_type],
+                    )
+                    .values_list("permission_type", flat=True)
+                )
+
+        else:
+            permissions = []
 
         if "*" in permissions:
             permissions = ["view", "edit", "delete"]
@@ -63,6 +105,7 @@ class PermissionChecker:
                 "OrchestrationSystem",
                 "DataSource",
                 "DataArchive",
+                "APIKey",
             ]:
                 permissions.append("view")
 

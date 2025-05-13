@@ -20,6 +20,8 @@ class PermissionGetResponse(BaseGetResponse, PermissionFields):
 class RoleFields(Schema):
     name: str = Field(..., max_length=255)
     description: str
+    is_user_role: bool
+    is_apikey_role: bool = Field(..., validation_alias="isAPIKeyRole")
 
 
 class RoleGetResponse(BaseGetResponse, RoleFields):

@@ -2,7 +2,7 @@ import uuid
 from ninja import Router, Path
 from typing import Optional
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
     ResultQualifierGetResponse,
@@ -17,7 +17,7 @@ result_qualifier_service = ResultQualifierService()
 
 @result_qualifier_router.get(
     "",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: list[ResultQualifierGetResponse],
         401: str,
@@ -32,13 +32,13 @@ def get_result_qualifiers(
     """
 
     return 200, result_qualifier_service.list(
-        user=request.authenticated_user, workspace_id=workspace_id
+        principal=request.principal, workspace_id=workspace_id
     )
 
 
 @result_qualifier_router.post(
     "",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         201: ResultQualifierGetResponse,
         401: str,
@@ -54,14 +54,12 @@ def create_result_qualifier(
     Create a new Result Qualifier.
     """
 
-    return 201, result_qualifier_service.create(
-        user=request.authenticated_user, data=data
-    )
+    return 201, result_qualifier_service.create(principal=request.principal, data=data)
 
 
 @result_qualifier_router.get(
     "/{result_qualifier_id}",
-    auth=[session_auth, bearer_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: ResultQualifierGetResponse,
         401: str,
@@ -78,13 +76,13 @@ def get_result_qualifier(
     """
 
     return 200, result_qualifier_service.get(
-        user=request.authenticated_user, uid=result_qualifier_id
+        principal=request.principal, uid=result_qualifier_id
     )
 
 
 @result_qualifier_router.patch(
     "/{result_qualifier_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: ResultQualifierGetResponse,
         401: str,
@@ -104,13 +102,13 @@ def update_result_qualifier(
     """
 
     return 200, result_qualifier_service.update(
-        user=request.authenticated_user, uid=result_qualifier_id, data=data
+        principal=request.principal, uid=result_qualifier_id, data=data
     )
 
 
 @result_qualifier_router.delete(
     "/{result_qualifier_id}",
-    auth=[session_auth, bearer_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: str,
         401: str,
@@ -128,5 +126,5 @@ def delete_result_qualifier(
     """
 
     return 204, result_qualifier_service.delete(
-        user=request.authenticated_user, uid=result_qualifier_id
+        principal=request.principal, uid=result_qualifier_id
     )

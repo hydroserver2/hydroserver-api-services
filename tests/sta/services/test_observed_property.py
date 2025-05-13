@@ -12,7 +12,7 @@ observed_property_service = ObservedPropertyService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 6, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
@@ -24,6 +24,10 @@ observed_property_service = ObservedPropertyService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
         ("viewer", None, 6, 2),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
+        ("apikey", None, 4, 3),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
+        ("apikey", "00000000-0000-0000-0000-000000000000", 0, 3),
         ("anonymous", None, 4, 2),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
@@ -35,11 +39,11 @@ observed_property_service = ObservedPropertyService()
     ],
 )
 def test_list_observed_property(
-    django_assert_num_queries, get_user, user, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
 ):
     with django_assert_num_queries(max_queries):
         observed_property_list = observed_property_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(observed_property_list) == length
@@ -50,7 +54,7 @@ def test_list_observed_property(
 
 
 @pytest.mark.parametrize(
-    "user, observed_property, message, error_code",
+    "principal, observed_property, message, error_code",
     [
         (
             "owner",
@@ -125,6 +129,24 @@ def test_list_observed_property(
             None,
         ),
         (
+            "apikey",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            "apikey",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        (
+            "apikey",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
             "System Observed Property",
@@ -174,24 +196,26 @@ def test_list_observed_property(
         ),
     ],
 )
-def test_get_observed_property(get_user, user, observed_property, message, error_code):
+def test_get_observed_property(
+    get_principal, principal, observed_property, message, error_code
+):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             observed_property_service.get(
-                user=get_user(user), uid=uuid.UUID(observed_property)
+                principal=get_principal(principal), uid=uuid.UUID(observed_property)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         observed_property_get = observed_property_service.get(
-            user=get_user(user), uid=uuid.UUID(observed_property)
+            principal=get_principal(principal), uid=uuid.UUID(observed_property)
         )
         assert observed_property_get.name == message
         assert ObservedPropertyGetResponse.from_orm(observed_property_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
@@ -212,6 +236,18 @@ def test_get_observed_property(get_user, user, observed_property, message, error
             403,
         ),
         (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
@@ -237,7 +273,9 @@ def test_get_observed_property(get_user, user, observed_property, message, error
         ),
     ],
 )
-def test_create_observed_property(get_user, user, workspace, message, error_code):
+def test_create_observed_property(
+    get_principal, principal, workspace, message, error_code
+):
     observed_property_data = ObservedPropertyPostBody(
         name="New",
         code="New",
@@ -249,13 +287,13 @@ def test_create_observed_property(get_user, user, workspace, message, error_code
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             observed_property_service.create(
-                user=get_user(user), data=observed_property_data
+                principal=get_principal(principal), data=observed_property_data
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         observed_property_create = observed_property_service.create(
-            user=get_user(user), data=observed_property_data
+            principal=get_principal(principal), data=observed_property_data
         )
         assert observed_property_create.name == observed_property_data.name
         assert (
@@ -277,7 +315,7 @@ def test_create_observed_property(get_user, user, workspace, message, error_code
 
 
 @pytest.mark.parametrize(
-    "user, observed_property, message, error_code",
+    "principal, observed_property, message, error_code",
     [
         (
             "owner",
@@ -317,6 +355,24 @@ def test_create_observed_property(get_user, user, workspace, message, error_code
             403,
         ),
         (
+            "apikey",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
             "You do not have permission",
@@ -366,7 +422,9 @@ def test_create_observed_property(get_user, user, workspace, message, error_code
         ),
     ],
 )
-def test_edit_observed_property(get_user, user, observed_property, message, error_code):
+def test_edit_observed_property(
+    get_principal, principal, observed_property, message, error_code
+):
     observed_property_data = ObservedPropertyPatchBody(
         name="New",
         code="New",
@@ -377,7 +435,7 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             observed_property_service.update(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(observed_property),
                 data=observed_property_data,
             )
@@ -385,7 +443,7 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
         assert exc_info.value.message.startswith(message)
     else:
         observed_property_update = observed_property_service.update(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(observed_property),
             data=observed_property_data,
         )
@@ -406,7 +464,7 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
 
 
 @pytest.mark.parametrize(
-    "user, observed_property, message, error_code",
+    "principal, observed_property, message, error_code",
     [
         (
             "owner",
@@ -450,6 +508,24 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
             "You do not have permission",
             403,
+        ),
+        (
+            "apikey",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -502,17 +578,17 @@ def test_edit_observed_property(get_user, user, observed_property, message, erro
     ],
 )
 def test_delete_observed_property(
-    get_user, user, observed_property, message, error_code
+    get_principal, principal, observed_property, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             observed_property_service.delete(
-                user=get_user(user), uid=uuid.UUID(observed_property)
+                principal=get_principal(principal), uid=uuid.UUID(observed_property)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         observed_property_delete = observed_property_service.delete(
-            user=get_user(user), uid=uuid.UUID(observed_property)
+            principal=get_principal(principal), uid=uuid.UUID(observed_property)
         )
         assert observed_property_delete == "Observed property deleted"

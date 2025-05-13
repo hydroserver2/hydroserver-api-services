@@ -1,6 +1,6 @@
 import uuid6
 import typing
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from django.db import models
 from django.db.models import Q
 from iam.models import Workspace
@@ -8,35 +8,52 @@ from iam.models.utils import PermissionChecker
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
-    from iam.models import Workspace
+    from iam.models import Workspace, APIKey
 
     User = get_user_model()
 
 
 class ResultQualifierQuerySet(models.QuerySet):
-    def visible(self, user: Optional["User"]):
-        if user is None:
-            return self.filter(
-                Q(workspace__isnull=True) | Q(workspace__is_private=False)
-            )
-        elif user.account_type == "admin":
-            return self
-        else:
+    def visible(self, principal: Optional[Union["User", "APIKey"]]):
+        if hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return self
+            else:
+                return self.filter(
+                    Q(workspace__isnull=True)
+                    | Q(workspace__is_private=False)
+                    | Q(workspace__owner=principal)
+                    | Q(
+                        workspace__collaborators__user=principal,
+                        workspace__collaborators__role__permissions__resource_type__in=[
+                            "*",
+                            "ResultQualifier",
+                        ],
+                        workspace__collaborators__role__permissions__permission_type__in=[
+                            "*",
+                            "view",
+                        ],
+                    )
+                )
+        elif hasattr(principal, "workspace"):
             return self.filter(
                 Q(workspace__isnull=True)
                 | Q(workspace__is_private=False)
-                | Q(workspace__owner=user)
                 | Q(
-                    workspace__collaborators__user=user,
-                    workspace__collaborators__role__permissions__resource_type__in=[
+                    workspace__apikeys=principal,
+                    workspace__apikeys__role__permissions__resource_type__in=[
                         "*",
                         "ResultQualifier",
                     ],
-                    workspace__collaborators__role__permissions__permission_type__in=[
+                    workspace__apikeys__role__permissions__permission_type__in=[
                         "*",
                         "view",
                     ],
                 )
+            )
+        else:
+            return self.filter(
+                Q(workspace__isnull=True) | Q(workspace__is_private=False)
             )
 
 
@@ -55,21 +72,25 @@ class ResultQualifier(models.Model, PermissionChecker):
     objects = ResultQualifierQuerySet.as_manager()
 
     @classmethod
-    def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
+    def can_principal_create(
+        cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"
+    ):
         return cls.check_create_permissions(
-            user=user, workspace=workspace, resource_type="ResultQualifier"
+            principal=principal, workspace=workspace, resource_type="ResultQualifier"
         )
 
-    def get_user_permissions(
-        self, user: Optional["User"]
+    def get_principal_permissions(
+        self, principal: Optional[Union["User", "APIKey"]]
     ) -> list[Literal["edit", "delete", "view"]]:
-        user_permissions = self.check_object_permissions(
-            user=user, workspace=self.workspace, resource_type="ResultQualifier"
+        permissions = self.check_object_permissions(
+            principal=principal,
+            workspace=self.workspace,
+            resource_type="ResultQualifier",
         )
 
         if (not self.workspace or not self.workspace.is_private) and "view" not in list(
-            user_permissions
+            permissions
         ):
-            user_permissions = list(user_permissions) + ["view"]
+            permissions = list(permissions) + ["view"]
 
-        return user_permissions
+        return permissions

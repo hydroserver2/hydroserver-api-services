@@ -1,5 +1,5 @@
 def anonymous_auth(request):
 
-    request.authenticated_user = None
+    request.principal = None
 
     return True

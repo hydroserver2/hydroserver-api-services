@@ -12,12 +12,19 @@ collaborator_service = CollaboratorService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
         ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None),
         (
             "anonymous",
@@ -34,17 +41,17 @@ collaborator_service = CollaboratorService()
         ),
     ],
 )
-def test_list_collaborator(get_user, user, workspace, message, error_code):
+def test_list_collaborator(get_principal, principal, workspace, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             collaborator_service.list(
-                user=get_user(user), workspace_id=uuid.UUID(workspace)
+                principal=get_principal(principal), workspace_id=uuid.UUID(workspace)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         collaborator_list = collaborator_service.list(
-            user=get_user(user), workspace_id=uuid.UUID(workspace)
+            principal=get_principal(principal), workspace_id=uuid.UUID(workspace)
         )
         assert len(collaborator_list) == message
         assert (
@@ -54,7 +61,7 @@ def test_list_collaborator(get_user, user, workspace, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, collaborator, workspace, role, message, error_code",
+    "principal, collaborator, workspace, role, message, error_code",
     [
         (
             "owner",
@@ -100,6 +107,14 @@ def test_list_collaborator(get_user, user, workspace, message, error_code):
             "viewer",
             "anonymous",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "You do not have permission",
             403,
@@ -179,12 +194,12 @@ def test_list_collaborator(get_user, user, workspace, message, error_code):
     ],
 )
 def test_create_collaborator(
-    get_user, user, collaborator, workspace, role, message, error_code
+    get_principal, principal, collaborator, workspace, role, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             collaborator_service.create(
-                user=get_user(user),
+                principal=get_principal(principal),
                 workspace_id=uuid.UUID(workspace),
                 data=CollaboratorPostBody(
                     email=f"{collaborator}@example.com", role_id=uuid.UUID(role)
@@ -194,7 +209,7 @@ def test_create_collaborator(
         assert exc_info.value.message.startswith(message)
     else:
         collaborator_create = collaborator_service.create(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace),
             data=CollaboratorPostBody(
                 email=f"{collaborator}@example.com", role_id=uuid.UUID(role)
@@ -205,7 +220,7 @@ def test_create_collaborator(
 
 
 @pytest.mark.parametrize(
-    "user, collaborator, workspace, role, message, error_code",
+    "principal, collaborator, workspace, role, message, error_code",
     [
         (
             "owner",
@@ -243,6 +258,14 @@ def test_create_collaborator(
             "viewer",
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "editor",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "You do not have permission",
             403,
@@ -314,12 +337,12 @@ def test_create_collaborator(
     ],
 )
 def test_update_collaborator(
-    get_user, user, collaborator, workspace, role, message, error_code
+    get_principal, principal, collaborator, workspace, role, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             collaborator_service.update(
-                user=get_user(user),
+                principal=get_principal(principal),
                 workspace_id=uuid.UUID(workspace),
                 data=CollaboratorPostBody(
                     email=f"{collaborator}@example.com", role_id=uuid.UUID(role)
@@ -329,7 +352,7 @@ def test_update_collaborator(
         assert exc_info.value.message.startswith(message)
     else:
         collaborator_update = collaborator_service.update(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace),
             data=CollaboratorPostBody(
                 email=f"{collaborator}@example.com", role_id=uuid.UUID(role)
@@ -340,7 +363,7 @@ def test_update_collaborator(
 
 
 @pytest.mark.parametrize(
-    "user, collaborator, workspace, message, error_code",
+    "principal, collaborator, workspace, message, error_code",
     [
         (
             "owner",
@@ -374,6 +397,13 @@ def test_update_collaborator(
             "viewer",
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "editor",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
             403,
         ),
@@ -422,12 +452,12 @@ def test_update_collaborator(
     ],
 )
 def test_delete_collaborator(
-    get_user, user, collaborator, workspace, message, error_code
+    get_principal, principal, collaborator, workspace, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             collaborator_service.delete(
-                user=get_user(user),
+                principal=get_principal(principal),
                 workspace_id=uuid.UUID(workspace),
                 data=CollaboratorDeleteBody(email=f"{collaborator}@example.com"),
             )
@@ -435,7 +465,7 @@ def test_delete_collaborator(
         assert exc_info.value.message.startswith(message)
     else:
         collaborator_delete = collaborator_service.delete(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace),
             data=CollaboratorDeleteBody(email=f"{collaborator}@example.com"),
         )

@@ -1,6 +1,6 @@
 import uuid6
 import typing
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from django.db import models
 from django.db.models import Q
 from iam.models.utils import PermissionChecker
@@ -8,32 +8,49 @@ from .orchestration_configuration import OrchestrationConfiguration
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
-    from iam.models import Workspace
+    from iam.models import Workspace, APIKey
 
     User = get_user_model()
 
 
 class DataArchiveQuerySet(models.QuerySet):
-    def visible(self, user: "User"):
-        if not user:
+    def visible(self, principal: Union["User", "APIKey"]):
+        if not principal:
             return self.none()
-        if user.account_type == "admin":
-            return self
-        else:
+        elif hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return self
+            else:
+                return self.filter(
+                    Q(workspace__owner=principal)
+                    | Q(
+                        workspace__collaborators__user=principal,
+                        workspace__collaborators__role__permissions__resource_type__in=[
+                            "*",
+                            "DataArchive",
+                        ],
+                        workspace__collaborators__role__permissions__permission_type__in=[
+                            "*",
+                            "view",
+                        ],
+                    )
+                )
+        elif hasattr(principal, "workspace"):
             return self.filter(
-                Q(workspace__owner=user)
-                | Q(
-                    workspace__collaborators__user=user,
-                    workspace__collaborators__role__permissions__resource_type__in=[
+                Q(
+                    workspace__apikeys=principal,
+                    workspace__apikeys__role__permissions__resource_type__in=[
                         "*",
                         "DataArchive",
                     ],
-                    workspace__collaborators__role__permissions__permission_type__in=[
+                    workspace__apikeys__role__permissions__permission_type__in=[
                         "*",
                         "view",
                     ],
                 )
             )
+        else:
+            return self.none()
 
 
 class DataArchive(OrchestrationConfiguration, PermissionChecker):
@@ -58,19 +75,21 @@ class DataArchive(OrchestrationConfiguration, PermissionChecker):
         return self
 
     @classmethod
-    def can_user_create(cls, user: Optional["User"], workspace: "Workspace"):
+    def can_principal_create(
+        cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"
+    ):
         return cls.check_create_permissions(
-            user=user, workspace=workspace, resource_type="DataArchive"
+            principal=principal, workspace=workspace, resource_type="DataArchive"
         )
 
-    def get_user_permissions(
-        self, user: Optional["User"]
+    def get_principal_permissions(
+        self, principal: Optional[Union["User", "APIKey"]]
     ) -> list[Literal["edit", "delete", "view"]]:
-        user_permissions = self.check_object_permissions(
-            user=user, workspace=self.workspace, resource_type="DataArchive"
+        permissions = self.check_object_permissions(
+            principal=principal, workspace=self.workspace, resource_type="DataArchive"
         )
 
-        return user_permissions
+        return permissions
 
     def delete(self, *args, **kwargs):
         self.delete_contents(filter_arg=self, filter_suffix="")

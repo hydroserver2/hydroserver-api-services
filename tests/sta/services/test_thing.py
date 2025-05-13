@@ -14,7 +14,7 @@ thing_service = ThingService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, length, max_queries",
+    "principal, workspace, length, max_queries",
     [
         ("owner", None, 4, 5),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
@@ -26,6 +26,9 @@ thing_service = ThingService()
         ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
         ("viewer", None, 4, 5),
         ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
+        ("apikey", None, 2, 6),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 6),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
         ("anonymous", None, 1, 5),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 5),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
@@ -37,11 +40,16 @@ thing_service = ThingService()
     ],
 )
 def test_list_thing(
-    django_assert_max_num_queries, get_user, user, workspace, length, max_queries
+    django_assert_max_num_queries,
+    get_principal,
+    principal,
+    workspace,
+    length,
+    max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
         thing_list = thing_service.list(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
         )
         assert len(thing_list) == length
@@ -49,7 +57,7 @@ def test_list_thing(
 
 
 @pytest.mark.parametrize(
-    "user, thing, message, error_code",
+    "principal, thing, message, error_code",
     [
         (
             "owner",
@@ -128,6 +136,30 @@ def test_list_thing(
             None,
         ),
         (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            "Utah Water Research Lab",
+            None,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            "Old Main Building",
+            None,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Thing does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             "Utah Water Research Lab",
@@ -189,20 +221,22 @@ def test_list_thing(
         ),
     ],
 )
-def test_get_thing(get_user, user, thing, message, error_code):
+def test_get_thing(get_principal, principal, thing, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            thing_service.get(user=get_user(user), uid=uuid.UUID(thing))
+            thing_service.get(principal=get_principal(principal), uid=uuid.UUID(thing))
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        thing_get = thing_service.get(user=get_user(user), uid=uuid.UUID(thing))
+        thing_get = thing_service.get(
+            principal=get_principal(principal), uid=uuid.UUID(thing)
+        )
         assert thing_get.name == message
         assert ThingGetResponse.from_orm(thing_get)
 
 
 @pytest.mark.parametrize(
-    "user, workspace, message, error_code",
+    "principal, workspace, message, error_code",
     [
         ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
@@ -223,6 +257,18 @@ def test_get_thing(get_user, user, thing, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "Workspace does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
@@ -248,7 +294,7 @@ def test_get_thing(get_user, user, thing, message, error_code):
         ),
     ],
 )
-def test_create_thing(get_user, user, workspace, message, error_code):
+def test_create_thing(get_principal, principal, workspace, message, error_code):
     thing_data = ThingPostBody(
         name="New",
         description="New",
@@ -262,11 +308,13 @@ def test_create_thing(get_user, user, workspace, message, error_code):
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            thing_service.create(user=get_user(user), data=thing_data)
+            thing_service.create(principal=get_principal(principal), data=thing_data)
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        thing_create = thing_service.create(user=get_user(user), data=thing_data)
+        thing_create = thing_service.create(
+            principal=get_principal(principal), data=thing_data
+        )
         assert thing_create.name == thing_data.name
         assert thing_create.description == thing_data.description
         assert thing_create.sampling_feature_type == thing_data.sampling_feature_type
@@ -280,7 +328,7 @@ def test_create_thing(get_user, user, workspace, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, thing, message, error_code",
+    "principal, thing, message, error_code",
     [
         ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
         ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
@@ -319,6 +367,30 @@ def test_create_thing(get_user, user, workspace, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Thing does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             "You do not have permission",
@@ -380,7 +452,7 @@ def test_create_thing(get_user, user, workspace, message, error_code):
         ),
     ],
 )
-def test_edit_thing(get_user, user, thing, message, error_code):
+def test_edit_thing(get_principal, principal, thing, message, error_code):
     thing_data = ThingPatchBody(
         name="New",
         description="New",
@@ -394,13 +466,15 @@ def test_edit_thing(get_user, user, thing, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.update(
-                user=get_user(user), uid=uuid.UUID(thing), data=thing_data
+                principal=get_principal(principal),
+                uid=uuid.UUID(thing),
+                data=thing_data,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         thing_update = thing_service.update(
-            user=get_user(user), uid=uuid.UUID(thing), data=thing_data
+            principal=get_principal(principal), uid=uuid.UUID(thing), data=thing_data
         )
         assert thing_update.name == thing_data.name
         assert thing_update.description == thing_data.description
@@ -414,7 +488,7 @@ def test_edit_thing(get_user, user, thing, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, thing, message, error_code, max_queries",
+    "principal, thing, message, error_code, max_queries",
     [
         ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 16),
         ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None, 16),
@@ -454,6 +528,34 @@ def test_edit_thing(get_user, user, thing, message, error_code):
             "819260c8-2543-4046-b8c4-7431243ed7c5",
             "You do not have permission",
             403,
+            6,
+        ),
+        (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            "You do not have permission",
+            403,
+            7,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            "Thing does not exist",
+            404,
+            6,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            "You do not have permission",
+            403,
+            7,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Thing does not exist",
+            404,
             6,
         ),
         (
@@ -530,8 +632,8 @@ def test_edit_thing(get_user, user, thing, message, error_code):
 )
 def test_delete_thing(
     django_assert_max_num_queries,
-    get_user,
-    user,
+    get_principal,
+    principal,
     thing,
     message,
     error_code,
@@ -540,18 +642,20 @@ def test_delete_thing(
     with django_assert_max_num_queries(max_queries):
         if error_code:
             with pytest.raises(HttpError) as exc_info:
-                thing_service.delete(user=get_user(user), uid=uuid.UUID(thing))
+                thing_service.delete(
+                    principal=get_principal(principal), uid=uuid.UUID(thing)
+                )
             assert exc_info.value.status_code == error_code
             assert exc_info.value.message.startswith(message)
         else:
             thing_delete = thing_service.delete(
-                user=get_user(user), uid=uuid.UUID(thing)
+                principal=get_principal(principal), uid=uuid.UUID(thing)
             )
             assert thing_delete == "Thing deleted"
 
 
 @pytest.mark.parametrize(
-    "user, thing, message, error_code",
+    "principal, thing, message, error_code",
     [
         ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
         ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
@@ -569,6 +673,25 @@ def test_delete_thing(
         ("viewer", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
         ("viewer", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
         ("viewer", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
+        ("apikey", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            None,
+            None,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Thing does not exist",
+            404,
+        ),
         ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
         (
             "anonymous",
@@ -609,14 +732,18 @@ def test_delete_thing(
         ),
     ],
 )
-def test_get_tags(get_user, user, thing, message, error_code):
+def test_get_tags(get_principal, principal, thing, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            thing_service.get_tags(user=get_user(user), uid=uuid.UUID(thing))
+            thing_service.get_tags(
+                principal=get_principal(principal), uid=uuid.UUID(thing)
+            )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        thing_tags = thing_service.get_tags(user=get_user(user), uid=uuid.UUID(thing))
+        thing_tags = thing_service.get_tags(
+            principal=get_principal(principal), uid=uuid.UUID(thing)
+        )
         assert len(list(thing_tags.all())) == 1
         assert list(thing_tags.all())[0].key in ["Test Public Key", "Test Private Key"]
         assert list(thing_tags.all())[0].value in [
@@ -626,7 +753,7 @@ def test_get_tags(get_user, user, thing, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, workspace, thing, length, max_queries",
+    "principal, workspace, thing, length, max_queries",
     [
         ("owner", None, None, 2, 2),
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 1, 2),
@@ -668,6 +795,16 @@ def test_get_tags(get_user, user, thing, message, error_code):
             0,
             2,
         ),
+        ("apikey", None, None, 2, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 3),
+        ("apikey", None, "76dadda5-224b-4e1f-8570-e385bd482b2d", 0, 3),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            0,
+            3,
+        ),
         ("anonymous", None, None, 1, 2),
         ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 2),
         ("anonymous", None, "76dadda5-224b-4e1f-8570-e385bd482b2d", 0, 2),
@@ -691,11 +828,17 @@ def test_get_tags(get_user, user, thing, message, error_code):
     ],
 )
 def test_get_tag_keys(
-    django_assert_num_queries, get_user, user, workspace, thing, length, max_queries
+    django_assert_num_queries,
+    get_principal,
+    principal,
+    workspace,
+    thing,
+    length,
+    max_queries,
 ):
     with django_assert_num_queries(max_queries):
         tag_key_list = thing_service.get_tag_keys(
-            user=get_user(user),
+            principal=get_principal(principal),
             workspace_id=uuid.UUID(workspace) if workspace else None,
             thing_id=uuid.UUID(thing) if thing else None,
         )
@@ -704,7 +847,7 @@ def test_get_tag_keys(
 
 
 @pytest.mark.parametrize(
-    "user, thing, tag, message, error_code",
+    "principal, thing, tag, message, error_code",
     [
         (
             "owner",
@@ -833,6 +976,34 @@ def test_get_tag_keys(
             403,
         ),
         (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            {"key": "New Key", "value": "New Value"},
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            {"key": "New Key", "value": "New Value"},
+            "Thing does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             {"key": "New Key", "value": "New Value"},
@@ -890,11 +1061,11 @@ def test_get_tag_keys(
         ),
     ],
 )
-def test_add_tag(get_user, user, thing, tag, message, error_code):
+def test_add_tag(get_principal, principal, thing, tag, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.add_tag(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(thing),
                 data=TagPostBody(key=tag["key"], value=tag["value"]),
             )
@@ -902,7 +1073,7 @@ def test_add_tag(get_user, user, thing, tag, message, error_code):
         assert exc_info.value.message.startswith(message)
     else:
         thing_tag = thing_service.add_tag(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(thing),
             data=TagPostBody(key=tag["key"], value=tag["value"]),
         )
@@ -912,7 +1083,7 @@ def test_add_tag(get_user, user, thing, tag, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, thing, tag, message, error_code",
+    "principal, thing, tag, message, error_code",
     [
         (
             "owner",
@@ -1041,6 +1212,34 @@ def test_add_tag(get_user, user, thing, tag, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {"key": "Test Public Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            {"key": "Test Private Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Thing does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             {"key": "Test Public Key", "value": "New Value"},
@@ -1098,11 +1297,11 @@ def test_add_tag(get_user, user, thing, tag, message, error_code):
         ),
     ],
 )
-def test_update_tag(get_user, user, thing, tag, message, error_code):
+def test_update_tag(get_principal, principal, thing, tag, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.update_tag(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(thing),
                 data=TagPostBody(key=tag["key"], value=tag["value"]),
             )
@@ -1110,7 +1309,7 @@ def test_update_tag(get_user, user, thing, tag, message, error_code):
         assert exc_info.value.message.startswith(message)
     else:
         thing_tag = thing_service.update_tag(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(thing),
             data=TagPostBody(key=tag["key"], value=tag["value"]),
         )
@@ -1120,7 +1319,7 @@ def test_update_tag(get_user, user, thing, tag, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "user, thing, tag, message, error_code",
+    "principal, thing, tag, message, error_code",
     [
         (
             "owner",
@@ -1249,6 +1448,34 @@ def test_update_tag(get_user, user, thing, tag, message, error_code):
             403,
         ),
         (
+            "apikey",
+            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {"key": "Test Public Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            {"key": "Test Private Key"},
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            {"key": "Test Private Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            {"key": "Test Private Key"},
+            "Thing does not exist",
+            404,
+        ),
+        (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             {"key": "Test Public Key"},
@@ -1306,11 +1533,11 @@ def test_update_tag(get_user, user, thing, tag, message, error_code):
         ),
     ],
 )
-def test_remove_tag(get_user, user, thing, tag, message, error_code):
+def test_remove_tag(get_principal, principal, thing, tag, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.remove_tag(
-                user=get_user(user),
+                principal=get_principal(principal),
                 uid=uuid.UUID(thing),
                 data=TagDeleteBody(key=tag["key"]),
             )
@@ -1318,7 +1545,7 @@ def test_remove_tag(get_user, user, thing, tag, message, error_code):
         assert exc_info.value.message.startswith(message)
     else:
         thing_tag_delete = thing_service.remove_tag(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=uuid.UUID(thing),
             data=TagDeleteBody(key=tag["key"]),
         )

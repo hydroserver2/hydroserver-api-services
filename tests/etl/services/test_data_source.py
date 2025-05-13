@@ -14,7 +14,7 @@ data_source_service = DataSourceService()
 
 
 @pytest.mark.parametrize(
-    "user, workspace, etl_system, length, max_queries",
+    "principal, workspace, etl_system, length, max_queries",
     [
         ("admin", None, None, 3, 4),
         ("admin", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
@@ -28,6 +28,9 @@ data_source_service = DataSourceService()
         ("viewer", None, None, 3, 4),
         ("viewer", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
         ("viewer", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        ("viewer", None, None, 3, 5),
+        ("viewer", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 3),
+        ("viewer", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 3),
         ("anonymous", None, None, 0, 4),
         ("anonymous", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
         ("anonymous", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
@@ -38,8 +41,8 @@ data_source_service = DataSourceService()
 )
 def test_list_data_source(
     django_assert_max_num_queries,
-    get_user,
-    user,
+    get_principal,
+    principal,
     workspace,
     etl_system,
     length,
@@ -50,14 +53,14 @@ def test_list_data_source(
             schema=DataSourceGetResponse, response=length
         ) as context:
             context["result"] = data_source_service.list(
-                user=get_user(user),
+                principal=get_principal(principal),
                 workspace_id=workspace if workspace else None,
                 orchestration_system_id=etl_system if etl_system else None,
             )
 
 
 @pytest.mark.parametrize(
-    "user, data_source, action, response, error_code",
+    "principal, data_source, action, response, error_code",
     [
         (
             "admin",
@@ -159,6 +162,27 @@ def test_list_data_source(
         ),
         (
             "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "delete",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "view",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "apikey",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "edit",
+            {"name": "Test Data Source"},
+            None,
+        ),
+        (
+            "apikey",
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             "delete",
             "You do not have permission",
@@ -209,18 +233,18 @@ def test_list_data_source(
     ],
 )
 def test_get_data_source_for_action(
-    get_user, user, data_source, action, response, error_code
+    get_principal, principal, data_source, action, response, error_code
 ):
     with test_service_method(
         schema=DataSourceGetResponse, response=response, error_code=error_code
     ) as context:
         context["result"] = data_source_service.get_data_source_for_action(
-            user=get_user(user), uid=data_source, action=action
+            principal=get_principal(principal), uid=data_source, action=action
         )
 
 
 @pytest.mark.parametrize(
-    "user, orchestration_system, workspace, response, error_code",
+    "principal, orchestration_system, workspace, response, error_code",
     [
         (
             "owner",
@@ -246,14 +270,14 @@ def test_get_data_source_for_action(
     ],
 )
 def test_validate_orchestration_system(
-    get_user, user, orchestration_system, workspace, response, error_code
+    get_principal, principal, orchestration_system, workspace, response, error_code
 ):
     with test_service_method(
         schema=OrchestrationSystemGetResponse, response=response, error_code=error_code
     ) as context:
         workspace = Workspace.objects.get(pk=workspace)
         context["result"] = data_source_service.validate_orchestration_system(
-            user=get_user(user),
+            principal=get_principal(principal),
             orchestration_system_id=orchestration_system,
             workspace=workspace,
         )
@@ -340,7 +364,7 @@ def test_validate_scheduling(
 
 
 @pytest.mark.parametrize(
-    "user, data, response, error_code",
+    "principal, data, response, error_code",
     [
         (
             "admin",
@@ -383,6 +407,16 @@ def test_validate_scheduling(
             403,
         ),
         (
+            "apikey",
+            {
+                "name": "New",
+                "workspace_id": UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            "You do not have permission",
+            403,
+        ),
+        (
             "anonymous",
             {
                 "name": "New",
@@ -404,7 +438,7 @@ def test_validate_scheduling(
         ),
     ],
 )
-def test_create_data_source(get_user, user, data, response, error_code):
+def test_create_data_source(get_principal, principal, data, response, error_code):
     data_source_body = DataSourcePostBody(
         name=data["name"],
         workspace_id=data["workspace_id"],
@@ -420,12 +454,12 @@ def test_create_data_source(get_user, user, data, response, error_code):
         ),
     ) as context:
         context["result"] = data_source_service.create(
-            user=get_user(user), data=data_source_body
+            principal=get_principal(principal), data=data_source_body
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_source, data, response, error_code",
+    "principal, data_source, data, response, error_code",
     [
         (
             "admin",
@@ -468,6 +502,16 @@ def test_create_data_source(get_user, user, data, response, error_code):
             403,
         ),
         (
+            "apikey",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            {
+                "name": "New",
+                "orchestration_system_id": UUID("320ad0e1-1426-47f6-8a3a-886a7111a7c2"),
+            },
+            None,
+            None,
+        ),
+        (
             "anonymous",
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             {
@@ -489,7 +533,9 @@ def test_create_data_source(get_user, user, data, response, error_code):
         ),
     ],
 )
-def test_update_data_source(get_user, user, data_source, data, response, error_code):
+def test_update_data_source(
+    get_principal, principal, data_source, data, response, error_code
+):
     data_source_body = DataSourcePatchBody(
         name=data["name"], orchestration_system_id=data["orchestration_system_id"]
     )
@@ -500,18 +546,24 @@ def test_update_data_source(get_user, user, data_source, data, response, error_c
         fields=("name",),
     ) as context:
         context["result"] = data_source_service.update(
-            user=get_user(user), uid=data_source, data=data_source_body
+            principal=get_principal(principal), uid=data_source, data=data_source_body
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_source, response, error_code",
+    "principal, data_source, response, error_code",
     [
         ("admin", UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"), None, None),
         ("owner", UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"), None, None),
         ("editor", UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"), None, None),
         (
             "viewer",
+            UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
             UUID("8bc6ba8b-dc67-4ca2-bed1-5abb4b067024"),
             "You do not have permission",
             403,
@@ -530,16 +582,18 @@ def test_update_data_source(get_user, user, data_source, data, response, error_c
         ),
     ],
 )
-def test_delete_data_source(get_user, user, data_source, response, error_code):
+def test_delete_data_source(
+    get_principal, principal, data_source, response, error_code
+):
     with test_service_method(response=response, error_code=error_code) as context:
         context["result"] = data_source_service.delete(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=data_source,
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_source, datastream, response, error_code",
+    "principal, data_source, datastream, response, error_code",
     [
         (
             "admin",
@@ -564,17 +618,19 @@ def test_delete_data_source(get_user, user, data_source, response, error_code):
         ),
     ],
 )
-def test_link_datastream(get_user, user, data_source, datastream, response, error_code):
+def test_link_datastream(
+    get_principal, principal, data_source, datastream, response, error_code
+):
     with test_service_method(response=response, error_code=error_code) as context:
         context["result"] = data_source_service.link_datastream(
-            user=get_user(user),
+            principal=get_principal(principal),
             uid=data_source,
             datastream_id=datastream,
         )
 
 
 @pytest.mark.parametrize(
-    "user, data_source, datastream, response, error_code",
+    "principal, data_source, datastream, response, error_code",
     [
         (
             "admin",
@@ -593,9 +649,11 @@ def test_link_datastream(get_user, user, data_source, datastream, response, erro
     ],
 )
 def test_unlink_datastream(
-    get_user, user, data_source, datastream, response, error_code
+    get_principal, principal, data_source, datastream, response, error_code
 ):
     with test_service_method(response=response, error_code=error_code) as context:
         context["result"] = data_source_service.unlink_datastream(
-            user=get_user(user), uid=data_source, datastream_id=datastream
+            principal=get_principal(principal),
+            uid=data_source,
+            datastream_id=datastream,
         )
