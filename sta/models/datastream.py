@@ -122,6 +122,9 @@ class Datastream(models.Model, PermissionChecker):
 
     objects = DatastreamQuerySet.as_manager()
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
     @classmethod
     def can_principal_create(
         cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"

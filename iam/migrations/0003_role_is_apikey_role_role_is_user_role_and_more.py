@@ -84,6 +84,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
+            options={
+                "verbose_name": "API Key",
+                "verbose_name_plural": "API Keys",
+            },
             bases=(models.Model, iam.models.utils.PermissionChecker),
         ),
     ]

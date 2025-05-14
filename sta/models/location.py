@@ -75,3 +75,6 @@ class Location(models.Model, PermissionChecker):
     country = models.CharField(max_length=2, null=True, blank=True)
 
     objects = LocationQuerySet.as_manager()
+
+    def __str__(self):
+        return f"{self.name} - {self.id}"

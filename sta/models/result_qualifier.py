@@ -71,6 +71,9 @@ class ResultQualifier(models.Model, PermissionChecker):
 
     objects = ResultQualifierQuerySet.as_manager()
 
+    def __str__(self):
+        return f"{self.code} - {self.id}"
+
     @classmethod
     def can_principal_create(
         cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"

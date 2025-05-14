@@ -19,6 +19,9 @@ class Photo(models.Model, PermissionChecker):
     name = models.CharField(max_length=255)
     photo = models.FileField(upload_to=photo_storage_path)
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
     @property
     def link(self):
         storage = self.photo.storage

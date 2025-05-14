@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils.html import format_html
 from django.urls import path
 from iam.models import (
     User,
@@ -8,7 +9,7 @@ from iam.models import (
     Workspace,
     Role,
     Permission,
-    Collaborator,
+    Collaborator, APIKey,
 )
 from hydroserver.admin import VocabularyAdmin
 
@@ -112,6 +113,31 @@ class CollaboratorAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "role__name", "workspace__name")
 
 
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "role__name", "is_active", "last_used", "expires_at", "workspace__name")
+
+    def regenerate_api_key(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                "Please select exactly one API key to regenerate.",
+                level=messages.ERROR,
+            )
+            return
+
+        apikey = queryset.first()
+        new_key = apikey.generate_key()
+
+        self.message_user(
+            request,
+            format_html("New API key: <code>{}</code>", new_key),
+            level=messages.SUCCESS,
+        )
+
+    actions = ["regenerate_api_key"]
+    regenerate_api_key.short_description = "Regenerate selected API key"
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(UserType, UserTypeAdmin)
@@ -120,3 +146,4 @@ admin.site.register(Workspace, WorkspaceAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Permission, PermissionAdmin)
 admin.site.register(Collaborator, CollaboratorAdmin)
+admin.site.register(APIKey, APIKeyAdmin)

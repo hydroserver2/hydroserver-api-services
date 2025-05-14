@@ -70,6 +70,9 @@ class APIKey(models.Model, PermissionChecker):
 
     objects = APIKeyManager()
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
     def generate_key(self):
         raw_key = secrets.token_urlsafe(32)
         self.hashed_key = make_password(raw_key)
@@ -91,3 +94,7 @@ class APIKey(models.Model, PermissionChecker):
         )
 
         return permissions
+
+    class Meta:
+        verbose_name = "API Key"
+        verbose_name_plural = "API Keys"

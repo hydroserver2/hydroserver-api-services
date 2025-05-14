@@ -60,6 +60,9 @@ class Workspace(models.Model):
 
     objects = WorkspaceQueryset.as_manager()
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

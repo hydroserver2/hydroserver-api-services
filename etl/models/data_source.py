@@ -66,6 +66,9 @@ class DataSource(OrchestrationConfiguration, PermissionChecker):
 
     objects = DataSourceQuerySet.as_manager()
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
     @property
     def status(self):
         return self

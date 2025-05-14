@@ -59,4 +59,7 @@ class Tag(models.Model, PermissionChecker):
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f"{self.key}: {self.value} - {self.id}"
+
     objects = TagQuerySet.as_manager()

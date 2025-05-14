@@ -71,6 +71,9 @@ class Thing(models.Model, PermissionChecker):
 
     objects = ThingQuerySet.as_manager()
 
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
     @property
     def location(self):
         if (
