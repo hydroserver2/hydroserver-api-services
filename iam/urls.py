@@ -1,4 +1,5 @@
 from ninja import NinjaAPI
+from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 from django.urls import path
 from django.views.decorators.csrf import ensure_csrf_cookie
 from hydroserver import __version__
@@ -24,6 +25,10 @@ iam_api = NinjaAPI(
     urls_namespace="iam",
     docs_decorator=ensure_csrf_cookie,
     renderer=ORJSONRenderer(),
+    throttle=[
+        AnonRateThrottle('10/s'),
+        AuthRateThrottle('10/s'),
+    ]
 )
 
 account_router.add_router("email", email_router)

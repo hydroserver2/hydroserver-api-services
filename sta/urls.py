@@ -1,4 +1,5 @@
 from ninja import NinjaAPI
+from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 from django.urls import path
 from django.views.decorators.csrf import ensure_csrf_cookie
 from sensorthings import SensorThingsAPI
@@ -35,6 +36,10 @@ data_api = NinjaAPI(
     urls_namespace="data",
     docs_decorator=ensure_csrf_cookie,
     renderer=ORJSONRenderer(),
+    throttle=[
+        AnonRateThrottle('10/s'),
+        AuthRateThrottle('10/s'),
+    ]
 )
 
 thing_router.add_router("{thing_id}/tags", tag_router)
@@ -61,6 +66,10 @@ st_api_1_1 = SensorThingsAPI(
     engine=HydroServerSensorThingsEngine,
     extensions=[data_array_extension, quality_control_extension, hydroserver_extension],
     docs_decorator=ensure_csrf_cookie,
+    throttle=[
+        AnonRateThrottle('10/s'),
+        AuthRateThrottle('10/s'),
+    ]
 )
 
 urlpatterns = [
