@@ -9,7 +9,8 @@ from iam.models import (
     Workspace,
     Role,
     Permission,
-    Collaborator, APIKey,
+    Collaborator,
+    APIKey,
 )
 from hydroserver.admin import VocabularyAdmin
 
@@ -106,7 +107,13 @@ class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
 
 
 class PermissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "role__name", "permission_type", "resource_type", "role__workspace__name")
+    list_display = (
+        "id",
+        "role__name",
+        "permission_type",
+        "resource_type",
+        "role__workspace__name",
+    )
 
 
 class CollaboratorAdmin(admin.ModelAdmin):
@@ -114,7 +121,15 @@ class CollaboratorAdmin(admin.ModelAdmin):
 
 
 class APIKeyAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "role__name", "is_active", "last_used", "expires_at", "workspace__name")
+    list_display = (
+        "id",
+        "name",
+        "role__name",
+        "is_active",
+        "last_used",
+        "expires_at",
+        "workspace__name",
+    )
 
     def regenerate_api_key(self, request, queryset):
         if queryset.count() != 1:

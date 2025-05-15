@@ -1,4 +1,4 @@
-from typing import Optional, Any, Tuple
+from typing import Optional, Any
 from ninja.security.apikey import APIKeyCookie
 from ninja.errors import HttpError
 from ninja.utils import check_csrf

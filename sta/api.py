@@ -1,3 +1,4 @@
+from django.db import transaction
 from sensorthings import SensorThingsExtension
 from sensorthings.factories import SensorThingsEndpointHookFactory
 from sta.schemas import sensorthings as schemas
@@ -164,6 +165,7 @@ hydroserver_extension = SensorThingsExtension(
         ),
         SensorThingsEndpointHookFactory(
             endpoint_name="create_observation",
+            view_wrapper=transaction.atomic,
             view_authentication=[
                 session_auth,
                 bearer_auth,
@@ -174,6 +176,7 @@ hydroserver_extension = SensorThingsExtension(
         ),
         SensorThingsEndpointHookFactory(
             endpoint_name="create_observations",
+            view_wrapper=transaction.atomic,
             view_authentication=[
                 session_auth,
                 bearer_auth,
@@ -189,6 +192,7 @@ hydroserver_extension = SensorThingsExtension(
         ),
         SensorThingsEndpointHookFactory(
             endpoint_name="delete_observation",
+            view_wrapper=transaction.atomic,
             view_authentication=[
                 session_auth,
                 bearer_auth,
@@ -198,6 +202,7 @@ hydroserver_extension = SensorThingsExtension(
         ),
         SensorThingsEndpointHookFactory(
             endpoint_name="delete_observations",
+            view_wrapper=transaction.atomic,
             view_authentication=[
                 session_auth,
                 bearer_auth,

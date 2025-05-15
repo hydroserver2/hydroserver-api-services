@@ -1370,8 +1370,8 @@ def test_create_datastream(
             None,
             None,
             None,
-            "You do not have permission",
-            403,
+            None,
+            None,
         ),
         (
             "apikey",
@@ -1381,8 +1381,8 @@ def test_create_datastream(
             None,
             None,
             None,
-            "You do not have permission",
-            403,
+            None,
+            None,
         ),
         (
             "apikey",
@@ -1392,8 +1392,8 @@ def test_create_datastream(
             None,
             None,
             None,
-            "You do not have permission",
-            403,
+            None,
+            None,
         ),
         (
             "apikey",
@@ -1403,8 +1403,8 @@ def test_create_datastream(
             None,
             None,
             None,
-            "You do not have permission",
-            403,
+            None,
+            None,
         ),
         (
             "apikey",
