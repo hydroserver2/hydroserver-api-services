@@ -37,8 +37,8 @@ data_api = NinjaAPI(
     docs_decorator=ensure_csrf_cookie,
     renderer=ORJSONRenderer(),
     throttle=[
-        AnonRateThrottle('10/s'),
-        AuthRateThrottle('10/s'),
+        AnonRateThrottle('20/s'),
+        AuthRateThrottle('20/s'),
     ]
 )
 
@@ -67,8 +67,8 @@ st_api_1_1 = SensorThingsAPI(
     extensions=[data_array_extension, quality_control_extension, hydroserver_extension],
     docs_decorator=ensure_csrf_cookie,
     throttle=[
-        AnonRateThrottle('10/s'),
-        AuthRateThrottle('10/s'),
+        AnonRateThrottle('20/s'),
+        AuthRateThrottle('20/s'),
     ]
 )
 

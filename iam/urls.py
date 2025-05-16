@@ -26,8 +26,8 @@ iam_api = NinjaAPI(
     docs_decorator=ensure_csrf_cookie,
     renderer=ORJSONRenderer(),
     throttle=[
-        AnonRateThrottle('10/s'),
-        AuthRateThrottle('10/s'),
+        AnonRateThrottle('20/s'),
+        AuthRateThrottle('20/s'),
     ]
 )
 
