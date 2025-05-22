@@ -37,6 +37,7 @@ class DatastreamFields(Schema):
 
 class DatastreamGetResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
+    data_source_id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = Field(
         None, validation_alias=AliasChoices("workspaceId", "thing.workspace_id")
     )
