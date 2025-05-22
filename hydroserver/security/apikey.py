@@ -6,7 +6,7 @@ from iam.models import APIKey
 
 
 class APIKeyAuth(APIKeyHeader):
-    param_name = "X-API-Key"
+    param_name = "X-Api-Key"
 
     def authenticate(self, request, key):
         now = timezone.now()
@@ -17,5 +17,4 @@ class APIKeyAuth(APIKeyHeader):
                 api_key.last_used_at = now
                 api_key.save(update_fields=["last_used"])
                 request.principal = api_key
-
                 return api_key
