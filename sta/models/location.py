@@ -37,7 +37,6 @@ class LocationQuerySet(models.QuerySet):
         elif hasattr(principal, "workspace"):
             return self.filter(
                 Q(thing__workspace__is_private=False, thing__is_private=False)
-                | Q(thing__workspace__owner=principal)
                 | Q(
                     thing__workspace__apikeys=principal,
                     thing__workspace__apikeys__role__permissions__resource_type__in=[

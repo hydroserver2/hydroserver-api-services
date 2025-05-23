@@ -26,9 +26,9 @@ iam_api = NinjaAPI(
     docs_decorator=ensure_csrf_cookie,
     renderer=ORJSONRenderer(),
     throttle=[
-        AnonRateThrottle('20/s'),
-        AuthRateThrottle('20/s'),
-    ]
+        AnonRateThrottle("20/s"),
+        AuthRateThrottle("20/s"),
+    ],
 )
 
 account_router.add_router("email", email_router)

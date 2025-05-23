@@ -9,11 +9,15 @@ class APIKeyAuth(APIKeyHeader):
     param_name = "X-Api-Key"
 
     def authenticate(self, request, key):
+        short_id = key[:12]
         now = timezone.now()
-        for api_key in APIKey.objects.filter(is_active=True).filter(
-            Q(expires_at__isnull=True) | Q(expires_at__gt=now)
-        ):
-            if check_password(key, api_key.hashed_key):
+
+        api_key_match = APIKey.objects.filter(
+            is_active=True, hashed_key__startswith=short_id + "$"
+        ).filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+
+        for api_key in api_key_match:
+            if check_password(key, api_key.hashed_key.split("$", 1)[1]):
                 api_key.last_used_at = now
                 api_key.save(update_fields=["last_used"])
                 request.principal = api_key
