@@ -9,6 +9,9 @@ class APIKeyAuth(APIKeyHeader):
     param_name = "X-Api-Key"
 
     def authenticate(self, request, key):
+        if not key or len(key) < 12:
+            return None
+
         short_id = key[:12]
         now = timezone.now()
 
