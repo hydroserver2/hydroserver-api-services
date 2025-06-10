@@ -1,10 +1,16 @@
 import uuid
-from ninja import Router, Path
-from typing import Optional
+from ninja import Router, Path, Query
 from django.db import transaction
+from django.http import HttpResponse
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from sta.schemas import UnitGetResponse, UnitPostBody, UnitPatchBody
+from sta.schemas import (
+    UnitCollectionResponse,
+    UnitGetResponse,
+    UnitPostBody,
+    UnitPatchBody,
+    UnitQueryParameters,
+)
 from sta.services import UnitService
 
 unit_router = Router(tags=["Units"])
@@ -15,20 +21,30 @@ unit_service = UnitService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[UnitGetResponse],
+        200: list[UnitCollectionResponse],
         401: str,
     },
     by_alias=True,
 )
 def get_units(
-    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[UnitQueryParameters],
 ):
     """
     Get public Units and Units associated with the authenticated user.
     """
 
     return 200, unit_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering={
+            field: getattr(query, field)
+            for field in UnitQueryParameters.__annotations__
+        },
     )
 
 

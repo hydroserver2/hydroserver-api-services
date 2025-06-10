@@ -1,6 +1,8 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import UnitService
 from sta.schemas import UnitPostBody, UnitPatchBody, UnitGetResponse
 
@@ -8,41 +10,189 @@ unit_service = UnitService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, unit_ids, max_queries",
     [
-        ("owner", None, 6, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 6, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 6, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("viewer", None, 6, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("apikey", None, 4, 3),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("anonymous", None, 4, 2),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 4, 2),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        (
+            "owner",
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        (
+            "owner",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        ("owner", {"workspace_id": "caf4b92e-6914-4449-8c8a-efa5a7fd1826"}, [], 3),
+        (
+            "owner",
+            {"page": 2, "page_size": 1, "ordering": "-name"},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+            ],
+            6,
+        ),
+        (
+            "admin",
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        (
+            "admin",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        ("admin", {"workspace_id": "caf4b92e-6914-4449-8c8a-efa5a7fd1826"}, [], 3),
+        (
+            "editor",
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        (
+            "editor",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        (
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+                "3264c5f7-ccad-4e5b-b7a0-faf175be4750",
+            ],
+            3,
+        ),
+        (
+            "apikey",
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+            ],
+            4,
+        ),
+        (
+            "apikey",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            [
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+            ],
+            4,
+        ),
+        ("apikey", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, [], 4),
+        (
+            "anonymous",
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+            ],
+            3,
+        ),
+        (
+            "anonymous",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            [
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+            ],
+            3,
+        ),
+        ("anonymous", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, [], 3),
+        ("anonymous", {"workspace_id": "00000000-0000-0000-0000-000000000000"}, [], 3),
+        (
+            None,
+            {},
+            [
+                "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+                "383f9663-6003-4baf-b606-7e9937b96298",
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+            ],
+            3,
+        ),
+        (
+            None,
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            [
+                "fe3799b7-f061-42f2-b012-b569303f8a41",
+                "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
+            ],
+            3,
+        ),
+        (None, {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, [], 3),
+        (None, {"workspace_id": "00000000-0000-0000-0000-000000000000"}, [], 3),
     ],
 )
 def test_list_unit(
-    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, params, unit_ids, max_queries
 ):
     with django_assert_num_queries(max_queries):
-        unit_list = unit_service.list(
+        http_response = HttpResponse()
+        result = unit_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(unit_list) == length
-        assert (UnitGetResponse.from_orm(unit) for unit in unit_list)
+        assert Counter(str(unit.id) for unit in result) == Counter(unit_ids)
+        assert (UnitGetResponse.from_orm(unit) for unit in result)
 
 
 @pytest.mark.parametrize(

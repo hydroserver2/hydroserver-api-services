@@ -3,10 +3,10 @@ from typing import Optional, Literal, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
-from iam.services.utils import ServiceUtils
 from sta.models import ProcessingLevel
 from sta.schemas import ProcessingLevelPostBody, ProcessingLevelPatchBody
 from sta.schemas.processing_level import ProcessingLevelFields
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 

@@ -8,7 +8,6 @@ from ninja.errors import HttpError
 from hsmodels.schemas.fields import PointCoverage
 from allauth.socialaccount.models import SocialToken, SocialApp
 from django.contrib.auth import get_user_model
-from iam.services.utils import ServiceUtils
 from etl.models import DataArchive, OrchestrationSystem
 from etl.schemas import (
     HydroShareArchivalFields,
@@ -17,6 +16,7 @@ from etl.schemas import (
 )
 from sta.services.thing import ThingService
 from sta.services.datastream import DatastreamService
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 thing_service = ThingService()

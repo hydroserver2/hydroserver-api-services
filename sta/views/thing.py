@@ -1,10 +1,16 @@
 import uuid
-from ninja import Router, Path
-from typing import Optional
+from ninja import Router, Path, Query
 from django.db import transaction
+from django.http import HttpResponse
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from sta.schemas import ThingGetResponse, ThingPostBody, ThingPatchBody
+from sta.schemas import (
+    ThingCollectionResponse,
+    ThingGetResponse,
+    ThingPostBody,
+    ThingPatchBody,
+    ThingQueryParameters,
+)
 from sta.services import ThingService
 
 thing_router = Router(tags=["Things"])
@@ -15,20 +21,30 @@ thing_service = ThingService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ThingGetResponse],
+        200: list[ThingCollectionResponse],
         401: str,
     },
     by_alias=True,
 )
 def get_things(
-    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[ThingQueryParameters],
 ):
     """
     Get public Things and Things associated with the authenticated user.
     """
 
     return 200, thing_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering={
+            field: getattr(query, field)
+            for field in ThingQueryParameters.__annotations__
+        },
     )
 
 

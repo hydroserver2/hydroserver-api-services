@@ -1,9 +1,15 @@
 import uuid
 from typing import Optional
-from ninja import Schema, Field
+from ninja import Schema, Field, Query
 from pydantic import field_validator, AliasChoices
 from country_list import countries_for_language
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from hydroserver.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
+from iam.schemas import WorkspaceGetResponse
 from .tag import TagGetResponse
 from .photo import PhotoGetResponse
 
@@ -54,6 +60,18 @@ class LocationFields(Schema):
         return value
 
 
+class LocationGetResponse(BaseGetResponse, LocationFields):
+    pass
+
+
+class LocationPostBody(BasePostBody, LocationFields):
+    pass
+
+
+class LocationPatchBody(BasePatchBody, LocationFields):
+    pass
+
+
 class ThingFields(Schema):
     name: str = Field(..., max_length=200)
     description: str
@@ -64,16 +82,52 @@ class ThingFields(Schema):
     is_private: bool
 
 
-class ThingGetResponse(BaseGetResponse, ThingFields, LocationFields):
+class ThingQueryParameters(CollectionQueryParameters):
+    workspace_id: list[uuid.UUID] = Query(
+        [], description="Filter things by workspace ID."
+    )
+    bbox: list[str] = Query(
+        [],
+        description="Filter things by bounding box. Format bounding box as {min_lon},{min_lat},{max_lon},{max_lat}",
+    )
+    state: list[str] = Query([], description="Filter things by state.")
+    county: list[str] = Query([], description="Filter things by county.")
+    country: list[str] = Query([], description="Filter things by country.")
+    site_type: list[str] = Query([], description="Filter things by site type.")
+    sampling_feature_type: list[str] = Query(
+        [], description="Filter things by sampling feature type."
+    )
+    sampling_feature_code: list[str] = Query(
+        [], description="Filter things by sampling feature code."
+    )
+    tag: list[str] = Query(
+        [], description="Filter things by tag. Format tag filters as {key}:{value}"
+    )
+    is_private: Optional[bool] = Query(
+        None, description="Controls whether the things should be private or public."
+    )
+
+
+class ThingCollectionResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
+    location: LocationGetResponse
     tags: list[TagGetResponse]
     photos: list[PhotoGetResponse]
 
 
-class ThingPostBody(BasePostBody, ThingFields, LocationFields):
+class ThingGetResponse(BaseGetResponse, ThingFields):
+    id: uuid.UUID
+    workspace: WorkspaceGetResponse
+    location: LocationGetResponse
+    tags: list[TagGetResponse]
+    photos: list[PhotoGetResponse]
+
+
+class ThingPostBody(BasePostBody, ThingFields):
     workspace_id: uuid.UUID
+    location: LocationPostBody
 
 
-class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
-    pass
+class ThingPatchBody(BasePatchBody, ThingFields):
+    location: LocationPatchBody

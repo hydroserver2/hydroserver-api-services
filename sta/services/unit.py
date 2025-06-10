@@ -1,12 +1,13 @@
 import uuid
 from typing import Optional, Literal, Union
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
-from iam.services.utils import ServiceUtils
 from sta.models import Unit
 from sta.schemas import UnitPostBody, UnitPatchBody
 from sta.schemas.unit import UnitFields
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 
@@ -33,16 +34,56 @@ class UnitService(ServiceUtils):
 
         return unit
 
-    @staticmethod
     def list(
-        principal: Optional[Union[User, APIKey]], workspace_id: Optional[uuid.UUID]
+        self,
+        principal: Optional[Union[User, APIKey]],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        ordering: Optional[str] = None,
+        filtering: Optional[dict] = None,
     ):
         queryset = Unit.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in [
+            "workspace_id",
+            "thing_id",
+            "datastream_id",
+            "name",
+            "symbol",
+            "unit_type",
+        ]:
+            if field in filtering:
+                if field == "thing_id":
+                    queryset = self.apply_filters(
+                        queryset, f"datastreams__{field}", filtering[field]
+                    )
+                elif field == "datastream_id":
+                    queryset = self.apply_filters(
+                        queryset, f"datastreams__id", filtering[field]
+                    )
+                else:
+                    queryset = self.apply_filters(queryset, field, filtering[field])
 
-        return queryset.visible(principal=principal).distinct()
+        queryset = self.apply_ordering(
+            queryset,
+            ordering,
+            [
+                "name",
+                "symbol",
+                "unit_type",
+            ],
+        )
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset
 
     def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
         return self.get_unit_for_action(principal=principal, uid=uid, action="view")

@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.http import StreamingHttpResponse
 from iam.models import APIKey
-from iam.services.utils import ServiceUtils
 from sta.models import Datastream, Observation
 from sta.schemas import DatastreamPostBody, DatastreamPatchBody
 from sta.schemas.datastream import DatastreamFields
@@ -17,6 +16,7 @@ from sta.services import (
     SensorService,
     UnitService,
 )
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 

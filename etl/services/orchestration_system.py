@@ -2,11 +2,11 @@ import uuid
 from typing import Optional, Literal, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
-from iam.services.utils import ServiceUtils
 from iam.models import APIKey
 from etl.models import OrchestrationSystem
 from etl.schemas import OrchestrationSystemPostBody, OrchestrationSystemPatchBody
 from etl.schemas.orchestration_system import OrchestrationSystemFields
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 

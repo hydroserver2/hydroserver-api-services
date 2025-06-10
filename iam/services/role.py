@@ -4,7 +4,7 @@ from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from iam.models import Role, APIKey
-from .utils import ServiceUtils
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 

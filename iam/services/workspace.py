@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from iam.models import Workspace, WorkspaceTransferConfirmation, APIKey
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
-from .utils import ServiceUtils
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 

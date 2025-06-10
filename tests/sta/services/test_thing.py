@@ -1,10 +1,14 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import ThingService
 from sta.schemas import (
     ThingPostBody,
     ThingPatchBody,
+    LocationPostBody,
+    LocationPatchBody,
     TagPostBody,
     TagDeleteBody,
     ThingGetResponse,
@@ -14,46 +18,167 @@ thing_service = ThingService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, thing_ids, max_queries",
     [
-        ("owner", None, 4, 5),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 4, 5),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 4, 5),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("viewer", None, 4, 5),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("apikey", None, 2, 6),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 6),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("anonymous", None, 1, 5),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 5),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 1, 5),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 5),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        (
+            "owner",
+            {},
+            [
+                "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        (
+            "owner",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        ("owner", {"workspace_id": "caf4b92e-6914-4449-8c8a-efa5a7fd1826"}, [], 3),
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "ordering": "-name"},
+            ["76dadda5-224b-4e1f-8570-e385bd482b2d"],
+            6,
+        ),
+        (
+            "owner",
+            {"bbox": ["-111.794,41.739,-111.793,41.740"]},
+            ["3b7818af-eff7-4149-8517-e5cad9dc22e1"],
+            6,
+        ),
+        (
+            "owner",
+            {"tag": ["Test Public Key:Test Public Value"]},
+            ["3b7818af-eff7-4149-8517-e5cad9dc22e1"],
+            6,
+        ),
+        (
+            "admin",
+            {},
+            [
+                "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        (
+            "admin",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        ("admin", {"workspace_id": "caf4b92e-6914-4449-8c8a-efa5a7fd1826"}, [], 3),
+        (
+            "editor",
+            {},
+            [
+                "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        (
+            "editor",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        (
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "76dadda5-224b-4e1f-8570-e385bd482b2d",
+                "819260c8-2543-4046-b8c4-7431243ed7c5",
+            ],
+            6,
+        ),
+        (
+            "apikey",
+            {},
+            [
+                "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+                "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            ],
+            7,
+        ),
+        (
+            "apikey",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            [
+                "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+                "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            ],
+            7,
+        ),
+        ("apikey", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, [], 4),
+        ("anonymous", {}, ["3b7818af-eff7-4149-8517-e5cad9dc22e1"], 6),
+        (
+            "anonymous",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            ["3b7818af-eff7-4149-8517-e5cad9dc22e1"],
+            6,
+        ),
+        ("anonymous", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, [], 3),
+        ("anonymous", {"workspace_id": "00000000-0000-0000-0000-000000000000"}, [], 3),
+        (None, {}, ["3b7818af-eff7-4149-8517-e5cad9dc22e1"], 6),
+        (
+            None,
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            ["3b7818af-eff7-4149-8517-e5cad9dc22e1"],
+            6,
+        ),
+        (None, {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, [], 3),
+        (None, {"workspace_id": "00000000-0000-0000-0000-000000000000"}, [], 3),
     ],
 )
 def test_list_thing(
     django_assert_max_num_queries,
     get_principal,
     principal,
-    workspace,
-    length,
+    params,
+    thing_ids,
     max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
-        thing_list = thing_service.list(
+        http_response = HttpResponse()
+        result = thing_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(thing_list) == length
-        assert (ThingGetResponse.from_orm(thing) for thing in thing_list)
+        assert Counter(str(thing.id) for thing in result) == Counter(thing_ids)
+        assert (ThingGetResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
@@ -301,8 +426,10 @@ def test_create_thing(get_principal, principal, workspace, message, error_code):
         sampling_feature_type="Site",
         sampling_feature_code="NEW",
         site_type="Site",
-        latitude=0,
-        longitude=0,
+        location=LocationPostBody(
+            latitude=0,
+            longitude=0,
+        ),
         is_private=False,
         workspace_id=uuid.UUID(workspace),
     )
@@ -320,8 +447,8 @@ def test_create_thing(get_principal, principal, workspace, message, error_code):
         assert thing_create.sampling_feature_type == thing_data.sampling_feature_type
         assert thing_create.sampling_feature_code == thing_data.sampling_feature_code
         assert thing_create.site_type == thing_data.site_type
-        assert thing_create.location.latitude == thing_data.latitude
-        assert thing_create.location.longitude == thing_data.longitude
+        assert thing_create.location.latitude == thing_data.location.latitude
+        assert thing_create.location.longitude == thing_data.location.longitude
         assert thing_create.is_private == thing_data.is_private
         assert thing_create.workspace_id == thing_data.workspace_id
         assert ThingGetResponse.from_orm(thing_create)
@@ -459,8 +586,10 @@ def test_edit_thing(get_principal, principal, thing, message, error_code):
         sampling_feature_type="Site",
         sampling_feature_code="NEW",
         site_type="Site",
-        latitude=0,
-        longitude=0,
+        location=LocationPatchBody(
+            latitude=0,
+            longitude=0,
+        ),
         is_private=False,
     )
     if error_code:
@@ -481,8 +610,8 @@ def test_edit_thing(get_principal, principal, thing, message, error_code):
         assert thing_update.sampling_feature_type == thing_data.sampling_feature_type
         assert thing_update.sampling_feature_code == thing_data.sampling_feature_code
         assert thing_update.site_type == thing_data.site_type
-        assert thing_update.location.latitude == thing_data.latitude
-        assert thing_update.location.longitude == thing_data.longitude
+        assert thing_update.location.latitude == thing_data.location.latitude
+        assert thing_update.location.longitude == thing_data.location.longitude
         assert thing_update.is_private == thing_data.is_private
         assert ThingGetResponse.from_orm(thing_update)
 

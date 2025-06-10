@@ -2,12 +2,12 @@ import uuid
 from typing import Literal, Optional, Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
-from iam.services.utils import ServiceUtils
 from iam.models import APIKey
 from sta.services.datastream import DatastreamService
 from etl.models import DataSource
 from etl.schemas import DataSourcePostBody, DataSourcePatchBody
 from etl.schemas.data_source import DataSourceFields
+from hydroserver.service import ServiceUtils
 
 from etl.schemas.orchestration_configuration import (
     OrchestrationConfigurationScheduleFields,

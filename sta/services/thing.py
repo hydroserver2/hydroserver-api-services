@@ -1,11 +1,11 @@
 import uuid
 from typing import Optional, Literal, Union
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import F
+from django.db.models import F, Q
 from iam.models import APIKey
-from iam.services.utils import ServiceUtils
 from sta.models import Thing, Location, Tag, Photo
 from sta.schemas import (
     ThingPostBody,
@@ -15,6 +15,7 @@ from sta.schemas import (
     PhotoDeleteBody,
 )
 from sta.schemas.thing import ThingFields, LocationFields
+from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 
@@ -46,20 +47,115 @@ class ThingService(ServiceUtils):
         return thing
 
     @staticmethod
+    def apply_bbox_filter(queryset, bbox: Optional[list[str]]):
+        if not bbox:
+            return queryset
+
+        bbox_filter = Q()
+
+        for bbox_str in bbox:
+            try:
+                parts = [float(x) for x in bbox_str.split(",")]
+            except ValueError:
+                raise ValueError("Bounding box must contain only numeric values")
+
+            if len(parts) != 4:
+                raise ValueError(
+                    "Bounding box must have exactly 4 comma-separated values: min_lon,min_lat,max_lon,max_lat"
+                )
+
+            min_lon, min_lat, max_lon, max_lat = parts
+
+            if min_lon > max_lon or min_lat > max_lat:
+                raise ValueError(
+                    "Invalid bounding box coordinates: min must be less than or equal to max"
+                )
+
+            bbox_filter |= Q(
+                locations__longitude__gte=min_lon,
+                locations__longitude__lte=max_lon,
+                locations__latitude__gte=min_lat,
+                locations__latitude__lte=max_lat,
+            )
+
+        return queryset.filter(bbox_filter)
+
+    @staticmethod
+    def apply_tag_filter(queryset, tags: list[str]):
+        if not tags:
+            return queryset
+
+        for tag in tags:
+            if ":" not in tag:
+                raise ValueError(f"Invalid tag format: '{tag}'. Must be 'key:value'.")
+
+            key, value = tag.split(":", 1)
+
+            queryset = queryset.filter(tags__key=key, tags__value=value)
+
+        return queryset.distinct()
+
     def list(
-        principal: Optional[Union[User, APIKey]], workspace_id: Optional[uuid.UUID]
+        self,
+        principal: Optional[Union[User, APIKey]],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        ordering: Optional[str] = None,
+        filtering: Optional[dict] = None,
     ):
         queryset = Thing.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in [
+            "workspace_id",
+            "state",
+            "county",
+            "country",
+            "site_type",
+            "sampling_feature_type",
+            "sampling_feature_code",
+            "is_private",
+        ]:
+            if field in filtering:
+                if field in ["state", "county", "country"]:
+                    queryset = self.apply_filters(
+                        queryset, f"locations__{field}", filtering[field]
+                    )
+                else:
+                    queryset = self.apply_filters(queryset, field, filtering[field])
 
-        return (
+        queryset = self.apply_bbox_filter(queryset, filtering.get("bbox"))
+        queryset = self.apply_tag_filter(queryset, filtering.get("tag"))
+
+        queryset = self.apply_ordering(
+            queryset,
+            ordering,
+            [
+                "name",
+                "state",
+                "county",
+                "country",
+                "site_type",
+                "sampling_feature_type",
+                "sampling_feature_code",
+                "is_private",
+            ],
+        )
+
+        queryset = (
             queryset.visible(principal=principal)
             .prefetch_related("tags", "photos")
             .with_location()
             .distinct()
         )
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset
 
     def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
         return self.get_thing_for_action(principal=principal, uid=uid, action="view")
@@ -82,7 +178,7 @@ class ThingService(ServiceUtils):
             description="location",
             encoding_type="application/geo+json",
             thing=thing,
-            **data.dict(include=set(LocationFields.model_fields.keys())),
+            **data.location.dict(include=set(LocationFields.model_fields.keys())),
         )
 
         return thing
@@ -96,7 +192,7 @@ class ThingService(ServiceUtils):
         thing_data = data.dict(
             include=set(ThingFields.model_fields.keys()), exclude_unset=True
         )
-        location_data = data.dict(
+        location_data = data.location.dict(
             include=set(LocationFields.model_fields.keys()), exclude_unset=True
         )
 
