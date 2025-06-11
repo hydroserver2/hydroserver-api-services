@@ -121,7 +121,7 @@ WSGI_APPLICATION = "hydroserver.wsgi.application"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 os.environ["DATABASE_URL"] = config(
-    "DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver"
+    "DATABASE_URL", default=f"postgresql://hsdbadmin:changeme@localhost:5432/hydroserver"
 )
 
 dj_database_config = dj_database_url.config(
@@ -246,6 +246,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Storage settings
 
 APP_CLIENT_URL = config("APP_CLIENT_URL", default=PROXY_BASE_URL)
+WEB_URL = "/web/"
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
@@ -303,6 +304,10 @@ else:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
             "OPTIONS": {"location": "static"},
         },
+        "web": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {"location": "web"},
+        }
     }
 
 
