@@ -1,6 +1,7 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
 from typing import Optional
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
@@ -8,6 +9,7 @@ from etl.schemas import (
     DataArchiveGetResponse,
     DataArchivePostBody,
     DataArchivePatchBody,
+    OrchestrationConfigurationQueryParameters,
 )
 from etl.services import DataArchiveService
 
@@ -26,8 +28,8 @@ data_archive_service = DataArchiveService()
 )
 def get_data_archives(
     request: HydroServerHttpRequest,
-    workspace_id: Optional[uuid.UUID] = None,
-    orchestration_system_id: Optional[uuid.UUID] = None,
+    response: HttpResponse,
+    query: Query[OrchestrationConfigurationQueryParameters],
 ):
     """
     Get public Data Archives and Data Archives associated with the authenticated user.
@@ -35,8 +37,11 @@ def get_data_archives(
 
     return 200, data_archive_service.list(
         principal=request.principal,
-        workspace_id=workspace_id,
-        orchestration_system_id=orchestration_system_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

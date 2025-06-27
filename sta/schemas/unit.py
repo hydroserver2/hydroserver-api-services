@@ -23,7 +23,7 @@ class UnitQueryParameters(CollectionQueryParameters):
     )
     thing_id: list[uuid.UUID] = Query([], description="Filter units by thing ID.")
     datastream_id: list[uuid.UUID] = Query(
-        [], description="Filter things by datastream ID."
+        [], description="Filter units by datastream ID."
     )
     name: list[str] = Query([], description="Filter units by name")
     symbol: list[str] = Query([], description="Filter units by symbol")

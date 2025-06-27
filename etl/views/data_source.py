@@ -1,10 +1,15 @@
 import uuid
-from ninja import Router, Path
-from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
-from etl.schemas import DataSourceGetResponse, DataSourcePostBody, DataSourcePatchBody
+from etl.schemas import (
+    DataSourceGetResponse,
+    DataSourcePostBody,
+    DataSourcePatchBody,
+    OrchestrationConfigurationQueryParameters,
+)
 from etl.services import DataSourceService
 
 data_source_router = Router(tags=["Data Sources"])
@@ -22,8 +27,8 @@ data_source_service = DataSourceService()
 )
 def get_data_sources(
     request: HydroServerHttpRequest,
-    workspace_id: Optional[uuid.UUID] = None,
-    orchestration_system_id: Optional[uuid.UUID] = None,
+    response: HttpResponse,
+    query: Query[OrchestrationConfigurationQueryParameters],
 ):
     """
     Get public Data Sources and Data Sources associated with the authenticated user.
@@ -31,8 +36,11 @@ def get_data_sources(
 
     return 200, data_source_service.list(
         principal=request.principal,
-        workspace_id=workspace_id,
-        orchestration_system_id=orchestration_system_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

@@ -1,11 +1,12 @@
 import uuid
-from ninja import Router, Path
-from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
     OrchestrationSystemGetResponse,
+    OrchestrationSystemQueryParameters,
     OrchestrationSystemPostBody,
     OrchestrationSystemPatchBody,
 )
@@ -25,14 +26,21 @@ orchestration_system_service = OrchestrationSystemService()
     by_alias=True,
 )
 def get_orchestration_systems(
-    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[OrchestrationSystemQueryParameters],
 ):
     """
     Get public Orchestration Systems and Orchestration Systems associated with the authenticated user.
     """
 
     return 200, orchestration_system_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

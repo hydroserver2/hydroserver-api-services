@@ -1,6 +1,7 @@
 import uuid
 from typing import Literal, Optional, Union
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.services.datastream import DatastreamService
@@ -56,26 +57,50 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return data_source
 
-    @staticmethod
     def list(
-        principal: Union[User, APIKey],
-        workspace_id: Optional[uuid.UUID],
-        orchestration_system_id: Optional[uuid.UUID],
+        self,
+        principal: Optional[Union[User, APIKey]],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        ordering: Optional[str] = None,
+        filtering: Optional[dict] = None,
     ):
         queryset = DataSource.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in [
+            "workspace_id",
+            "orchestration_system_id",
+            "datastreams__id",
+            "last_run_successful",
+            "last_run__lte",
+            "last_run__gte",
+            "next_run__lte",
+            "next_run__gte",
+        ]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        if orchestration_system_id:
-            queryset = queryset.filter(orchestration_system_id=orchestration_system_id)
+        queryset = self.apply_ordering(
+            queryset,
+            ordering,
+            ["name", "next_run", "last_run"],
+        )
 
-        return (
+        queryset = (
             queryset.select_related("orchestration_system")
             .prefetch_related("datastreams")
             .visible(principal=principal)
             .distinct()
         )
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset
 
     def get(self, principal: Union[User, APIKey], uid: uuid.UUID):
         return self.get_data_source_for_action(

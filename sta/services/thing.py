@@ -121,6 +121,13 @@ class ThingService(ServiceUtils):
                     queryset = self.apply_filters(
                         queryset, f"locations__{field}", filtering[field]
                     )
+                elif field == "is_private":
+                    queryset = self.apply_filters(
+                        queryset, f"is_private", filtering[field]
+                    )
+                    queryset = self.apply_filters(
+                        queryset, f"workspace__is_private", filtering[field]
+                    )
                 else:
                     queryset = self.apply_filters(queryset, field, filtering[field])
 

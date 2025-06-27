@@ -2,6 +2,7 @@ import uuid
 from typing import Optional, Literal, Union
 from ninja.errors import HttpError
 from datetime import datetime
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.http import StreamingHttpResponse
@@ -67,25 +68,85 @@ class DatastreamService(ServiceUtils):
 
         return datastream
 
-    @staticmethod
     def list(
+        self,
         principal: Optional[Union[User, APIKey]],
-        workspace_id: Optional[uuid.UUID],
-        thing_id: Optional[uuid.UUID],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        ordering: Optional[str] = None,
+        filtering: Optional[dict] = None,
     ):
         queryset = Datastream.objects
 
-        if workspace_id:
-            queryset = queryset.filter(thing__workspace_id=workspace_id)
+        for field in [
+            "workspace_id",
+            "thing_id",
+            "sensor_id",
+            "observed_property_id",
+            "processing_level_id",
+            "unit_id",
+            "observation_type",
+            "sampled_medium",
+            "status",
+            "result_type",
+            "is_private",
+            "value_count__lte",
+            "value_count__gte",
+            "phenomenon_begin_time__lte",
+            "phenomenon_begin_time__gte",
+            "phenomenon_end_time__lte",
+            "phenomenon_end_time__gte",
+            "result_begin_time__lte",
+            "result_begin_time__gte",
+            "result_end_time__lte",
+            "result_end_time__gte",
+        ]:
+            if field in filtering:
+                if field == "workspace_id":
+                    queryset = self.apply_filters(
+                        queryset, f"thing__{field}", filtering[field]
+                    )
+                elif field == "is_private":
+                    queryset = self.apply_filters(
+                        queryset, f"is_private", filtering[field]
+                    )
+                    queryset = self.apply_filters(
+                        queryset, f"thing__is_private", filtering[field]
+                    )
+                    queryset = self.apply_filters(
+                        queryset, f"thing__workspace__is_private", filtering[field]
+                    )
+                else:
+                    queryset = self.apply_filters(queryset, field, filtering[field])
 
-        if thing_id:
-            queryset = queryset.filter(thing_id=thing_id)
-
-        return (
-            queryset.visible(principal=principal)
-            .select_related("thing__workspace")
-            .distinct()
+        queryset = self.apply_ordering(
+            queryset,
+            ordering,
+            [
+                "name",
+                "observation_type",
+                "sampled_medium",
+                "status",
+                "result_type",
+                "is_private",
+                "value_count",
+                "phenomenon_begin_time",
+                "phenomenon_end_time",
+                "result_begin_time",
+                "result_end_time",
+            ],
         )
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset
 
     def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
         return self.get_datastream_for_action(

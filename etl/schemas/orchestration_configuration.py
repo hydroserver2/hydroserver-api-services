@@ -1,7 +1,13 @@
+import uuid
 from typing import Optional, Literal
 from datetime import datetime
-from ninja import Schema, Field
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from ninja import Schema, Field, Query
+from hydroserver.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
 
 
 class OrchestrationConfigurationScheduleFields(Schema):
@@ -16,6 +22,40 @@ class OrchestrationConfigurationScheduleGetResponse(
     BaseGetResponse, OrchestrationConfigurationScheduleFields
 ):
     pass
+
+
+class OrchestrationConfigurationQueryParameters(CollectionQueryParameters):
+    workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.")
+    orchestration_system_id: list[uuid.UUID] = Query(
+        [], description="Filter by orchestration system ID."
+    )
+    datastreams__id: list[uuid.UUID] = Query(
+        [], description="Filter by associated datastream ID.", alias="datastream_id"
+    )
+    last_run_successful: Optional[bool] = Query(
+        None,
+        description="Filters by whether the previous job ran successfully.",
+    )
+    last_run__lte: Optional[datetime] = Query(
+        None,
+        description="Sets the maximum last run time of filtered datastreams.",
+        alias="last_run_max",
+    )
+    last_run__gte: Optional[datetime] = Query(
+        None,
+        description="Sets the minimum last run time of filtered datastreams.",
+        alias="last_run_min",
+    )
+    next_run__lte: Optional[datetime] = Query(
+        None,
+        description="Sets the maximum next run time of filtered datastreams.",
+        alias="next_run_max",
+    )
+    next_run__gte: Optional[datetime] = Query(
+        None,
+        description="Sets the minimum next run time of filtered datastreams.",
+        alias="next_run_min",
+    )
 
 
 class OrchestrationConfigurationSchedulePostBody(

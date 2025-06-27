@@ -1,11 +1,12 @@
 import uuid
-from ninja import Router, Path
-from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
     ProcessingLevelGetResponse,
+    ProcessingLevelQueryParameters,
     ProcessingLevelPostBody,
     ProcessingLevelPatchBody,
 )
@@ -25,14 +26,21 @@ processing_level_service = ProcessingLevelService()
     by_alias=True,
 )
 def get_processing_levels(
-    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[ProcessingLevelQueryParameters],
 ):
     """
     Get public Processing Levels and Processing Levels associated with the authenticated user.
     """
 
     return 200, processing_level_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

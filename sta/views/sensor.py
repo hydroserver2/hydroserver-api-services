@@ -1,10 +1,15 @@
 import uuid
-from ninja import Router, Path
-from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from sta.schemas import SensorGetResponse, SensorPostBody, SensorPatchBody
+from sta.schemas import (
+    SensorGetResponse,
+    SensorQueryParameters,
+    SensorPostBody,
+    SensorPatchBody,
+)
 from sta.services import SensorService
 
 sensor_router = Router(tags=["Sensors"])
@@ -21,14 +26,21 @@ sensor_service = SensorService()
     by_alias=True,
 )
 def get_sensors(
-    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[SensorQueryParameters],
 ):
     """
     Get public Sensors and Sensors associated with the authenticated user.
     """
 
     return 200, sensor_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

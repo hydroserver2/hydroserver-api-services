@@ -1,6 +1,8 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import ObservedPropertyService
 from sta.schemas import (
     ObservedPropertyPostBody,
@@ -12,50 +14,156 @@ observed_property_service = ObservedPropertyService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, observed_property_names, max_queries",
     [
-        ("owner", None, 6, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 6, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 6, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("viewer", None, 6, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("apikey", None, 4, 3),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("apikey", "00000000-0000-0000-0000-000000000000", 0, 3),
-        ("anonymous", None, 4, 2),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 4, 2),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        (
+            "owner",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+                "Private Observed Property",
+                "Private Assigned Observed Property",
+            ],
+            3,
+        ),
+        (
+            "editor",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+                "Private Observed Property",
+                "Private Assigned Observed Property",
+            ],
+            3,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+                "Private Observed Property",
+                "Private Assigned Observed Property",
+            ],
+            3,
+        ),
+        (
+            "admin",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+                "Private Observed Property",
+                "Private Assigned Observed Property",
+            ],
+            3,
+        ),
+        (
+            "apikey",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+            ],
+            4,
+        ),
+        (
+            "unaffiliated",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+            ],
+            3,
+        ),
+        (
+            "anonymous",
+            {},
+            [
+                "System Observed Property",
+                "System Assigned Observed Property",
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+            ],
+            3,
+        ),
+        # Test pagination and ordering
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "ordering": "-name"},
+            [
+                "Public Observed Property",
+                "Public Assigned Observed Property",
+            ],
+            3,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            ["Public Observed Property", "Public Assigned Observed Property"],
+            3,
+        ),
+        (
+            "owner",
+            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            ["System Assigned Observed Property", "Public Assigned Observed Property"],
+            3,
+        ),
+        (
+            "owner",
+            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            ["Public Assigned Observed Property"],
+            3,
+        ),
     ],
 )
 def test_list_observed_property(
-    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
+    django_assert_num_queries,
+    get_principal,
+    principal,
+    params,
+    observed_property_names,
+    max_queries,
 ):
     with django_assert_num_queries(max_queries):
-        observed_property_list = observed_property_service.list(
+        http_response = HttpResponse()
+        result = observed_property_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(observed_property_list) == length
+        assert Counter(
+            str(observed_property.name) for observed_property in result
+        ) == Counter(observed_property_names)
         assert (
             ObservedPropertyGetResponse.from_orm(observed_property)
-            for observed_property in observed_property_list
+            for observed_property in result
         )
 
 
 @pytest.mark.parametrize(
     "principal, observed_property, message, error_code",
     [
+        # Test public access
         (
             "owner",
             "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
@@ -66,12 +174,6 @@ def test_list_observed_property(
             "owner",
             "cac1262e-68ee-43a0-9222-f214f2161091",
             "Public Observed Property",
-            None,
-        ),
-        (
-            "owner",
-            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Private Observed Property",
             None,
         ),
         (
@@ -87,59 +189,79 @@ def test_list_observed_property(
             None,
         ),
         (
+            "editor",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            "editor",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        (
+            "viewer",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            "viewer",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        (
+            "apikey",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            "apikey",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        (
+            "unaffiliated",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            "unaffiliated",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        (
+            "anonymous",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "System Observed Property",
+            None,
+        ),
+        (
+            "anonymous",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "Public Observed Property",
+            None,
+        ),
+        # Test private access
+        (
+            "owner",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Private Observed Property",
+            None,
+        ),
+        (
             "admin",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
             "Private Observed Property",
             None,
         ),
-        (
-            "editor",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "System Observed Property",
-            None,
-        ),
-        (
-            "editor",
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "Public Observed Property",
-            None,
-        ),
-        (
-            "editor",
-            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Private Observed Property",
-            None,
-        ),
-        (
-            "viewer",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "System Observed Property",
-            None,
-        ),
-        (
-            "viewer",
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "Public Observed Property",
-            None,
-        ),
-        (
-            "viewer",
-            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Private Observed Property",
-            None,
-        ),
-        (
-            "apikey",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "System Observed Property",
-            None,
-        ),
-        (
-            "apikey",
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "Public Observed Property",
-            None,
-        ),
+        # Test unauthorized access
         (
             "apikey",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
@@ -147,16 +269,10 @@ def test_list_observed_property(
             404,
         ),
         (
-            "anonymous",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "System Observed Property",
-            None,
-        ),
-        (
-            "anonymous",
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "Public Observed Property",
-            None,
+            "unaffiliated",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -164,32 +280,9 @@ def test_list_observed_property(
             "Observed property does not exist",
             404,
         ),
+        # Test missing resource
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            None,
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "System Observed Property",
-            None,
-        ),
-        (
-            None,
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "Public Observed Property",
-            None,
-        ),
-        (
-            None,
-            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            None,
             "00000000-0000-0000-0000-000000000000",
             "Observed property does not exist",
             404,
@@ -215,74 +308,74 @@ def test_get_observed_property(
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, message, error_code",
+    "principal, observed_property_fields, message, error_code",
     [
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
+        # Test create valid ObservedProperty
+        ("owner", {}, None, None),
+        ("owner", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("editor", {}, None, None),
         (
-            "viewer",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "editor",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            None,
+            None,
         ),
+        ("admin", {}, None, None),
+        ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        # Test create invalid ObservedProperty
         (
-            "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "owner",
+            {"workspace_id": "00000000-0000-0000-0000-000000000000"},
             "Workspace does not exist",
             404,
         ),
+        # Test unauthorized attempts
+        ("viewer", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "You do not have permission",
             403,
         ),
+        ("apikey", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "apikey",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
+        ("unaffiliated", {}, "You do not have permission", 403),
         (
-            None,
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "unaffiliated",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            "Workspace does not exist",
+            404,
         ),
+        ("anonymous", {}, "You do not have permission", 403),
         (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "anonymous",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
     ],
 )
 def test_create_observed_property(
-    get_principal, principal, workspace, message, error_code
+    get_principal, principal, observed_property_fields, message, error_code
 ):
     observed_property_data = ObservedPropertyPostBody(
-        name="New",
-        code="New",
-        description="New",
-        definition="New",
-        observed_property_type="New",
-        workspace_id=uuid.UUID(workspace),
+        name=observed_property_fields.get("name", "New"),
+        description=observed_property_fields.get("description", "New"),
+        code=observed_property_fields.get("code", "New"),
+        observed_property_type=observed_property_fields.get(
+            "observed_property_type", "New"
+        ),
+        definition=observed_property_fields.get("definition", "New"),
+        workspace_id=uuid.UUID(
+            observed_property_fields.get(
+                "workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f"
+            )
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -296,141 +389,120 @@ def test_create_observed_property(
             principal=get_principal(principal), data=observed_property_data
         )
         assert observed_property_create.name == observed_property_data.name
-        assert (
-            observed_property_create.description == observed_property_data.description
-        )
         assert observed_property_create.definition == observed_property_data.definition
-        assert observed_property_create.code == observed_property_data.code
-        assert (
-            observed_property_create.observed_property_type
-            == observed_property_data.observed_property_type
-        )
-        assert (
-            observed_property_create.description == observed_property_data.description
-        )
-        assert (
-            observed_property_create.workspace_id == observed_property_data.workspace_id
-        )
         assert ObservedPropertyGetResponse.from_orm(observed_property_create)
 
 
 @pytest.mark.parametrize(
-    "principal, observed_property, message, error_code",
+    "principal, observed_property, observed_property_fields, message, error_code",
     [
-        (
-            "owner",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
-        ("owner", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
-        ("owner", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
-        ("admin", "49a245bd-4517-4dea-b3ba-25c919bf2cf5", None, None),
-        ("admin", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
-        ("admin", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
-        (
-            "editor",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
-        ("editor", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
-        ("editor", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
-        (
-            "viewer",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
+        # Test edit ObservedProperty
+        ("owner", "cac1262e-68ee-43a0-9222-f214f2161091", {}, None, None),
+        ("editor", "cac1262e-68ee-43a0-9222-f214f2161091", {}, None, None),
+        ("admin", "cac1262e-68ee-43a0-9222-f214f2161091", {}, None, None),
+        # Test unauthorized attempts
         (
             "viewer",
             "cac1262e-68ee-43a0-9222-f214f2161091",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "viewer",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "cac1262e-68ee-43a0-9222-f214f2161091",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            {},
+            "Observed property does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            {},
             "Observed property does not exist",
             404,
         ),
         (
             "anonymous",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
-            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            None,
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
+            {},
             "Observed property does not exist",
             404,
         ),
     ],
 )
 def test_edit_observed_property(
-    get_principal, principal, observed_property, message, error_code
+    get_principal,
+    principal,
+    observed_property,
+    observed_property_fields,
+    message,
+    error_code,
 ):
     observed_property_data = ObservedPropertyPatchBody(
-        name="New",
-        code="New",
-        description="New",
-        definition="New",
-        observed_property_type="New",
+        name=observed_property_fields.get("name", "New"),
+        description=observed_property_fields.get("description", "New"),
+        code=observed_property_fields.get("code", "New"),
+        observed_property_type=observed_property_fields.get(
+            "observed_property_type", "New"
+        ),
+        definition=observed_property_fields.get("definition", "New"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -448,58 +520,27 @@ def test_edit_observed_property(
             data=observed_property_data,
         )
         assert observed_property_update.name == observed_property_data.name
-        assert (
-            observed_property_update.description == observed_property_data.description
-        )
         assert observed_property_update.definition == observed_property_data.definition
-        assert observed_property_update.code == observed_property_data.code
-        assert (
-            observed_property_update.observed_property_type
-            == observed_property_data.observed_property_type
-        )
-        assert (
-            observed_property_update.description == observed_property_data.description
-        )
         assert ObservedPropertyGetResponse.from_orm(observed_property_update)
 
 
 @pytest.mark.parametrize(
     "principal, observed_property, message, error_code",
     [
-        (
-            "owner",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
+        # Test delete ObservedProperty
         ("owner", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
-        ("owner", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
-        ("admin", "49a245bd-4517-4dea-b3ba-25c919bf2cf5", None, None),
-        ("admin", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
-        ("admin", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
-        (
-            "admin",
-            "a5746e4e-f479-4476-a462-6a8f7874794d",
-            "Observed property in use by one or more datastreams",
-            409,
-        ),
-        (
-            "editor",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
         ("editor", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
-        ("editor", "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1", None, None),
+        ("admin", "cac1262e-68ee-43a0-9222-f214f2161091", None, None),
+        # Test unauthorized attempts
         (
             "viewer",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
             "You do not have permission",
             403,
         ),
         (
             "viewer",
-            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
             "You do not have permission",
             403,
         ),
@@ -511,27 +552,39 @@ def test_edit_observed_property(
         ),
         (
             "apikey",
-            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
             "cac1262e-68ee-43a0-9222-f214f2161091",
             "You do not have permission",
             403,
         ),
         (
             "apikey",
+            "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
             "Observed property does not exist",
             404,
         ),
         (
-            "anonymous",
+            "unaffiliated",
+            "cac1262e-68ee-43a0-9222-f214f2161091",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
             "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
             "You do not have permission",
             403,
+        ),
+        (
+            "unaffiliated",
+            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
+            "Observed property does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -541,37 +594,13 @@ def test_edit_observed_property(
         ),
         (
             "anonymous",
-            "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            None,
             "49a245bd-4517-4dea-b3ba-25c919bf2cf5",
             "You do not have permission",
             403,
         ),
         (
-            None,
-            "cac1262e-68ee-43a0-9222-f214f2161091",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
+            "anonymous",
             "5dbfd184-ae79-4c05-a9ea-3f5e775ecbc1",
-            "Observed property does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
             "Observed property does not exist",
             404,
         ),

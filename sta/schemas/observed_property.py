@@ -1,7 +1,12 @@
 import uuid
-from ninja import Schema, Field
 from typing import Optional
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from ninja import Schema, Field, Query
+from hydroserver.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
 
 
 class ObservedPropertyFields(Schema):
@@ -10,6 +15,23 @@ class ObservedPropertyFields(Schema):
     description: str
     observed_property_type: str = Field(..., max_length=255, alias="type")
     code: str = Field(..., max_length=255)
+
+
+class ObservedPropertyQueryParameters(CollectionQueryParameters):
+    workspace_id: list[uuid.UUID] = Query(
+        [], description="Filter observed properties by workspace ID."
+    )
+    thing_id: list[uuid.UUID] = Query(
+        [], description="Filter observed properties by thing ID."
+    )
+    datastream_id: list[uuid.UUID] = Query(
+        [], description="Filter observed properties by datastream ID."
+    )
+    name: list[str] = Query([], description="Filter observed properties by name")
+    observed_property_type: list[str] = Query(
+        [], description="Filter observed properties by type", alias="type"
+    )
+    code: list[str] = Query([], description="Filter observed properties by code")
 
 
 class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields):

@@ -1,6 +1,7 @@
 import uuid
 from typing import Optional, Literal, Union
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import ResultQualifier
@@ -39,16 +40,38 @@ class ResultQualifierService(ServiceUtils):
 
         return result_qualifier
 
-    @staticmethod
     def list(
-        principal: Optional[Union[User, APIKey]], workspace_id: Optional[uuid.UUID]
+        self,
+        principal: Optional[Union[User, APIKey]],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        ordering: Optional[str] = None,
+        filtering: Optional[dict] = None,
     ):
         queryset = ResultQualifier.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in ["workspace_id", "code"]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        return queryset.visible(principal=principal).distinct()
+        queryset = self.apply_ordering(
+            queryset,
+            ordering,
+            [
+                "code",
+            ],
+        )
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset
 
     def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
         return self.get_result_qualifier_for_action(

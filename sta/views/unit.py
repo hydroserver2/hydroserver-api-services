@@ -41,10 +41,7 @@ def get_units(
         page=query.page,
         page_size=query.page_size,
         ordering=query.ordering,
-        filtering={
-            field: getattr(query, field)
-            for field in UnitQueryParameters.__annotations__
-        },
+        filtering=query.dict(exclude_unset=True),
     )
 
 

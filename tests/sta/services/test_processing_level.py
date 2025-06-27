@@ -1,6 +1,8 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import ProcessingLevelService
 from sta.schemas import (
     ProcessingLevelPostBody,
@@ -12,133 +14,254 @@ processing_level_service = ProcessingLevelService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, processing_level_codes, max_queries",
     [
-        ("owner", None, 6, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 6, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 6, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("viewer", None, 6, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("apikey", None, 4, 3),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("anonymous", None, 4, 2),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 4, 2),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        (
+            "owner",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+                "PrivateProcessingLevel",
+                "PrivateAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        (
+            "editor",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+                "PrivateProcessingLevel",
+                "PrivateAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+                "PrivateProcessingLevel",
+                "PrivateAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        (
+            "admin",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+                "PrivateProcessingLevel",
+                "PrivateAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        (
+            "apikey",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+            ],
+            4,
+        ),
+        (
+            "unaffiliated",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        (
+            "anonymous",
+            {},
+            [
+                "SystemProcessingLevel",
+                "SystemAssignedProcessingLevel",
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        # Test pagination and ordering
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "ordering": "-code"},
+            [
+                "PublicProcessingLevel",
+                "PublicAssignedProcessingLevel",
+            ],
+            3,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            ["PublicProcessingLevel", "PublicAssignedProcessingLevel"],
+            3,
+        ),
+        (
+            "owner",
+            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            ["SystemAssignedProcessingLevel", "PublicAssignedProcessingLevel"],
+            3,
+        ),
+        (
+            "owner",
+            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            ["PublicAssignedProcessingLevel"],
+            3,
+        ),
     ],
 )
 def test_list_processing_level(
-    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
+    django_assert_num_queries,
+    get_principal,
+    principal,
+    params,
+    processing_level_codes,
+    max_queries,
 ):
     with django_assert_num_queries(max_queries):
-        processing_level_list = processing_level_service.list(
+        http_response = HttpResponse()
+        result = processing_level_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(processing_level_list) == length
+        assert Counter(
+            str(processing_level.code) for processing_level in result
+        ) == Counter(processing_level_codes)
         assert (
             ProcessingLevelGetResponse.from_orm(processing_level)
-            for processing_level in processing_level_list
+            for processing_level in result
         )
 
 
 @pytest.mark.parametrize(
     "principal, processing_level, message, error_code",
     [
+        # Test public access
         (
             "owner",
             "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
+            "SystemProcessingLevel",
             None,
         ),
         (
             "owner",
             "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
-            None,
-        ),
-        (
-            "owner",
-            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Private Processing Level",
+            "PublicProcessingLevel",
             None,
         ),
         (
             "admin",
             "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
+            "SystemProcessingLevel",
             None,
         ),
         (
             "admin",
             "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
+            "PublicProcessingLevel",
+            None,
+        ),
+        (
+            "editor",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "SystemProcessingLevel",
+            None,
+        ),
+        (
+            "editor",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "PublicProcessingLevel",
+            None,
+        ),
+        (
+            "viewer",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "SystemProcessingLevel",
+            None,
+        ),
+        (
+            "viewer",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "PublicProcessingLevel",
+            None,
+        ),
+        (
+            "apikey",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "SystemProcessingLevel",
+            None,
+        ),
+        (
+            "apikey",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "PublicProcessingLevel",
+            None,
+        ),
+        (
+            "unaffiliated",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "SystemProcessingLevel",
+            None,
+        ),
+        (
+            "unaffiliated",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "PublicProcessingLevel",
+            None,
+        ),
+        (
+            "anonymous",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "SystemProcessingLevel",
+            None,
+        ),
+        (
+            "anonymous",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "PublicProcessingLevel",
+            None,
+        ),
+        # Test private access
+        (
+            "owner",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "PrivateProcessingLevel",
             None,
         ),
         (
             "admin",
             "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Private Processing Level",
+            "PrivateProcessingLevel",
             None,
         ),
-        (
-            "editor",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
-            None,
-        ),
-        (
-            "editor",
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
-            None,
-        ),
-        (
-            "editor",
-            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Private Processing Level",
-            None,
-        ),
-        (
-            "viewer",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
-            None,
-        ),
-        (
-            "viewer",
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
-            None,
-        ),
-        (
-            "viewer",
-            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Private Processing Level",
-            None,
-        ),
-        (
-            "apikey",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
-            None,
-        ),
-        (
-            "apikey",
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
-            None,
-        ),
+        # Test unauthorized access
         (
             "apikey",
             "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
@@ -146,16 +269,10 @@ def test_list_processing_level(
             404,
         ),
         (
-            "anonymous",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
-            None,
-        ),
-        (
-            "anonymous",
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
-            None,
+            "unaffiliated",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -163,32 +280,9 @@ def test_list_processing_level(
             "Processing level does not exist",
             404,
         ),
+        # Test missing resource
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Processing level does not exist",
-            404,
-        ),
-        (
-            None,
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "System Processing Level",
-            None,
-        ),
-        (
-            None,
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "Public Processing Level",
-            None,
-        ),
-        (
-            None,
-            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Processing level does not exist",
-            404,
-        ),
-        (
-            None,
             "00000000-0000-0000-0000-000000000000",
             "Processing level does not exist",
             404,
@@ -214,69 +308,70 @@ def test_get_processing_level(
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, message, error_code",
+    "principal, processing_level_fields, message, error_code",
     [
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
+        # Test create valid ProcessingLevel
+        ("owner", {}, None, None),
+        ("owner", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("editor", {}, None, None),
         (
-            "viewer",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "editor",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            None,
+            None,
         ),
+        ("admin", {}, None, None),
+        ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        # Test create invalid ProcessingLevel
         (
-            "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "owner",
+            {"workspace_id": "00000000-0000-0000-0000-000000000000"},
             "Workspace does not exist",
             404,
         ),
+        # Test unauthorized attempts
+        ("viewer", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "You do not have permission",
             403,
         ),
+        ("apikey", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "apikey",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
+        ("unaffiliated", {}, "You do not have permission", 403),
         (
-            None,
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "unaffiliated",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            "Workspace does not exist",
+            404,
         ),
+        ("anonymous", {}, "You do not have permission", 403),
         (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "anonymous",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
     ],
 )
 def test_create_processing_level(
-    get_principal, principal, workspace, message, error_code
+    get_principal, principal, processing_level_fields, message, error_code
 ):
     processing_level_data = ProcessingLevelPostBody(
-        code="New", definition="New", workspace_id=uuid.UUID(workspace)
+        code=processing_level_fields.get("code", "New"),
+        definition=processing_level_fields.get("definition", "New"),
+        explanation=processing_level_fields.get("explanation", "New"),
+        workspace_id=uuid.UUID(
+            processing_level_fields.get(
+                "workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f"
+            )
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -289,126 +384,119 @@ def test_create_processing_level(
         processing_level_create = processing_level_service.create(
             principal=get_principal(principal), data=processing_level_data
         )
-        assert processing_level_create.definition == processing_level_data.definition
         assert processing_level_create.code == processing_level_data.code
-        assert (
-            processing_level_create.workspace_id == processing_level_data.workspace_id
-        )
+        assert processing_level_create.definition == processing_level_data.definition
+        assert processing_level_create.explanation == processing_level_data.explanation
         assert ProcessingLevelGetResponse.from_orm(processing_level_create)
 
 
 @pytest.mark.parametrize(
-    "principal, processing_level, message, error_code",
+    "principal, processing_level, processing_level_fields, message, error_code",
     [
-        (
-            "owner",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
-        ("owner", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
-        ("owner", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
-        ("admin", "1cb782af-6097-4a3f-9988-5fcbfcb5a327", None, None),
-        ("admin", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
-        ("admin", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
-        (
-            "editor",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
-        ("editor", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
-        ("editor", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
-        (
-            "viewer",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
+        # Test edit ProcessingLevel
+        ("owner", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", {}, None, None),
+        ("editor", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", {}, None, None),
+        ("admin", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", {}, None, None),
+        # Test unauthorized attempts
         (
             "viewer",
             "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "viewer",
             "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            {},
+            "Processing level does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            {},
             "Processing level does not exist",
             404,
         ),
         (
             "anonymous",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
             "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Processing level does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Processing level does not exist",
-            404,
-        ),
-        (
-            None,
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Processing level does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
+            {},
             "Processing level does not exist",
             404,
         ),
     ],
 )
 def test_edit_processing_level(
-    get_principal, principal, processing_level, message, error_code
+    get_principal,
+    principal,
+    processing_level,
+    processing_level_fields,
+    message,
+    error_code,
 ):
-    processing_level_data = ProcessingLevelPatchBody(code="New", definition="New")
+    processing_level_data = ProcessingLevelPatchBody(
+        code=processing_level_fields.get("code", "New"),
+        definition=processing_level_fields.get("definition", "New"),
+        explanation=processing_level_fields.get("explanation", "New"),
+    )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             processing_level_service.update(
@@ -424,48 +512,29 @@ def test_edit_processing_level(
             uid=uuid.UUID(processing_level),
             data=processing_level_data,
         )
-        assert processing_level_update.definition == processing_level_data.definition
         assert processing_level_update.code == processing_level_data.code
+        assert processing_level_update.definition == processing_level_data.definition
+        assert processing_level_update.explanation == processing_level_data.explanation
         assert ProcessingLevelGetResponse.from_orm(processing_level_update)
 
 
 @pytest.mark.parametrize(
     "principal, processing_level, message, error_code",
     [
-        (
-            "owner",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
+        # Test delete ProcessingLevel
         ("owner", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
-        ("owner", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
-        ("admin", "1cb782af-6097-4a3f-9988-5fcbfcb5a327", None, None),
-        ("admin", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
-        ("admin", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
-        (
-            "admin",
-            "a7ff1528-e485-4def-b325-45330c1c448c",
-            "Processing level in use by one or more datastreams",
-            409,
-        ),
-        (
-            "editor",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
         ("editor", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
-        ("editor", "fa3c97ce-41b8-4c12-b91a-9127ce0c083a", None, None),
+        ("admin", "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575", None, None),
+        # Test unauthorized attempts
         (
             "viewer",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
             "You do not have permission",
             403,
         ),
         (
             "viewer",
-            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
             "You do not have permission",
             403,
         ),
@@ -477,43 +546,55 @@ def test_edit_processing_level(
         ),
         (
             "apikey",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
             "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
             "You do not have permission",
             403,
         ),
         (
             "apikey",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
+            "Processing level does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
             "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
             "Processing level does not exist",
             404,
         ),
         (
             "anonymous",
-            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "anonymous",
             "aa2d8fa4-461f-48a4-8bfe-13b6ae6fa575",
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
-            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
-            "Processing level does not exist",
-            404,
+            "1cb782af-6097-4a3f-9988-5fcbfcb5a327",
+            "You do not have permission",
+            403,
         ),
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
+            "fa3c97ce-41b8-4c12-b91a-9127ce0c083a",
             "Processing level does not exist",
             404,
         ),

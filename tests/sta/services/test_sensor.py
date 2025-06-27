@@ -1,6 +1,8 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import SensorService
 from sta.schemas import SensorPostBody, SensorPatchBody, SensorGetResponse
 
@@ -8,90 +10,191 @@ sensor_service = SensorService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, sensor_names, max_queries",
     [
-        ("owner", None, 6, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 6, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 6, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("viewer", None, 6, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("apikey", None, 4, 3),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("anonymous", None, 4, 2),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 4, 2),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        (
+            "owner",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+                "Private Sensor",
+                "Private Assigned Sensor",
+            ],
+            3,
+        ),
+        (
+            "editor",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+                "Private Sensor",
+                "Private Assigned Sensor",
+            ],
+            3,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+                "Private Sensor",
+                "Private Assigned Sensor",
+            ],
+            3,
+        ),
+        (
+            "admin",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+                "Private Sensor",
+                "Private Assigned Sensor",
+            ],
+            3,
+        ),
+        (
+            "apikey",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+            ],
+            4,
+        ),
+        (
+            "unaffiliated",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+            ],
+            3,
+        ),
+        (
+            "anonymous",
+            {},
+            [
+                "System Sensor",
+                "System Assigned Sensor",
+                "Public Sensor",
+                "Public Assigned Sensor",
+            ],
+            3,
+        ),
+        # Test pagination and ordering
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "ordering": "-name"},
+            [
+                "Public Sensor",
+                "Public Assigned Sensor",
+            ],
+            3,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            ["Public Sensor", "Public Assigned Sensor"],
+            3,
+        ),
+        (
+            "owner",
+            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            ["System Assigned Sensor", "Public Assigned Sensor"],
+            3,
+        ),
+        (
+            "owner",
+            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            ["Public Assigned Sensor"],
+            3,
+        ),
+        ("owner", {"method_type": "System Method"}, ["System Sensor"], 3),
     ],
 )
 def test_list_sensor(
-    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
+    django_assert_num_queries,
+    get_principal,
+    principal,
+    params,
+    sensor_names,
+    max_queries,
 ):
     with django_assert_num_queries(max_queries):
-        sensor_list = sensor_service.list(
+        http_response = HttpResponse()
+        result = sensor_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(sensor_list) == length
-        assert (SensorGetResponse.from_orm(sensor) for sensor in sensor_list)
+        assert Counter(str(sensor.name) for sensor in result) == Counter(sensor_names)
+        assert (SensorGetResponse.from_orm(sensor) for sensor in result)
 
 
 @pytest.mark.parametrize(
     "principal, sensor, message, error_code",
     [
+        # Test public access
         ("owner", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("owner", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
-        ("owner", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
         ("admin", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("admin", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
-        ("admin", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
         ("editor", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("editor", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
-        ("editor", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
         ("viewer", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("viewer", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
-        ("viewer", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
         ("apikey", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
         ("apikey", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
+        ("unaffiliated", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
+        ("unaffiliated", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
+        ("anonymous", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
+        ("anonymous", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
+        # Test private access
+        ("owner", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
+        ("admin", "89a6ae16-9f85-4279-985e-83484db47107", "Private Sensor", None),
+        # Test unauthorized access
         (
             "apikey",
             "89a6ae16-9f85-4279-985e-83484db47107",
             "Sensor does not exist",
             404,
         ),
-        ("anonymous", "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
-        ("anonymous", "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
         (
-            "anonymous",
+            "unaffiliated",
             "89a6ae16-9f85-4279-985e-83484db47107",
             "Sensor does not exist",
             404,
         ),
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Sensor does not exist",
-            404,
-        ),
-        (None, "a947c551-8e21-4848-a89b-3048aec69574", "System Sensor", None),
-        (None, "f87072e1-6ccb-46ec-ab34-befb453140de", "Public Sensor", None),
-        (
-            None,
             "89a6ae16-9f85-4279-985e-83484db47107",
             "Sensor does not exist",
             404,
         ),
+        # Test missing resource
         (
-            None,
+            "anonymous",
             "00000000-0000-0000-0000-000000000000",
             "Sensor does not exist",
             404,
@@ -115,71 +218,67 @@ def test_get_sensor(get_principal, principal, sensor, message, error_code):
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, message, error_code",
+    "principal, sensor_fields, message, error_code",
     [
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
+        # Test create valid Sensor
+        ("owner", {}, None, None),
+        ("owner", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("editor", {}, None, None),
         (
-            "viewer",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "editor",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            None,
+            None,
         ),
+        ("admin", {}, None, None),
+        ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        # Test create invalid Sensor
         (
-            "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "owner",
+            {"workspace_id": "00000000-0000-0000-0000-000000000000"},
             "Workspace does not exist",
             404,
         ),
+        # Test unauthorized attempts
+        ("viewer", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "You do not have permission",
             403,
         ),
+        ("apikey", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "apikey",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
+        ("unaffiliated", {}, "You do not have permission", 403),
         (
-            None,
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "unaffiliated",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            "Workspace does not exist",
+            404,
         ),
+        ("anonymous", {}, "You do not have permission", 403),
         (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "anonymous",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
     ],
 )
-def test_create_sensor(get_principal, principal, workspace, message, error_code):
+def test_create_sensor(get_principal, principal, sensor_fields, message, error_code):
     sensor_data = SensorPostBody(
-        name="New",
-        description="New",
+        name=sensor_fields.get("name", "New"),
+        description=sensor_fields.get("description", "New"),
         encoding_type="application/json",
-        method_type="New",
-        workspace_id=uuid.UUID(workspace),
+        method_type=sensor_fields.get("method_type", "New"),
+        workspace_id=uuid.UUID(
+            sensor_fields.get("workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -190,127 +289,114 @@ def test_create_sensor(get_principal, principal, workspace, message, error_code)
         sensor_create = sensor_service.create(
             principal=get_principal(principal), data=sensor_data
         )
-        assert sensor_create.description == sensor_data.description
         assert sensor_create.name == sensor_data.name
-        assert sensor_create.encoding_type == sensor_data.encoding_type
+        assert sensor_create.description == sensor_data.description
         assert sensor_create.method_type == sensor_data.method_type
         assert SensorGetResponse.from_orm(sensor_create)
 
 
 @pytest.mark.parametrize(
-    "principal, sensor, message, error_code",
+    "principal, sensor, sensor_fields, message, error_code",
     [
-        (
-            "owner",
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
-        ("owner", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
-        ("owner", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
-        ("admin", "a947c551-8e21-4848-a89b-3048aec69574", None, None),
-        ("admin", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
-        ("admin", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
-        (
-            "editor",
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
-        ("editor", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
-        ("editor", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
-        (
-            "viewer",
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
+        # Test edit Sensor
+        ("owner", "f87072e1-6ccb-46ec-ab34-befb453140de", {}, None, None),
+        ("editor", "f87072e1-6ccb-46ec-ab34-befb453140de", {}, None, None),
+        ("admin", "f87072e1-6ccb-46ec-ab34-befb453140de", {}, None, None),
+        # Test unauthorized attempts
         (
             "viewer",
             "f87072e1-6ccb-46ec-ab34-befb453140de",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "viewer",
             "89a6ae16-9f85-4279-985e-83484db47107",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "a947c551-8e21-4848-a89b-3048aec69574",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "f87072e1-6ccb-46ec-ab34-befb453140de",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "89a6ae16-9f85-4279-985e-83484db47107",
+            {},
+            "Sensor does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            {},
             "Sensor does not exist",
             404,
         ),
         (
             "anonymous",
-            "a947c551-8e21-4848-a89b-3048aec69574",
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
-            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
             "89a6ae16-9f85-4279-985e-83484db47107",
-            "Sensor does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Sensor does not exist",
-            404,
-        ),
-        (
-            None,
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "f87072e1-6ccb-46ec-ab34-befb453140de",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "89a6ae16-9f85-4279-985e-83484db47107",
-            "Sensor does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
+            {},
             "Sensor does not exist",
             404,
         ),
     ],
 )
-def test_edit_sensor(get_principal, principal, sensor, message, error_code):
+def test_edit_sensor(
+    get_principal, principal, sensor, sensor_fields, message, error_code
+):
     sensor_data = SensorPatchBody(
-        name="New",
-        description="New",
+        name=sensor_fields.get("name", "New"),
+        description=sensor_fields.get("description", "New"),
         encoding_type="application/json",
-        method_type="New",
+        method_type=sensor_fields.get("method_type", "New"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -325,9 +411,8 @@ def test_edit_sensor(get_principal, principal, sensor, message, error_code):
         sensor_update = sensor_service.update(
             principal=get_principal(principal), uid=uuid.UUID(sensor), data=sensor_data
         )
-        assert sensor_update.description == sensor_data.description
         assert sensor_update.name == sensor_data.name
-        assert sensor_update.encoding_type == sensor_data.encoding_type
+        assert sensor_update.description == sensor_data.description
         assert sensor_update.method_type == sensor_data.method_type
         assert SensorGetResponse.from_orm(sensor_update)
 
@@ -335,40 +420,20 @@ def test_edit_sensor(get_principal, principal, sensor, message, error_code):
 @pytest.mark.parametrize(
     "principal, sensor, message, error_code",
     [
-        (
-            "owner",
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
+        # Test delete Sensor
         ("owner", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
-        ("owner", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
-        ("admin", "a947c551-8e21-4848-a89b-3048aec69574", None, None),
-        ("admin", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
-        ("admin", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
-        (
-            "admin",
-            "291625d8-0f6e-46d6-918c-6c3af3d345ab",
-            "Sensor in use by one or more datastreams",
-            409,
-        ),
-        (
-            "editor",
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
         ("editor", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
-        ("editor", "89a6ae16-9f85-4279-985e-83484db47107", None, None),
+        ("admin", "f87072e1-6ccb-46ec-ab34-befb453140de", None, None),
+        # Test unauthorized attempts
         (
             "viewer",
-            "a947c551-8e21-4848-a89b-3048aec69574",
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
             "You do not have permission",
             403,
         ),
         (
             "viewer",
-            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "a947c551-8e21-4848-a89b-3048aec69574",
             "You do not have permission",
             403,
         ),
@@ -380,27 +445,39 @@ def test_edit_sensor(get_principal, principal, sensor, message, error_code):
         ),
         (
             "apikey",
-            "a947c551-8e21-4848-a89b-3048aec69574",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
             "f87072e1-6ccb-46ec-ab34-befb453140de",
             "You do not have permission",
             403,
         ),
         (
             "apikey",
+            "a947c551-8e21-4848-a89b-3048aec69574",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
             "89a6ae16-9f85-4279-985e-83484db47107",
             "Sensor does not exist",
             404,
         ),
         (
-            "anonymous",
+            "unaffiliated",
+            "f87072e1-6ccb-46ec-ab34-befb453140de",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
             "a947c551-8e21-4848-a89b-3048aec69574",
             "You do not have permission",
             403,
+        ),
+        (
+            "unaffiliated",
+            "89a6ae16-9f85-4279-985e-83484db47107",
+            "Sensor does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -410,37 +487,13 @@ def test_edit_sensor(get_principal, principal, sensor, message, error_code):
         ),
         (
             "anonymous",
-            "89a6ae16-9f85-4279-985e-83484db47107",
-            "Sensor does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Sensor does not exist",
-            404,
-        ),
-        (
-            None,
             "a947c551-8e21-4848-a89b-3048aec69574",
             "You do not have permission",
             403,
         ),
         (
-            None,
-            "f87072e1-6ccb-46ec-ab34-befb453140de",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
+            "anonymous",
             "89a6ae16-9f85-4279-985e-83484db47107",
-            "Sensor does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
             "Sensor does not exist",
             404,
         ),

@@ -1,5 +1,6 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from typing import Optional, Literal
 from datetime import datetime
 from django.db import transaction
@@ -7,6 +8,7 @@ from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymo
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
     DatastreamGetResponse,
+    DatastreamQueryParameters,
     DatastreamPostBody,
     DatastreamPatchBody,
     ObservationsGetResponse,
@@ -28,15 +30,20 @@ datastream_service = DatastreamService()
 )
 def get_datastreams(
     request: HydroServerHttpRequest,
-    workspace_id: Optional[uuid.UUID] = None,
-    thing_id: Optional[uuid.UUID] = None,
+    response: HttpResponse,
+    query: Query[DatastreamQueryParameters],
 ):
     """
     Get public Datastreams and Datastreams associated with the authenticated user.
     """
 
     return 200, datastream_service.list(
-        principal=request.principal, workspace_id=workspace_id, thing_id=thing_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

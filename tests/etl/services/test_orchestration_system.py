@@ -1,6 +1,8 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from etl.services import OrchestrationSystemService
 from etl.schemas import (
     OrchestrationSystemPostBody,
@@ -12,45 +14,42 @@ orchestration_system_service = OrchestrationSystemService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, orchestration_system_names, max_queries",
     [
-        ("owner", None, 2, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("admin", None, 2, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("editor", None, 2, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("viewer", None, 2, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("apikey", None, 1, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("apikey", "00000000-0000-0000-0000-000000000000", 0, 3),
-        ("anonymous", None, 1, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 1, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        ("owner", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
+        ("editor", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
+        ("viewer", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
+        ("admin", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
+        ("apikey", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
+        ("unaffiliated", {}, ["Global Orchestration System"], 2),
+        ("anonymous", {}, ["Global Orchestration System"], 2),
+        # Test pagination and ordering
+        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Global Orchestration System"], 2),
+        # Test filtering
+        ("owner", {"orchestration_system_type": "Workspace"}, ["Workspace Orchestration System"], 2),
     ],
 )
 def test_list_orchestration_system(
     django_assert_num_queries,
     get_principal,
     principal,
-    workspace,
-    length,
+    params,
+    orchestration_system_names,
     max_queries,
 ):
     with django_assert_num_queries(max_queries):
-        orchestration_system_list = orchestration_system_service.list(
+        http_response = HttpResponse()
+        result = orchestration_system_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(orchestration_system_list) == length
-        assert (
-            OrchestrationSystemGetResponse.from_orm(orchestration_system)
-            for orchestration_system in orchestration_system_list
-        )
+        assert Counter(str(sensor.name) for sensor in result) == Counter(orchestration_system_names)
+        assert (OrchestrationSystemGetResponse.from_orm(sensor) for sensor in result)
 
 
 @pytest.mark.parametrize(

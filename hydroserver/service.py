@@ -1,8 +1,9 @@
 import uuid
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, Type
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Model
 from iam.models import Workspace, APIKey
 
 User = get_user_model()
@@ -100,3 +101,31 @@ class ServiceUtils:
         response["X-Page"] = str(page)
         response["X-Page-Size"] = str(page_size)
         response["X-Total-Pages"] = str((count + page_size - 1) // page_size)
+
+
+class VocabularyService(ServiceUtils):
+    def list(
+        self,
+        vocabulary_model: Type[Model],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False,
+    ):
+        queryset = vocabulary_model.objects
+
+        queryset = self.apply_ordering(
+            queryset,
+            "-name" if order_desc else "name",
+            [
+                "name",
+            ],
+        )
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list("name", flat=True)
