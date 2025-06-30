@@ -2,6 +2,7 @@ import uuid
 from typing import Optional, Union
 from ninja.errors import HttpError
 from django.utils import timezone
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from iam.models import Workspace, WorkspaceTransferConfirmation, APIKey
@@ -41,22 +42,58 @@ class WorkspaceService(ServiceUtils):
         return workspace
 
     def list(
-        self, principal: Optional[Union[User, APIKey]], associated_only: bool = False
+        self,
+        principal: Optional[Union[User, APIKey]],
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        ordering: Optional[str] = None,
+        filtering: Optional[dict] = None,
     ):
-        workspaces = Workspace.objects.visible(principal=principal).distinct()
+        queryset = Workspace.objects
 
         if isinstance(principal, User):
-            principal.collaborator_roles = list(principal.workspace_roles.all())
+            principal.collaborator_roles = list(principal.workspace_roles.select_related(
+                "role", "workspace"
+            ).prefetch_related(
+                "role__permissions"
+            ).all())
 
-        if associated_only:
-            workspaces = workspaces.associated(principal=principal)
+        for field in [
+            "is_associated",
+            "is_private",
+        ]:
+            if field in filtering:
+                if field == "is_associated":
+                    if filtering[field] is True:
+                        queryset = queryset.associated(principal=principal)
+                else:
+                    queryset = self.apply_filters(queryset, field, filtering[field])
 
-        workspaces = [
+        queryset = self.apply_ordering(
+            queryset,
+            ordering,
+            [
+                "name",
+            ],
+        )
+
+        queryset = queryset.visible(principal=principal).select_related(
+            "owner", "transfer_confirmation", "transfer_confirmation__new_owner"
+        ).distinct()
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        queryset = [
             self.attach_role_and_transfer_fields(workspace, principal)
-            for workspace in workspaces
+            for workspace in queryset
         ]
 
-        return workspaces
+        return queryset
 
     def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
         workspace, _ = self.get_workspace(principal=principal, workspace_id=uid)

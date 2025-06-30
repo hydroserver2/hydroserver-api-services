@@ -104,7 +104,7 @@ class ThingQueryParameters(CollectionQueryParameters):
         [], description="Filter things by tag. Format tag filters as {key}:{value}"
     )
     is_private: Optional[bool] = Query(
-        None, description="Controls whether the things should be private or public."
+        None, description="Controls whether the returned things should be private or public."
     )
 
 

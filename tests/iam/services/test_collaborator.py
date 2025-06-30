@@ -1,6 +1,8 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from iam.services.collaborator import CollaboratorService
 from iam.schemas import (
     CollaboratorPostBody,
@@ -12,52 +14,45 @@ collaborator_service = CollaboratorService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, message, error_code",
+    "principal, workspace, params, collaborator_ids, max_queries",
     [
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, None),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None),
-        (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "Workspace does not exist",
-            404,
-        ),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None),
-        (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "Workspace does not exist",
-            404,
-        ),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, None),
-        (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "Workspace does not exist",
-            404,
-        ),
+        # Test user access
+        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
+        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
+        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
+        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
+        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
+        ("unaffiliated", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
+        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
+        # Test pagination and ordering
+        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"page": 2, "page_size": 1}, ["1000000013"],
+         7),
+        # Test filtering
+        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"role_id": "2f05f775-5d8a-4778-9942-3d13a64ec7a3"}, ["1000000012"], 7),
     ],
 )
-def test_list_collaborator(get_principal, principal, workspace, message, error_code):
-    if error_code:
-        with pytest.raises(HttpError) as exc_info:
-            collaborator_service.list(
-                principal=get_principal(principal), workspace_id=uuid.UUID(workspace)
-            )
-        assert exc_info.value.status_code == error_code
-        assert exc_info.value.message.startswith(message)
-    else:
-        collaborator_list = collaborator_service.list(
-            principal=get_principal(principal), workspace_id=uuid.UUID(workspace)
+def test_list_collaborator(
+    django_assert_max_num_queries,
+    get_principal,
+    principal,
+    workspace,
+    params,
+    collaborator_ids,
+    max_queries
+):
+    with django_assert_max_num_queries(max_queries):
+        http_response = HttpResponse()
+        result = collaborator_service.list(
+            principal=get_principal(principal),
+            workspace_id=uuid.UUID(workspace),
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
         )
-        assert len(collaborator_list) == message
-        assert (
-            CollaboratorGetResponse.from_orm(collaborator)
-            for collaborator in collaborator_list
-        )
+        assert Counter(str(collaborator.id) for collaborator in result) == Counter(collaborator_ids)
+        assert (CollaboratorGetResponse.from_orm(collaborator) for collaborator in result)
 
 
 @pytest.mark.parametrize(
@@ -65,7 +60,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
     [
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             None,
@@ -73,7 +68,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "admin",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             None,
@@ -81,7 +76,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "60b9d8b1-28d1-4d0d-9bee-4e47219d0118",
             None,
@@ -97,7 +92,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "editor",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             None,
@@ -105,7 +100,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "viewer",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "You do not have permission",
@@ -113,15 +108,15 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "apikey",
-            "anonymous",
+            "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "You do not have permission",
             403,
         ),
         (
-            "anonymous",
-            "anonymous",
+            "unaffiliated",
+            "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "You do not have permission",
@@ -129,23 +124,23 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             None,
-            "anonymous",
+            "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "You do not have permission",
             403,
         ),
         (
-            "anonymous",
-            "anonymous",
+            "unaffiliated",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "Workspace does not exist",
             404,
         ),
         (
-            None,
             "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "Workspace does not exist",
@@ -177,7 +172,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "00000000-0000-0000-0000-000000000000",
             "Role does not exist",
@@ -185,7 +180,7 @@ def test_list_collaborator(get_principal, principal, workspace, message, error_c
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "60b9d8b1-28d1-4d0d-9bee-4e47219d0118",
             "Role does not exist",
@@ -271,7 +266,7 @@ def test_create_collaborator(
             403,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "editor",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
@@ -279,7 +274,7 @@ def test_create_collaborator(
             403,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
@@ -287,7 +282,7 @@ def test_create_collaborator(
             404,
         ),
         (
-            None,
+            "anonymous",
             "editor",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
@@ -295,7 +290,7 @@ def test_create_collaborator(
             403,
         ),
         (
-            None,
+            "anonymous",
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
@@ -312,7 +307,7 @@ def test_create_collaborator(
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "2f05f775-5d8a-4778-9942-3d13a64ec7a3",
             "No collaborator with email",
@@ -408,28 +403,28 @@ def test_update_collaborator(
             403,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "editor",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
             403,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
         ),
         (
-            None,
+            "anonymous",
             "editor",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "You do not have permission",
             403,
         ),
         (
-            None,
+            "anonymous",
             "editor",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
@@ -444,7 +439,7 @@ def test_update_collaborator(
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "No collaborator with email",
             400,

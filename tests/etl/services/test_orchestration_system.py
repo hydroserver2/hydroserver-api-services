@@ -17,28 +17,28 @@ orchestration_system_service = OrchestrationSystemService()
     "principal, params, orchestration_system_names, max_queries",
     [
         # Test user access
-        ("owner", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
-        ("editor", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
-        ("viewer", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
-        ("admin", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
-        ("apikey", {}, ["Global Orchestration System", "Workspace Orchestration System"], 2),
-        ("unaffiliated", {}, ["Global Orchestration System"], 2),
-        ("anonymous", {}, ["Global Orchestration System"], 2),
+        ("owner", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
+        ("editor", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
+        ("viewer", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
+        ("admin", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
+        ("apikey", {}, ["Global Orchestration System"], 4),
+        ("unaffiliated", {}, ["Global Orchestration System"], 4),
+        ("anonymous", {}, ["Global Orchestration System"], 4),
         # Test pagination and ordering
-        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Global Orchestration System"], 2),
+        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Global Orchestration System"], 4),
         # Test filtering
-        ("owner", {"orchestration_system_type": "Workspace"}, ["Workspace Orchestration System"], 2),
+        ("owner", {"orchestration_system_type": "Workspace"}, ["Workspace Orchestration System"], 4),
     ],
 )
 def test_list_orchestration_system(
-    django_assert_num_queries,
+    django_assert_max_num_queries,
     get_principal,
     principal,
     params,
     orchestration_system_names,
     max_queries,
 ):
-    with django_assert_num_queries(max_queries):
+    with django_assert_max_num_queries(max_queries):
         http_response = HttpResponse()
         result = orchestration_system_service.list(
             principal=get_principal(principal),
@@ -48,8 +48,8 @@ def test_list_orchestration_system(
             ordering=params.pop("ordering", None),
             filtering=params,
         )
-        assert Counter(str(sensor.name) for sensor in result) == Counter(orchestration_system_names)
-        assert (OrchestrationSystemGetResponse.from_orm(sensor) for sensor in result)
+        assert Counter(str(orchestration_system.name) for orchestration_system in result) == Counter(orchestration_system_names)
+        assert (OrchestrationSystemGetResponse.from_orm(orchestration_system) for orchestration_system in result)
 
 
 @pytest.mark.parametrize(

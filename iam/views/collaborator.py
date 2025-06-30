@@ -1,10 +1,12 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from iam.schemas import (
     CollaboratorGetResponse,
+    CollaboratorQueryParameters,
     CollaboratorPostBody,
     CollaboratorDeleteBody,
 )
@@ -24,7 +26,12 @@ collaborator_service = CollaboratorService()
     },
     by_alias=True,
 )
-def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def get_collaborators(
+        request: HydroServerHttpRequest,
+        response: HttpResponse,
+        workspace_id: Path[uuid.UUID],
+        query: Query[CollaboratorQueryParameters],
+):
     """
     Get all collaborators associated with a workspace.
     """
@@ -32,6 +39,11 @@ def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.U
     return 200, collaborator_service.list(
         principal=request.principal,
         workspace_id=workspace_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

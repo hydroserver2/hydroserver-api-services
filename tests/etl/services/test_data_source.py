@@ -1,5 +1,7 @@
 import pytest
 from uuid import UUID
+from collections import Counter
+from django.http import HttpResponse
 from iam.models import Workspace
 from etl.services import DataSourceService
 from etl.schemas import (
@@ -14,49 +16,42 @@ data_source_service = DataSourceService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, etl_system, length, max_queries",
+    "principal, params, data_source_names, max_queries",
     [
-        ("admin", None, None, 3, 4),
-        ("admin", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
-        ("admin", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
-        ("owner", None, None, 3, 4),
-        ("owner", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
-        ("owner", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
-        ("editor", None, None, 3, 4),
-        ("editor", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
-        ("editor", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
-        ("viewer", None, None, 3, 4),
-        ("viewer", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
-        ("viewer", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
-        ("viewer", None, None, 3, 5),
-        ("viewer", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 3),
-        ("viewer", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 3),
-        ("anonymous", None, None, 0, 4),
-        ("anonymous", UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
-        ("anonymous", None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
-        (None, None, None, 0, 4),
-        (None, UUID("b27c51a0-7374-462d-8a53-d97d47176c10"), None, 0, 2),
-        (None, None, UUID("ee44f263-237c-4b62-8dde-2b1b407462e2"), 0, 2),
+        # Test user access
+        ("owner", {}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
+        ("editor", {}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
+        ("viewer", {}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
+        ("admin", {}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
+        ("apikey", {}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
+        ("unaffiliated", {}, [], 5),
+        ("anonymous", {}, [], 5),
+        # Test pagination and ordering
+        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Interval Data Source"], 5),
+        # Test filtering
+        ("owner", {"orchestration_system_id": "320ad0e1-1426-47f6-8a3a-886a7111a7c2"}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
     ],
 )
 def test_list_data_source(
     django_assert_max_num_queries,
     get_principal,
     principal,
-    workspace,
-    etl_system,
-    length,
+    params,
+    data_source_names,
     max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
-        with test_service_method(
-            schema=DataSourceGetResponse, response=length
-        ) as context:
-            context["result"] = data_source_service.list(
-                principal=get_principal(principal),
-                workspace_id=workspace if workspace else None,
-                orchestration_system_id=etl_system if etl_system else None,
-            )
+        http_response = HttpResponse()
+        result = data_source_service.list(
+            principal=get_principal(principal),
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            ordering=params.pop("ordering", None),
+            filtering=params,
+        )
+        assert Counter(str(data_source.name) for data_source in result) == Counter(data_source_names)
+        assert (DataSourceGetResponse.from_orm(data_source) for data_source in result)
 
 
 @pytest.mark.parametrize(

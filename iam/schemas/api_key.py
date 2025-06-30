@@ -1,8 +1,8 @@
 import uuid
 from typing import Optional
 from datetime import datetime
-from ninja import Schema, Field
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from ninja import Schema, Field, Query
+from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
 from .role import RoleGetResponse
 
 
@@ -11,6 +11,12 @@ class APIKeyFields(Schema):
     description: Optional[str] = None
     is_active: bool
     expires_at: Optional[datetime] = None
+
+
+class APIKeyQueryParameters(CollectionQueryParameters):
+    role_id: list[uuid.UUID] = Query(
+        [], description="Filter API keys by role ID."
+    )
 
 
 class APIKeyGetFields(APIKeyFields):

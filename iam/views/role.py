@@ -1,9 +1,10 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from iam.services import RoleService
-from iam.schemas import RoleGetResponse
+from iam.schemas import RoleGetResponse, RoleQueryParameters
 
 role_router = Router(tags=["Roles"])
 role_service = RoleService()
@@ -19,13 +20,24 @@ role_service = RoleService()
     },
     by_alias=True,
 )
-def get_roles(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def get_roles(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    workspace_id: Path[uuid.UUID],
+    query: Query[RoleQueryParameters],
+):
     """
     Get all assignable roles for the given workspace.
     """
 
     return 200, role_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        workspace_id=workspace_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 

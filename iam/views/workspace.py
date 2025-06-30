@@ -1,6 +1,7 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
 from django.db import transaction
+from django.http import HttpResponse
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from iam.schemas import (
@@ -8,6 +9,7 @@ from iam.schemas import (
     WorkspacePostBody,
     WorkspacePatchBody,
     WorkspaceTransferBody,
+    WorkspaceQueryParameters
 )
 from iam.services import WorkspaceService
 
@@ -25,13 +27,22 @@ workspace_service = WorkspaceService()
     by_alias=True,
     exclude_unset=True,
 )
-def get_workspaces(request: HydroServerHttpRequest, associated_only: bool = False):
+def get_workspaces(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[WorkspaceQueryParameters],
+):
     """
     Get public workspaces and workspaces associated with the authenticated user.
     """
 
     return 200, workspace_service.list(
-        principal=request.principal, associated_only=associated_only
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        ordering=query.ordering,
+        filtering=query.dict(exclude_unset=True),
     )
 
 
