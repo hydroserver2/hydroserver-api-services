@@ -1,10 +1,12 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from iam.schemas import (
-    APIKeyGetResponse,
+    APIKeyDetailResponse,
+    APIKeyQueryParameters,
     APIKeyPostBody,
     APIKeyPatchBody,
     APIKeyPostResponse,
@@ -19,19 +21,30 @@ api_key_service = APIKeyService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[APIKeyGetResponse],
+        200: list[APIKeyDetailResponse],
         401: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_api_keys(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def get_api_keys(
+        request: HydroServerHttpRequest,
+        response: HttpResponse,
+        workspace_id: Path[uuid.UUID],
+        query: Query[APIKeyQueryParameters],
+):
     """
     Get API keys associated with the authenticated user.
     """
 
     return 200, api_key_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        workspace_id=workspace_id,
+        page=query.page,
+        page_size=query.page_size,
+        order_by=query.order_by,
+        filtering=query.dict(exclude_unset=True),
     )
 
 
@@ -63,7 +76,7 @@ def create_api_key(
     "/{api_key_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: APIKeyGetResponse,
+        200: APIKeyDetailResponse,
         401: str,
         403: str,
     },
@@ -88,7 +101,7 @@ def get_api_key(
     "/{api_key_id}",
     auth=[session_auth, bearer_auth],
     response={
-        200: APIKeyGetResponse,
+        200: APIKeyDetailResponse,
         401: str,
         403: str,
         422: str,

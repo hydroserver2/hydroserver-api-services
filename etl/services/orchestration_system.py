@@ -1,13 +1,13 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from etl.models import OrchestrationSystem
 from etl.schemas import OrchestrationSystemPostBody, OrchestrationSystemPatchBody
-from etl.schemas.orchestration_system import OrchestrationSystemFields
-from hydroserver.service import ServiceUtils
+from etl.schemas.orchestration_system import OrchestrationSystemFields, OrchestrationSystemOrderByFields
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ User = get_user_model()
 class OrchestrationSystemService(ServiceUtils):
     @staticmethod
     def get_orchestration_system_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
         raise_400: bool = False,
@@ -48,11 +48,11 @@ class OrchestrationSystemService(ServiceUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = OrchestrationSystem.objects
@@ -64,14 +64,15 @@ class OrchestrationSystemService(ServiceUtils):
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            [
-                "name",
-                "orchestration_system_type",
-            ],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(OrchestrationSystemOrderByFields)),
+                {
+                    "type": "orchestration_system_type"
+                }
+            )
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -83,15 +84,15 @@ class OrchestrationSystemService(ServiceUtils):
 
         return queryset
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_orchestration_system_for_action(
             principal=principal, uid=uid, action="view"
         )
 
-    def create(self, principal: Union[User, APIKey], data: OrchestrationSystemPostBody):
+    def create(self, principal: User | APIKey, data: OrchestrationSystemPostBody):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
-        )
+        ) if data.workspace_id else (None, None,)
 
         if not OrchestrationSystem.can_principal_create(
             principal=principal, workspace=workspace
@@ -109,7 +110,7 @@ class OrchestrationSystemService(ServiceUtils):
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         data: OrchestrationSystemPatchBody,
     ):
@@ -128,7 +129,7 @@ class OrchestrationSystemService(ServiceUtils):
 
         return orchestration_system
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         orchestration_system = self.get_orchestration_system_for_action(
             principal=principal, uid=uid, action="delete"
         )

@@ -7,8 +7,8 @@ from etl.services import DataArchiveService
 from etl.schemas import (
     DataArchivePostBody,
     DataArchivePatchBody,
-    DataArchiveGetResponse,
-    OrchestrationSystemGetResponse,
+    DataArchiveDetailResponse,
+    OrchestrationSystemDetailResponse,
 )
 from tests.utils import test_service_method
 
@@ -26,8 +26,8 @@ data_archive_service = DataArchiveService()
         ("apikey", {}, ["Test Data Archive", "Crontab Data Archive", "Interval Data Archive"], 5),
         ("unaffiliated", {}, [], 5),
         ("anonymous", {}, [], 5),
-        # Test pagination and ordering
-        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Interval Data Archive"], 5),
+        # Test pagination and order_by
+        ("owner", {"page": 2, "page_size": 1, "order_by": "-name"}, ["Interval Data Archive"], 5),
         # Test filtering
         ("owner", {"orchestration_system_id": "320ad0e1-1426-47f6-8a3a-886a7111a7c2"}, ["Test Data Archive", "Crontab Data Archive", "Interval Data Archive"], 5),
     ],
@@ -47,11 +47,11 @@ def test_list_data_archive(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(data_archive.name) for data_archive in result) == Counter(data_archive_names)
-        assert (DataArchiveGetResponse.from_orm(data_archive) for data_archive in result)
+        assert (DataArchiveDetailResponse.from_orm(data_archive) for data_archive in result)
 
 
 @pytest.mark.parametrize(
@@ -231,7 +231,7 @@ def test_get_data_archive_for_action(
     get_principal, principal, data_archive, action, response, error_code
 ):
     with test_service_method(
-        schema=DataArchiveGetResponse, response=response, error_code=error_code
+        schema=DataArchiveDetailResponse, response=response, error_code=error_code
     ) as context:
         context["result"] = data_archive_service.get_data_archive_for_action(
             principal=get_principal(principal), uid=data_archive, action=action
@@ -268,7 +268,7 @@ def test_validate_orchestration_system(
     get_principal, principal, orchestration_system, workspace, response, error_code
 ):
     with test_service_method(
-        schema=OrchestrationSystemGetResponse, response=response, error_code=error_code
+        schema=OrchestrationSystemDetailResponse, response=response, error_code=error_code
     ) as context:
         workspace = Workspace.objects.get(pk=workspace)
         context["result"] = data_archive_service.validate_orchestration_system(
@@ -430,12 +430,11 @@ def test_create_data_archive(get_principal, principal, data, response, error_cod
         orchestration_system_id=data["orchestration_system_id"],
     )
     with test_service_method(
-        schema=DataArchiveGetResponse,
+        schema=DataArchiveDetailResponse,
         response=response or data,
         error_code=error_code,
         fields=(
             "name",
-            "workspace_id",
         ),
     ) as context:
         context["result"] = data_archive_service.create(
@@ -525,7 +524,7 @@ def test_update_data_archive(
         name=data["name"], orchestration_system_id=data["orchestration_system_id"]
     )
     with test_service_method(
-        schema=DataArchiveGetResponse,
+        schema=DataArchiveDetailResponse,
         response=response or data,
         error_code=error_code,
         fields=("name",),

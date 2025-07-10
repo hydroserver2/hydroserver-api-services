@@ -5,13 +5,15 @@ from django.http import HttpResponse
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from iam.schemas import (
-    WorkspaceGetResponse,
+    WorkspaceDetailResponse,
     WorkspacePostBody,
     WorkspacePatchBody,
     WorkspaceTransferBody,
     WorkspaceQueryParameters
 )
 from iam.services import WorkspaceService
+from iam.views.api_key import api_key_router
+from iam.views.collaborator import collaborator_router
 
 workspace_router = Router(tags=["Workspaces"])
 workspace_service = WorkspaceService()
@@ -21,7 +23,7 @@ workspace_service = WorkspaceService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[WorkspaceGetResponse],
+        200: list[WorkspaceDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -41,7 +43,7 @@ def get_workspaces(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -50,7 +52,7 @@ def get_workspaces(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: WorkspaceGetResponse,
+        201: WorkspaceDetailResponse,
         401: str,
         422: str,
     },
@@ -70,7 +72,7 @@ def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
     "/{workspace_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: WorkspaceGetResponse,
+        200: WorkspaceDetailResponse,
         401: str,
         403: str,
     },
@@ -89,7 +91,7 @@ def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]
     "/{workspace_id}",
     auth=[session_auth, bearer_auth],
     response={
-        200: WorkspaceGetResponse,
+        200: WorkspaceDetailResponse,
         401: str,
         403: str,
         422: str,
@@ -204,3 +206,7 @@ def reject_workspace_transfer(
     return 200, workspace_service.reject_transfer(
         principal=request.principal, uid=workspace_id
     )
+
+
+workspace_router.add_router("{workspace_id}/collaborators", collaborator_router)
+workspace_router.add_router("{workspace_id}/api-keys", api_key_router)

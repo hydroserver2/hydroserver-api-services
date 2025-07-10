@@ -5,7 +5,8 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
-    ObservedPropertyGetResponse,
+    ObservedPropertySummaryResponse,
+    ObservedPropertyDetailResponse,
     ObservedPropertyQueryParameters,
     ObservedPropertyPostBody,
     ObservedPropertyPatchBody,
@@ -20,7 +21,7 @@ observed_property_service = ObservedPropertyService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ObservedPropertyGetResponse],
+        200: list[ObservedPropertySummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -39,7 +40,7 @@ def get_observed_properties(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -48,7 +49,7 @@ def get_observed_properties(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ObservedPropertyGetResponse,
+        201: ObservedPropertySummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -71,7 +72,7 @@ def create_observed_property(
     "/{observed_property_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ObservedPropertyGetResponse,
+        200: ObservedPropertyDetailResponse,
         401: str,
         403: str,
     },
@@ -94,7 +95,7 @@ def get_observed_property(
     "/{observed_property_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ObservedPropertyGetResponse,
+        200: ObservedPropertySummaryResponse,
         400: str,
         401: str,
         403: str,

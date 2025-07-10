@@ -5,7 +5,8 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
-    OrchestrationSystemGetResponse,
+    OrchestrationSystemSummaryResponse,
+    OrchestrationSystemDetailResponse,
     OrchestrationSystemQueryParameters,
     OrchestrationSystemPostBody,
     OrchestrationSystemPatchBody,
@@ -20,7 +21,7 @@ orchestration_system_service = OrchestrationSystemService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[OrchestrationSystemGetResponse],
+        200: list[OrchestrationSystemDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -39,7 +40,7 @@ def get_orchestration_systems(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -48,7 +49,7 @@ def get_orchestration_systems(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: OrchestrationSystemGetResponse,
+        201: OrchestrationSystemSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -73,7 +74,7 @@ def create_orchestration_system(
     "/{orchestration_system_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: OrchestrationSystemGetResponse,
+        200: OrchestrationSystemDetailResponse,
         401: str,
         403: str,
     },
@@ -96,7 +97,7 @@ def get_orchestration_system(
     "/{orchestration_system_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: OrchestrationSystemGetResponse,
+        200: OrchestrationSystemSummaryResponse,
         400: str,
         401: str,
         403: str,

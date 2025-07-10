@@ -1,17 +1,19 @@
 import uuid
 from ninja import Schema, Field
-from typing import Optional
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
-from sta.schemas import DatastreamGetResponse
+from typing import Optional, TYPE_CHECKING
+from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody
 from .orchestration_configuration import (
-    OrchestrationConfigurationScheduleGetResponse,
+    OrchestrationConfigurationScheduleDetailResponse,
     OrchestrationConfigurationSchedulePostBody,
     OrchestrationConfigurationSchedulePatchBody,
-    OrchestrationConfigurationStatusGetResponse,
+    OrchestrationConfigurationStatusDetailResponse,
     OrchestrationConfigurationStatusPostBody,
     OrchestrationConfigurationStatusPatchBody,
 )
-from .orchestration_system import OrchestrationSystemGetResponse
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceDetailResponse
+    from etl.schemas import OrchestrationSystemDetailResponse
 
 
 class DataArchiveFields(Schema):
@@ -19,13 +21,20 @@ class DataArchiveFields(Schema):
     settings: Optional[dict] = None
 
 
-class DataArchiveGetResponse(BaseGetResponse, DataArchiveFields):
+class DataArchiveSummaryResponse(BaseDetailResponse, DataArchiveFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
-    orchestration_system: OrchestrationSystemGetResponse
-    schedule: Optional[OrchestrationConfigurationScheduleGetResponse] = None
-    status: Optional[OrchestrationConfigurationStatusGetResponse] = None
-    datastreams: list[DatastreamGetResponse]
+    orchestration_system_id: uuid.UUID
+    schedule: Optional[OrchestrationConfigurationScheduleDetailResponse] = None
+    status: Optional[OrchestrationConfigurationStatusDetailResponse] = None
+
+
+class DataArchiveDetailResponse(BaseDetailResponse, DataArchiveFields):
+    id: uuid.UUID
+    workspace: "WorkspaceDetailResponse"
+    orchestration_system: "OrchestrationSystemDetailResponse"
+    schedule: Optional[OrchestrationConfigurationScheduleDetailResponse] = None
+    status: Optional[OrchestrationConfigurationStatusDetailResponse] = None
 
 
 class DataArchivePostBody(BasePostBody, DataArchiveFields):

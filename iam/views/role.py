@@ -1,10 +1,14 @@
 import uuid
 from ninja import Router, Path, Query
 from django.http import HttpResponse
-from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
+from hydroserver.http import HydroServerHttpRequest
+from iam.schemas import (
+    RoleSummaryResponse,
+    RoleDetailResponse,
+    RoleQueryParameters,
+)
 from iam.services import RoleService
-from iam.schemas import RoleGetResponse, RoleQueryParameters
 
 role_router = Router(tags=["Roles"])
 role_service = RoleService()
@@ -14,48 +18,44 @@ role_service = RoleService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[RoleGetResponse],
+        200: list[RoleSummaryResponse],
         401: str,
-        403: str,
     },
     by_alias=True,
 )
 def get_roles(
     request: HydroServerHttpRequest,
     response: HttpResponse,
-    workspace_id: Path[uuid.UUID],
     query: Query[RoleQueryParameters],
 ):
     """
-    Get all assignable roles for the given workspace.
+    Get public Roles and Roles associated with the authenticated user.
     """
 
     return 200, role_service.list(
         principal=request.principal,
-        workspace_id=workspace_id,
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
 
 @role_router.get(
-    "{role_id}",
+    "/{role_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: RoleGetResponse,
+        200: RoleDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
+    exclude_unset=True,
 )
-def get_role(request, workspace_id: Path[uuid.UUID], role_id: Path[uuid.UUID]):
+def get_role(request: HydroServerHttpRequest, role_id: Path[uuid.UUID]):
     """
-    Get a role that can be used within a workspace.
+    Get a Role.
     """
 
-    return 200, role_service.get(
-        principal=request.principal, uid=role_id, workspace_id=workspace_id
-    )
+    return 200, role_service.get(principal=request.principal, uid=role_id)

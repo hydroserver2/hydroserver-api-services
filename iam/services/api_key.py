@@ -1,10 +1,12 @@
 import uuid
-from typing import Optional, Union, Literal
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from iam.schemas import APIKeyPostBody, APIKeyPatchBody
-from hydroserver.service import ServiceUtils
+from iam.schemas.api_key import APIKeyOrderByFields
+from api.service import ServiceUtils
 from .role import RoleService
 
 User = get_user_model()
@@ -38,20 +40,49 @@ class APIKeyService(ServiceUtils):
 
         return api_key
 
-    def list(self, principal: User, workspace_id: uuid.UUID):
+    def list(
+        self,
+        principal: Optional[User | APIKey],
+        response: HttpResponse,
+        workspace_id: uuid.UUID,
+        page: int = 1,
+        page_size: int = 100,
+        order_by: Optional[list[str]] = None,
+        filtering: Optional[dict] = None,
+    ):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=workspace_id
         )
 
-        return (
-            APIKey.objects.filter(workspace=workspace)
-            .visible(principal=principal)
-            .distinct()
+        queryset = APIKey.objects.filter(workspace=workspace)
+
+        for field in [
+            "role_id",
+        ]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
+
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(APIKeyOrderByFields))
+            )
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
         )
+
+        return queryset
+
 
     def get(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         workspace_id: uuid.UUID,
         uid: uuid.UUID,
     ):
@@ -68,7 +99,7 @@ class APIKeyService(ServiceUtils):
             raise HttpError(403, "You do not have permission to create this API key")
 
         apikey_role = role_service.get(
-            principal=principal, workspace_id=workspace_id, uid=data.role_id
+            principal=principal, uid=data.role_id
         )
 
         if not apikey_role.is_apikey_role:
@@ -95,7 +126,7 @@ class APIKeyService(ServiceUtils):
 
         if "role_id" in api_key_body:
             apikey_role = role_service.get(
-                principal=principal, workspace_id=workspace_id, uid=data.role_id
+                principal=principal, uid=data.role_id
             )
 
             if not apikey_role.is_apikey_role:

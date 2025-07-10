@@ -11,7 +11,7 @@ from sta.schemas import (
     LocationPatchBody,
     TagPostBody,
     TagDeleteBody,
-    ThingGetResponse,
+    ThingDetailResponse,
 )
 
 thing_service = ThingService()
@@ -68,10 +68,10 @@ thing_service = ThingService()
         ),
         ("unaffiliated", {}, ["Public Thing"], 6),
         ("unaffiliated", {}, ["Public Thing"], 6),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-name"},
+            {"page": 2, "page_size": 2, "order_by": "-name"},
             ["Private Thing", "Private Thing Public Workspace"],
             6,
         ),
@@ -113,11 +113,11 @@ def test_list_thing(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(thing.name) for thing in result) == Counter(thing_names)
-        assert (ThingGetResponse.from_orm(thing) for thing in result)
+        assert (ThingDetailResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
@@ -221,7 +221,7 @@ def test_get_thing(get_principal, principal, thing, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(thing)
         )
         assert thing_get.name == message
-        assert ThingGetResponse.from_orm(thing_get)
+        assert ThingDetailResponse.from_orm(thing_get)
 
 
 @pytest.mark.parametrize(
@@ -303,7 +303,7 @@ def test_create_thing(get_principal, principal, thing_fields, message, error_cod
         assert thing_create.location.longitude == thing_data.location.longitude
         assert thing_create.is_private == thing_data.is_private
         assert thing_create.workspace_id == thing_data.workspace_id
-        assert ThingGetResponse.from_orm(thing_create)
+        assert ThingDetailResponse.from_orm(thing_create)
 
 
 @pytest.mark.parametrize(
@@ -406,7 +406,7 @@ def test_edit_thing(get_principal, principal, thing, thing_fields, message, erro
         assert thing_update.location.latitude == thing_data.location.latitude
         assert thing_update.location.longitude == thing_data.location.longitude
         assert thing_update.is_private == thing_data.is_private
-        assert ThingGetResponse.from_orm(thing_update)
+        assert ThingDetailResponse.from_orm(thing_update)
 
 
 @pytest.mark.parametrize(
@@ -589,9 +589,8 @@ def test_get_tags(get_principal, principal, thing, message, error_code):
         thing_tags = thing_service.get_tags(
             principal=get_principal(principal), uid=uuid.UUID(thing)
         )
-        assert len(list(thing_tags.all())) == 1
-        assert list(thing_tags.all())[0].key in ["Test Public Key", "Test Private Key"]
-        assert list(thing_tags.all())[0].value in [
+        assert list(thing_tags.keys())[0] in ["Test Public Key", "Test Private Key"]
+        assert list(thing_tags.values())[0] in [
             "Test Public Value",
             "Test Private Value",
         ]
@@ -1395,4 +1394,4 @@ def test_remove_tag(get_principal, principal, thing, tag, message, error_code):
             data=TagDeleteBody(key=tag["key"]),
         )
 
-        assert thing_tag_delete == "Tag deleted"
+        assert thing_tag_delete.endswith("tag(s) deleted")

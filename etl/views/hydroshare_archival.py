@@ -3,7 +3,7 @@ from ninja import Router, Path
 from typing import Optional
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
 from etl.schemas import (
-    HydroShareArchivalGetResponse,
+    HydroShareArchivalDetailResponse,
     HydroShareArchivalPostBody,
     HydroShareArchivalPatchBody,
 )
@@ -17,7 +17,7 @@ hydroshare_archival_service = HydroShareArchivalService()
     "",
     auth=[session_auth, bearer_auth, anonymous_auth],
     response={
-        200: Optional[HydroShareArchivalGetResponse],
+        200: Optional[HydroShareArchivalDetailResponse],
         401: str,
         403: str,
     },
@@ -38,7 +38,7 @@ def get_thing_archive(request, thing_id: Path[uuid.UUID]):
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: HydroShareArchivalGetResponse,
+        201: HydroShareArchivalDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -63,7 +63,7 @@ def create_thing_archive(
     "/trigger",
     auth=[session_auth, bearer_auth],
     response={
-        200: HydroShareArchivalGetResponse,
+        200: HydroShareArchivalDetailResponse,
         401: str,
         403: str,
     },
@@ -84,7 +84,7 @@ def run_thing_archival(request, thing_id: Path[uuid.UUID]):
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: HydroShareArchivalGetResponse,
+        200: HydroShareArchivalDetailResponse,
         400: str,
         401: str,
         403: str,

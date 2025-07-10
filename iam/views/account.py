@@ -1,11 +1,13 @@
-from ninja import Router, Path
+from ninja import Router, Path, Query
 from typing import Literal
+from django.http import HttpResponse
 from allauth.headless.account.views import SignupView
 from allauth.headless.constants import Client
-from iam.schemas import AccountGetResponse, AccountPostBody, AccountPatchBody
-from iam.services import AccountService
 from hydroserver.security import bearer_auth, session_auth
 from hydroserver.http import HydroServerHttpRequest
+from api.schemas import VocabularyQueryParameters
+from iam.schemas import AccountDetailResponse, AccountPostBody, AccountPatchBody
+from iam.services import AccountService
 
 account_router = Router(tags=["Account"])
 account_service = AccountService()
@@ -20,7 +22,7 @@ signup_view = {
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: AccountGetResponse,
+        200: AccountDetailResponse,
         401: str,
     },
     by_alias=True,
@@ -39,7 +41,7 @@ def get_account(
     "",
     url_name="signup",
     response={
-        200: AccountGetResponse,
+        200: AccountDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -63,7 +65,11 @@ def create_account(
 @account_router.patch(
     "",
     auth=[session_auth, bearer_auth],
-    response={200: AccountGetResponse, 401: str, 422: str},
+    response={
+        200: AccountDetailResponse,
+        401: str,
+        422: str
+    },
     by_alias=True,
 )
 def update_account(
@@ -79,7 +85,12 @@ def update_account(
 
 
 @account_router.delete(
-    "", auth=[session_auth, bearer_auth], response={204: str, 401: str}
+    "",
+    auth=[session_auth, bearer_auth],
+    response={
+        204: str,
+        401: str
+    }
 )
 def delete_account(
     request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]]
@@ -90,4 +101,52 @@ def delete_account(
 
     return 204, account_service.delete(
         principal=request.principal,
+    )
+
+
+@account_router.get(
+    "/user-types",
+    response={
+        200: list[str]
+    },
+    by_alias=True
+)
+def get_user_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get user types.
+    """
+
+    return 200, account_service.list_user_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@account_router.get(
+    "/organization-types",
+    response={
+        200: list[str]
+    },
+    by_alias=True
+)
+def get_user_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get organization types.
+    """
+
+    return 200, account_service.list_organization_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
     )

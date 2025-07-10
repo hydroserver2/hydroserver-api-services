@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Union
+from typing import Optional, get_args
 from ninja.errors import HttpError
 from django.utils import timezone
 from django.http import HttpResponse
@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from iam.models import Workspace, WorkspaceTransferConfirmation, APIKey
 from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
-from hydroserver.service import ServiceUtils
+from iam.schemas.workspace import WorkspaceOrderByFields
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -15,7 +16,7 @@ User = get_user_model()
 class WorkspaceService(ServiceUtils):
     @staticmethod
     def attach_role_and_transfer_fields(
-        workspace: Workspace, principal: Optional[Union[User, APIKey]]
+        workspace: Workspace, principal: Optional[User | APIKey]
     ):
         if not principal:
             return workspace
@@ -43,11 +44,11 @@ class WorkspaceService(ServiceUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = Workspace.objects
@@ -70,13 +71,12 @@ class WorkspaceService(ServiceUtils):
                 else:
                     queryset = self.apply_filters(queryset, field, filtering[field])
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            [
-                "name",
-            ],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(WorkspaceOrderByFields)),
+            )
 
         queryset = queryset.visible(principal=principal).select_related(
             "owner", "transfer_confirmation", "transfer_confirmation__new_owner"
@@ -95,7 +95,7 @@ class WorkspaceService(ServiceUtils):
 
         return queryset
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         workspace, _ = self.get_workspace(principal=principal, workspace_id=uid)
 
         if isinstance(principal, User):

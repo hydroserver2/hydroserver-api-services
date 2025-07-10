@@ -1,6 +1,7 @@
 import uuid
 from typing import Union, Any, Optional, Type
 from ninja.errors import HttpError
+from pydantic.alias_generators import to_snake
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet, Model
@@ -59,29 +60,25 @@ class ServiceUtils:
             return queryset.filter(**{field_name: values})
 
     @staticmethod
-    def apply_ordering(queryset: QuerySet, order_str: str, allowed_fields: list[str]):
-        if not order_str:
-            return queryset
+    def apply_ordering(
+        queryset: QuerySet,
+        order_by: list[str],
+        allowed_fields: list[str],
+        field_aliases: Optional[dict[str, str]] = None
+    ):
+        order_by_fields = []
+        field_aliases = field_aliases or {}
 
-        ordering = []
-        for part in order_str.split(","):
-            part = part.strip()
-            if not part:
-                raise ValueError("Empty ordering value is not allowed")
+        stripped_fields = [field.lstrip("-") for field in order_by]
+        if len(stripped_fields) != len(set(stripped_fields)):
+            raise HttpError(400, "Fields cannot be repeated in order_by arguments")
 
-            if part.startswith("-"):
-                field = part[1:]
-                prefix = "-"
-            else:
-                field = part
-                prefix = ""
-
+        for field in order_by:
             if field not in allowed_fields:
-                raise ValueError(f"Invalid ordering field: '{field}'")
+                raise HttpError(400, f"Response cannot be ordered by field '{field}'")
+            order_by_fields.append(field_aliases.get(field, to_snake(field)))
 
-            ordering.append(prefix + field)
-
-        return queryset.order_by(*ordering)
+        return queryset.order_by(*order_by_fields)
 
     @staticmethod
     def apply_pagination(queryset: QuerySet, page: int, page_size: int):
@@ -93,7 +90,7 @@ class ServiceUtils:
         count = queryset.count()
         offset = (page - 1) * page_size
 
-        return queryset[offset : offset + page_size], count
+        return queryset[offset: offset + page_size], count
 
     @staticmethod
     def insert_pagination_headers(response, count, page, page_size):
@@ -116,7 +113,7 @@ class VocabularyService(ServiceUtils):
 
         queryset = self.apply_ordering(
             queryset,
-            "-name" if order_desc else "name",
+            ["-name"] if order_desc else ["name"],
             [
                 "name",
             ],

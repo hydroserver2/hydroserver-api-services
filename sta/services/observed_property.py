@@ -1,13 +1,13 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import ObservedProperty
 from sta.schemas import ObservedPropertyPostBody, ObservedPropertyPatchBody
-from sta.schemas.observed_property import ObservedPropertyFields
-from hydroserver.service import ServiceUtils
+from sta.schemas.observed_property import ObservedPropertyFields, ObservedPropertyOrderByFields
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ User = get_user_model()
 class ObservedPropertyService(ServiceUtils):
     @staticmethod
     def get_observed_property_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
     ):
@@ -42,44 +42,33 @@ class ObservedPropertyService(ServiceUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = ObservedProperty.objects
 
         for field in [
             "workspace_id",
-            "thing_id",
-            "datastream_id",
-            "name",
+            "datastreams__thing_id",
+            "datastreams__id",
             "observed_property_type",
-            "code",
         ]:
             if field in filtering:
-                if field == "thing_id":
-                    queryset = self.apply_filters(
-                        queryset, f"datastreams__{field}", filtering[field]
-                    )
-                elif field == "datastream_id":
-                    queryset = self.apply_filters(
-                        queryset, f"datastreams__id", filtering[field]
-                    )
-                else:
-                    queryset = self.apply_filters(queryset, field, filtering[field])
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            [
-                "name",
-                "observed_property_type",
-                "code",
-            ],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(ObservedPropertyOrderByFields)),
+                {
+                    "type": "observed_property_type"
+                }
+            )
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -91,15 +80,15 @@ class ObservedPropertyService(ServiceUtils):
 
         return queryset
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_observed_property_for_action(
             principal=principal, uid=uid, action="view"
         )
 
-    def create(self, principal: Union[User, APIKey], data: ObservedPropertyPostBody):
+    def create(self, principal: User | APIKey, data: ObservedPropertyPostBody):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
-        )
+        ) if data.workspace_id else (None, None,)
 
         if not ObservedProperty.can_principal_create(
             principal=principal, workspace=workspace
@@ -117,7 +106,7 @@ class ObservedPropertyService(ServiceUtils):
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         data: ObservedPropertyPatchBody,
     ):
@@ -135,7 +124,7 @@ class ObservedPropertyService(ServiceUtils):
 
         return observed_property
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         observed_property = self.get_observed_property_for_action(
             principal=principal, uid=uid, action="delete"
         )

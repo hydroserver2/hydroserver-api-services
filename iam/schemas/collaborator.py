@@ -1,9 +1,11 @@
 import uuid
+from typing import TYPE_CHECKING
 from ninja import Query
 from pydantic import EmailStr
-from hydroserver.schemas import BaseGetResponse, BasePostBody, CollectionQueryParameters
-from .role import RoleGetResponse
-from .account import AccountContactGetResponse
+from api.schemas import BaseDetailResponse, BasePostBody, CollectionQueryParameters
+
+if TYPE_CHECKING:
+    from iam.schemas import AccountContactDetailResponse, RoleDetailResponse
 
 
 class CollaboratorQueryParameters(CollectionQueryParameters):
@@ -12,9 +14,9 @@ class CollaboratorQueryParameters(CollectionQueryParameters):
     )
 
 
-class CollaboratorGetResponse(BaseGetResponse):
-    user: AccountContactGetResponse
-    role: RoleGetResponse
+class CollaboratorDetailResponse(BaseDetailResponse):
+    user: "AccountContactDetailResponse"
+    role: "RoleDetailResponse"
 
 
 class CollaboratorPostBody(BasePostBody):

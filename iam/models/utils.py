@@ -14,17 +14,28 @@ class PermissionChecker:
     def check_create_permissions(
         cls,
         principal: Optional[Union["User", "APIKey"]],
-        workspace: "Workspace",
+        workspace: Optional["Workspace"],
         resource_type: str,
     ):
+        print(workspace)
         if not principal:
             return False
 
         if hasattr(principal, "account_type"):
-            if workspace.owner == principal or principal.account_type in [
+            if principal.account_type in [
                 "admin",
                 "staff",
             ]:
+                if not workspace and resource_type not in [
+                    "OrchestrationSystem", "ProcessingLevel", "Unit", "Sensor", "ResultQualifier", "ObservedProperty"
+                ]:
+                    return False
+                return True
+
+            if not workspace:
+                return False
+
+            if workspace.owner == principal:
                 return True
 
             permissions = Permission.objects.filter(
@@ -34,7 +45,7 @@ class PermissionChecker:
             ).values_list("permission_type", flat=True)
 
         elif hasattr(principal, "workspace"):
-            if principal.workspace != workspace:
+            if not workspace or principal.workspace != workspace:
                 return False
 
             permissions = Permission.objects.filter(

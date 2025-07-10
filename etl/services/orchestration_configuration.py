@@ -1,5 +1,4 @@
 import uuid
-from typing import Union
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from croniter import croniter
@@ -42,7 +41,7 @@ class OrchestrationConfigurationUtils:
 
     @staticmethod
     def validate_orchestration_system(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         orchestration_system_id: uuid.UUID,
         workspace: Workspace,
     ):

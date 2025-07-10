@@ -4,7 +4,7 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from sta.services import SensorService
-from sta.schemas import SensorPostBody, SensorPatchBody, SensorGetResponse
+from sta.schemas import SensorPostBody, SensorPatchBody, SensorDetailResponse
 
 sensor_service = SensorService()
 
@@ -98,10 +98,10 @@ sensor_service = SensorService()
             ],
             3,
         ),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-name"},
+            {"page": 2, "page_size": 2, "order_by": "-name"},
             [
                 "Public Sensor",
                 "Public Assigned Sensor",
@@ -117,13 +117,13 @@ sensor_service = SensorService()
         ),
         (
             "owner",
-            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            {"datastreams__thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
             ["System Assigned Sensor", "Public Assigned Sensor"],
             3,
         ),
         (
             "owner",
-            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            {"datastreams__id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
             ["Public Assigned Sensor"],
             3,
         ),
@@ -145,11 +145,11 @@ def test_list_sensor(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(sensor.name) for sensor in result) == Counter(sensor_names)
-        assert (SensorGetResponse.from_orm(sensor) for sensor in result)
+        assert (SensorDetailResponse.from_orm(sensor) for sensor in result)
 
 
 @pytest.mark.parametrize(
@@ -214,7 +214,7 @@ def test_get_sensor(get_principal, principal, sensor, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(sensor)
         )
         assert sensor_get.name == message
-        assert SensorGetResponse.from_orm(sensor_get)
+        assert SensorDetailResponse.from_orm(sensor_get)
 
 
 @pytest.mark.parametrize(
@@ -232,6 +232,7 @@ def test_get_sensor(get_principal, principal, sensor, message, error_code):
         ),
         ("admin", {}, None, None),
         ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("admin", {"workspace_id": None}, None, None),
         # Test create invalid Sensor
         (
             "owner",
@@ -240,6 +241,7 @@ def test_get_sensor(get_principal, principal, sensor, message, error_code):
             404,
         ),
         # Test unauthorized attempts
+        ("owner", {"workspace_id": None}, "You do not have permission", 403),
         ("viewer", {}, "You do not have permission", 403),
         (
             "viewer",
@@ -276,9 +278,10 @@ def test_create_sensor(get_principal, principal, sensor_fields, message, error_c
         description=sensor_fields.get("description", "New"),
         encoding_type="application/json",
         method_type=sensor_fields.get("method_type", "New"),
-        workspace_id=uuid.UUID(
-            sensor_fields.get("workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f")
-        ),
+        workspace_id=(
+            uuid.UUID(wid) if (wid := sensor_fields["workspace_id"]) is not None
+            else None
+        ) if "workspace_id" in sensor_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -292,7 +295,7 @@ def test_create_sensor(get_principal, principal, sensor_fields, message, error_c
         assert sensor_create.name == sensor_data.name
         assert sensor_create.description == sensor_data.description
         assert sensor_create.method_type == sensor_data.method_type
-        assert SensorGetResponse.from_orm(sensor_create)
+        assert SensorDetailResponse.from_orm(sensor_create)
 
 
 @pytest.mark.parametrize(
@@ -414,7 +417,7 @@ def test_edit_sensor(
         assert sensor_update.name == sensor_data.name
         assert sensor_update.description == sensor_data.description
         assert sensor_update.method_type == sensor_data.method_type
-        assert SensorGetResponse.from_orm(sensor_update)
+        assert SensorDetailResponse.from_orm(sensor_update)
 
 
 @pytest.mark.parametrize(

@@ -16,7 +16,7 @@ from etl.schemas import (
 )
 from sta.services.thing import ThingService
 from sta.services.datastream import DatastreamService
-from hydroserver.service import ServiceUtils
+from api.service import ServiceUtils
 
 User = get_user_model()
 thing_service = ThingService()

@@ -4,7 +4,7 @@ from typing import Literal
 from django.contrib.auth import get_user_model
 from allauth.headless.account.views import LoginView, SessionView
 from allauth.headless.constants import Client
-from iam.schemas import AccountGetResponse, SessionPostBody
+from iam.schemas import AccountDetailResponse, SessionPostBody
 
 User = get_user_model()
 
@@ -40,7 +40,7 @@ def get_session(request, client: Path[Literal["browser", "app"]]):
 
     if response.status_code == 200:
         response_content = json.loads(response.content)
-        response_content["data"]["account"] = AccountGetResponse.from_orm(
+        response_content["data"]["account"] = AccountDetailResponse.from_orm(
             request.user
         ).dict(by_alias=True)
         response_content["meta"]["expires"] = str(request.session.get_expiry_date())
@@ -52,7 +52,7 @@ def get_session(request, client: Path[Literal["browser", "app"]]):
         user = dict(request.session).get("socialaccount_sociallogin", {}).get("user")
         if user:
             response_content = json.loads(response.content)
-            response_content["data"]["account"] = AccountGetResponse.construct(
+            response_content["data"]["account"] = AccountDetailResponse.construct(
                 **user
             ).dict(by_alias=True)
             response.content = json.dumps(response_content)
@@ -86,7 +86,7 @@ def create_session(
             user = User.objects.get(pk=response_content["data"]["user"]["id"])
         else:
             user = request.user
-        response_content["data"]["account"] = AccountGetResponse.from_orm(user).dict(
+        response_content["data"]["account"] = AccountDetailResponse.from_orm(user).dict(
             by_alias=True
         )
         response.content = json.dumps(response_content)

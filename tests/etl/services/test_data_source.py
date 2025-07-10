@@ -7,8 +7,8 @@ from etl.services import DataSourceService
 from etl.schemas import (
     DataSourcePostBody,
     DataSourcePatchBody,
-    DataSourceGetResponse,
-    OrchestrationSystemGetResponse,
+    DataSourceDetailResponse,
+    OrchestrationSystemDetailResponse,
 )
 from tests.utils import test_service_method
 
@@ -26,8 +26,8 @@ data_source_service = DataSourceService()
         ("apikey", {}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
         ("unaffiliated", {}, [], 5),
         ("anonymous", {}, [], 5),
-        # Test pagination and ordering
-        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Interval Data Source"], 5),
+        # Test pagination and order_by
+        ("owner", {"page": 2, "page_size": 1, "order_by": "-name"}, ["Interval Data Source"], 5),
         # Test filtering
         ("owner", {"orchestration_system_id": "320ad0e1-1426-47f6-8a3a-886a7111a7c2"}, ["Test Data Source", "Crontab Data Source", "Interval Data Source"], 5),
     ],
@@ -47,11 +47,11 @@ def test_list_data_source(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(data_source.name) for data_source in result) == Counter(data_source_names)
-        assert (DataSourceGetResponse.from_orm(data_source) for data_source in result)
+        assert (DataSourceDetailResponse.from_orm(data_source) for data_source in result)
 
 
 @pytest.mark.parametrize(
@@ -231,7 +231,7 @@ def test_get_data_source_for_action(
     get_principal, principal, data_source, action, response, error_code
 ):
     with test_service_method(
-        schema=DataSourceGetResponse, response=response, error_code=error_code
+        schema=DataSourceDetailResponse, response=response, error_code=error_code
     ) as context:
         context["result"] = data_source_service.get_data_source_for_action(
             principal=get_principal(principal), uid=data_source, action=action
@@ -268,7 +268,7 @@ def test_validate_orchestration_system(
     get_principal, principal, orchestration_system, workspace, response, error_code
 ):
     with test_service_method(
-        schema=OrchestrationSystemGetResponse, response=response, error_code=error_code
+        schema=OrchestrationSystemDetailResponse, response=response, error_code=error_code
     ) as context:
         workspace = Workspace.objects.get(pk=workspace)
         context["result"] = data_source_service.validate_orchestration_system(
@@ -440,12 +440,11 @@ def test_create_data_source(get_principal, principal, data, response, error_code
         orchestration_system_id=data["orchestration_system_id"],
     )
     with test_service_method(
-        schema=DataSourceGetResponse,
+        schema=DataSourceDetailResponse,
         response=response or data,
         error_code=error_code,
         fields=(
             "name",
-            "workspace_id",
         ),
     ) as context:
         context["result"] = data_source_service.create(
@@ -535,7 +534,7 @@ def test_update_data_source(
         name=data["name"], orchestration_system_id=data["orchestration_system_id"]
     )
     with test_service_method(
-        schema=DataSourceGetResponse,
+        schema=DataSourceDetailResponse,
         response=response or data,
         error_code=error_code,
         fields=("name",),

@@ -1,17 +1,19 @@
 import uuid
 from ninja import Schema, Field
-from typing import Optional
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
-from sta.schemas import DatastreamGetResponse
+from typing import Optional, TYPE_CHECKING
+from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody
 from .orchestration_configuration import (
-    OrchestrationConfigurationScheduleGetResponse,
+    OrchestrationConfigurationScheduleDetailResponse,
     OrchestrationConfigurationSchedulePostBody,
     OrchestrationConfigurationSchedulePatchBody,
-    OrchestrationConfigurationStatusGetResponse,
+    OrchestrationConfigurationStatusDetailResponse,
     OrchestrationConfigurationStatusPostBody,
     OrchestrationConfigurationStatusPatchBody,
 )
-from .orchestration_system import OrchestrationSystemGetResponse
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceDetailResponse
+    from etl.schemas import OrchestrationSystemDetailResponse
 
 
 class DataSourceFields(Schema):
@@ -19,13 +21,20 @@ class DataSourceFields(Schema):
     settings: Optional[dict] = None
 
 
-class DataSourceGetResponse(BaseGetResponse, DataSourceFields):
+class DataSourceSummaryResponse(BaseDetailResponse, DataSourceFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
-    orchestration_system: OrchestrationSystemGetResponse
-    schedule: Optional[OrchestrationConfigurationScheduleGetResponse] = None
-    status: Optional[OrchestrationConfigurationStatusGetResponse] = None
-    datastreams: list[DatastreamGetResponse]
+    orchestration_system_id: uuid.UUID
+    schedule: Optional[OrchestrationConfigurationScheduleDetailResponse] = None
+    status: Optional[OrchestrationConfigurationStatusDetailResponse] = None
+
+
+class DataSourceDetailResponse(BaseDetailResponse, DataSourceFields):
+    id: uuid.UUID
+    workspace: "WorkspaceDetailResponse"
+    orchestration_system: "OrchestrationSystemDetailResponse"
+    schedule: Optional[OrchestrationConfigurationScheduleDetailResponse] = None
+    status: Optional[OrchestrationConfigurationStatusDetailResponse] = None
 
 
 class DataSourcePostBody(BasePostBody, DataSourceFields):

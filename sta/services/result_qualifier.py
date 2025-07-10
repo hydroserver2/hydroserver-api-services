@@ -1,13 +1,13 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import ResultQualifier
 from sta.schemas import ResultQualifierPostBody, ResultQualifierPatchBody
-from sta.schemas.result_qualifier import ResultQualifierFields
-from hydroserver.service import ServiceUtils
+from sta.schemas.result_qualifier import ResultQualifierFields, ResultQualifierOrderByFields
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ User = get_user_model()
 class ResultQualifierService(ServiceUtils):
     @staticmethod
     def get_result_qualifier_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
     ):
@@ -42,26 +42,25 @@ class ResultQualifierService(ServiceUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = ResultQualifier.objects
 
-        for field in ["workspace_id", "code"]:
+        for field in ["workspace_id"]:
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            [
-                "code",
-            ],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(ResultQualifierOrderByFields)),
+            )
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -73,15 +72,15 @@ class ResultQualifierService(ServiceUtils):
 
         return queryset
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_result_qualifier_for_action(
             principal=principal, uid=uid, action="view"
         )
 
-    def create(self, principal: Union[User, APIKey], data: ResultQualifierPostBody):
+    def create(self, principal: User | APIKey, data: ResultQualifierPostBody):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
-        )
+        ) if data.workspace_id else (None, None,)
 
         if not ResultQualifier.can_principal_create(
             principal=principal, workspace=workspace
@@ -99,7 +98,7 @@ class ResultQualifierService(ServiceUtils):
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         data: ResultQualifierPatchBody,
     ):
@@ -117,7 +116,7 @@ class ResultQualifierService(ServiceUtils):
 
         return result_qualifier
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         result_qualifier = self.get_result_qualifier_for_action(
             principal=principal, uid=uid, action="delete"
         )

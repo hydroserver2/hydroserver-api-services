@@ -1,17 +1,16 @@
 import uuid
 from ninja import Router, Path, Query
 from django.http import HttpResponse
-from typing import Optional, Literal
-from datetime import datetime
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
+from api.schemas import VocabularyQueryParameters
 from sta.schemas import (
-    DatastreamGetResponse,
+    DatastreamSummaryResponse,
+    DatastreamDetailResponse,
     DatastreamQueryParameters,
     DatastreamPostBody,
-    DatastreamPatchBody,
-    ObservationsGetResponse,
+    DatastreamPatchBody
 )
 from sta.services import DatastreamService
 
@@ -23,7 +22,7 @@ datastream_service = DatastreamService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[DatastreamGetResponse],
+        200: list[DatastreamSummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -42,7 +41,7 @@ def get_datastreams(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -51,7 +50,7 @@ def get_datastreams(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: DatastreamGetResponse,
+        201: DatastreamSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -69,10 +68,82 @@ def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody)
 
 
 @datastream_router.get(
+    "/aggregation-statistics",
+    response={
+        200: list[str]
+    },
+    by_alias=True
+)
+def get_datastream_aggregation_statistics(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get datastream aggregation statistics.
+    """
+
+    return 200, datastream_service.list_aggregation_statistics(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@datastream_router.get(
+    "/statuses",
+    response={
+        200: list[str]
+    },
+    by_alias=True
+)
+def get_datastream_statuses(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get datastream statuses.
+    """
+
+    return 200, datastream_service.list_statuses(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@datastream_router.get(
+    "/sampled-mediums",
+    response={
+        200: list[str]
+    },
+    by_alias=True
+)
+def get_datastream_sampled_mediums(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get datastream sampled mediums.
+    """
+
+    return 200, datastream_service.list_sampled_mediums(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@datastream_router.get(
     "/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: DatastreamGetResponse,
+        200: DatastreamDetailResponse,
         401: str,
         403: str,
     },
@@ -91,7 +162,7 @@ def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUI
     "/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DatastreamGetResponse,
+        200: DatastreamSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -146,32 +217,3 @@ def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid
     """
 
     return datastream_service.get_csv(principal=request.principal, uid=datastream_id)
-
-
-@datastream_router.get(
-    "/{datastream_id}/observations",
-    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
-    response={200: ObservationsGetResponse, 403: str, 404: str},
-)
-def get_datastream_observations(
-    request: HydroServerHttpRequest,
-    datastream_id: Path[uuid.UUID],
-    phenomenon_start_time: Optional[datetime] = None,
-    phenomenon_end_time: Optional[datetime] = None,
-    page: int = 1,
-    page_size: Optional[int] = None,
-    order: Literal["asc", "desc"] = "desc",
-):
-    """
-    Get Datastream Observations
-    """
-
-    return datastream_service.list_observations(
-        principal=request.principal,
-        uid=datastream_id,
-        phenomenon_start_time=phenomenon_start_time,
-        phenomenon_end_time=phenomenon_end_time,
-        page=page,
-        page_size=page_size,
-        order=order,
-    )

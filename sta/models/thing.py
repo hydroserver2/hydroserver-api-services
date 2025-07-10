@@ -1,8 +1,10 @@
 import uuid6
 import typing
 from typing import Literal, Optional, Union
+from collections import defaultdict
 from django.db import models
 from django.db.models import Q
+from django.conf import settings
 from iam.models import Workspace
 from iam.models.utils import PermissionChecker
 
@@ -84,6 +86,17 @@ class Thing(models.Model, PermissionChecker):
             return locations[0] if locations else None
         return self.locations.first()
 
+    @property
+    def tag_dict(self):
+        tag_map = defaultdict(list)
+        for tag in self.tags.all():
+            tag_map[tag.key].append(tag.value)
+        return dict(tag_map)
+
+    @property
+    def photo_dict(self):
+        return {photo.label: photo.url for photo in self.photos.all()}
+
     @classmethod
     def can_principal_create(
         cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"
@@ -126,6 +139,89 @@ class Thing(models.Model, PermissionChecker):
         Location.objects.filter(**{thing_relation_filter: filter_arg}).delete()
         Tag.objects.filter(**{thing_relation_filter: filter_arg}).delete()
         Photo.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+
+
+class TagQuerySet(models.QuerySet):
+    def visible(self, principal: Optional[Union["User", "APIKey"]]):
+        if hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return self
+            else:
+                return self.filter(
+                    Q(thing__workspace__is_private=False, thing__is_private=False)
+                    | Q(thing__workspace__owner=principal)
+                    | Q(
+                        thing__workspace__collaborators__user=principal,
+                        thing__workspace__collaborators__role__permissions__resource_type__in=[
+                            "*",
+                            "Thing",
+                        ],
+                        thing__workspace__collaborators__role__permissions__permission_type__in=[
+                            "*",
+                            "view",
+                        ],
+                    )
+                )
+        elif hasattr(principal, "workspace"):
+            return self.filter(
+                Q(thing__workspace__is_private=False, thing__is_private=False)
+                | Q(
+                    thing__workspace__apikeys=principal,
+                    thing__workspace__apikeys__role__permissions__resource_type__in=[
+                        "*",
+                        "Thing",
+                    ],
+                    thing__workspace__apikeys__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
+            )
+        else:
+            return self.filter(
+                Q(thing__workspace__is_private=False, thing__is_private=False)
+            )
+
+
+class Tag(models.Model, PermissionChecker):
+    thing = models.ForeignKey(Thing, related_name="tags", on_delete=models.DO_NOTHING)
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.key}: {self.value} - {self.id}"
+
+    objects = TagQuerySet.as_manager()
+
+
+def photo_storage_path(instance, filename):
+    return f"photos/{instance.thing.id}/{filename}"
+
+
+class Photo(models.Model, PermissionChecker):
+    thing = models.ForeignKey(Thing, related_name="photos", on_delete=models.DO_NOTHING)
+    name = models.CharField(max_length=255)
+    photo = models.FileField(upload_to=photo_storage_path)
+
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
+    @property
+    def link(self):
+        storage = self.photo.storage
+
+        try:
+            photo_link = storage.url(self.photo.name, expire=3600)
+        except TypeError:
+            photo_link = storage.url(self.photo.name)
+
+        if settings.DEPLOYMENT_BACKEND == "local":
+            photo_link = settings.PROXY_BASE_URL + photo_link
+
+        return photo_link
+
+    class Meta:
+        unique_together = ("thing", "name")
 
 
 class SamplingFeatureType(models.Model):

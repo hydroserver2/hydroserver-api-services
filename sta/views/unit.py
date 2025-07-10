@@ -4,9 +4,10 @@ from django.db import transaction
 from django.http import HttpResponse
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
+from api.schemas import VocabularyQueryParameters
 from sta.schemas import (
-    UnitCollectionResponse,
-    UnitGetResponse,
+    UnitSummaryResponse,
+    UnitDetailResponse,
     UnitPostBody,
     UnitPatchBody,
     UnitQueryParameters,
@@ -21,7 +22,7 @@ unit_service = UnitService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[UnitCollectionResponse],
+        200: list[UnitSummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -40,7 +41,7 @@ def get_units(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -49,7 +50,7 @@ def get_units(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: UnitGetResponse,
+        201: UnitSummaryResponse,
         400: str,
         401: str,
         422: str,
@@ -66,10 +67,34 @@ def create_unit(request: HydroServerHttpRequest, data: UnitPostBody):
 
 
 @unit_router.get(
+    "/types",
+    response={
+        200: list[str]
+    },
+    by_alias=True
+)
+def get_unit_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get unit types.
+    """
+
+    return 200, unit_service.list_unit_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@unit_router.get(
     "/{unit_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: UnitGetResponse,
+        200: UnitDetailResponse,
         401: str,
         403: str,
     },
@@ -88,7 +113,7 @@ def get_unit(request: HydroServerHttpRequest, unit_id: Path[uuid.UUID]):
     "/{unit_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: UnitGetResponse,
+        200: UnitSummaryResponse,
         400: str,
         401: str,
         403: str,

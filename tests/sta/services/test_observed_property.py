@@ -7,7 +7,7 @@ from sta.services import ObservedPropertyService
 from sta.schemas import (
     ObservedPropertyPostBody,
     ObservedPropertyPatchBody,
-    ObservedPropertyGetResponse,
+    ObservedPropertyDetailResponse,
 )
 
 observed_property_service = ObservedPropertyService()
@@ -102,10 +102,10 @@ observed_property_service = ObservedPropertyService()
             ],
             3,
         ),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-name"},
+            {"page": 2, "page_size": 2, "order_by": "-name"},
             [
                 "Public Observed Property",
                 "Public Assigned Observed Property",
@@ -121,13 +121,13 @@ observed_property_service = ObservedPropertyService()
         ),
         (
             "owner",
-            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            {"datastreams__thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
             ["System Assigned Observed Property", "Public Assigned Observed Property"],
             3,
         ),
         (
             "owner",
-            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            {"datastreams__id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
             ["Public Assigned Observed Property"],
             3,
         ),
@@ -148,14 +148,14 @@ def test_list_observed_property(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(
             str(observed_property.name) for observed_property in result
         ) == Counter(observed_property_names)
         assert (
-            ObservedPropertyGetResponse.from_orm(observed_property)
+            ObservedPropertyDetailResponse.from_orm(observed_property)
             for observed_property in result
         )
 
@@ -304,7 +304,7 @@ def test_get_observed_property(
             principal=get_principal(principal), uid=uuid.UUID(observed_property)
         )
         assert observed_property_get.name == message
-        assert ObservedPropertyGetResponse.from_orm(observed_property_get)
+        assert ObservedPropertyDetailResponse.from_orm(observed_property_get)
 
 
 @pytest.mark.parametrize(
@@ -322,6 +322,7 @@ def test_get_observed_property(
         ),
         ("admin", {}, None, None),
         ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("admin", {"workspace_id": None}, None, None),
         # Test create invalid ObservedProperty
         (
             "owner",
@@ -330,6 +331,7 @@ def test_get_observed_property(
             404,
         ),
         # Test unauthorized attempts
+        ("owner", {"workspace_id": None}, "You do not have permission", 403),
         ("viewer", {}, "You do not have permission", 403),
         (
             "viewer",
@@ -371,11 +373,10 @@ def test_create_observed_property(
             "observed_property_type", "New"
         ),
         definition=observed_property_fields.get("definition", "New"),
-        workspace_id=uuid.UUID(
-            observed_property_fields.get(
-                "workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f"
-            )
-        ),
+        workspace_id=(
+            uuid.UUID(wid) if (wid := observed_property_fields["workspace_id"]) is not None
+            else None
+        ) if "workspace_id" in observed_property_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -390,7 +391,7 @@ def test_create_observed_property(
         )
         assert observed_property_create.name == observed_property_data.name
         assert observed_property_create.definition == observed_property_data.definition
-        assert ObservedPropertyGetResponse.from_orm(observed_property_create)
+        assert ObservedPropertyDetailResponse.from_orm(observed_property_create)
 
 
 @pytest.mark.parametrize(
@@ -521,7 +522,7 @@ def test_edit_observed_property(
         )
         assert observed_property_update.name == observed_property_data.name
         assert observed_property_update.definition == observed_property_data.definition
-        assert ObservedPropertyGetResponse.from_orm(observed_property_update)
+        assert ObservedPropertyDetailResponse.from_orm(observed_property_update)
 
 
 @pytest.mark.parametrize(

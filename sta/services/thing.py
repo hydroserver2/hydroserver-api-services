@@ -1,12 +1,12 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import F, Q
 from iam.models import APIKey
-from sta.models import Thing, Location, Tag, Photo
+from sta.models import Thing, Location, Tag, Photo, SamplingFeatureType, SiteType
 from sta.schemas import (
     ThingPostBody,
     ThingPatchBody,
@@ -14,8 +14,8 @@ from sta.schemas import (
     TagDeleteBody,
     PhotoDeleteBody,
 )
-from sta.schemas.thing import ThingFields, LocationFields
-from hydroserver.service import ServiceUtils
+from sta.schemas.thing import ThingFields, LocationFields, ThingOrderByFields
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -23,7 +23,7 @@ User = get_user_model()
 class ThingService(ServiceUtils):
     @staticmethod
     def get_thing_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
     ):
@@ -97,31 +97,26 @@ class ThingService(ServiceUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = Thing.objects
 
         for field in [
             "workspace_id",
-            "state",
-            "county",
-            "country",
+            "locations__state",
+            "locations__county",
+            "locations__country",
             "site_type",
             "sampling_feature_type",
-            "sampling_feature_code",
             "is_private",
         ]:
             if field in filtering:
-                if field in ["state", "county", "country"]:
-                    queryset = self.apply_filters(
-                        queryset, f"locations__{field}", filtering[field]
-                    )
-                elif field == "is_private":
+                if field == "is_private":
                     queryset = self.apply_filters(
                         queryset, f"is_private", filtering[field]
                     )
@@ -134,20 +129,21 @@ class ThingService(ServiceUtils):
         queryset = self.apply_bbox_filter(queryset, filtering.get("bbox"))
         queryset = self.apply_tag_filter(queryset, filtering.get("tag"))
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            [
-                "name",
-                "state",
-                "county",
-                "country",
-                "site_type",
-                "sampling_feature_type",
-                "sampling_feature_code",
-                "is_private",
-            ],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(ThingOrderByFields)),
+                {
+                    "latitude": "location__latitude",
+                    "longitude": "location__longitude",
+                    "elevation_m": "location__elevation_m",
+                    "elevationDatum": "location__elevation_datum",
+                    "state": "location__state",
+                    "county": "location__county",
+                    "country": "location__country"
+                }
+            )
 
         queryset = (
             queryset.visible(principal=principal)
@@ -164,10 +160,10 @@ class ThingService(ServiceUtils):
 
         return queryset
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-    def create(self, principal: Union[User, APIKey], data: ThingPostBody):
+    def create(self, principal: User | APIKey, data: ThingPostBody):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
         )
@@ -191,7 +187,7 @@ class ThingService(ServiceUtils):
         return thing
 
     def update(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: ThingPatchBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: ThingPatchBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
         location = thing.location
@@ -218,7 +214,7 @@ class ThingService(ServiceUtils):
 
         return thing
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="delete")
         location = thing.location
 
@@ -227,14 +223,16 @@ class ThingService(ServiceUtils):
 
         return "Thing deleted"
 
-    def get_tags(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get_tags(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.tags
+        return {
+            tag.key: tag.value for tag in thing.tags.all()
+        }
 
     @staticmethod
     def get_tag_keys(
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
     ):
@@ -255,7 +253,7 @@ class ThingService(ServiceUtils):
         return {entry["key"]: entry["values"] for entry in tags}
 
     def add_tag(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: TagPostBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
@@ -265,7 +263,7 @@ class ThingService(ServiceUtils):
         return Tag.objects.create(thing=thing, key=data.key, value=data.value)
 
     def update_tag(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: TagPostBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
@@ -280,25 +278,30 @@ class ThingService(ServiceUtils):
         return tag
 
     def remove_tag(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: TagDeleteBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: TagDeleteBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        try:
-            tag = Tag.objects.get(thing=thing, key=data.key)
-        except Tag.DoesNotExist:
+        queryset = Tag.objects.filter(thing=thing, key=data.key)
+
+        if data.value is not None:
+            queryset = queryset.filter(value=data.value)
+
+        deleted_count, _ = queryset.delete()
+
+        if deleted_count == 0:
             raise HttpError(404, "Tag does not exist")
 
-        tag.delete()
+        return f"{deleted_count} tag(s) deleted"
 
-        return "Tag deleted"
-
-    def get_photos(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get_photos(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.photos
+        return {
+            photo.name: photo.link for photo in thing.photos.all()
+        }
 
-    def add_photo(self, principal: Union[User, APIKey], uid: uuid.UUID, file):
+    def add_photo(self, principal: User | APIKey, uid: uuid.UUID, file):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         if Photo.objects.filter(thing=thing, name=file.name).exists():
@@ -307,7 +310,7 @@ class ThingService(ServiceUtils):
         return Photo.objects.create(thing=thing, name=file.name, photo=file)
 
     def remove_photo(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: PhotoDeleteBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: PhotoDeleteBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
@@ -320,3 +323,39 @@ class ThingService(ServiceUtils):
         photo.delete()
 
         return "Photo deleted"
+
+    def list_site_types(
+        self,
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False
+    ):
+        queryset = SiteType.objects.order_by(f"{'-' if order_desc else ''}name")
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list(
+            "name", flat=True
+        )
+
+    def list_sampling_feature_types(
+        self,
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False
+    ):
+        queryset = SamplingFeatureType.objects.order_by(f"{'-' if order_desc else ''}name")
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list(
+            "name", flat=True
+        )

@@ -4,7 +4,7 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from sta.services import DatastreamService
-from sta.schemas import DatastreamPostBody, DatastreamPatchBody, DatastreamGetResponse
+from sta.schemas import DatastreamPostBody, DatastreamPatchBody, DatastreamSummaryResponse, DatastreamDetailResponse
 
 datastream_service = DatastreamService()
 
@@ -91,17 +91,17 @@ datastream_service = DatastreamService()
         ),
         ("unaffiliated", {}, ["Public Datastream 1", "Public Datastream 2"], 3),
         ("anonymous", {}, ["Public Datastream 1", "Public Datastream 2"], 3),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-name"},
+            {"page": 2, "page_size": 2, "order_by": "-name"},
             ["Private Datastream 7", "Private Datastream 6"],
             6,
         ),
         # Test filtering
         (
             "owner",
-            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            {"thing__workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             [
                 "Private Datastream 4",
                 "Private Datastream 5",
@@ -155,13 +155,13 @@ def test_list_datastream(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(datastream.name) for datastream in result) == Counter(
             datastream_names
         )
-        assert (DatastreamGetResponse.from_orm(thing) for thing in result)
+        assert (DatastreamDetailResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
@@ -265,7 +265,7 @@ def test_get_datastream(get_principal, principal, datastream, message, error_cod
             principal=get_principal(principal), uid=uuid.UUID(datastream)
         )
         assert datastream_get.name == message
-        assert DatastreamGetResponse.from_orm(datastream_get)
+        assert DatastreamDetailResponse.from_orm(datastream_get)
 
 
 @pytest.mark.parametrize(
@@ -767,7 +767,7 @@ def test_create_datastream(
             == datastream_data.time_aggregation_interval_unit
         )
         assert datastream_create.result_type == datastream_data.result_type
-        assert DatastreamGetResponse.from_orm(datastream_create)
+        assert DatastreamSummaryResponse.from_orm(datastream_create)
 
 
 @pytest.mark.parametrize(

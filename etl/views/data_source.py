@@ -5,7 +5,8 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
-    DataSourceGetResponse,
+    DataSourceSummaryResponse,
+    DataSourceDetailResponse,
     DataSourcePostBody,
     DataSourcePatchBody,
     OrchestrationConfigurationQueryParameters,
@@ -20,7 +21,7 @@ data_source_service = DataSourceService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[DataSourceGetResponse],
+        200: list[DataSourceDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -39,7 +40,7 @@ def get_data_sources(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -48,7 +49,7 @@ def get_data_sources(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: DataSourceGetResponse,
+        201: DataSourceSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -69,7 +70,7 @@ def create_data_source(request: HydroServerHttpRequest, data: DataSourcePostBody
     "/{data_source_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataSourceGetResponse,
+        200: DataSourceDetailResponse,
         401: str,
         403: str,
     },
@@ -88,7 +89,7 @@ def get_data_source(request: HydroServerHttpRequest, data_source_id: Path[uuid.U
     "/{data_source_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataSourceGetResponse,
+        200: DataSourceSummaryResponse,
         400: str,
         401: str,
         403: str,

@@ -7,7 +7,7 @@ from sta.services import ProcessingLevelService
 from sta.schemas import (
     ProcessingLevelPostBody,
     ProcessingLevelPatchBody,
-    ProcessingLevelGetResponse,
+    ProcessingLevelDetailResponse,
 )
 
 processing_level_service = ProcessingLevelService()
@@ -102,10 +102,10 @@ processing_level_service = ProcessingLevelService()
             ],
             3,
         ),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-code"},
+            {"page": 2, "page_size": 2, "order_by": "-code"},
             [
                 "PublicProcessingLevel",
                 "PublicAssignedProcessingLevel",
@@ -121,13 +121,13 @@ processing_level_service = ProcessingLevelService()
         ),
         (
             "owner",
-            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            {"datastreams__thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
             ["SystemAssignedProcessingLevel", "PublicAssignedProcessingLevel"],
             3,
         ),
         (
             "owner",
-            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            {"datastreams__id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
             ["PublicAssignedProcessingLevel"],
             3,
         ),
@@ -148,14 +148,14 @@ def test_list_processing_level(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(
             str(processing_level.code) for processing_level in result
         ) == Counter(processing_level_codes)
         assert (
-            ProcessingLevelGetResponse.from_orm(processing_level)
+            ProcessingLevelDetailResponse.from_orm(processing_level)
             for processing_level in result
         )
 
@@ -304,7 +304,7 @@ def test_get_processing_level(
             principal=get_principal(principal), uid=uuid.UUID(processing_level)
         )
         assert processing_level_get.code == message
-        assert ProcessingLevelGetResponse.from_orm(processing_level_get)
+        assert ProcessingLevelDetailResponse.from_orm(processing_level_get)
 
 
 @pytest.mark.parametrize(
@@ -322,6 +322,7 @@ def test_get_processing_level(
         ),
         ("admin", {}, None, None),
         ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("admin", {"workspace_id": None}, None, None),
         # Test create invalid ProcessingLevel
         (
             "owner",
@@ -330,6 +331,7 @@ def test_get_processing_level(
             404,
         ),
         # Test unauthorized attempts
+        ("owner", {"workspace_id": None}, "You do not have permission", 403),
         ("viewer", {}, "You do not have permission", 403),
         (
             "viewer",
@@ -367,11 +369,10 @@ def test_create_processing_level(
         code=processing_level_fields.get("code", "New"),
         definition=processing_level_fields.get("definition", "New"),
         explanation=processing_level_fields.get("explanation", "New"),
-        workspace_id=uuid.UUID(
-            processing_level_fields.get(
-                "workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f"
-            )
-        ),
+        workspace_id=(
+            uuid.UUID(wid) if (wid := processing_level_fields["workspace_id"]) is not None
+            else None
+        ) if "workspace_id" in processing_level_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -387,7 +388,7 @@ def test_create_processing_level(
         assert processing_level_create.code == processing_level_data.code
         assert processing_level_create.definition == processing_level_data.definition
         assert processing_level_create.explanation == processing_level_data.explanation
-        assert ProcessingLevelGetResponse.from_orm(processing_level_create)
+        assert ProcessingLevelDetailResponse.from_orm(processing_level_create)
 
 
 @pytest.mark.parametrize(
@@ -515,7 +516,7 @@ def test_edit_processing_level(
         assert processing_level_update.code == processing_level_data.code
         assert processing_level_update.definition == processing_level_data.definition
         assert processing_level_update.explanation == processing_level_data.explanation
-        assert ProcessingLevelGetResponse.from_orm(processing_level_update)
+        assert ProcessingLevelDetailResponse.from_orm(processing_level_update)
 
 
 @pytest.mark.parametrize(

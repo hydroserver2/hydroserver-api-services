@@ -7,7 +7,7 @@ from sta.services import ResultQualifierService
 from sta.schemas import (
     ResultQualifierPostBody,
     ResultQualifierPatchBody,
-    ResultQualifierGetResponse,
+    ResultQualifierDetailResponse,
 )
 
 result_qualifier_service = ResultQualifierService()
@@ -60,10 +60,10 @@ result_qualifier_service = ResultQualifierService()
         ("apikey", {}, ["SystemResultQualifier", "PublicResultQualifier"], 4),
         ("unaffiliated", {}, ["SystemResultQualifier", "PublicResultQualifier"], 3),
         ("anonymous", {}, ["SystemResultQualifier", "PublicResultQualifier"], 3),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-code"},
+            {"page": 2, "page_size": 2, "order_by": "-code"},
             ["PrivateResultQualifier"],
             3,
         ),
@@ -91,14 +91,14 @@ def test_list_result_qualifier(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(
             str(result_qualifier.code) for result_qualifier in result
         ) == Counter(result_qualifier_codes)
         assert (
-            ResultQualifierGetResponse.from_orm(result_qualifier)
+            ResultQualifierDetailResponse.from_orm(result_qualifier)
             for result_qualifier in result
         )
 
@@ -247,7 +247,7 @@ def test_get_result_qualifier(
             principal=get_principal(principal), uid=uuid.UUID(result_qualifier)
         )
         assert result_qualifier_get.code == message
-        assert ResultQualifierGetResponse.from_orm(result_qualifier_get)
+        assert ResultQualifierDetailResponse.from_orm(result_qualifier_get)
 
 
 @pytest.mark.parametrize(
@@ -265,6 +265,7 @@ def test_get_result_qualifier(
         ),
         ("admin", {}, None, None),
         ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("admin", {"workspace_id": None}, None, None),
         # Test create invalid Result Qualifier
         (
             "owner",
@@ -273,6 +274,7 @@ def test_get_result_qualifier(
             404,
         ),
         # Test unauthorized attempts
+        ("owner", {"workspace_id": None}, "You do not have permission", 403),
         ("viewer", {}, "You do not have permission", 403),
         (
             "viewer",
@@ -309,11 +311,10 @@ def test_create_result_qualifier(
     result_qualifier_data = ResultQualifierPostBody(
         code=result_qualifier_fields.get("code", "New"),
         description=result_qualifier_fields.get("description", "New"),
-        workspace_id=uuid.UUID(
-            result_qualifier_fields.get(
-                "workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f"
-            )
-        ),
+        workspace_id=(
+            uuid.UUID(wid) if (wid := result_qualifier_fields["workspace_id"]) is not None
+            else None
+        ) if "workspace_id" in result_qualifier_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -328,7 +329,7 @@ def test_create_result_qualifier(
         )
         assert result_qualifier_create.code == result_qualifier_data.code
         assert result_qualifier_create.description == result_qualifier_data.description
-        assert ResultQualifierGetResponse.from_orm(result_qualifier_create)
+        assert ResultQualifierDetailResponse.from_orm(result_qualifier_create)
 
 
 @pytest.mark.parametrize(
@@ -454,7 +455,7 @@ def test_edit_result_qualifier(
         )
         assert result_qualifier_update.code == result_qualifier_data.code
         assert result_qualifier_update.description == result_qualifier_data.description
-        assert ResultQualifierGetResponse.from_orm(result_qualifier_update)
+        assert ResultQualifierDetailResponse.from_orm(result_qualifier_update)
 
 
 @pytest.mark.parametrize(

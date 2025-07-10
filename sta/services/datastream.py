@@ -1,15 +1,15 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
-from datetime import datetime
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.http import StreamingHttpResponse
+from api.service import ServiceUtils
 from iam.models import APIKey
-from sta.models import Datastream, Observation
+from sta.models import Datastream, Observation, DatastreamAggregation, DatastreamStatus, SampledMedium
 from sta.schemas import DatastreamPostBody, DatastreamPatchBody
-from sta.schemas.datastream import DatastreamFields
+from sta.schemas.datastream import DatastreamOrderByFields
 from sta.services import (
     ThingService,
     ObservedPropertyService,
@@ -17,7 +17,6 @@ from sta.services import (
     SensorService,
     UnitService,
 )
-from hydroserver.service import ServiceUtils
 
 User = get_user_model()
 
@@ -41,7 +40,7 @@ class DatastreamService(ServiceUtils):
 
     @staticmethod
     def get_datastream_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
         raise_400: bool = False,
@@ -70,17 +69,17 @@ class DatastreamService(ServiceUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = Datastream.objects
 
         for field in [
-            "workspace_id",
+            "thing__workspace_id",
             "thing_id",
             "sensor_id",
             "observed_property_id",
@@ -103,11 +102,7 @@ class DatastreamService(ServiceUtils):
             "result_end_time__gte",
         ]:
             if field in filtering:
-                if field == "workspace_id":
-                    queryset = self.apply_filters(
-                        queryset, f"thing__{field}", filtering[field]
-                    )
-                elif field == "is_private":
+                if field == "is_private":
                     queryset = self.apply_filters(
                         queryset, f"is_private", filtering[field]
                     )
@@ -120,23 +115,12 @@ class DatastreamService(ServiceUtils):
                 else:
                     queryset = self.apply_filters(queryset, field, filtering[field])
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            [
-                "name",
-                "observation_type",
-                "sampled_medium",
-                "status",
-                "result_type",
-                "is_private",
-                "value_count",
-                "phenomenon_begin_time",
-                "phenomenon_end_time",
-                "result_begin_time",
-                "result_end_time",
-            ],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(DatastreamOrderByFields)),
+            )
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -148,12 +132,12 @@ class DatastreamService(ServiceUtils):
 
         return queryset
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_datastream_for_action(
             principal=principal, uid=uid, action="view"
         )
 
-    def create(self, principal: Union[User, APIKey], data: DatastreamPostBody):
+    def create(self, principal: User | APIKey, data: DatastreamPostBody):
         thing = self.handle_http_404_error(
             thing_service.get, principal=principal, uid=data.thing_id
         )
@@ -214,19 +198,19 @@ class DatastreamService(ServiceUtils):
             )
 
         datastream = Datastream.objects.create(
-            **data.dict(include=set(DatastreamFields.model_fields.keys()))
+            **data.dict(include=set(DatastreamPostBody.model_fields.keys()))
         )
 
         return datastream
 
     def update(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: DatastreamPatchBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: DatastreamPatchBody
     ):
         datastream = self.get_datastream_for_action(
             principal=principal, uid=uid, action="edit"
         )
         datastream_data = data.dict(
-            include=set(DatastreamFields.model_fields.keys()), exclude_unset=True
+            include=set(DatastreamPatchBody.model_fields.keys()), exclude_unset=True
         )
 
         thing = (
@@ -315,13 +299,67 @@ class DatastreamService(ServiceUtils):
 
         return datastream
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         datastream = self.get_datastream_for_action(
             principal=principal, uid=uid, action="delete"
         )
         datastream.delete()
 
         return "Datastream deleted"
+
+    def list_aggregation_statistics(
+        self,
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False
+    ):
+        queryset = DatastreamAggregation.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list(
+            "name", flat=True
+        )
+
+    def list_statuses(
+        self,
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False
+    ):
+        queryset = DatastreamStatus.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list(
+            "name", flat=True
+        )
+
+    def list_sampled_mediums(
+        self,
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False
+    ):
+        queryset = SampledMedium.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list(
+            "name", flat=True
+        )
 
     @staticmethod
     def generate_csv(datastream: Datastream):
@@ -439,7 +477,7 @@ class DatastreamService(ServiceUtils):
             else:
                 yield f"{observation[0].isoformat()},{observation[1]},\n"
 
-    def get_csv(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def get_csv(self, principal: User | APIKey, uid: uuid.UUID):
         datastream = self.get_datastream_for_action(
             principal=principal, uid=uid, action="view"
         )
@@ -450,48 +488,5 @@ class DatastreamService(ServiceUtils):
         response["Content-Disposition"] = (
             f'attachment; filename="{datastream.name}.csv"'
         )
-
-        return response
-
-    def list_observations(
-        self,
-        principal: Union[User, APIKey],
-        uid: uuid.UUID,
-        phenomenon_start_time: Optional[datetime] = None,
-        phenomenon_end_time: Optional[datetime] = None,
-        page: int = 1,
-        page_size: Optional[int] = None,
-        order: Literal["asc", "desc"] = "desc",
-    ):
-        datastream = self.get_datastream_for_action(
-            principal=principal, uid=uid, action="view"
-        )
-
-        fields = ["phenomenon_time", "result"]
-
-        queryset = Observation.objects.filter(datastream=datastream)
-        ordering = "phenomenon_time" if order == "asc" else "-phenomenon_time"
-
-        if phenomenon_start_time:
-            queryset = queryset.filter(phenomenon_time__gte=phenomenon_start_time)
-        if phenomenon_end_time:
-            queryset = queryset.filter(phenomenon_time__lte=phenomenon_end_time)
-
-        queryset = queryset.order_by(ordering)
-
-        if page_size is not None:
-            page = max(1, page)
-            page_size = max(0, page_size)
-            start = (page - 1) * page_size
-            end = start + page_size
-
-            queryset = queryset[start:end]
-
-        observations = list(queryset.values_list(*fields))
-
-        if observations:
-            response = dict(zip(fields, zip(*observations)))
-        else:
-            response = {field: [] for field in fields}
 
         return response

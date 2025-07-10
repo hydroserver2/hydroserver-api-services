@@ -4,8 +4,10 @@ from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
+from api.schemas import VocabularyQueryParameters
 from sta.schemas import (
-    SensorGetResponse,
+    SensorSummaryResponse,
+    SensorDetailResponse,
     SensorQueryParameters,
     SensorPostBody,
     SensorPatchBody,
@@ -20,7 +22,7 @@ sensor_service = SensorService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[SensorGetResponse],
+        200: list[SensorSummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -39,7 +41,7 @@ def get_sensors(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -48,7 +50,7 @@ def get_sensors(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: SensorGetResponse,
+        201: SensorSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -66,10 +68,50 @@ def create_sensor(request: HydroServerHttpRequest, data: SensorPostBody):
 
 
 @sensor_router.get(
+    "encoding-types", response={200: list[str]}, by_alias=True
+)
+def get_sensor_encoding_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get sensor encoding types.
+    """
+
+    return 200, sensor_service.list_encoding_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@sensor_router.get(
+    "method-types", response={200: list[str]}, by_alias=True
+)
+def get_method_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get method types.
+    """
+
+    return 200, sensor_service.list_method_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@sensor_router.get(
     "/{sensor_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: SensorGetResponse,
+        200: SensorDetailResponse,
         401: str,
         403: str,
     },
@@ -88,7 +130,7 @@ def get_sensor(request: HydroServerHttpRequest, sensor_id: Path[uuid.UUID]):
     "/{sensor_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: SensorGetResponse,
+        200: SensorSummaryResponse,
         400: str,
         401: str,
         403: str,

@@ -4,7 +4,7 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from sta.services import UnitService
-from sta.schemas import UnitPostBody, UnitPatchBody, UnitGetResponse
+from sta.schemas import UnitPostBody, UnitPatchBody, UnitDetailResponse
 
 unit_service = UnitService()
 
@@ -98,10 +98,10 @@ unit_service = UnitService()
             ],
             3,
         ),
-        # Test pagination and ordering
+        # Test pagination and order_by
         (
             "owner",
-            {"page": 2, "page_size": 2, "ordering": "-name"},
+            {"page": 2, "page_size": 2, "order_by": "-name"},
             [
                 "Public Unit",
                 "Public Assigned Unit",
@@ -117,17 +117,17 @@ unit_service = UnitService()
         ),
         (
             "owner",
-            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            {"datastreams__thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
             ["System Assigned Unit", "Public Assigned Unit"],
             3,
         ),
         (
             "owner",
-            {"datastream_id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            {"datastreams__id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
             ["Public Assigned Unit"],
             3,
         ),
-        ("owner", {"symbol": "Sy"}, ["System Unit", "System Assigned Unit"], 3),
+        ("owner", {"unit_type": "System Unit"}, ["System Unit"], 3),
     ],
 )
 def test_list_unit(
@@ -140,11 +140,11 @@ def test_list_unit(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(unit.name) for unit in result) == Counter(unit_names)
-        assert (UnitGetResponse.from_orm(unit) for unit in result)
+        assert (UnitDetailResponse.from_orm(unit) for unit in result)
 
 
 @pytest.mark.parametrize(
@@ -207,7 +207,7 @@ def test_get_unit(get_principal, principal, unit, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(unit)
         )
         assert unit_get.name == message
-        assert UnitGetResponse.from_orm(unit_get)
+        assert UnitDetailResponse.from_orm(unit_get)
 
 
 @pytest.mark.parametrize(
@@ -225,6 +225,7 @@ def test_get_unit(get_principal, principal, unit, message, error_code):
         ),
         ("admin", {}, None, None),
         ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("admin", {"workspace_id": None}, None, None),
         # Test create invalid Unit
         (
             "owner",
@@ -233,6 +234,7 @@ def test_get_unit(get_principal, principal, unit, message, error_code):
             404,
         ),
         # Test unauthorized attempts
+        ("owner", {"workspace_id": None}, "You do not have permission", 403),
         ("viewer", {}, "You do not have permission", 403),
         (
             "viewer",
@@ -269,9 +271,10 @@ def test_create_unit(get_principal, principal, unit_fields, message, error_code)
         symbol=unit_fields.get("symbol", "New"),
         definition=unit_fields.get("definition", "New"),
         unit_type=unit_fields.get("unit_type", "New"),
-        workspace_id=uuid.UUID(
-            unit_fields.get("workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f")
-        ),
+        workspace_id=(
+            uuid.UUID(wid) if (wid := unit_fields["workspace_id"]) is not None
+            else None
+        ) if "workspace_id" in unit_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -286,7 +289,7 @@ def test_create_unit(get_principal, principal, unit_fields, message, error_code)
         assert unit_create.name == unit_data.name
         assert unit_create.definition == unit_data.definition
         assert unit_create.unit_type == unit_data.unit_type
-        assert UnitGetResponse.from_orm(unit_create)
+        assert UnitDetailResponse.from_orm(unit_create)
 
 
 @pytest.mark.parametrize(
@@ -405,7 +408,7 @@ def test_edit_unit(get_principal, principal, unit, unit_fields, message, error_c
         assert unit_update.name == unit_data.name
         assert unit_update.symbol == unit_data.symbol
         assert unit_update.unit_type == unit_data.unit_type
-        assert UnitGetResponse.from_orm(unit_update)
+        assert UnitDetailResponse.from_orm(unit_update)
 
 
 @pytest.mark.parametrize(

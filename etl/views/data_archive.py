@@ -1,12 +1,12 @@
 import uuid
 from ninja import Router, Path, Query
-from typing import Optional
 from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
-    DataArchiveGetResponse,
+    DataArchiveSummaryResponse,
+    DataArchiveDetailResponse,
     DataArchivePostBody,
     DataArchivePatchBody,
     OrchestrationConfigurationQueryParameters,
@@ -21,7 +21,7 @@ data_archive_service = DataArchiveService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[DataArchiveGetResponse],
+        200: list[DataArchiveDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -40,7 +40,7 @@ def get_data_archives(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -49,7 +49,7 @@ def get_data_archives(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: DataArchiveGetResponse,
+        201: DataArchiveSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -70,7 +70,7 @@ def create_data_archive(request: HydroServerHttpRequest, data: DataArchivePostBo
     "/{data_archive_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataArchiveGetResponse,
+        200: DataArchiveDetailResponse,
         401: str,
         403: str,
     },
@@ -91,7 +91,7 @@ def get_data_archive(request: HydroServerHttpRequest, data_archive_id: Path[uuid
     "/{data_archive_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataArchiveGetResponse,
+        200: DataArchiveSummaryResponse,
         400: str,
         401: str,
         403: str,

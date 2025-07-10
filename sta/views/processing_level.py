@@ -5,7 +5,8 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
-    ProcessingLevelGetResponse,
+    ProcessingLevelSummaryResponse,
+    ProcessingLevelDetailResponse,
     ProcessingLevelQueryParameters,
     ProcessingLevelPostBody,
     ProcessingLevelPatchBody,
@@ -20,7 +21,7 @@ processing_level_service = ProcessingLevelService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ProcessingLevelGetResponse],
+        200: list[ProcessingLevelSummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -39,7 +40,7 @@ def get_processing_levels(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -48,7 +49,7 @@ def get_processing_levels(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ProcessingLevelGetResponse,
+        201: ProcessingLevelSummaryResponse,
         400: str,
         401: str,
         403: str,
@@ -71,7 +72,7 @@ def create_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ProcessingLevelGetResponse,
+        200: ProcessingLevelDetailResponse,
         401: str,
         403: str,
     },
@@ -94,7 +95,7 @@ def get_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ProcessingLevelGetResponse,
+        200: ProcessingLevelSummaryResponse,
         400: str,
         401: str,
         403: str,

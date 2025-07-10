@@ -5,7 +5,7 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from iam.schemas import (
-    CollaboratorGetResponse,
+    CollaboratorDetailResponse,
     CollaboratorQueryParameters,
     CollaboratorPostBody,
     CollaboratorDeleteBody,
@@ -20,7 +20,7 @@ collaborator_service = CollaboratorService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[CollaboratorGetResponse],
+        200: list[CollaboratorDetailResponse],
         401: str,
         403: str,
     },
@@ -42,7 +42,7 @@ def get_collaborators(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -51,7 +51,7 @@ def get_collaborators(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: CollaboratorGetResponse,
+        201: CollaboratorDetailResponse,
         401: str,
         403: str,
         422: str,
@@ -79,7 +79,7 @@ def add_collaborator(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: CollaboratorGetResponse,
+        200: CollaboratorDetailResponse,
         401: str,
         403: str,
         422: str,

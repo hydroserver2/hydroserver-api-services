@@ -1,12 +1,15 @@
 import uuid
-from typing import Optional
+from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
-from hydroserver.schemas import (
-    BaseGetResponse,
+from api.schemas import (
+    BaseDetailResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
 )
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceDetailResponse
 
 
 class ObservedPropertyFields(Schema):
@@ -17,30 +20,45 @@ class ObservedPropertyFields(Schema):
     code: str = Field(..., max_length=255)
 
 
+_order_by_fields = (
+    "name",
+    "type",
+    "code",
+)
+
+ObservedPropertyOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
 class ObservedPropertyQueryParameters(CollectionQueryParameters):
+    order_by: Optional[list[ObservedPropertyOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
     workspace_id: list[uuid.UUID] = Query(
         [], description="Filter observed properties by workspace ID."
     )
-    thing_id: list[uuid.UUID] = Query(
-        [], description="Filter observed properties by thing ID."
+    datastreams__thing_id: list[uuid.UUID] = Query(
+        [], description="Filter observed properties by thing ID.", alias="thing_id"
     )
-    datastream_id: list[uuid.UUID] = Query(
-        [], description="Filter observed properties by datastream ID."
+    datastreams__id: list[uuid.UUID] = Query(
+        [], description="Filter observed properties by datastream ID.", alias="datastream_id"
     )
-    name: list[str] = Query([], description="Filter observed properties by name")
     observed_property_type: list[str] = Query(
         [], description="Filter observed properties by type", alias="type"
     )
-    code: list[str] = Query([], description="Filter observed properties by code")
 
 
-class ObservedPropertyGetResponse(BaseGetResponse, ObservedPropertyFields):
+class ObservedPropertySummaryResponse(BaseDetailResponse, ObservedPropertyFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID]
+    workspace_id: Optional[uuid.UUID] = None
+
+
+class ObservedPropertyDetailResponse(BaseDetailResponse, ObservedPropertyFields):
+    id: uuid.UUID
+    workspace: Optional["WorkspaceDetailResponse"] = None
 
 
 class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID] = None
 
 
 class ObservedPropertyPatchBody(BasePatchBody, ObservedPropertyFields):

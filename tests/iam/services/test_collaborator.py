@@ -7,7 +7,7 @@ from iam.services.collaborator import CollaboratorService
 from iam.schemas import (
     CollaboratorPostBody,
     CollaboratorDeleteBody,
-    CollaboratorGetResponse,
+    CollaboratorDetailResponse,
 )
 
 collaborator_service = CollaboratorService()
@@ -24,7 +24,7 @@ collaborator_service = CollaboratorService()
         ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
         ("unaffiliated", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
-        # Test pagination and ordering
+        # Test pagination and order_by
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"page": 2, "page_size": 1}, ["1000000013"],
          7),
         # Test filtering
@@ -48,11 +48,11 @@ def test_list_collaborator(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(collaborator.id) for collaborator in result) == Counter(collaborator_ids)
-        assert (CollaboratorGetResponse.from_orm(collaborator) for collaborator in result)
+        assert (CollaboratorDetailResponse.from_orm(collaborator) for collaborator in result)
 
 
 @pytest.mark.parametrize(
@@ -183,8 +183,8 @@ def test_list_collaborator(
             "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "60b9d8b1-28d1-4d0d-9bee-4e47219d0118",
-            "Role does not exist",
-            404,
+            "Role does not belong to the workspace",
+            400,
         ),
     ],
 )
@@ -211,7 +211,7 @@ def test_create_collaborator(
             ),
         )
         assert collaborator_create.user.email == f"{collaborator}@example.com"
-        assert CollaboratorGetResponse.from_orm(collaborator_create)
+        assert CollaboratorDetailResponse.from_orm(collaborator_create)
 
 
 @pytest.mark.parametrize(
@@ -326,8 +326,8 @@ def test_create_collaborator(
             "editor",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "60b9d8b1-28d1-4d0d-9bee-4e47219d0118",
-            "Role does not exist",
-            404,
+            "Role does not belong to the workspace",
+            400,
         ),
     ],
 )
@@ -354,7 +354,7 @@ def test_update_collaborator(
             ),
         )
         assert collaborator_update.user.email == f"{collaborator}@example.com"
-        assert CollaboratorGetResponse.from_orm(collaborator_update)
+        assert CollaboratorDetailResponse.from_orm(collaborator_update)
 
 
 @pytest.mark.parametrize(

@@ -1,17 +1,17 @@
 import uuid
-from typing import Optional
+from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
 from pydantic import field_validator, AliasChoices
 from country_list import countries_for_language
-from hydroserver.schemas import (
-    BaseGetResponse,
+from api.schemas import (
+    BaseDetailResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
 )
-from iam.schemas import WorkspaceGetResponse
-from .tag import TagGetResponse
-from .photo import PhotoGetResponse
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceDetailResponse
 
 valid_country_codes = [code for code, _ in countries_for_language("en")]
 
@@ -60,7 +60,7 @@ class LocationFields(Schema):
         return value
 
 
-class LocationGetResponse(BaseGetResponse, LocationFields):
+class LocationDetailResponse(BaseDetailResponse, LocationFields):
     pass
 
 
@@ -82,7 +82,28 @@ class ThingFields(Schema):
     is_private: bool
 
 
+_order_by_fields = (
+    "name",
+    "samplingFeatureType",
+    "samplingFeatureCode",
+    "siteType",
+    "isPrivate",
+    "latitude",
+    "longitude",
+    "elevation_m",
+    "elevationDatum",
+    "state",
+    "county",
+    "country",
+)
+
+ThingOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
 class ThingQueryParameters(CollectionQueryParameters):
+    order_by: Optional[list[ThingOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
     workspace_id: list[uuid.UUID] = Query(
         [], description="Filter things by workspace ID."
     )
@@ -90,15 +111,12 @@ class ThingQueryParameters(CollectionQueryParameters):
         [],
         description="Filter things by bounding box. Format bounding box as {min_lon},{min_lat},{max_lon},{max_lat}",
     )
-    state: list[str] = Query([], description="Filter things by state.")
-    county: list[str] = Query([], description="Filter things by county.")
-    country: list[str] = Query([], description="Filter things by country.")
+    locations__state: list[str] = Query([], description="Filter things by state.", alias="state")
+    locations__county: list[str] = Query([], description="Filter things by county.", alias="county")
+    locations__country: list[str] = Query([], description="Filter things by country.", alias="country")
     site_type: list[str] = Query([], description="Filter things by site type.")
     sampling_feature_type: list[str] = Query(
         [], description="Filter things by sampling feature type."
-    )
-    sampling_feature_code: list[str] = Query(
-        [], description="Filter things by sampling feature code."
     )
     tag: list[str] = Query(
         [], description="Filter things by tag. Format tag filters as {key}:{value}"
@@ -108,20 +126,20 @@ class ThingQueryParameters(CollectionQueryParameters):
     )
 
 
-class ThingCollectionResponse(BaseGetResponse, ThingFields):
+class ThingSummaryResponse(BaseDetailResponse, ThingFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
-    location: LocationGetResponse
-    tags: list[TagGetResponse]
-    photos: list[PhotoGetResponse]
+    location: LocationDetailResponse
+    tag_dict: dict[str, list[str]] = Field(..., serialization_alias="tags")
+    photo_dict: dict[str, str] = Field(..., serialization_alias="photos")
 
 
-class ThingGetResponse(BaseGetResponse, ThingFields):
+class ThingDetailResponse(BaseDetailResponse, ThingFields):
     id: uuid.UUID
-    workspace: WorkspaceGetResponse
-    location: LocationGetResponse
-    tags: list[TagGetResponse]
-    photos: list[PhotoGetResponse]
+    workspace: "WorkspaceDetailResponse"
+    location: LocationDetailResponse
+    tag_dict: dict[str, list[str]] = Field(..., serialization_alias="tags")
+    photo_dict: dict[str, str] = Field(..., serialization_alias="photos")
 
 
 class ThingPostBody(BasePostBody, ThingFields):
@@ -131,3 +149,21 @@ class ThingPostBody(BasePostBody, ThingFields):
 
 class ThingPatchBody(BasePatchBody, ThingFields):
     location: LocationPatchBody
+
+
+class TagPostBody(BasePostBody):
+    key: str
+    value: str
+
+
+class TagDeleteBody(BasePostBody):
+    key: str
+    value: Optional[str] = None
+
+
+class PhotoPostBody(BasePostBody):
+    name: str
+
+
+class PhotoDeleteBody(BasePostBody):
+    name: str

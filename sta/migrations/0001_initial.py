@@ -2,7 +2,7 @@
 
 import django.db.models.deletion
 import iam.models.utils
-import sta.models.photo
+import sta.models.thing
 import uuid6
 from django.db import migrations, models
 
@@ -563,7 +563,7 @@ class Migration(migrations.Migration):
                 ("name", models.CharField(max_length=255)),
                 (
                     "photo",
-                    models.FileField(upload_to=sta.models.photo.photo_storage_path),
+                    models.FileField(upload_to=sta.models.thing.photo_storage_path),
                 ),
                 (
                     "thing",

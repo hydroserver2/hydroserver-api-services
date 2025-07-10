@@ -5,7 +5,8 @@ from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
-    ResultQualifierGetResponse,
+    ResultQualifierSummaryResponse,
+    ResultQualifierDetailResponse,
     ResultQualifierQueryParameters,
     ResultQualifierPostBody,
     ResultQualifierPatchBody,
@@ -20,7 +21,7 @@ result_qualifier_service = ResultQualifierService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ResultQualifierGetResponse],
+        200: list[ResultQualifierSummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -39,7 +40,7 @@ def get_result_qualifiers(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        ordering=query.ordering,
+        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -48,7 +49,7 @@ def get_result_qualifiers(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ResultQualifierGetResponse,
+        201: ResultQualifierSummaryResponse,
         401: str,
         422: str,
     },
@@ -69,7 +70,7 @@ def create_result_qualifier(
     "/{result_qualifier_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ResultQualifierGetResponse,
+        200: ResultQualifierDetailResponse,
         401: str,
         403: str,
     },
@@ -92,7 +93,7 @@ def get_result_qualifier(
     "/{result_qualifier_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ResultQualifierGetResponse,
+        200: ResultQualifierSummaryResponse,
         401: str,
         403: str,
         422: str,

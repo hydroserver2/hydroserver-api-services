@@ -1,14 +1,25 @@
 import uuid
+from pydantic import AliasPath
 from ninja import Schema, Field, Query
-from typing import Optional, Literal
-from pydantic import AliasChoices
+from typing import Optional, Literal, TYPE_CHECKING
 from datetime import datetime
-from hydroserver.schemas import (
-    BaseGetResponse,
+from api.schemas import (
+    BaseDetailResponse,
     BasePostBody,
     BasePatchBody,
-    CollectionQueryParameters,
+    CollectionQueryParameters
 )
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceDetailResponse
+    from etl.schemas import DataSourceDetailResponse
+    from sta.schemas import (
+        ThingDetailResponse,
+        ObservedPropertyDetailResponse,
+        UnitDetailResponse,
+        SensorDetailResponse,
+        ProcessingLevelDetailResponse
+    )
 
 
 class DatastreamFields(Schema):
@@ -28,11 +39,6 @@ class DatastreamFields(Schema):
     result_end_time: Optional[datetime] = None
     is_private: bool = False
     is_visible: bool = True
-    thing_id: uuid.UUID
-    sensor_id: uuid.UUID
-    observed_property_id: uuid.UUID
-    processing_level_id: uuid.UUID
-    unit_id: uuid.UUID
     time_aggregation_interval_unit: Literal["seconds", "minutes", "hours", "days"]
     intended_time_spacing: Optional[float] = None
     intended_time_spacing_unit: Optional[
@@ -40,9 +46,38 @@ class DatastreamFields(Schema):
     ] = None
 
 
+class DatastreamRelatedFields(Schema):
+    data_source_id: Optional[uuid.UUID] = None
+    thing_id: uuid.UUID
+    sensor_id: uuid.UUID
+    observed_property_id: uuid.UUID
+    processing_level_id: uuid.UUID
+    unit_id: uuid.UUID
+
+
+_order_by_fields = (
+    "name",
+    "observationType",
+    "sampledMedium",
+    "status",
+    "resultType",
+    "isPrivate",
+    "valueCount",
+    "phenomenonBeginTime",
+    "phenomenonEndTime",
+    "resultBeginTime",
+    "resultEndTime",
+)
+
+DatastreamOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
 class DatastreamQueryParameters(CollectionQueryParameters):
-    workspace_id: list[uuid.UUID] = Query(
-        [], description="Filter datastreams by workspace ID."
+    order_by: Optional[list[DatastreamOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
+    thing__workspace_id: list[uuid.UUID] = Query(
+        [], description="Filter datastreams by workspace ID.", alias="workspace_id"
     )
     thing_id: list[uuid.UUID] = Query([], description="Filter datastreams by thing ID.")
     sensor_id: list[uuid.UUID] = Query(
@@ -55,6 +90,12 @@ class DatastreamQueryParameters(CollectionQueryParameters):
         [], description="Filter datastreams by processing level ID."
     )
     unit_id: list[uuid.UUID] = Query([], description="Filter datastreams by unit ID.")
+    data_source_id: list[uuid.UUID] = Query([], description="Filter datastreams by data source ID.")
+    dataarchives__id: list[uuid.UUID] = Query(
+        [],
+        description="Filter datastreams by data archive ID.",
+        alias="data_archive_id"
+    )
     observation_type: list[str] = Query(
         [], description="Filter things by observation type."
     )
@@ -119,22 +160,24 @@ class DatastreamQueryParameters(CollectionQueryParameters):
     )
 
 
-class DatastreamGetResponse(BaseGetResponse, DatastreamFields):
+class DatastreamSummaryResponse(BaseDetailResponse, DatastreamFields, DatastreamRelatedFields):
+    workspace_id: uuid.UUID = Field(..., validation_alias=AliasPath("thing", "workspace_id"))
+
+
+class DatastreamDetailResponse(BaseDetailResponse, DatastreamFields):
     id: uuid.UUID
-    data_source_id: Optional[uuid.UUID] = None
-    workspace_id: Optional[uuid.UUID] = Field(
-        None, validation_alias=AliasChoices("workspaceId", "thing.workspace_id")
-    )
+    data_source: Optional["DataSourceDetailResponse"] = None
+    workspace: "WorkspaceDetailResponse" = Field(..., validation_alias=AliasPath("thing", "workspace"))
+    thing: "ThingDetailResponse"
+    sensor: "SensorDetailResponse"
+    observed_property: "ObservedPropertyDetailResponse"
+    processing_level: "ProcessingLevelDetailResponse"
+    unit: "UnitDetailResponse"
 
 
-class DatastreamPostBody(BasePostBody, DatastreamFields):
+class DatastreamPostBody(BasePostBody, DatastreamFields, DatastreamRelatedFields):
     pass
 
 
-class DatastreamPatchBody(BasePatchBody, DatastreamFields):
+class DatastreamPatchBody(BasePatchBody, DatastreamFields, DatastreamRelatedFields):
     pass
-
-
-class ObservationsGetResponse(BaseGetResponse):
-    phenomenon_time: list
-    result: list

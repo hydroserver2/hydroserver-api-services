@@ -1,13 +1,16 @@
 import uuid
-from typing import Optional
+from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
 from sta.schemas.sensorthings.sensor import sensorEncodingTypes
-from hydroserver.schemas import (
-    BaseGetResponse,
+from api.schemas import (
+    BaseDetailResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
 )
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceDetailResponse
 
 
 class SensorFields(Schema):
@@ -22,31 +25,46 @@ class SensorFields(Schema):
     method_code: Optional[str] = Field(None, max_length=50)
 
 
+_order_by_fields = (
+    "name",
+    "encodingType",
+    "manufacturer",
+    "model",
+    "methodType",
+    "methodCode",
+)
+
+SensorOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
 class SensorQueryParameters(CollectionQueryParameters):
+    order_by: Optional[list[SensorOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
     workspace_id: list[uuid.UUID] = Query(
         [], description="Filter sensors by workspace ID."
     )
-    thing_id: list[uuid.UUID] = Query([], description="Filter sensors by thing ID.")
-    datastream_id: list[uuid.UUID] = Query(
-        [], description="Filter sensors by datastream ID."
+    datastreams__thing_id: list[uuid.UUID] = Query([], description="Filter sensors by thing ID.", alias="thing_id")
+    datastreams__id: list[uuid.UUID] = Query(
+        [], description="Filter sensors by datastream ID.", alias="datastream_id"
     )
-    name: list[str] = Query([], description="Filter sensors by name")
     encoding_type: list[str] = Query([], description="Filter sensors by encodingType")
     manufacturer: list[str] = Query([], description="Filter sensors by manufacturer")
-    sensor_model: list[str] = Query(
-        [], description="Filter sensors by model", alias="model"
-    )
     method_type: list[str] = Query([], description="Filter sensors by methodType")
-    method_code: list[str] = Query([], description="Filter sensors by methodCode")
 
 
-class SensorGetResponse(BaseGetResponse, SensorFields):
+class SensorSummaryResponse(BaseDetailResponse, SensorFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID]
+    workspace_id: Optional[uuid.UUID] = None
+
+
+class SensorDetailResponse(BaseDetailResponse, SensorFields):
+    id: uuid.UUID
+    workspace: Optional["WorkspaceDetailResponse"] = None
 
 
 class SensorPostBody(BasePostBody, SensorFields):
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID] = None
 
 
 class SensorPatchBody(BasePatchBody, SensorFields):

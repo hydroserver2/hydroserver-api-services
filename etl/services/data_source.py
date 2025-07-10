@@ -1,5 +1,5 @@
 import uuid
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
@@ -8,7 +8,8 @@ from sta.services.datastream import DatastreamService
 from etl.models import DataSource
 from etl.schemas import DataSourcePostBody, DataSourcePatchBody
 from etl.schemas.data_source import DataSourceFields
-from hydroserver.service import ServiceUtils
+from etl.schemas.orchestration_configuration import OrchestrationConfigurationOrderByFields
+from api.service import ServiceUtils
 
 from etl.schemas.orchestration_configuration import (
     OrchestrationConfigurationScheduleFields,
@@ -25,7 +26,7 @@ datastream_service = DatastreamService()
 class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
     @staticmethod
     def get_data_source_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
         fetch_datastreams: bool = False,
@@ -59,11 +60,11 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
     def list(
         self,
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        ordering: Optional[str] = None,
+        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = DataSource.objects
@@ -81,11 +82,12 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
 
-        queryset = self.apply_ordering(
-            queryset,
-            ordering,
-            ["name", "next_run", "last_run"],
-        )
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(OrchestrationConfigurationOrderByFields)),
+            )
 
         queryset = (
             queryset.select_related("orchestration_system")
@@ -102,12 +104,12 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return queryset
 
-    def get(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def get(self, principal: User | APIKey, uid: uuid.UUID):
         return self.get_data_source_for_action(
             principal=principal, uid=uid, action="view", fetch_datastreams=True
         )
 
-    def create(self, principal: Union[User, APIKey], data: DataSourcePostBody):
+    def create(self, principal: User | APIKey, data: DataSourcePostBody):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
         )
@@ -165,7 +167,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         return data_source
 
     def update(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, data: DataSourcePatchBody
+        self, principal: User | APIKey, uid: uuid.UUID, data: DataSourcePatchBody
     ):
         data_source = self.get_data_source_for_action(
             principal=principal, uid=uid, action="edit"
@@ -231,7 +233,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return data_source
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         data_source = self.get_data_source_for_action(
             principal=principal, uid=uid, action="delete"
         )
@@ -242,7 +244,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
     def link_datastream(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         datastream_id: uuid.UUID,
     ):
@@ -267,7 +269,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         return "Data source configured for datastream"
 
     def unlink_datastream(
-        self, principal: Union[User, APIKey], uid: uuid.UUID, datastream_id: uuid.UUID
+        self, principal: User | APIKey, uid: uuid.UUID, datastream_id: uuid.UUID
     ):
         data_source = self.get_data_source_for_action(
             principal=principal, uid=uid, action="edit"

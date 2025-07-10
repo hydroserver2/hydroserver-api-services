@@ -1,10 +1,11 @@
 import uuid
-from typing import Optional, Literal, Union
+from datetime import datetime
+from typing import Optional, Literal
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import Observation
-from hydroserver.service import ServiceUtils
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -22,7 +23,7 @@ class ObservationService(ServiceUtils):
 
     @staticmethod
     def get_observation_for_action(
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
     ):
@@ -47,9 +48,29 @@ class ObservationService(ServiceUtils):
 
         return observation
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @staticmethod
     def list(
-        principal: Optional[Union[User, APIKey]],
+        principal: Optional[User | APIKey],
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
         datastream_id: Optional[uuid.UUID],
@@ -67,7 +88,55 @@ class ObservationService(ServiceUtils):
 
         return queryset.visible(principal=principal).distinct()
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_observation_for_action(
             principal=principal, uid=uid, action="view"
         )
+
+
+
+
+    def list(
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        phenomenon_start_time: Optional[datetime] = None,
+        phenomenon_end_time: Optional[datetime] = None,
+        page: int = 1,
+        page_size: Optional[int] = None,
+        order: Literal["asc", "desc"] = "desc",
+    ):
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="view"
+        )
+
+        fields = ["phenomenon_time", "result"]
+
+        queryset = Observation.objects.filter(datastream=datastream)
+        order_by = "phenomenon_time" if order == "asc" else "-phenomenon_time"
+
+        if phenomenon_start_time:
+            queryset = queryset.filter(phenomenon_time__gte=phenomenon_start_time)
+        if phenomenon_end_time:
+            queryset = queryset.filter(phenomenon_time__lte=phenomenon_end_time)
+
+        queryset = queryset.order_by(order_by)
+
+        if page_size is not None:
+            page = max(1, page)
+            page_size = max(0, page_size)
+            start = (page - 1) * page_size
+            end = start + page_size
+
+            queryset = queryset[start:end]
+
+        observations = list(queryset.values_list(*fields))
+
+        if observations:
+            response = dict(zip(fields, zip(*observations)))
+        else:
+            response = {field: [] for field in fields}
+
+        return response
+
+

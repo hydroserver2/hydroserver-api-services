@@ -15,30 +15,19 @@ class BaseQueryParameters(Schema):
     model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True)
 
 
-class PaginationQueryParameters(BaseQueryParameters):
+class CollectionQueryParameters(BaseQueryParameters):
     page: int = Query(1, ge=1, description="Page number (1-based).")
     page_size: int = Query(100, ge=1, description="The number of items per page.")
 
 
-class OrderingQueryParameters(BaseQueryParameters):
-    ordering: Optional[str] = Query(
-        None,
-        description="Comma-separated list of fields to order by. Use '-' prefix for descending.",
-    )
-
-
-class CollectionQueryParameters(PaginationQueryParameters, OrderingQueryParameters):
-    pass
-
-
-class VocabularyQueryParameters(PaginationQueryParameters):
+class VocabularyQueryParameters(CollectionQueryParameters):
     order_desc: Optional[bool] = Query(
         False,
         description="Sort terms by descending.",
     )
 
 
-class BaseGetResponse(Schema):
+class BaseDetailResponse(Schema):
     model_config = ConfigDict(
         populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
     )

@@ -8,7 +8,7 @@ from iam.schemas import (
     WorkspacePostBody,
     WorkspacePatchBody,
     WorkspaceTransferBody,
-    WorkspaceGetResponse,
+    WorkspaceDetailResponse,
 )
 
 workspace_service = WorkspaceService()
@@ -25,8 +25,8 @@ workspace_service = WorkspaceService()
         ("apikey", {}, ["Public"], 5),
         ("unaffiliated", {}, ["Public", "Transfer"], 5),
         ("anonymous", {}, ["Public"], 5),
-        # Test pagination and ordering
-        ("owner", {"page": 2, "page_size": 1, "ordering": "-name"}, ["Public"], 5),
+        # Test pagination and order_by
+        ("owner", {"page": 2, "page_size": 1, "order_by": "-name"}, ["Public"], 5),
         # Test filtering
         ("owner", {"is_private": True}, ["Private", "Transfer"], 5),
         ("unaffiliated", {"is_associated": True}, ["Transfer"], 5),
@@ -47,11 +47,11 @@ def test_list_workspace(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            ordering=params.pop("ordering", None),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
         assert Counter(str(workspace.name) for workspace in result) == Counter(workspace_names)
-        assert (WorkspaceGetResponse.from_orm(workspace) for workspace in result)
+        assert (WorkspaceDetailResponse.from_orm(workspace) for workspace in result)
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ def test_get_workspace(get_principal, principal, workspace, message, error_code)
             principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
         assert workspace_get.name == message
-        assert WorkspaceGetResponse.from_orm(workspace_get)
+        assert WorkspaceDetailResponse.from_orm(workspace_get)
 
 
 @pytest.mark.parametrize(
@@ -130,7 +130,7 @@ def test_create_workspace(get_principal, principal, name, message, error_code):
             data=WorkspacePostBody(name="New", is_private=False),
         )
         assert workspace_create.name == message
-        assert WorkspaceGetResponse.from_orm(workspace_create)
+        assert WorkspaceDetailResponse.from_orm(workspace_create)
 
 
 @pytest.mark.parametrize(
@@ -215,7 +215,7 @@ def test_update_workspace(
             data=WorkspacePatchBody(name="Updated", is_private=False),
         )
         assert workspace_update.name == message
-        assert WorkspaceGetResponse.from_orm(workspace_update)
+        assert WorkspaceDetailResponse.from_orm(workspace_update)
 
 
 @pytest.mark.parametrize(

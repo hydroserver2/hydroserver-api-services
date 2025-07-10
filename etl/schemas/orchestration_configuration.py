@@ -2,8 +2,8 @@ import uuid
 from typing import Optional, Literal
 from datetime import datetime
 from ninja import Schema, Field, Query
-from hydroserver.schemas import (
-    BaseGetResponse,
+from api.schemas import (
+    BaseDetailResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
@@ -18,13 +18,25 @@ class OrchestrationConfigurationScheduleFields(Schema):
     end_time: Optional[datetime] = None
 
 
-class OrchestrationConfigurationScheduleGetResponse(
-    BaseGetResponse, OrchestrationConfigurationScheduleFields
+class OrchestrationConfigurationScheduleDetailResponse(
+    BaseDetailResponse, OrchestrationConfigurationScheduleFields
 ):
     pass
 
 
+_order_by_fields = (
+    "name",
+    "startTime",
+    "endTime"
+)
+
+OrchestrationConfigurationOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
 class OrchestrationConfigurationQueryParameters(CollectionQueryParameters):
+    order_by: Optional[list[OrchestrationConfigurationOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
     workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.")
     orchestration_system_id: list[uuid.UUID] = Query(
         [], description="Filter by orchestration system ID."
@@ -78,8 +90,8 @@ class OrchestrationConfigurationStatusFields(Schema):
     paused: bool = False
 
 
-class OrchestrationConfigurationStatusGetResponse(
-    BaseGetResponse, OrchestrationConfigurationStatusFields
+class OrchestrationConfigurationStatusDetailResponse(
+    BaseDetailResponse, OrchestrationConfigurationStatusFields
 ):
     pass
 

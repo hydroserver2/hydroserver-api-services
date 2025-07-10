@@ -1,49 +1,79 @@
 from .thing import (
-    ThingCollectionResponse,
-    ThingGetResponse,
+    ThingSummaryResponse,
+    ThingDetailResponse,
     ThingPostBody,
     ThingPatchBody,
     ThingQueryParameters,
     LocationPostBody,
     LocationPatchBody,
+    TagPostBody,
+    TagDeleteBody,
+    PhotoPostBody,
+    PhotoDeleteBody
 )
-from .tag import TagGetResponse, TagPostBody, TagDeleteBody
-from .photo import PhotoGetResponse, PhotoPostBody, PhotoDeleteBody
 from .observed_property import (
-    ObservedPropertyGetResponse,
+    ObservedPropertySummaryResponse,
+    ObservedPropertyDetailResponse,
     ObservedPropertyQueryParameters,
     ObservedPropertyPostBody,
     ObservedPropertyPatchBody,
 )
 from .processing_level import (
-    ProcessingLevelGetResponse,
+    ProcessingLevelSummaryResponse,
+    ProcessingLevelDetailResponse,
     ProcessingLevelQueryParameters,
     ProcessingLevelPostBody,
     ProcessingLevelPatchBody,
 )
 from .result_qualifier import (
-    ResultQualifierGetResponse,
+    ResultQualifierSummaryResponse,
+    ResultQualifierDetailResponse,
     ResultQualifierQueryParameters,
     ResultQualifierPostBody,
     ResultQualifierPatchBody,
 )
 from .sensor import (
-    SensorGetResponse,
+    SensorSummaryResponse,
+    SensorDetailResponse,
     SensorQueryParameters,
     SensorPostBody,
     SensorPatchBody,
 )
 from .unit import (
-    UnitCollectionResponse,
-    UnitGetResponse,
+    UnitSummaryResponse,
+    UnitDetailResponse,
     UnitQueryParameters,
     UnitPostBody,
     UnitPatchBody,
 )
 from .datastream import (
-    DatastreamGetResponse,
+    DatastreamSummaryResponse,
+    DatastreamDetailResponse,
     DatastreamQueryParameters,
     DatastreamPostBody,
     DatastreamPatchBody,
-    ObservationsGetResponse,
 )
+from .observation import (
+    ObservationSummaryResponse,
+    ObservationDetailResponse,
+    ObservationQueryParameters,
+    ObservationPostBody,
+    ObservationPatchBody,
+    ObservationBulkPostBody,
+    ObservationBulkPostQueryParameters,
+    ObservationBulkDeleteBody,
+)
+
+
+from iam.schemas import WorkspaceDetailResponse
+from etl.schemas import DataSourceDetailResponse
+
+
+ThingDetailResponse.model_rebuild()
+ObservedPropertyDetailResponse.model_rebuild()
+ProcessingLevelDetailResponse.model_rebuild()
+ResultQualifierDetailResponse.model_rebuild()
+SensorDetailResponse.model_rebuild()
+UnitDetailResponse.model_rebuild()
+DatastreamDetailResponse.model_rebuild()
+ObservationDetailResponse.model_rebuild()
