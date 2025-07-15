@@ -64,9 +64,7 @@ class APIKeyService(ServiceUtils):
 
         if order_by:
             queryset = self.apply_ordering(
-                queryset,
-                order_by,
-                list(get_args(APIKeyOrderByFields))
+                queryset, order_by, list(get_args(APIKeyOrderByFields))
             )
 
         queryset = queryset.visible(principal=principal).distinct()
@@ -78,7 +76,6 @@ class APIKeyService(ServiceUtils):
         )
 
         return queryset
-
 
     def get(
         self,
@@ -98,9 +95,7 @@ class APIKeyService(ServiceUtils):
         if not APIKey.can_principal_create(principal=principal, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this API key")
 
-        apikey_role = role_service.get(
-            principal=principal, uid=data.role_id
-        )
+        apikey_role = role_service.get(principal=principal, uid=data.role_id)
 
         if not apikey_role.is_apikey_role:
             raise HttpError(400, "Role not supported for API key assignment")
@@ -125,9 +120,7 @@ class APIKeyService(ServiceUtils):
         api_key_body = data.dict(exclude_unset=True)
 
         if "role_id" in api_key_body:
-            apikey_role = role_service.get(
-                principal=principal, uid=data.role_id
-            )
+            apikey_role = role_service.get(principal=principal, uid=data.role_id)
 
             if not apikey_role.is_apikey_role:
                 raise HttpError(400, "Role not supported for API key assignment")

@@ -65,11 +65,7 @@ def create_account(
 @account_router.patch(
     "",
     auth=[session_auth, bearer_auth],
-    response={
-        200: AccountDetailResponse,
-        401: str,
-        422: str
-    },
+    response={200: AccountDetailResponse, 401: str, 422: str},
     by_alias=True,
 )
 def update_account(
@@ -85,12 +81,7 @@ def update_account(
 
 
 @account_router.delete(
-    "",
-    auth=[session_auth, bearer_auth],
-    response={
-        204: str,
-        401: str
-    }
+    "", auth=[session_auth, bearer_auth], response={204: None, 401: str}
 )
 def delete_account(
     request: HydroServerHttpRequest, client: Path[Literal["browser", "app"]]
@@ -104,13 +95,7 @@ def delete_account(
     )
 
 
-@account_router.get(
-    "/user-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@account_router.get("/user-types", response={200: list[str]}, by_alias=True)
 def get_user_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -128,13 +113,7 @@ def get_user_types(
     )
 
 
-@account_router.get(
-    "/organization-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@account_router.get("/organization-types", response={200: list[str]}, by_alias=True)
 def get_user_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,

@@ -4,7 +4,12 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from sta.services import DatastreamService
-from sta.schemas import DatastreamPostBody, DatastreamPatchBody, DatastreamSummaryResponse, DatastreamDetailResponse
+from sta.schemas import (
+    DatastreamPostBody,
+    DatastreamPatchBody,
+    DatastreamSummaryResponse,
+    DatastreamDetailResponse,
+)
 
 datastream_service = DatastreamService()
 

@@ -4,7 +4,7 @@ from ninja.errors import HttpError
 from pydantic.alias_generators import to_snake
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import QuerySet, Model
+from django.db.models import QuerySet, Model, Q
 from iam.models import Workspace, APIKey
 
 User = get_user_model()
@@ -51,9 +51,24 @@ class ServiceUtils:
         if isinstance(values, (list, tuple, set)):
             values = list(values)
             if len(values) == 1:
-                return queryset.filter(**{field_name: values[0]})
+                if values[0] is None:
+                    return queryset.filter(**{f"{field_name}__isnull": True})
+                else:
+                    return queryset.filter(**{field_name: values[0]})
             elif len(values) > 1:
-                return queryset.filter(**{f"{field_name}__in": values})
+                if None in values:
+                    return queryset.filter(
+                        Q(
+                            **{
+                                f"{field_name}__in": [
+                                    value for value in values if value is not None
+                                ]
+                            }
+                        )
+                        | Q(**{f"{field_name}__isnull": True})
+                    )
+                else:
+                    return queryset.filter(**{f"{field_name}__in": values})
             else:
                 return queryset
         else:
@@ -64,7 +79,7 @@ class ServiceUtils:
         queryset: QuerySet,
         order_by: list[str],
         allowed_fields: list[str],
-        field_aliases: Optional[dict[str, str]] = None
+        field_aliases: Optional[dict[str, str]] = None,
     ):
         order_by_fields = []
         field_aliases = field_aliases or {}
@@ -90,7 +105,7 @@ class ServiceUtils:
         count = queryset.count()
         offset = (page - 1) * page_size
 
-        return queryset[offset: offset + page_size], count
+        return queryset[offset : offset + page_size], count
 
     @staticmethod
     def insert_pagination_headers(response, count, page, page_size):

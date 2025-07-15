@@ -70,7 +70,7 @@ def create_result_qualifier(
     "/{result_qualifier_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ResultQualifierDetailResponse,
+        200: ResultQualifierSummaryResponse | ResultQualifierDetailResponse,
         401: str,
         403: str,
     },
@@ -78,14 +78,22 @@ def create_result_qualifier(
     exclude_unset=True,
 )
 def get_result_qualifier(
-    request: HydroServerHttpRequest, result_qualifier_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    result_qualifier_id: Path[uuid.UUID],
+    expand_related: bool = False,
 ):
     """
     Get a Result Qualifier.
     """
 
-    return 200, result_qualifier_service.get(
+    result_qualifier = result_qualifier_service.get(
         principal=request.principal, uid=result_qualifier_id
+    )
+
+    return 200, (
+        ResultQualifierDetailResponse.model_validate(result_qualifier)
+        if expand_related
+        else ResultQualifierSummaryResponse.model_validate(result_qualifier)
     )
 
 
@@ -119,7 +127,7 @@ def update_result_qualifier(
     "/{result_qualifier_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

@@ -59,9 +59,7 @@ class UnitService(ServiceUtils):
                 queryset,
                 order_by,
                 list(get_args(UnitOrderByFields)),
-                {
-                    "type": "unit_type"
-                }
+                {"type": "unit_type"},
             )
 
         queryset = queryset.visible(principal=principal).distinct()
@@ -78,9 +76,14 @@ class UnitService(ServiceUtils):
         return self.get_unit_for_action(principal=principal, uid=uid, action="view")
 
     def create(self, principal: User | APIKey, data: UnitPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
-        ) if data.workspace_id else (None, None,)
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
+        )
 
         if not Unit.can_principal_create(principal=principal, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this unit")
@@ -92,9 +95,7 @@ class UnitService(ServiceUtils):
 
         return unit
 
-    def update(
-        self, principal: User | APIKey, uid: uuid.UUID, data: UnitPatchBody
-    ):
+    def update(self, principal: User | APIKey, uid: uuid.UUID, data: UnitPatchBody):
         unit = self.get_unit_for_action(principal=principal, uid=uid, action="edit")
         unit_data = data.dict(
             include=set(UnitFields.model_fields.keys()), exclude_unset=True
@@ -122,7 +123,7 @@ class UnitService(ServiceUtils):
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
         queryset = UnitType.objects.order_by(f"{'-' if order_desc else ''}name")
         queryset, count = self.apply_pagination(queryset, page, page_size)
@@ -131,6 +132,4 @@ class UnitService(ServiceUtils):
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)

@@ -1,10 +1,12 @@
 import uuid
-from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
+from pydantic.alias_generators import to_camel
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import Observation
+from sta.schemas.observation import ObservationOrderByFields
 from api.service import ServiceUtils
 
 User = get_user_model()
@@ -48,95 +50,59 @@ class ObservationService(ServiceUtils):
 
         return observation
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @staticmethod
     def list(
+        self,
         principal: Optional[User | APIKey],
-        workspace_id: Optional[uuid.UUID],
-        thing_id: Optional[uuid.UUID],
-        datastream_id: Optional[uuid.UUID],
+        response: HttpResponse,
+        datastream_id: uuid.UUID,
+        page: int = 1,
+        page_size: int = 100,
+        order_by: Optional[list[str]] = None,
+        filtering: Optional[dict] = None,
+        response_format: Optional[str] = None,
     ):
-        queryset = Observation.objects
+        queryset = Observation.objects.filter(datastream_id=datastream_id)
 
-        if workspace_id:
-            queryset = queryset.filter(datastream__thing__workspace_id=workspace_id)
+        for field in [
+            "phenomenon_time__lte",
+            "phenomenon_time__gte",
+        ]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        if thing_id:
-            queryset = queryset.filter(datastream__thing_id=thing_id)
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(ObservationOrderByFields)),
+            )
 
-        if datastream_id:
-            queryset = queryset.filter(datastream_id=datastream_id)
+        queryset = queryset.visible(principal=principal).distinct()
 
-        return queryset.visible(principal=principal).distinct()
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        if response_format == "row":
+            fields = ["phenomenon_time", "result"]
+            return {
+                "fields": [to_camel(field) for field in fields],
+                "data": list(queryset.values_list(*fields)),
+            }
+        elif response_format == "column":
+            fields = ["phenomenon_time", "result"]
+            observations = list(queryset.values_list(*fields))
+            return (
+                dict(zip(fields, zip(*observations)))
+                if observations
+                else {to_camel(field): [] for field in fields}
+            )
+        else:
+            return queryset
 
     def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         return self.get_observation_for_action(
             principal=principal, uid=uid, action="view"
         )
-
-
-
-
-    def list(
-        self,
-        principal: User | APIKey,
-        uid: uuid.UUID,
-        phenomenon_start_time: Optional[datetime] = None,
-        phenomenon_end_time: Optional[datetime] = None,
-        page: int = 1,
-        page_size: Optional[int] = None,
-        order: Literal["asc", "desc"] = "desc",
-    ):
-        datastream = self.get_datastream_for_action(
-            principal=principal, uid=uid, action="view"
-        )
-
-        fields = ["phenomenon_time", "result"]
-
-        queryset = Observation.objects.filter(datastream=datastream)
-        order_by = "phenomenon_time" if order == "asc" else "-phenomenon_time"
-
-        if phenomenon_start_time:
-            queryset = queryset.filter(phenomenon_time__gte=phenomenon_start_time)
-        if phenomenon_end_time:
-            queryset = queryset.filter(phenomenon_time__lte=phenomenon_end_time)
-
-        queryset = queryset.order_by(order_by)
-
-        if page_size is not None:
-            page = max(1, page)
-            page_size = max(0, page_size)
-            start = (page - 1) * page_size
-            end = start + page_size
-
-            queryset = queryset[start:end]
-
-        observations = list(queryset.values_list(*fields))
-
-        if observations:
-            response = dict(zip(fields, zip(*observations)))
-        else:
-            response = {field: [] for field in fields}
-
-        return response
-
-

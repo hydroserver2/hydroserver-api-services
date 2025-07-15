@@ -54,11 +54,11 @@ class WorkspaceService(ServiceUtils):
         queryset = Workspace.objects
 
         if isinstance(principal, User):
-            principal.collaborator_roles = list(principal.workspace_roles.select_related(
-                "role", "workspace"
-            ).prefetch_related(
-                "role__permissions"
-            ).all())
+            principal.collaborator_roles = list(
+                principal.workspace_roles.select_related("role", "workspace")
+                .prefetch_related("role__permissions")
+                .all()
+            )
 
         for field in [
             "is_associated",
@@ -78,9 +78,13 @@ class WorkspaceService(ServiceUtils):
                 list(get_args(WorkspaceOrderByFields)),
             )
 
-        queryset = queryset.visible(principal=principal).select_related(
-            "owner", "transfer_confirmation", "transfer_confirmation__new_owner"
-        ).distinct()
+        queryset = (
+            queryset.visible(principal=principal)
+            .select_related(
+                "owner", "transfer_confirmation", "transfer_confirmation__new_owner"
+            )
+            .distinct()
+        )
 
         queryset, count = self.apply_pagination(queryset, page, page_size)
 

@@ -1,7 +1,7 @@
-from api.schemas import BaseDetailResponse
+from api.schemas import BaseGetResponse
 
 
-class ProviderDetailResponse(BaseDetailResponse):
+class ProviderDetailResponse(BaseGetResponse):
     id: str
     name: str
     icon_link: str
@@ -9,6 +9,6 @@ class ProviderDetailResponse(BaseDetailResponse):
     connect_enabled: bool
 
 
-class AuthenticationMethodsDetailResponse(BaseDetailResponse):
+class AuthenticationMethodsDetailResponse(BaseGetResponse):
     hydroserver_signup_enabled: bool
     providers: list[ProviderDetailResponse]

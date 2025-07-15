@@ -67,9 +67,7 @@ def create_sensor(request: HydroServerHttpRequest, data: SensorPostBody):
     return 201, sensor_service.create(principal=request.principal, data=data)
 
 
-@sensor_router.get(
-    "encoding-types", response={200: list[str]}, by_alias=True
-)
+@sensor_router.get("encoding-types", response={200: list[str]}, by_alias=True)
 def get_sensor_encoding_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -87,9 +85,7 @@ def get_sensor_encoding_types(
     )
 
 
-@sensor_router.get(
-    "method-types", response={200: list[str]}, by_alias=True
-)
+@sensor_router.get("method-types", response={200: list[str]}, by_alias=True)
 def get_method_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -111,19 +107,29 @@ def get_method_types(
     "/{sensor_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: SensorDetailResponse,
+        200: SensorSummaryResponse | SensorDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_sensor(request: HydroServerHttpRequest, sensor_id: Path[uuid.UUID]):
+def get_sensor(
+    request: HydroServerHttpRequest,
+    sensor_id: Path[uuid.UUID],
+    expand_related: bool = False,
+):
     """
     Get a Sensor.
     """
 
-    return 200, sensor_service.get(principal=request.principal, uid=sensor_id)
+    sensor = sensor_service.get(principal=request.principal, uid=sensor_id)
+
+    return 200, (
+        SensorDetailResponse.model_validate(sensor)
+        if expand_related
+        else SensorSummaryResponse.model_validate(sensor)
+    )
 
 
 @sensor_router.patch(
@@ -155,7 +161,7 @@ def update_sensor(
     "/{sensor_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

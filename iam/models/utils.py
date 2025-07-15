@@ -17,7 +17,6 @@ class PermissionChecker:
         workspace: Optional["Workspace"],
         resource_type: str,
     ):
-        print(workspace)
         if not principal:
             return False
 
@@ -27,7 +26,12 @@ class PermissionChecker:
                 "staff",
             ]:
                 if not workspace and resource_type not in [
-                    "OrchestrationSystem", "ProcessingLevel", "Unit", "Sensor", "ResultQualifier", "ObservedProperty"
+                    "OrchestrationSystem",
+                    "ProcessingLevel",
+                    "Unit",
+                    "Sensor",
+                    "ResultQualifier",
+                    "ObservedProperty",
                 ]:
                     return False
                 return True

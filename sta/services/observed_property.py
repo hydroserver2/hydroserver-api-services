@@ -4,9 +4,12 @@ from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import APIKey
-from sta.models import ObservedProperty
+from sta.models import ObservedProperty, VariableType
 from sta.schemas import ObservedPropertyPostBody, ObservedPropertyPatchBody
-from sta.schemas.observed_property import ObservedPropertyFields, ObservedPropertyOrderByFields
+from sta.schemas.observed_property import (
+    ObservedPropertyFields,
+    ObservedPropertyOrderByFields,
+)
 from api.service import ServiceUtils
 
 User = get_user_model()
@@ -65,9 +68,7 @@ class ObservedPropertyService(ServiceUtils):
                 queryset,
                 order_by,
                 list(get_args(ObservedPropertyOrderByFields)),
-                {
-                    "type": "observed_property_type"
-                }
+                {"type": "observed_property_type"},
             )
 
         queryset = queryset.visible(principal=principal).distinct()
@@ -86,9 +87,14 @@ class ObservedPropertyService(ServiceUtils):
         )
 
     def create(self, principal: User | APIKey, data: ObservedPropertyPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
-        ) if data.workspace_id else (None, None,)
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
+        )
 
         if not ObservedProperty.can_principal_create(
             principal=principal, workspace=workspace
@@ -135,3 +141,19 @@ class ObservedPropertyService(ServiceUtils):
         observed_property.delete()
 
         return "Observed property deleted"
+
+    def list_variable_types(
+        self,
+        response: HttpResponse,
+        page: int = 1,
+        page_size: int = 100,
+        order_desc: bool = False,
+    ):
+        queryset = VariableType.objects.order_by(f"{'-' if order_desc else ''}name")
+        queryset, count = self.apply_pagination(queryset, page, page_size)
+
+        self.insert_pagination_headers(
+            response=response, count=count, page=page, page_size=page_size
+        )
+
+        return queryset.values_list("name", flat=True)

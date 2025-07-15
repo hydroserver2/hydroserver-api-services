@@ -7,7 +7,7 @@ from etl.services import OrchestrationSystemService
 from etl.schemas import (
     OrchestrationSystemPostBody,
     OrchestrationSystemPatchBody,
-    OrchestrationSystemDetailResponse,
+    OrchestrationSystemSummaryResponse,
 )
 
 orchestration_system_service = OrchestrationSystemService()
@@ -17,17 +17,47 @@ orchestration_system_service = OrchestrationSystemService()
     "principal, params, orchestration_system_names, max_queries",
     [
         # Test user access
-        ("owner", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
-        ("editor", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
-        ("viewer", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
-        ("admin", {}, ["Global Orchestration System", "Workspace Orchestration System"], 4),
+        (
+            "owner",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        (
+            "editor",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        (
+            "viewer",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        (
+            "admin",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
         ("apikey", {}, ["Global Orchestration System"], 4),
         ("unaffiliated", {}, ["Global Orchestration System"], 4),
         ("anonymous", {}, ["Global Orchestration System"], 4),
         # Test pagination and order_by
-        ("owner", {"page": 2, "page_size": 1, "order_by": "-name"}, ["Global Orchestration System"], 4),
+        (
+            "owner",
+            {"page": 2, "page_size": 1, "order_by": "-name"},
+            ["Global Orchestration System"],
+            4,
+        ),
         # Test filtering
-        ("owner", {"orchestration_system_type": "Workspace"}, ["Workspace Orchestration System"], 4),
+        (
+            "owner",
+            {"orchestration_system_type": "Workspace"},
+            ["Workspace Orchestration System"],
+            4,
+        ),
     ],
 )
 def test_list_orchestration_system(
@@ -48,8 +78,13 @@ def test_list_orchestration_system(
             order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
-        assert Counter(str(orchestration_system.name) for orchestration_system in result) == Counter(orchestration_system_names)
-        assert (OrchestrationSystemDetailResponse.from_orm(orchestration_system) for orchestration_system in result)
+        assert Counter(
+            str(orchestration_system.name) for orchestration_system in result
+        ) == Counter(orchestration_system_names)
+        assert (
+            OrchestrationSystemSummaryResponse.from_orm(orchestration_system)
+            for orchestration_system in result
+        )
 
 
 @pytest.mark.parametrize(
@@ -168,7 +203,7 @@ def test_get_orchestration_system(
             principal=get_principal(principal), uid=uuid.UUID(orchestration_system)
         )
         assert orchestration_system_get.name == message
-        assert OrchestrationSystemDetailResponse.from_orm(orchestration_system_get)
+        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_get)
 
 
 @pytest.mark.parametrize(
@@ -282,9 +317,7 @@ def test_create_orchestration_system(
     get_principal, principal, workspace, message, error_code
 ):
     orchestration_system_data = OrchestrationSystemPostBody(
-        name="New",
-        workspace_id=uuid.UUID(workspace),
-        orchestration_system_type="Test"
+        name="New", workspace_id=uuid.UUID(workspace), orchestration_system_type="Test"
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -298,7 +331,7 @@ def test_create_orchestration_system(
             principal=get_principal(principal), data=orchestration_system_data
         )
         assert orchestration_system_create.name == orchestration_system_data.name
-        assert OrchestrationSystemDetailResponse.from_orm(orchestration_system_create)
+        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_create)
 
 
 @pytest.mark.parametrize(
@@ -431,7 +464,7 @@ def test_edit_orchestration_system(
             data=orchestration_system_data,
         )
         assert orchestration_system_update.name == orchestration_system_data.name
-        assert OrchestrationSystemDetailResponse.from_orm(orchestration_system_update)
+        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_update)
 
 
 @pytest.mark.parametrize(

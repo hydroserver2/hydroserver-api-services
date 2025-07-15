@@ -3,7 +3,12 @@ from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
 from pydantic import EmailStr
 from django.contrib.auth import get_user_model
-from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
+from api.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
 
 if TYPE_CHECKING:
     from iam.schemas import AccountContactDetailResponse, RoleDetailResponse
@@ -22,7 +27,9 @@ _order_by_fields = (
     "isPrivate",
 )
 
-WorkspaceOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+WorkspaceOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
 
 
 class WorkspaceQueryParameters(CollectionQueryParameters):
@@ -30,14 +37,19 @@ class WorkspaceQueryParameters(CollectionQueryParameters):
         [], description="Select one or more fields to order the response by."
     )
     is_associated: Optional[bool] = Query(
-        None, description="Whether the workspace is associated with the authenticated user"
+        None,
+        description="Whether the workspace is associated with the authenticated user",
     )
     is_private: Optional[bool] = Query(
         None, description="Whether the returned workspaces should be private or public."
     )
 
 
-class WorkspaceDetailResponse(BaseDetailResponse, WorkspaceFields):
+class WorkspaceSummaryResponse(BaseGetResponse, WorkspaceFields):
+    id: uuid.UUID
+
+
+class WorkspaceDetailResponse(BaseGetResponse, WorkspaceFields):
     id: uuid.UUID
     owner: "AccountContactDetailResponse"
     collaborator_role: Optional["RoleDetailResponse"] = None

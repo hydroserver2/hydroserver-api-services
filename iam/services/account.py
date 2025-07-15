@@ -100,33 +100,33 @@ class AccountService(ServiceUtils):
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = UserType.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset = UserType.objects.filter(public=True).order_by(
+            f"{'-' if order_desc else ''}name"
+        )
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)
 
     def list_organization_types(
         self,
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = OrganizationType.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset = OrganizationType.objects.filter(public=True).order_by(
+            f"{'-' if order_desc else ''}name"
+        )
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)

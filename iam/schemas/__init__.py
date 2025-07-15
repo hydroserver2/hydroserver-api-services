@@ -13,6 +13,7 @@ from .email import VerificationEmailPutBody, VerifyEmailPostBody
 from .password import RequestResetPasswordPostBody, ResetPasswordPostBody
 from .provider import ProviderRedirectPostForm, ProviderSignupPostBody
 from .workspace import (
+    WorkspaceSummaryResponse,
     WorkspaceDetailResponse,
     WorkspaceQueryParameters,
     WorkspacePostBody,

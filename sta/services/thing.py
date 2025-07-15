@@ -141,8 +141,8 @@ class ThingService(ServiceUtils):
                     "elevationDatum": "location__elevation_datum",
                     "state": "location__state",
                     "county": "location__county",
-                    "country": "location__country"
-                }
+                    "country": "location__country",
+                },
             )
 
         queryset = (
@@ -186,9 +186,7 @@ class ThingService(ServiceUtils):
 
         return thing
 
-    def update(
-        self, principal: User | APIKey, uid: uuid.UUID, data: ThingPatchBody
-    ):
+    def update(self, principal: User | APIKey, uid: uuid.UUID, data: ThingPatchBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
         location = thing.location
 
@@ -226,9 +224,7 @@ class ThingService(ServiceUtils):
     def get_tags(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return {
-            tag.key: tag.value for tag in thing.tags.all()
-        }
+        return thing.tags.all()
 
     @staticmethod
     def get_tag_keys(
@@ -252,9 +248,7 @@ class ThingService(ServiceUtils):
 
         return {entry["key"]: entry["values"] for entry in tags}
 
-    def add_tag(
-        self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody
-    ):
+    def add_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         if Tag.objects.filter(thing=thing, key=data.key).exists():
@@ -262,9 +256,7 @@ class ThingService(ServiceUtils):
 
         return Tag.objects.create(thing=thing, key=data.key, value=data.value)
 
-    def update_tag(
-        self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody
-    ):
+    def update_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
@@ -277,9 +269,7 @@ class ThingService(ServiceUtils):
 
         return tag
 
-    def remove_tag(
-        self, principal: User | APIKey, uid: uuid.UUID, data: TagDeleteBody
-    ):
+    def remove_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagDeleteBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         queryset = Tag.objects.filter(thing=thing, key=data.key)
@@ -297,9 +287,7 @@ class ThingService(ServiceUtils):
     def get_photos(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return {
-            photo.name: photo.link for photo in thing.photos.all()
-        }
+        return thing.photos.all()
 
     def add_photo(self, principal: User | APIKey, uid: uuid.UUID, file):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
@@ -329,7 +317,7 @@ class ThingService(ServiceUtils):
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
         queryset = SiteType.objects.order_by(f"{'-' if order_desc else ''}name")
         queryset, count = self.apply_pagination(queryset, page, page_size)
@@ -338,24 +326,22 @@ class ThingService(ServiceUtils):
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)
 
     def list_sampling_feature_types(
         self,
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = SamplingFeatureType.objects.order_by(f"{'-' if order_desc else ''}name")
+        queryset = SamplingFeatureType.objects.order_by(
+            f"{'-' if order_desc else ''}name"
+        )
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)

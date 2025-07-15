@@ -6,7 +6,10 @@ from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import ProcessingLevel
 from sta.schemas import ProcessingLevelPostBody, ProcessingLevelPatchBody
-from sta.schemas.processing_level import ProcessingLevelFields, ProcessingLevelOrderByFields
+from sta.schemas.processing_level import (
+    ProcessingLevelFields,
+    ProcessingLevelOrderByFields,
+)
 from api.service import ServiceUtils
 
 User = get_user_model()
@@ -82,9 +85,14 @@ class ProcessingLevelService(ServiceUtils):
         )
 
     def create(self, principal: User | APIKey, data: ProcessingLevelPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
-        ) if data.workspace_id else (None, None,)
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
+        )
 
         if not ProcessingLevel.can_principal_create(
             principal=principal, workspace=workspace

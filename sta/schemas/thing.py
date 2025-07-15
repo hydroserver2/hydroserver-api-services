@@ -4,7 +4,7 @@ from ninja import Schema, Field, Query
 from pydantic import field_validator, AliasChoices
 from country_list import countries_for_language
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
@@ -14,6 +14,34 @@ if TYPE_CHECKING:
     from iam.schemas import WorkspaceDetailResponse
 
 valid_country_codes = [code for code, _ in countries_for_language("en")]
+
+
+class TagGetResponse(BaseGetResponse):
+    key: str
+    value: str
+
+
+class TagPostBody(BasePostBody):
+    key: str
+    value: str
+
+
+class TagDeleteBody(BasePostBody):
+    key: str
+    value: Optional[str] = None
+
+
+class PhotoGetResponse(BaseGetResponse):
+    name: str
+    link: str
+
+
+class PhotoPostBody(BasePostBody):
+    name: str
+
+
+class PhotoDeleteBody(BasePostBody):
+    name: str
 
 
 class LocationFields(Schema):
@@ -60,7 +88,7 @@ class LocationFields(Schema):
         return value
 
 
-class LocationDetailResponse(BaseDetailResponse, LocationFields):
+class LocationDetailResponse(BaseGetResponse, LocationFields):
     pass
 
 
@@ -111,9 +139,15 @@ class ThingQueryParameters(CollectionQueryParameters):
         [],
         description="Filter things by bounding box. Format bounding box as {min_lon},{min_lat},{max_lon},{max_lat}",
     )
-    locations__state: list[str] = Query([], description="Filter things by state.", alias="state")
-    locations__county: list[str] = Query([], description="Filter things by county.", alias="county")
-    locations__country: list[str] = Query([], description="Filter things by country.", alias="country")
+    locations__state: list[str] = Query(
+        [], description="Filter things by state.", alias="state"
+    )
+    locations__county: list[str] = Query(
+        [], description="Filter things by county.", alias="county"
+    )
+    locations__country: list[str] = Query(
+        [], description="Filter things by country.", alias="country"
+    )
     site_type: list[str] = Query([], description="Filter things by site type.")
     sampling_feature_type: list[str] = Query(
         [], description="Filter things by sampling feature type."
@@ -122,24 +156,25 @@ class ThingQueryParameters(CollectionQueryParameters):
         [], description="Filter things by tag. Format tag filters as {key}:{value}"
     )
     is_private: Optional[bool] = Query(
-        None, description="Controls whether the returned things should be private or public."
+        None,
+        description="Controls whether the returned things should be private or public.",
     )
 
 
-class ThingSummaryResponse(BaseDetailResponse, ThingFields):
+class ThingSummaryResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
     location: LocationDetailResponse
-    tag_dict: dict[str, list[str]] = Field(..., serialization_alias="tags")
-    photo_dict: dict[str, str] = Field(..., serialization_alias="photos")
+    tags: list[TagGetResponse]
+    photos: list[PhotoGetResponse]
 
 
-class ThingDetailResponse(BaseDetailResponse, ThingFields):
+class ThingDetailResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace: "WorkspaceDetailResponse"
     location: LocationDetailResponse
-    tag_dict: dict[str, list[str]] = Field(..., serialization_alias="tags")
-    photo_dict: dict[str, str] = Field(..., serialization_alias="photos")
+    tags: list[TagGetResponse]
+    photos: list[PhotoGetResponse]
 
 
 class ThingPostBody(BasePostBody, ThingFields):
@@ -149,21 +184,3 @@ class ThingPostBody(BasePostBody, ThingFields):
 
 class ThingPatchBody(BasePatchBody, ThingFields):
     location: LocationPatchBody
-
-
-class TagPostBody(BasePostBody):
-    key: str
-    value: str
-
-
-class TagDeleteBody(BasePostBody):
-    key: str
-    value: Optional[str] = None
-
-
-class PhotoPostBody(BasePostBody):
-    name: str
-
-
-class PhotoDeleteBody(BasePostBody):
-    name: str

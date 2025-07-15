@@ -27,10 +27,10 @@ collaborator_service = CollaboratorService()
     by_alias=True,
 )
 def get_collaborators(
-        request: HydroServerHttpRequest,
-        response: HttpResponse,
-        workspace_id: Path[uuid.UUID],
-        query: Query[CollaboratorQueryParameters],
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    workspace_id: Path[uuid.UUID],
+    query: Query[CollaboratorQueryParameters],
 ):
     """
     Get all collaborators associated with a workspace.
@@ -42,7 +42,6 @@ def get_collaborators(
         response=response,
         page=query.page,
         page_size=query.page_size,
-        order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
     )
 
@@ -107,7 +106,7 @@ def edit_collaborator_role(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         422: str,

@@ -61,9 +61,7 @@ class SensorService(ServiceUtils):
                 queryset,
                 order_by,
                 list(get_args(SensorOrderByFields)),
-                {
-                    "model": "sensor_model"
-                }
+                {"model": "sensor_model"},
             )
 
         queryset = queryset.visible(principal=principal).distinct()
@@ -80,9 +78,14 @@ class SensorService(ServiceUtils):
         return self.get_sensor_for_action(principal=principal, uid=uid, action="view")
 
     def create(self, principal: User | APIKey, data: SensorPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
-        ) if data.workspace_id else (None, None,)
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
+        )
 
         if not Sensor.can_principal_create(principal=principal, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this sensor")
@@ -94,9 +97,7 @@ class SensorService(ServiceUtils):
 
         return sensor
 
-    def update(
-        self, principal: User | APIKey, uid: uuid.UUID, data: SensorPatchBody
-    ):
+    def update(self, principal: User | APIKey, uid: uuid.UUID, data: SensorPatchBody):
         sensor = self.get_sensor_for_action(principal=principal, uid=uid, action="edit")
         sensor_data = data.dict(
             include=set(SensorFields.model_fields.keys()), exclude_unset=True
@@ -126,7 +127,7 @@ class SensorService(ServiceUtils):
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
         queryset = MethodType.objects.order_by(f"{'-' if order_desc else ''}name")
         queryset, count = self.apply_pagination(queryset, page, page_size)
@@ -135,24 +136,22 @@ class SensorService(ServiceUtils):
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)
 
     def list_encoding_types(
         self,
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = SensorEncodingType.objects.order_by(f"{'-' if order_desc else ''}name")
+        queryset = SensorEncodingType.objects.order_by(
+            f"{'-' if order_desc else ''}name"
+        )
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)

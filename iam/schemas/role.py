@@ -1,7 +1,7 @@
 import uuid
 from ninja import Schema, Field, Query
 from typing import Optional, Literal, TYPE_CHECKING
-from api.schemas import BaseDetailResponse, CollectionQueryParameters
+from api.schemas import BaseGetResponse, CollectionQueryParameters
 from iam.models.permission import PERMISSION_CHOICES, RESOURCE_TYPE_CHOICES
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ class PermissionFields(Schema):
     action: PERMISSIONS = Field(..., validation_alias="permission_type")
 
 
-class PermissionDetailResponse(BaseDetailResponse, PermissionFields):
+class PermissionDetailResponse(BaseGetResponse, PermissionFields):
     pass
 
 
@@ -40,8 +40,8 @@ class RoleQueryParameters(CollectionQueryParameters):
     order_by: Optional[list[RoleOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
-    workspace_id: list[uuid.UUID] = Query(
-        [], description="Filter roless by workspace ID."
+    workspace_id: list[uuid.UUID | Literal["null"]] = Query(
+        [], description="Filter roles by workspace ID."
     )
     is_user_role: Optional[bool] = Query(
         None, description="Controls whether the returned roles should be user roles."
@@ -51,13 +51,13 @@ class RoleQueryParameters(CollectionQueryParameters):
     )
 
 
-class RoleSummaryResponse(BaseDetailResponse, RoleFields):
+class RoleSummaryResponse(BaseGetResponse, RoleFields):
     id: uuid.UUID
     workspace_id: Optional[uuid.UUID] = None
     permissions: list[PermissionDetailResponse]
 
 
-class RoleDetailResponse(BaseDetailResponse, RoleFields):
+class RoleDetailResponse(BaseGetResponse, RoleFields):
     id: uuid.UUID
     workspace: Optional["WorkspaceDetailResponse"] = None
     permissions: list[PermissionDetailResponse]

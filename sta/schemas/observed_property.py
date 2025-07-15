@@ -2,7 +2,7 @@ import uuid
 from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
@@ -26,33 +26,37 @@ _order_by_fields = (
     "code",
 )
 
-ObservedPropertyOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+ObservedPropertyOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
 
 
 class ObservedPropertyQueryParameters(CollectionQueryParameters):
     order_by: Optional[list[ObservedPropertyOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
-    workspace_id: list[uuid.UUID] = Query(
+    workspace_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter observed properties by workspace ID."
     )
     datastreams__thing_id: list[uuid.UUID] = Query(
         [], description="Filter observed properties by thing ID.", alias="thing_id"
     )
     datastreams__id: list[uuid.UUID] = Query(
-        [], description="Filter observed properties by datastream ID.", alias="datastream_id"
+        [],
+        description="Filter observed properties by datastream ID.",
+        alias="datastream_id",
     )
     observed_property_type: list[str] = Query(
         [], description="Filter observed properties by type", alias="type"
     )
 
 
-class ObservedPropertySummaryResponse(BaseDetailResponse, ObservedPropertyFields):
+class ObservedPropertySummaryResponse(BaseGetResponse, ObservedPropertyFields):
     id: uuid.UUID
     workspace_id: Optional[uuid.UUID] = None
 
 
-class ObservedPropertyDetailResponse(BaseDetailResponse, ObservedPropertyFields):
+class ObservedPropertyDetailResponse(BaseGetResponse, ObservedPropertyFields):
     id: uuid.UUID
     workspace: Optional["WorkspaceDetailResponse"] = None
 

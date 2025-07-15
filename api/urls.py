@@ -4,7 +4,6 @@ from django.urls import path
 from django.views.decorators.csrf import ensure_csrf_cookie
 from sensorthings import SensorThingsAPI
 from sensorthings.extensions.dataarray import data_array_extension
-from sensorthings.extensions.qualitycontrol import quality_control_extension
 from hydroserver import __version__
 from api.renderer import ORJSONRenderer
 from sta.api import hydroserver_extension
@@ -20,7 +19,12 @@ from sta.views import (
     datastream_router,
     observation_router,
 )
-from etl.views import hydroshare_archival_router, orchestration_system_router, data_source_router, data_archive_router
+from etl.views import (
+    hydroshare_archival_router,
+    orchestration_system_router,
+    data_source_router,
+    data_archive_router,
+)
 
 
 api = NinjaAPI(
@@ -50,15 +54,15 @@ api.add_router("processing-levels", processing_level_router)
 api.add_router("result-qualifiers", result_qualifier_router)
 
 api.add_router("orchestration-systems", orchestration_system_router)
-api.add_router("data_sources", data_source_router)
-api.add_router("data_archives", data_archive_router)
+api.add_router("data-sources", data_source_router)
+api.add_router("data-archives", data_archive_router)
 
 st_api_1_1 = SensorThingsAPI(
     title="HydroServer SensorThings API",
     version="1.1",
     description="This is the documentation for the HydroServer SensorThings API implementation.",
     engine=HydroServerSensorThingsEngine,
-    extensions=[data_array_extension, quality_control_extension, hydroserver_extension],
+    extensions=[data_array_extension, hydroserver_extension],
     docs_decorator=ensure_csrf_cookie,
     throttle=[
         AnonRateThrottle("20/s"),

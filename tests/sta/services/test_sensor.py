@@ -279,9 +279,14 @@ def test_create_sensor(get_principal, principal, sensor_fields, message, error_c
         encoding_type="application/json",
         method_type=sensor_fields.get("method_type", "New"),
         workspace_id=(
-            uuid.UUID(wid) if (wid := sensor_fields["workspace_id"]) is not None
-            else None
-        ) if "workspace_id" in sensor_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+            (
+                uuid.UUID(wid)
+                if (wid := sensor_fields["workspace_id"]) is not None
+                else None
+            )
+            if "workspace_id" in sensor_fields
+            else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:

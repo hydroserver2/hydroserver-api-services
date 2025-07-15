@@ -7,7 +7,13 @@ from django.utils import timezone
 from django.http import StreamingHttpResponse
 from api.service import ServiceUtils
 from iam.models import APIKey
-from sta.models import Datastream, Observation, DatastreamAggregation, DatastreamStatus, SampledMedium
+from sta.models import (
+    Datastream,
+    Observation,
+    DatastreamAggregation,
+    DatastreamStatus,
+    SampledMedium,
+)
 from sta.schemas import DatastreamPostBody, DatastreamPatchBody
 from sta.schemas.datastream import DatastreamOrderByFields
 from sta.services import (
@@ -312,54 +318,50 @@ class DatastreamService(ServiceUtils):
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = DatastreamAggregation.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset = DatastreamAggregation.objects.order_by(
+            f"{'-' if order_desc else ''}name"
+        )
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)
 
     def list_statuses(
         self,
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = DatastreamStatus.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset = DatastreamStatus.objects.order_by(f"{'-' if order_desc else ''}name")
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)
 
     def list_sampled_mediums(
         self,
         response: HttpResponse,
         page: int = 1,
         page_size: int = 100,
-        order_desc: bool = False
+        order_desc: bool = False,
     ):
-        queryset = SampledMedium.objects.filter(public=True).order_by(f"{'-' if order_desc else ''}name")
+        queryset = SampledMedium.objects.order_by(f"{'-' if order_desc else ''}name")
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset.values_list(
-            "name", flat=True
-        )
+        return queryset.values_list("name", flat=True)
 
     @staticmethod
     def generate_csv(datastream: Datastream):

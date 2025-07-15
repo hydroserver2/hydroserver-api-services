@@ -6,7 +6,10 @@ from django.contrib.auth import get_user_model
 from iam.models import APIKey
 from sta.models import ResultQualifier
 from sta.schemas import ResultQualifierPostBody, ResultQualifierPatchBody
-from sta.schemas.result_qualifier import ResultQualifierFields, ResultQualifierOrderByFields
+from sta.schemas.result_qualifier import (
+    ResultQualifierFields,
+    ResultQualifierOrderByFields,
+)
 from api.service import ServiceUtils
 
 User = get_user_model()
@@ -78,9 +81,14 @@ class ResultQualifierService(ServiceUtils):
         )
 
     def create(self, principal: User | APIKey, data: ResultQualifierPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
-        ) if data.workspace_id else (None, None,)
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
+        )
 
         if not ResultQualifier.can_principal_create(
             principal=principal, workspace=workspace

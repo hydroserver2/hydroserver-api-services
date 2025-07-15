@@ -10,7 +10,7 @@ from sta.schemas import (
     DatastreamDetailResponse,
     DatastreamQueryParameters,
     DatastreamPostBody,
-    DatastreamPatchBody
+    DatastreamPatchBody,
 )
 from sta.services import DatastreamService
 
@@ -68,11 +68,7 @@ def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody)
 
 
 @datastream_router.get(
-    "/aggregation-statistics",
-    response={
-        200: list[str]
-    },
-    by_alias=True
+    "/aggregation-statistics", response={200: list[str]}, by_alias=True
 )
 def get_datastream_aggregation_statistics(
     request: HydroServerHttpRequest,
@@ -91,13 +87,7 @@ def get_datastream_aggregation_statistics(
     )
 
 
-@datastream_router.get(
-    "/statuses",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@datastream_router.get("/statuses", response={200: list[str]}, by_alias=True)
 def get_datastream_statuses(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -115,13 +105,7 @@ def get_datastream_statuses(
     )
 
 
-@datastream_router.get(
-    "/sampled-mediums",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@datastream_router.get("/sampled-mediums", response={200: list[str]}, by_alias=True)
 def get_datastream_sampled_mediums(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -143,19 +127,29 @@ def get_datastream_sampled_mediums(
     "/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: DatastreamDetailResponse,
+        200: DatastreamSummaryResponse | DatastreamDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
+def get_datastream(
+    request: HydroServerHttpRequest,
+    datastream_id: Path[uuid.UUID],
+    expand_related: bool = False,
+):
     """
     Get a Datastream.
     """
 
-    return 200, datastream_service.get(principal=request.principal, uid=datastream_id)
+    datastream = datastream_service.get(principal=request.principal, uid=datastream_id)
+
+    return 200, (
+        DatastreamDetailResponse.model_validate(datastream)
+        if expand_related
+        else DatastreamSummaryResponse.model_validate(datastream)
+    )
 
 
 @datastream_router.patch(
@@ -189,7 +183,7 @@ def update_datastream(
     "/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
     },

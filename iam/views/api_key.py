@@ -28,10 +28,10 @@ api_key_service = APIKeyService()
     exclude_unset=True,
 )
 def get_api_keys(
-        request: HydroServerHttpRequest,
-        response: HttpResponse,
-        workspace_id: Path[uuid.UUID],
-        query: Query[APIKeyQueryParameters],
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    workspace_id: Path[uuid.UUID],
+    query: Query[APIKeyQueryParameters],
 ):
     """
     Get API keys associated with the authenticated user.

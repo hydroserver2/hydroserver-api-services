@@ -2,7 +2,7 @@ import uuid
 from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
@@ -18,34 +18,36 @@ class ProcessingLevelFields(Schema):
     explanation: Optional[str] = None
 
 
-_order_by_fields = (
-    "code",
-)
+_order_by_fields = ("code",)
 
-ProcessingLevelOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+ProcessingLevelOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
 
 
 class ProcessingLevelQueryParameters(CollectionQueryParameters):
     order_by: Optional[list[ProcessingLevelOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
-    workspace_id: list[uuid.UUID] = Query(
+    workspace_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter processing levels by workspace ID."
     )
     datastreams__thing_id: list[uuid.UUID] = Query(
         [], description="Filter processing levels by thing ID.", alias="thing_id"
     )
     datastreams__id: list[uuid.UUID] = Query(
-        [], description="Filter processing levels by datastream ID.", alias="datastream_id"
+        [],
+        description="Filter processing levels by datastream ID.",
+        alias="datastream_id",
     )
 
 
-class ProcessingLevelSummaryResponse(BaseDetailResponse, ProcessingLevelFields):
+class ProcessingLevelSummaryResponse(BaseGetResponse, ProcessingLevelFields):
     id: uuid.UUID
     workspace_id: Optional[uuid.UUID]
 
 
-class ProcessingLevelDetailResponse(BaseDetailResponse, ProcessingLevelFields):
+class ProcessingLevelDetailResponse(BaseGetResponse, ProcessingLevelFields):
     id: uuid.UUID
     workspace: Optional["WorkspaceDetailResponse"]
 

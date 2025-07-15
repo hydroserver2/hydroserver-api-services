@@ -3,10 +3,10 @@ from ninja import Schema, Query
 from typing import Optional, Literal
 from datetime import datetime
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
-    CollectionQueryParameters
+    CollectionQueryParameters,
 )
 
 
@@ -15,59 +15,46 @@ class ObservationFields(Schema):
     result: float
 
 
-class ObservationRowOrientedFields(Schema):
-    fields: list[Literal["phenomenonTime", "result"]]
-    observations: list[list]
+_order_by_fields = ("phenomenonTime",)
 
-
-class ObservationColumnOrientedFields(Schema):
-    phenomenon_time: list
-    result: list
-
-
-_order_by_fields = (
-    "phenomenonTime",
-)
-
-ObservationOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+ObservationOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
 
 
 class ObservationQueryParameters(CollectionQueryParameters):
     order_by: Optional[list[ObservationOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
-    format: Optional[Literal["record", "row", "column"]] = Query(
+    response_format: Optional[Literal["record", "row", "column"]] = Query(
         None,
-        description="Controls the format of the observations response."
+        description="Controls the format of the observations response.",
+        alias="format",
     )
     phenomenon_time__lte: Optional[datetime] = Query(
         None,
         description="Sets the maximum phenomenon time of filtered observations.",
-        alias="phenomenon_time_start",
+        alias="phenomenon_time_max",
     )
     phenomenon_time__gte: Optional[datetime] = Query(
         None,
         description="Sets the minimum phenomenon time of filtered observations.",
-        alias="phenomenon_time_end",
+        alias="phenomenon_time_min",
     )
 
 
-class ObservationDetailResponse(BaseDetailResponse, ObservationFields):
+class ObservationSummaryResponse(BaseGetResponse, ObservationFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
-    datastream_id: uuid.UUID
 
 
-class ObservationRowOrientedDetailResponse(BaseDetailResponse, ObservationRowOrientedFields):
-    pass
+class ObservationRowResponse(BaseGetResponse):
+    fields: list[Literal["phenomenonTime", "result"]]
+    data: list[list]
 
 
-class ObservationColumnOrientedDetailResponse(BaseDetailResponse, ObservationColumnOrientedFields):
-    pass
-
-
-class ObservationSummaryResponse(BaseDetailResponse):
-    data: ObservationRowOrientedDetailResponse | ObservationColumnOrientedDetailResponse
+class ObservationColumnarResponse(BaseGetResponse):
+    phenomenon_time: list
+    result: list
 
 
 class ObservationPostBody(BasePostBody, ObservationFields):
@@ -83,16 +70,13 @@ class ObservationBulkPostQueryParameters(Schema):
             "`append` adds only future observations (after the latest existing timestamp). "
             "`backfill` adds only historical observations (before the earliest existing timestamp). "
             "`replace` deletes all observations in the range of provided observations before inserting new ones."
-        )
+        ),
     )
 
 
-class ObservationRowOrientedPostBody(BasePostBody, ObservationRowOrientedFields):
-    pass
-
-
 class ObservationBulkPostBody(BasePostBody):
-    data: ObservationRowOrientedPostBody
+    fields: list[Literal["phenomenonTime", "result"]]
+    data: list[list]
 
 
 class ObservationPatchBody(BasePatchBody, ObservationFields):

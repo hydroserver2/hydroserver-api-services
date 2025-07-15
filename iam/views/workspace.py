@@ -9,7 +9,7 @@ from iam.schemas import (
     WorkspacePostBody,
     WorkspacePatchBody,
     WorkspaceTransferBody,
-    WorkspaceQueryParameters
+    WorkspaceQueryParameters,
 )
 from iam.services import WorkspaceService
 from iam.views.api_key import api_key_router

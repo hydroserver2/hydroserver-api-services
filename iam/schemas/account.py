@@ -2,7 +2,7 @@ from ninja import Schema, Field
 from pydantic import EmailStr
 from typing import Optional, Literal
 from django.contrib.auth import get_user_model
-from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody
+from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ class OrganizationFields(Schema):
     organization_type: str = Field(..., max_length=255, alias="type")
 
 
-class OrganizationDetailResponse(BaseDetailResponse, OrganizationFields):
+class OrganizationDetailResponse(BaseGetResponse, OrganizationFields):
     pass
 
 
@@ -41,13 +41,13 @@ class UserFields(UserContactFields):
     organization: Optional[OrganizationDetailResponse] = None
 
 
-class AccountContactDetailResponse(BaseDetailResponse, UserContactFields):
+class AccountContactDetailResponse(BaseGetResponse, UserContactFields):
     name: str = Field(..., max_length=255)
     email: EmailStr
     organization_name: Optional[str] = None
 
 
-class AccountDetailResponse(BaseDetailResponse, UserFields):
+class AccountDetailResponse(BaseGetResponse, UserFields):
     email: EmailStr
     account_type: Literal["admin", "standard", "limited"]
 
@@ -62,6 +62,6 @@ class AccountPatchBody(BasePatchBody, UserFields):
     organization: Optional[OrganizationPatchBody] = None
 
 
-class TypeDetailResponse(BaseDetailResponse):
+class TypeDetailResponse(BaseGetResponse):
     user_types: list[str]
     organization_types: list[str]

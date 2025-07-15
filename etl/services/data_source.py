@@ -3,12 +3,19 @@ from typing import Literal, Optional, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
 from sta.services.datastream import DatastreamService
 from etl.models import DataSource
 from etl.schemas import DataSourcePostBody, DataSourcePatchBody
-from etl.schemas.data_source import DataSourceFields
-from etl.schemas.orchestration_configuration import OrchestrationConfigurationOrderByFields
+from etl.schemas.data_source import (
+    DataSourceFields,
+    DataSourceSummaryResponse,
+    DataSourceDetailResponse,
+)
+from etl.schemas.orchestration_configuration import (
+    OrchestrationConfigurationOrderByFields,
+)
 from api.service import ServiceUtils
 
 from etl.schemas.orchestration_configuration import (
@@ -24,21 +31,19 @@ datastream_service = DatastreamService()
 
 
 class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
-    @staticmethod
+
     def get_data_source_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
-        fetch_datastreams: bool = False,
+        expand_related: bool = False,
         raise_400: bool = False,
     ):
         try:
-            data_source = DataSource.objects.select_related(
-                "workspace",
-                "orchestration_system",
-            )
-            if fetch_datastreams:
-                data_source = data_source.prefetch_related("datastreams")
+            data_source = DataSource.objects
+            if expand_related:
+                data_source = self.select_expanded_fields(data_source)
             data_source = data_source.get(pk=uid)
         except DataSource.DoesNotExist:
             raise HttpError(404 if not raise_400 else 400, "Data source does not exist")
@@ -58,6 +63,12 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return data_source
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related(
+            "workspace", "orchestration_system"
+        ).prefetch_related("datastreams")
+
     def list(
         self,
         principal: Optional[User | APIKey],
@@ -66,6 +77,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         page_size: int = 100,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: bool = False,
     ):
         queryset = DataSource.objects
 
@@ -89,27 +101,47 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
                 list(get_args(OrchestrationConfigurationOrderByFields)),
             )
 
-        queryset = (
-            queryset.select_related("orchestration_system")
-            .prefetch_related("datastreams")
-            .visible(principal=principal)
-            .distinct()
-        )
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
 
+        queryset = queryset.visible(principal=principal).distinct()
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
         self.insert_pagination_headers(
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset
+        return [
+            (
+                DataSourceDetailResponse.model_validate(data_source)
+                if expand_related
+                else DataSourceSummaryResponse.model_validate(data_source)
+            )
+            for data_source in queryset.all()
+        ]
 
-    def get(self, principal: User | APIKey, uid: uuid.UUID):
-        return self.get_data_source_for_action(
-            principal=principal, uid=uid, action="view", fetch_datastreams=True
+    def get(
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        expand_related: bool = False,
+    ):
+        data_source = self.get_data_source_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-    def create(self, principal: User | APIKey, data: DataSourcePostBody):
+        return (
+            DataSourceDetailResponse.model_validate(data_source)
+            if expand_related
+            else DataSourceSummaryResponse.model_validate(data_source)
+        )
+
+    def create(
+        self,
+        principal: User | APIKey,
+        data: DataSourcePostBody,
+        expand_related: bool = False,
+    ):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
         )
@@ -164,13 +196,28 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
                     principal=principal, uid=data_source.id, datastream_id=datastream_id
                 )
 
-        return data_source
+        data_source = self.get_data_source_for_action(
+            principal=principal,
+            uid=data_source.id,
+            action="view",
+            expand_related=expand_related,
+        )
+
+        return (
+            DataSourceDetailResponse.model_validate(data_source)
+            if expand_related
+            else DataSourceSummaryResponse.model_validate(data_source)
+        )
 
     def update(
-        self, principal: User | APIKey, uid: uuid.UUID, data: DataSourcePatchBody
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        data: DataSourcePatchBody,
+        expand_related: bool = False,
     ):
         data_source = self.get_data_source_for_action(
-            principal=principal, uid=uid, action="edit"
+            principal=principal, uid=uid, action="edit", expand_related=expand_related
         )
         data_source_data = data.dict(
             include=set(DataSourceFields.model_fields.keys()),
@@ -231,7 +278,11 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         data_source.save()
 
-        return data_source
+        return (
+            DataSourceDetailResponse.model_validate(data_source)
+            if expand_related
+            else DataSourceSummaryResponse.model_validate(data_source)
+        )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         data_source = self.get_data_source_for_action(

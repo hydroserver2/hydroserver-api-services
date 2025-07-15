@@ -3,7 +3,7 @@ from typing import Optional, Literal, TYPE_CHECKING
 from ninja import Schema, Field, Query
 from sta.schemas.sensorthings.sensor import sensorEncodingTypes
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
@@ -41,10 +41,12 @@ class SensorQueryParameters(CollectionQueryParameters):
     order_by: Optional[list[SensorOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
-    workspace_id: list[uuid.UUID] = Query(
+    workspace_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter sensors by workspace ID."
     )
-    datastreams__thing_id: list[uuid.UUID] = Query([], description="Filter sensors by thing ID.", alias="thing_id")
+    datastreams__thing_id: list[uuid.UUID] = Query(
+        [], description="Filter sensors by thing ID.", alias="thing_id"
+    )
     datastreams__id: list[uuid.UUID] = Query(
         [], description="Filter sensors by datastream ID.", alias="datastream_id"
     )
@@ -53,12 +55,12 @@ class SensorQueryParameters(CollectionQueryParameters):
     method_type: list[str] = Query([], description="Filter sensors by methodType")
 
 
-class SensorSummaryResponse(BaseDetailResponse, SensorFields):
+class SensorSummaryResponse(BaseGetResponse, SensorFields):
     id: uuid.UUID
     workspace_id: Optional[uuid.UUID] = None
 
 
-class SensorDetailResponse(BaseDetailResponse, SensorFields):
+class SensorDetailResponse(BaseGetResponse, SensorFields):
     id: uuid.UUID
     workspace: Optional["WorkspaceDetailResponse"] = None
 

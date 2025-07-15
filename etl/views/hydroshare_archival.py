@@ -109,7 +109,7 @@ def update_archive(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
     },

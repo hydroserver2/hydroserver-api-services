@@ -17,18 +17,71 @@ collaborator_service = CollaboratorService()
     "principal, workspace, params, collaborator_ids, max_queries",
     [
         # Test user access
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["1000000012", "1000000013"], 7),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
-        ("unaffiliated", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["1000000010", "1000000011"], 7),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["1000000012", "1000000013"],
+            7,
+        ),
+        (
+            "editor",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["1000000012", "1000000013"],
+            7,
+        ),
+        (
+            "viewer",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["1000000012", "1000000013"],
+            7,
+        ),
+        (
+            "admin",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["1000000012", "1000000013"],
+            7,
+        ),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            {},
+            ["1000000010", "1000000011"],
+            7,
+        ),
+        (
+            "unaffiliated",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            {},
+            ["1000000010", "1000000011"],
+            7,
+        ),
+        (
+            "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            {},
+            ["1000000010", "1000000011"],
+            7,
+        ),
         # Test pagination and order_by
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"page": 2, "page_size": 1}, ["1000000013"],
-         7),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {"page": 2, "page_size": 1},
+            ["1000000013"],
+            7,
+        ),
         # Test filtering
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"role_id": "2f05f775-5d8a-4778-9942-3d13a64ec7a3"}, ["1000000012"], 7),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {"role_id": "2f05f775-5d8a-4778-9942-3d13a64ec7a3"},
+            ["1000000012"],
+            7,
+        ),
     ],
 )
 def test_list_collaborator(
@@ -38,7 +91,7 @@ def test_list_collaborator(
     workspace,
     params,
     collaborator_ids,
-    max_queries
+    max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
         http_response = HttpResponse()
@@ -48,11 +101,14 @@ def test_list_collaborator(
             response=http_response,
             page=params.pop("page", 1),
             page_size=params.pop("page_size", 100),
-            order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
-        assert Counter(str(collaborator.id) for collaborator in result) == Counter(collaborator_ids)
-        assert (CollaboratorDetailResponse.from_orm(collaborator) for collaborator in result)
+        assert Counter(str(collaborator.id) for collaborator in result) == Counter(
+            collaborator_ids
+        )
+        assert (
+            CollaboratorDetailResponse.from_orm(collaborator) for collaborator in result
+        )
 
 
 @pytest.mark.parametrize(

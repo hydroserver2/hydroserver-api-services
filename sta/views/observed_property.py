@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
+from api.schemas import VocabularyQueryParameters
 from sta.schemas import (
     ObservedPropertySummaryResponse,
     ObservedPropertyDetailResponse,
@@ -69,10 +70,30 @@ def create_observed_property(
 
 
 @observed_property_router.get(
+    "/variable-types", response={200: list[str]}, by_alias=True
+)
+def get_datastream_aggregation_statistics(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get variable types.
+    """
+
+    return 200, observed_property_service.list_variable_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@observed_property_router.get(
     "/{observed_property_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ObservedPropertyDetailResponse,
+        200: ObservedPropertySummaryResponse | ObservedPropertyDetailResponse,
         401: str,
         403: str,
     },
@@ -80,14 +101,22 @@ def create_observed_property(
     exclude_unset=True,
 )
 def get_observed_property(
-    request: HydroServerHttpRequest, observed_property_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    observed_property_id: Path[uuid.UUID],
+    expand_related: bool = False,
 ):
     """
     Get an Observed Property.
     """
 
-    return 200, observed_property_service.get(
+    observed_property = observed_property_service.get(
         principal=request.principal, uid=observed_property_id
+    )
+
+    return 200, (
+        ObservedPropertyDetailResponse.model_validate(observed_property)
+        if expand_related
+        else ObservedPropertySummaryResponse.model_validate(observed_property)
     )
 
 
@@ -122,7 +151,7 @@ def update_observed_property(
     "/{observed_property_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

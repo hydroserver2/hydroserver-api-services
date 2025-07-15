@@ -1,7 +1,6 @@
 import uuid6
 import typing
 from typing import Literal, Optional, Union
-from collections import defaultdict
 from django.db import models
 from django.db.models import Q
 from django.conf import settings
@@ -85,17 +84,6 @@ class Thing(models.Model, PermissionChecker):
             locations = self._prefetched_objects_cache["locations"]
             return locations[0] if locations else None
         return self.locations.first()
-
-    @property
-    def tag_dict(self):
-        tag_map = defaultdict(list)
-        for tag in self.tags.all():
-            tag_map[tag.key].append(tag.value)
-        return dict(tag_map)
-
-    @property
-    def photo_dict(self):
-        return {photo.label: photo.url for photo in self.photos.all()}
 
     @classmethod
     def can_principal_create(

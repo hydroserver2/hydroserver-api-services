@@ -20,7 +20,6 @@ class CollaboratorService(ServiceUtils):
         workspace_id: uuid.UUID,
         page: int = 1,
         page_size: int = 100,
-        order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = Collaborator.objects
@@ -36,13 +35,6 @@ class CollaboratorService(ServiceUtils):
         ]:
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
-
-        if order_by:
-            queryset = self.apply_ordering(
-                queryset,
-                order_by,
-                [],
-            )
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -91,9 +83,7 @@ class CollaboratorService(ServiceUtils):
                 400, f"Account with email '{data.email}' already owns the workspace"
             )
 
-        collaborator_role = role_service.get(
-            principal=principal, uid=data.role_id
-        )
+        collaborator_role = role_service.get(principal=principal, uid=data.role_id)
 
         if not collaborator_role.is_user_role:
             raise HttpError(400, "Role not supported for collaborator assignment")
@@ -130,9 +120,7 @@ class CollaboratorService(ServiceUtils):
             )
 
         if data.role_id:
-            collaborator_role = role_service.get(
-                principal=principal, uid=data.role_id
-            )
+            collaborator_role = role_service.get(principal=principal, uid=data.role_id)
 
             if not collaborator_role.is_user_role:
                 raise HttpError(400, "Role not supported for collaborator assignment")

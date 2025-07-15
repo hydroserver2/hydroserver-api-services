@@ -4,10 +4,10 @@ from ninja import Schema, Field, Query
 from typing import Optional, Literal, TYPE_CHECKING
 from datetime import datetime
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
-    CollectionQueryParameters
+    CollectionQueryParameters,
 )
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
         ObservedPropertyDetailResponse,
         UnitDetailResponse,
         SensorDetailResponse,
-        ProcessingLevelDetailResponse
+        ProcessingLevelDetailResponse,
     )
 
 
@@ -69,7 +69,9 @@ _order_by_fields = (
     "resultEndTime",
 )
 
-DatastreamOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+DatastreamOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
 
 
 class DatastreamQueryParameters(CollectionQueryParameters):
@@ -90,11 +92,13 @@ class DatastreamQueryParameters(CollectionQueryParameters):
         [], description="Filter datastreams by processing level ID."
     )
     unit_id: list[uuid.UUID] = Query([], description="Filter datastreams by unit ID.")
-    data_source_id: list[uuid.UUID] = Query([], description="Filter datastreams by data source ID.")
+    data_source_id: list[uuid.UUID] = Query(
+        [], description="Filter datastreams by data source ID."
+    )
     dataarchives__id: list[uuid.UUID] = Query(
         [],
         description="Filter datastreams by data archive ID.",
-        alias="data_archive_id"
+        alias="data_archive_id",
     )
     observation_type: list[str] = Query(
         [], description="Filter things by observation type."
@@ -160,14 +164,21 @@ class DatastreamQueryParameters(CollectionQueryParameters):
     )
 
 
-class DatastreamSummaryResponse(BaseDetailResponse, DatastreamFields, DatastreamRelatedFields):
-    workspace_id: uuid.UUID = Field(..., validation_alias=AliasPath("thing", "workspace_id"))
+class DatastreamSummaryResponse(
+    BaseGetResponse, DatastreamFields, DatastreamRelatedFields
+):
+    id: uuid.UUID
+    workspace_id: uuid.UUID = Field(
+        ..., validation_alias=AliasPath("thing", "workspace_id")
+    )
 
 
-class DatastreamDetailResponse(BaseDetailResponse, DatastreamFields):
+class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
     data_source: Optional["DataSourceDetailResponse"] = None
-    workspace: "WorkspaceDetailResponse" = Field(..., validation_alias=AliasPath("thing", "workspace"))
+    workspace: "WorkspaceDetailResponse" = Field(
+        ..., validation_alias=AliasPath("thing", "workspace")
+    )
     thing: "ThingDetailResponse"
     sensor: "SensorDetailResponse"
     observed_property: "ObservedPropertyDetailResponse"

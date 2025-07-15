@@ -6,10 +6,12 @@ from .thing import (
     ThingQueryParameters,
     LocationPostBody,
     LocationPatchBody,
+    TagGetResponse,
     TagPostBody,
     TagDeleteBody,
+    PhotoGetResponse,
     PhotoPostBody,
-    PhotoDeleteBody
+    PhotoDeleteBody,
 )
 from .observed_property import (
     ObservedPropertySummaryResponse,
@@ -55,12 +57,13 @@ from .datastream import (
 )
 from .observation import (
     ObservationSummaryResponse,
-    ObservationDetailResponse,
     ObservationQueryParameters,
+    ObservationRowResponse,
+    ObservationColumnarResponse,
     ObservationPostBody,
     ObservationPatchBody,
-    ObservationBulkPostBody,
     ObservationBulkPostQueryParameters,
+    ObservationBulkPostBody,
     ObservationBulkDeleteBody,
 )
 
@@ -76,4 +79,3 @@ ResultQualifierDetailResponse.model_rebuild()
 SensorDetailResponse.model_rebuild()
 UnitDetailResponse.model_rebuild()
 DatastreamDetailResponse.model_rebuild()
-ObservationDetailResponse.model_rebuild()

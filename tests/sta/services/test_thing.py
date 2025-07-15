@@ -589,11 +589,12 @@ def test_get_tags(get_principal, principal, thing, message, error_code):
         thing_tags = thing_service.get_tags(
             principal=get_principal(principal), uid=uuid.UUID(thing)
         )
-        assert list(thing_tags.keys())[0] in ["Test Public Key", "Test Private Key"]
-        assert list(thing_tags.values())[0] in [
-            "Test Public Value",
-            "Test Private Value",
-        ]
+        assert set([tag.key for tag in thing_tags]).issubset(
+            ["Test Public Key", "Test Private Key"]
+        )
+        assert set([tag.value for tag in thing_tags]).issubset(
+            ["Test Public Value", "Test Private Value"]
+        )
 
 
 @pytest.mark.parametrize(
@@ -710,7 +711,7 @@ def test_get_tag_keys(
         (
             "owner",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            {"key": "Test Public Key", "value": "New Value"},
+            {"key": "Test Public Key", "value": "Test Public Value"},
             "Tag already exists",
             400,
         ),

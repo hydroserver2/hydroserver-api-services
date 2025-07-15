@@ -2,7 +2,7 @@ from ninja import Schema, Field
 from pydantic import AnyHttpUrl
 from typing import Literal, Optional
 from uuid import UUID
-from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody
+from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class HydroShareArchivalFields(Schema):
@@ -12,7 +12,7 @@ class HydroShareArchivalFields(Schema):
     datastream_ids: list[UUID]
 
 
-class HydroShareArchivalDetailResponse(BaseDetailResponse, HydroShareArchivalFields):
+class HydroShareArchivalDetailResponse(BaseGetResponse, HydroShareArchivalFields):
     thing_id: Optional[UUID]
 
 

@@ -13,17 +13,71 @@ role_service = RoleService()
     "principal, workspace, params, role_names, max_queries",
     [
         # Test user access
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["Editor", "Viewer", "Data Loader", "Private"], 7),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["Editor", "Viewer", "Data Loader", "Private"], 7),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["Editor", "Viewer", "Data Loader", "Private"], 7),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", {}, ["Editor", "Viewer", "Data Loader", "Private"], 7),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["Editor", "Viewer", "Data Loader"], 7),
-        ("unaffiliated", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["Editor", "Viewer", "Data Loader"], 7),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", {}, ["Editor", "Viewer", "Data Loader"], 7),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["Editor", "Viewer", "Data Loader", "Private"],
+            7,
+        ),
+        (
+            "editor",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["Editor", "Viewer", "Data Loader", "Private"],
+            7,
+        ),
+        (
+            "viewer",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["Editor", "Viewer", "Data Loader", "Private"],
+            7,
+        ),
+        (
+            "admin",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {},
+            ["Editor", "Viewer", "Data Loader", "Private"],
+            7,
+        ),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            {},
+            ["Editor", "Viewer", "Data Loader"],
+            7,
+        ),
+        (
+            "unaffiliated",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            {},
+            ["Editor", "Viewer", "Data Loader"],
+            7,
+        ),
+        (
+            "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            {},
+            ["Editor", "Viewer", "Data Loader"],
+            7,
+        ),
         # Test pagination and order_by
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"page": 2, "page_size": 1, "order_by": "-name"}, ["Private"], 7),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {"page": 2, "page_size": 1, "order_by": "-name"},
+            ["Private"],
+            7,
+        ),
         # Test filtering
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", {"is_apikey_role": True, "is_user_role": False}, ["Data Loader"], 7),
+        (
+            "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            {"is_apikey_role": True, "is_user_role": False},
+            ["Data Loader"],
+            7,
+        ),
     ],
 )
 def test_list_role(
@@ -33,7 +87,7 @@ def test_list_role(
     workspace,
     params,
     role_names,
-    max_queries
+    max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
         http_response = HttpResponse()

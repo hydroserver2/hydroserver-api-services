@@ -50,7 +50,9 @@ def test_list_workspace(
             order_by=[params.pop("order_by")] if "order_by" in params else [],
             filtering=params,
         )
-        assert Counter(str(workspace.name) for workspace in result) == Counter(workspace_names)
+        assert Counter(str(workspace.name) for workspace in result) == Counter(
+            workspace_names
+        )
         assert (WorkspaceDetailResponse.from_orm(workspace) for workspace in result)
 
 

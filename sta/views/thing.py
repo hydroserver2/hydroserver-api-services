@@ -13,8 +13,10 @@ from sta.schemas import (
     ThingPostBody,
     ThingPatchBody,
     ThingQueryParameters,
+    TagGetResponse,
     TagPostBody,
     TagDeleteBody,
+    PhotoGetResponse,
     PhotoDeleteBody,
 )
 from sta.services import ThingService
@@ -72,7 +74,7 @@ def create_thing(request: HydroServerHttpRequest, data: ThingPostBody):
 
 
 @thing_router.get(
-    "/tags",
+    "/tags/keys",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
         200: dict[str, list[str]],
@@ -95,13 +97,7 @@ def get_tag_keys(
     )
 
 
-@thing_router.get(
-    "/site-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@thing_router.get("/site-types", response={200: list[str]}, by_alias=True)
 def get_site_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -119,13 +115,7 @@ def get_site_types(
     )
 
 
-@thing_router.get(
-    "/sampling-feature-types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@thing_router.get("/sampling-feature-types", response={200: list[str]}, by_alias=True)
 def get_sampling_feature_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -147,19 +137,29 @@ def get_sampling_feature_types(
     "/{thing_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ThingDetailResponse,
+        200: ThingSummaryResponse | ThingDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_thing(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    expand_related: bool = False,
+):
     """
     Get a Thing.
     """
 
-    return 200, thing_service.get(principal=request.principal, uid=thing_id)
+    thing = thing_service.get(principal=request.principal, uid=thing_id)
+
+    return 200, (
+        ThingDetailResponse.model_validate(thing)
+        if expand_related
+        else ThingSummaryResponse.model_validate(thing)
+    )
 
 
 @thing_router.patch(
@@ -191,7 +191,7 @@ def update_thing(
     "/{thing_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
     },
@@ -210,7 +210,7 @@ def delete_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     "/{thing_id}/tags",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: dict[str, str],
+        200: list[TagGetResponse],
         401: str,
         403: str,
     },
@@ -231,7 +231,7 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     "/{thing_id}/tags",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: dict[str, str],
+        201: TagGetResponse,
         400: str,
         401: str,
         403: str,
@@ -257,7 +257,7 @@ def add_tag(
     "/{thing_id}/tags",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: dict[str, str],
+        200: TagGetResponse,
         400: str,
         401: str,
         403: str,
@@ -283,7 +283,7 @@ def edit_tag(
     "/{thing_id}/tags",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         400: str,
         401: str,
         403: str,
@@ -309,7 +309,7 @@ def remove_tag(
     "/{thing_id}/photos",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: dict[str, str],
+        200: list[PhotoGetResponse],
         401: str,
         403: str,
     },
@@ -330,7 +330,7 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     "/{thing_id}/photos",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: dict[str, str],
+        201: PhotoGetResponse,
         400: str,
         401: str,
         403: str,
@@ -357,7 +357,7 @@ def add_photo(
     "/{thing_id}/photos",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         400: str,
         401: str,
         403: str,

@@ -3,7 +3,7 @@ from typing import Optional, Literal
 from datetime import datetime
 from ninja import Schema, Field, Query
 from api.schemas import (
-    BaseDetailResponse,
+    BaseGetResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
@@ -19,18 +19,16 @@ class OrchestrationConfigurationScheduleFields(Schema):
 
 
 class OrchestrationConfigurationScheduleDetailResponse(
-    BaseDetailResponse, OrchestrationConfigurationScheduleFields
+    BaseGetResponse, OrchestrationConfigurationScheduleFields
 ):
     pass
 
 
-_order_by_fields = (
-    "name",
-    "startTime",
-    "endTime"
-)
+_order_by_fields = ("name", "startTime", "endTime")
 
-OrchestrationConfigurationOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+OrchestrationConfigurationOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
 
 
 class OrchestrationConfigurationQueryParameters(CollectionQueryParameters):
@@ -91,7 +89,7 @@ class OrchestrationConfigurationStatusFields(Schema):
 
 
 class OrchestrationConfigurationStatusDetailResponse(
-    BaseDetailResponse, OrchestrationConfigurationStatusFields
+    BaseGetResponse, OrchestrationConfigurationStatusFields
 ):
     pass
 

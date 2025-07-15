@@ -33,15 +33,8 @@ from .hydroshare_archival import (
 from .orchestration_configuration import OrchestrationConfigurationQueryParameters
 
 
-from iam.schemas import WorkspaceDetailResponse
-from sta.schemas import (
-    DatastreamDetailResponse,
-    ThingDetailResponse,
-    SensorDetailResponse,
-    ObservedPropertyDetailResponse,
-    UnitDetailResponse,
-    ProcessingLevelDetailResponse
-)
+from iam.schemas import WorkspaceSummaryResponse
+from sta.schemas import DatastreamSummaryResponse
 
 
 DataSourceDetailResponse.model_rebuild()

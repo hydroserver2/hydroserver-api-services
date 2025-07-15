@@ -272,9 +272,14 @@ def test_create_unit(get_principal, principal, unit_fields, message, error_code)
         definition=unit_fields.get("definition", "New"),
         unit_type=unit_fields.get("unit_type", "New"),
         workspace_id=(
-            uuid.UUID(wid) if (wid := unit_fields["workspace_id"]) is not None
-            else None
-        ) if "workspace_id" in unit_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+            (
+                uuid.UUID(wid)
+                if (wid := unit_fields["workspace_id"]) is not None
+                else None
+            )
+            if "workspace_id" in unit_fields
+            else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:

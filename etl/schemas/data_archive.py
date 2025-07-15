@@ -1,7 +1,7 @@
 import uuid
 from ninja import Schema, Field
 from typing import Optional, TYPE_CHECKING
-from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody
+from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 from .orchestration_configuration import (
     OrchestrationConfigurationScheduleDetailResponse,
     OrchestrationConfigurationSchedulePostBody,
@@ -12,8 +12,9 @@ from .orchestration_configuration import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
-    from etl.schemas import OrchestrationSystemDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
+    from etl.schemas import OrchestrationSystemSummaryResponse
+    from sta.schemas import DatastreamSummaryResponse
 
 
 class DataArchiveFields(Schema):
@@ -21,7 +22,7 @@ class DataArchiveFields(Schema):
     settings: Optional[dict] = None
 
 
-class DataArchiveSummaryResponse(BaseDetailResponse, DataArchiveFields):
+class DataArchiveSummaryResponse(BaseGetResponse, DataArchiveFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
     orchestration_system_id: uuid.UUID
@@ -29,12 +30,13 @@ class DataArchiveSummaryResponse(BaseDetailResponse, DataArchiveFields):
     status: Optional[OrchestrationConfigurationStatusDetailResponse] = None
 
 
-class DataArchiveDetailResponse(BaseDetailResponse, DataArchiveFields):
+class DataArchiveDetailResponse(BaseGetResponse, DataArchiveFields):
     id: uuid.UUID
-    workspace: "WorkspaceDetailResponse"
-    orchestration_system: "OrchestrationSystemDetailResponse"
+    workspace: "WorkspaceSummaryResponse"
+    orchestration_system: "OrchestrationSystemSummaryResponse"
     schedule: Optional[OrchestrationConfigurationScheduleDetailResponse] = None
     status: Optional[OrchestrationConfigurationStatusDetailResponse] = None
+    datastreams: Optional[list["DatastreamSummaryResponse"]] = None
 
 
 class DataArchivePostBody(BasePostBody, DataArchiveFields):

@@ -370,9 +370,14 @@ def test_create_processing_level(
         definition=processing_level_fields.get("definition", "New"),
         explanation=processing_level_fields.get("explanation", "New"),
         workspace_id=(
-            uuid.UUID(wid) if (wid := processing_level_fields["workspace_id"]) is not None
-            else None
-        ) if "workspace_id" in processing_level_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+            (
+                uuid.UUID(wid)
+                if (wid := processing_level_fields["workspace_id"]) is not None
+                else None
+            )
+            if "workspace_id" in processing_level_fields
+            else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:

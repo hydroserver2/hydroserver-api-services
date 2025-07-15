@@ -59,9 +59,11 @@ class RoleService(ServiceUtils):
                 list(get_args(RoleOrderByFields)),
             )
 
-        queryset = queryset.visible(principal=principal).prefetch_related(
-            "permissions"
-        ).distinct()
+        queryset = (
+            queryset.visible(principal=principal)
+            .prefetch_related("permissions")
+            .distinct()
+        )
 
         queryset, count = self.apply_pagination(queryset, page, page_size)
 

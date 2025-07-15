@@ -1,5 +1,5 @@
 from ninja import Schema, Query
-from typing import Optional
+from typing import Optional, Any
 from pydantic import AliasGenerator, AliasChoices, ConfigDict, field_validator
 from pydantic.alias_generators import to_camel
 from sensorthings.validators import PartialSchema
@@ -14,6 +14,16 @@ base_alias_generator = AliasGenerator(
 class BaseQueryParameters(Schema):
     model_config = ConfigDict(populate_by_name=True, str_strip_whitespace=True)
 
+    @field_validator("*", mode="after")
+    def convert_null_strings(value: Any) -> Any:  # noqa
+        if isinstance(value, str) and value.lower() == "null":
+            return None
+        if isinstance(value, list):
+            return [
+                None if isinstance(v, str) and v.lower() == "null" else v for v in value
+            ]
+        return value
+
 
 class CollectionQueryParameters(BaseQueryParameters):
     page: int = Query(1, ge=1, description="Page number (1-based).")
@@ -27,7 +37,7 @@ class VocabularyQueryParameters(CollectionQueryParameters):
     )
 
 
-class BaseDetailResponse(Schema):
+class BaseGetResponse(Schema):
     model_config = ConfigDict(
         populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
     )

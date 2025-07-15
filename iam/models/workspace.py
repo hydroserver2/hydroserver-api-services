@@ -41,11 +41,14 @@ class WorkspaceQueryset(models.QuerySet):
         if principal is None:
             return queryset.none()
         elif hasattr(principal, "account_type"):
-            return queryset.filter(
-                Q(owner=principal)
-                | Q(collaborators__user=principal)
-                | Q(transfer_confirmation__new_owner=principal)
-            )
+            if principal.account_type == "admin":
+                return queryset
+            else:
+                return queryset.filter(
+                    Q(owner=principal)
+                    | Q(collaborators__user=principal)
+                    | Q(transfer_confirmation__new_owner=principal)
+                )
         elif hasattr(principal, "workspace"):
             return queryset.filter(id=principal.workspace.id)
         else:

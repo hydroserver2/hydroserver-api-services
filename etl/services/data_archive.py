@@ -3,12 +3,19 @@ from typing import Literal, Optional, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
 from sta.services.datastream import DatastreamService
 from etl.models import DataArchive
 from etl.schemas import DataArchivePostBody, DataArchivePatchBody
-from etl.schemas.data_archive import DataArchiveFields
-from etl.schemas.orchestration_configuration import OrchestrationConfigurationOrderByFields
+from etl.schemas.data_archive import (
+    DataArchiveFields,
+    DataArchiveSummaryResponse,
+    DataArchiveDetailResponse,
+)
+from etl.schemas.orchestration_configuration import (
+    OrchestrationConfigurationOrderByFields,
+)
 from api.service import ServiceUtils
 
 from etl.schemas.orchestration_configuration import (
@@ -24,21 +31,19 @@ datastream_service = DatastreamService()
 
 
 class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
-    @staticmethod
+
     def get_data_archive_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
-        fetch_datastreams: bool = False,
+        expand_related: bool = False,
         raise_400: bool = False,
     ):
         try:
-            data_archive = DataArchive.objects.select_related(
-                "workspace",
-                "orchestration_system",
-            )
-            if fetch_datastreams:
-                data_archive = data_archive.prefetch_related("datastreams")
+            data_archive = DataArchive.objects
+            if expand_related:
+                data_archive = self.select_expanded_fields(data_archive)
             data_archive = data_archive.get(pk=uid)
         except DataArchive.DoesNotExist:
             raise HttpError(
@@ -62,6 +67,12 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         return data_archive
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related(
+            "workspace", "orchestration_system"
+        ).prefetch_related("datastreams")
+
     def list(
         self,
         principal: Optional[User | APIKey],
@@ -70,6 +81,7 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         page_size: int = 100,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: bool = False,
     ):
         queryset = DataArchive.objects
 
@@ -93,12 +105,10 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
                 list(get_args(OrchestrationConfigurationOrderByFields)),
             )
 
-        queryset = (
-            queryset.select_related("orchestration_system")
-            .prefetch_related("datastreams")
-            .visible(principal=principal)
-            .distinct()
-        )
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
+        queryset = queryset.visible(principal=principal).distinct()
 
         queryset, count = self.apply_pagination(queryset, page, page_size)
 
@@ -106,14 +116,34 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
             response=response, count=count, page=page, page_size=page_size
         )
 
-        return queryset
+        return [
+            (
+                DataArchiveDetailResponse.model_validate(data_source)
+                if expand_related
+                else DataArchiveSummaryResponse.model_validate(data_source)
+            )
+            for data_source in queryset.all()
+        ]
 
-    def get(self, principal: User | APIKey, uid: uuid.UUID):
-        return self.get_data_archive_for_action(
-            principal=principal, uid=uid, action="view", fetch_datastreams=True
+    def get(
+        self, principal: User | APIKey, uid: uuid.UUID, expand_related: bool = False
+    ):
+        data_archive = self.get_data_archive_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-    def create(self, principal: User | APIKey, data: DataArchivePostBody):
+        return (
+            DataArchiveDetailResponse.model_validate(data_archive)
+            if expand_related
+            else DataArchiveSummaryResponse.model_validate(data_archive)
+        )
+
+    def create(
+        self,
+        principal: User | APIKey,
+        data: DataArchivePostBody,
+        expand_related: bool = False,
+    ):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
         )
@@ -170,13 +200,28 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
                     datastream_id=datastream_id,
                 )
 
-        return data_archive
+        data_archive = self.get_data_archive_for_action(
+            principal=principal,
+            uid=data_archive.id,
+            action="view",
+            expand_related=expand_related,
+        )
+
+        return (
+            DataArchiveDetailResponse.model_validate(data_archive)
+            if expand_related
+            else DataArchiveSummaryResponse.model_validate(data_archive)
+        )
 
     def update(
-        self, principal: User | APIKey, uid: uuid.UUID, data: DataArchivePatchBody
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        data: DataArchivePatchBody,
+        expand_related: bool = False,
     ):
         data_archive = self.get_data_archive_for_action(
-            principal=principal, uid=uid, action="edit"
+            principal=principal, uid=uid, action="edit", expand_related=expand_related
         )
         data_archive_data = data.dict(
             include=set(DataArchiveFields.model_fields.keys()),
@@ -235,7 +280,11 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         data_archive.save()
 
-        return data_archive
+        return (
+            DataArchiveDetailResponse.model_validate(data_archive)
+            if expand_related
+            else DataArchiveSummaryResponse.model_validate(data_archive)
+        )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         data_archive = self.get_data_archive_for_action(

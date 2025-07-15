@@ -312,9 +312,14 @@ def test_create_result_qualifier(
         code=result_qualifier_fields.get("code", "New"),
         description=result_qualifier_fields.get("description", "New"),
         workspace_id=(
-            uuid.UUID(wid) if (wid := result_qualifier_fields["workspace_id"]) is not None
-            else None
-        ) if "workspace_id" in result_qualifier_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+            (
+                uuid.UUID(wid)
+                if (wid := result_qualifier_fields["workspace_id"]) is not None
+                else None
+            )
+            if "workspace_id" in result_qualifier_fields
+            else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:

@@ -374,9 +374,14 @@ def test_create_observed_property(
         ),
         definition=observed_property_fields.get("definition", "New"),
         workspace_id=(
-            uuid.UUID(wid) if (wid := observed_property_fields["workspace_id"]) is not None
-            else None
-        ) if "workspace_id" in observed_property_fields else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f"),
+            (
+                uuid.UUID(wid)
+                if (wid := observed_property_fields["workspace_id"]) is not None
+                else None
+            )
+            if "workspace_id" in observed_property_fields
+            else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:

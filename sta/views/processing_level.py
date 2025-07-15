@@ -72,7 +72,7 @@ def create_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ProcessingLevelDetailResponse,
+        200: ProcessingLevelSummaryResponse | ProcessingLevelDetailResponse,
         401: str,
         403: str,
     },
@@ -80,14 +80,22 @@ def create_processing_level(
     exclude_unset=True,
 )
 def get_processing_level(
-    request: HydroServerHttpRequest, processing_level_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    processing_level_id: Path[uuid.UUID],
+    expand_related: bool = False,
 ):
     """
     Get a Processing Level.
     """
 
-    return 200, processing_level_service.get(
+    processing_level = processing_level_service.get(
         principal=request.principal, uid=processing_level_id
+    )
+
+    return 200, (
+        ProcessingLevelDetailResponse.model_validate(processing_level)
+        if expand_related
+        else ProcessingLevelSummaryResponse.model_validate(processing_level)
     )
 
 
@@ -122,7 +130,7 @@ def update_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

@@ -2,7 +2,12 @@ import uuid
 from typing import Optional, Literal, TYPE_CHECKING
 from datetime import datetime
 from ninja import Schema, Field, Query
-from api.schemas import BaseDetailResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
+from api.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
 
 if TYPE_CHECKING:
     from iam.schemas import RoleDetailResponse
@@ -25,9 +30,10 @@ APIKeyOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fi
 
 
 class APIKeyQueryParameters(CollectionQueryParameters):
-    role_id: list[uuid.UUID] = Query(
-        [], description="Filter API keys by role ID."
+    order_by: Optional[list[APIKeyOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
     )
+    role_id: list[uuid.UUID] = Query([], description="Filter API keys by role ID.")
 
 
 class APIKeyGetFields(APIKeyFields):
@@ -37,11 +43,11 @@ class APIKeyGetFields(APIKeyFields):
     last_used: Optional[datetime]
 
 
-class APIKeyDetailResponse(BaseDetailResponse, APIKeyGetFields):
+class APIKeyDetailResponse(BaseGetResponse, APIKeyGetFields):
     id: uuid.UUID
 
 
-class APIKeyPostResponse(BaseDetailResponse, APIKeyGetFields):
+class APIKeyPostResponse(BaseGetResponse, APIKeyGetFields):
     id: uuid.UUID
     key: str = Field(..., max_length=255)
 

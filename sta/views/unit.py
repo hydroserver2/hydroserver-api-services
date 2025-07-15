@@ -66,13 +66,7 @@ def create_unit(request: HydroServerHttpRequest, data: UnitPostBody):
     return 201, unit_service.create(principal=request.principal, data=data)
 
 
-@unit_router.get(
-    "/types",
-    response={
-        200: list[str]
-    },
-    by_alias=True
-)
+@unit_router.get("/types", response={200: list[str]}, by_alias=True)
 def get_unit_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -94,19 +88,29 @@ def get_unit_types(
     "/{unit_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: UnitDetailResponse,
+        200: UnitSummaryResponse | UnitDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_unit(request: HydroServerHttpRequest, unit_id: Path[uuid.UUID]):
+def get_unit(
+    request: HydroServerHttpRequest,
+    unit_id: Path[uuid.UUID],
+    expand_related: bool = False,
+):
     """
     Get a Unit.
     """
 
-    return 200, unit_service.get(principal=request.principal, uid=unit_id)
+    unit = unit_service.get(principal=request.principal, uid=unit_id)
+
+    return 200, (
+        UnitDetailResponse.model_validate(unit)
+        if expand_related
+        else UnitSummaryResponse.model_validate(unit)
+    )
 
 
 @unit_router.patch(
@@ -136,7 +140,7 @@ def update_unit(
     "/{unit_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

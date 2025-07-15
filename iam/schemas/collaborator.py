@@ -2,19 +2,17 @@ import uuid
 from typing import TYPE_CHECKING
 from ninja import Query
 from pydantic import EmailStr
-from api.schemas import BaseDetailResponse, BasePostBody, CollectionQueryParameters
+from api.schemas import BaseGetResponse, BasePostBody, CollectionQueryParameters
 
 if TYPE_CHECKING:
     from iam.schemas import AccountContactDetailResponse, RoleDetailResponse
 
 
 class CollaboratorQueryParameters(CollectionQueryParameters):
-    role_id: list[uuid.UUID] = Query(
-        [], description="Filter collaborators by role ID."
-    )
+    role_id: list[uuid.UUID] = Query([], description="Filter collaborators by role ID.")
 
 
-class CollaboratorDetailResponse(BaseDetailResponse):
+class CollaboratorDetailResponse(BaseGetResponse):
     user: "AccountContactDetailResponse"
     role: "RoleDetailResponse"
 
