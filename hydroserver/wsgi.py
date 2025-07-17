@@ -21,10 +21,19 @@ application = get_wsgi_application()
 
 
 def is_leader():
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT pg_try_advisory_lock(%s);", [1])
-        return cursor.fetchone()[0]
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_try_advisory_lock(%s);", [1])
+            return cursor.fetchone()[0]
+    except Exception as e:
+        print(e)
+    return False
 
+
+if os.getenv("DJANGO_CONFIGURATION") in ["Development"]:
+    call_command("makemigrations")
+    call_command("migrate")
+    call_command("setup_admin_user")
 
 if is_leader():
     call_command("migrate")

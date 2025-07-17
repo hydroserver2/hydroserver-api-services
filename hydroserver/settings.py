@@ -9,6 +9,7 @@ from corsheaders.defaults import default_headers
 from decouple import config
 from urllib.parse import urlparse
 from configurations import Configuration
+from django.core.management import call_command
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -322,39 +323,38 @@ class Base(Configuration):
     ST_API_ID_TYPE: UUID
 
 
-class Minio(Base):
-    # microk8s cluster dependency minio
-    MINIO_CONSISTENCY_CHECK_ON_START = False
-    MINIO_USE_HTTPS = False
-    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
-    MINIO_ENDPOINT = "minio.minio-operator.svc.cluster.local"
-    MINIO_EXTERNAL_ENDPOINT = "localhost:9000"
-    MINIO_ACCESS_KEY = "NdC3ZRAtzM49PU2P7NZ9"
-    MINIO_SECRET_KEY = "qxDy3X16uDT3MgZxTqrdgKjliGVmjX2VVrGM9q4t"
-    INSTALLED_APPS = Base.INSTALLED_APPS + ["django_minio_backend", "api"]
-    MINIO_PUBLIC_BUCKETS = ["backend", "media", "static"]
-    MINIO_STATIC_FILES_BUCKET = "static"
-    MINIO_MEDIA_FILES_BUCKET = "media"
-    # todo
-    STORAGES = {  # -- ADDED IN Django 5.1
-        "default": {
-            "BACKEND": "django_minio_backend.models.MinioBackend",
-        },
-        "staticfiles": {  # -- OPTIONAL
-            # "BACKEND": "django_minio_backend.models.MinioBackendStatic",
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
-        },
-    }
-
-
-class Postgres(Minio):
+class Development(Base):
+    # Default Superuser Settings
+    ALLOWED_HOSTS = ["*"]
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": config("POSTGRES_WQDMS_DB", "hydroserver"),
-            "USER": config("POSTGRES_WQDMS_USER", "postgres"),
-            "PASSWORD": config("POSTGRES_WQDMS_PASSWORD", "admin1234"),
-            "HOST": config("POSTGRES_WQDMS_HOST", "ge-postgres.dev.svc.cluster.local"),
-            "PORT": config("POSTGRES_WQDMS_PORT", "5432"),
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+    # dev apps
+    INSTALLED_APPS = [
+        "django.contrib.auth",
+        "django.contrib.contenttypes",
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "django.contrib.staticfiles",
+        "django.contrib.sites",
+        "allauth",
+        "allauth.account",
+        "allauth.headless",
+        "allauth.socialaccount",
+        # "allauth.socialaccount.providers.google",
+        # "allauth.socialaccount.providers.orcid",
+        # "allauth.socialaccount.providers.openid_connect",
+        "iam.auth.providers.hydroshare",
+        "iam.auth.providers.orcidsandbox",
+        "corsheaders",
+        "easyaudit",
+        "sensorthings",
+        "storages",
+        "iam.apps.IamConfig",
+        "sta.apps.StaConfig",
+        "etl.apps.EtlConfig",
+        "django.contrib.admin",
+    ]
