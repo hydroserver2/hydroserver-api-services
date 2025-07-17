@@ -59,11 +59,11 @@ class ObservedPropertySummaryResponse(BaseGetResponse, ObservedPropertyFields):
 
 class ObservedPropertyDetailResponse(BaseGetResponse, ObservedPropertyFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceSummaryResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"]
 
 
 class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):
-    workspace_id: Optional[uuid.UUID] = None
+    workspace_id: Optional[uuid.UUID]
 
 
 class ObservedPropertyPatchBody(BasePatchBody, ObservedPropertyFields):

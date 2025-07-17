@@ -176,7 +176,7 @@ class DatastreamSummaryResponse(
 
 class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
-    data_source: Optional["DataSourceSummaryResponse"] = None
+    data_source: Optional["DataSourceSummaryResponse"]
     workspace: "WorkspaceSummaryResponse" = Field(
         ..., validation_alias=AliasPath("thing", "workspace")
     )

@@ -42,12 +42,12 @@ class OrchestrationSystemQueryParameters(CollectionQueryParameters):
 
 class OrchestrationSystemSummaryResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID] = None
+    workspace_id: Optional[uuid.UUID]
 
 
 class OrchestrationSystemDetailResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceSummaryResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"]
 
 
 class OrchestrationSystemPostBody(BasePostBody, OrchestrationSystemFields):

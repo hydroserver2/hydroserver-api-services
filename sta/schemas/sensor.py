@@ -58,12 +58,12 @@ class SensorQueryParameters(CollectionQueryParameters):
 
 class SensorSummaryResponse(BaseGetResponse, SensorFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID] = None
+    workspace_id: Optional[uuid.UUID]
 
 
 class SensorDetailResponse(BaseGetResponse, SensorFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceSummaryResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"]
 
 
 class SensorPostBody(BasePostBody, SensorFields):

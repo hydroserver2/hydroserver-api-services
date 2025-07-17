@@ -50,11 +50,11 @@ class RoleQueryParameters(CollectionQueryParameters):
 
 class RoleSummaryResponse(BaseGetResponse, RoleFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID] = None
+    workspace_id: Optional[uuid.UUID]
     permissions: list[PermissionDetailResponse]
 
 
 class RoleDetailResponse(BaseGetResponse, RoleFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceDetailResponse"] = None
+    workspace: Optional["WorkspaceDetailResponse"]
     permissions: list[PermissionDetailResponse]

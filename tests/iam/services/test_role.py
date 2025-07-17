@@ -4,7 +4,7 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from iam.services.role import RoleService
-from iam.schemas import RoleDetailResponse
+from iam.schemas import RoleSummaryResponse
 
 role_service = RoleService()
 
@@ -100,7 +100,7 @@ def test_list_role(
             filtering=params,
         )
         assert Counter(str(role.name) for role in result) == Counter(role_names)
-        assert (RoleDetailResponse.from_orm(role) for role in result)
+        assert (RoleSummaryResponse.from_orm(role) for role in result)
 
 
 @pytest.mark.parametrize(
@@ -177,4 +177,4 @@ def test_get_role(get_principal, principal, role, message, error_code):
             uid=uuid.UUID(role),
         )
         assert role_get.name == message
-        assert RoleDetailResponse.from_orm(role_get)
+        assert RoleSummaryResponse.from_orm(role_get)

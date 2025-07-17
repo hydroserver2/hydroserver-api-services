@@ -47,12 +47,12 @@ class UnitQueryParameters(CollectionQueryParameters):
 
 class UnitSummaryResponse(BaseGetResponse, UnitFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID] = None
+    workspace_id: Optional[uuid.UUID]
 
 
 class UnitDetailResponse(BaseGetResponse, UnitFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceSummaryResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"]
 
 
 class UnitPostBody(BasePostBody, UnitFields):
