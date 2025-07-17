@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -30,7 +31,6 @@ def get_data_archives(
     request: HydroServerHttpRequest,
     response: HttpResponse,
     query: Query[OrchestrationConfigurationQueryParameters],
-    expand_related: bool = False,
 ):
     """
     Get public Data Archives and Data Archives associated with the authenticated user.
@@ -43,7 +43,7 @@ def get_data_archives(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
-        expand_related=expand_related,
+        expand_related=query.expand_related,
     )
 
 
@@ -63,7 +63,7 @@ def get_data_archives(
 def create_data_archive(
     request: HydroServerHttpRequest,
     data: DataArchivePostBody,
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new Data Archive.
@@ -90,7 +90,7 @@ def create_data_archive(
 def get_data_archive(
     request: HydroServerHttpRequest,
     data_archive_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Data Archive.
@@ -120,7 +120,7 @@ def update_data_archive(
     request: HydroServerHttpRequest,
     data_archive_id: Path[uuid.UUID],
     data: DataArchivePatchBody,
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Data Archive.

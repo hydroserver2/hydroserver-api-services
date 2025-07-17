@@ -4,10 +4,12 @@ from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import F, Q
+from django.db.models import QuerySet, F, Q
 from iam.models import APIKey
 from sta.models import Thing, Location, Tag, Photo, SamplingFeatureType, SiteType
 from sta.schemas import (
+    ThingSummaryResponse,
+    ThingDetailResponse,
     ThingPostBody,
     ThingPatchBody,
     TagPostBody,
@@ -21,18 +23,20 @@ User = get_user_model()
 
 
 class ThingService(ServiceUtils):
-    @staticmethod
     def get_thing_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            thing = (
-                Thing.objects.select_related("workspace")
-                .prefetch_related("tags", "photos")
-                .get(pk=uid)
-            )
+            thing = Thing.objects
+            if expand_related:
+                thing = self.select_expanded_fields(thing)
+            else:
+                thing = thing.prefetch_related("tags", "photos").with_location()
+            thing = thing.get(pk=uid)
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
 
@@ -45,6 +49,14 @@ class ThingService(ServiceUtils):
             raise HttpError(403, f"You do not have permission to {action} this Thing")
 
         return thing
+
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return (
+            queryset.select_related("workspace")
+            .prefetch_related("tags", "photos")
+            .with_location()
+        )
 
     @staticmethod
     def apply_bbox_filter(queryset, bbox: Optional[list[str]]):
@@ -99,10 +111,11 @@ class ThingService(ServiceUtils):
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = Thing.objects
 
@@ -145,25 +158,46 @@ class ThingService(ServiceUtils):
                 },
             )
 
-        queryset = (
-            queryset.visible(principal=principal)
-            .prefetch_related("tags", "photos")
-            .with_location()
-            .distinct()
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+        else:
+            queryset = queryset.prefetch_related("tags", "photos").with_location()
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return [
+            (
+                ThingDetailResponse.model_validate(thing)
+                if expand_related
+                else ThingSummaryResponse.model_validate(thing)
+            )
+            for thing in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        thing = self.get_thing_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
+        return (
+            ThingDetailResponse.model_validate(thing)
+            if expand_related
+            else ThingSummaryResponse.model_validate(thing)
         )
 
-        return queryset
-
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        return self.get_thing_for_action(principal=principal, uid=uid, action="view")
-
-    def create(self, principal: User | APIKey, data: ThingPostBody):
+    def create(
+        self,
+        principal: User | APIKey,
+        data: ThingPostBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
         )
@@ -184,9 +218,17 @@ class ThingService(ServiceUtils):
             **data.location.dict(include=set(LocationFields.model_fields.keys())),
         )
 
-        return thing
+        return self.get(
+            principal=principal, uid=thing.id, expand_related=expand_related
+        )
 
-    def update(self, principal: User | APIKey, uid: uuid.UUID, data: ThingPatchBody):
+    def update(
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        data: ThingPatchBody,
+        expand_related: Optional[bool] = None,
+    ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
         location = thing.location
 
@@ -210,10 +252,12 @@ class ThingService(ServiceUtils):
 
         location.save()
 
-        return thing
+        return self.get(
+            principal=principal, uid=thing.id, expand_related=expand_related
+        )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
-        thing = self.get_thing_for_action(principal=principal, uid=uid, action="delete")
+        thing = self.get_thing_for_action(principal=principal, uid=uid, action="delete", expand_related=True)
         location = thing.location
 
         thing.delete()
@@ -315,33 +359,25 @@ class ThingService(ServiceUtils):
     def list_site_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = SiteType.objects.order_by(f"{'-' if order_desc else ''}name")
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)
 
     def list_sampling_feature_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = SamplingFeatureType.objects.order_by(
             f"{'-' if order_desc else ''}name"
         )
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)

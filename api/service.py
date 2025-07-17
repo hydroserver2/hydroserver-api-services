@@ -96,23 +96,32 @@ class ServiceUtils:
         return queryset.order_by(*order_by_fields)
 
     @staticmethod
-    def apply_pagination(queryset: QuerySet, page: int, page_size: int):
+    def apply_pagination(
+        queryset: QuerySet,
+        response: Optional[HttpResponse] = None,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+    ):
+        page = page or 1
+        page_size = page_size or 100
+
         if page < 1:
             raise ValueError("Page must be greater >= 1.")
         if page_size < 1:
             raise ValueError("Page size must be >= 1.")
+        if page_size > 100000:
+            raise ValueError("Page size must be <= 100000.")
 
         count = queryset.count()
         offset = (page - 1) * page_size
 
-        return queryset[offset : offset + page_size], count
+        if response:
+            response["X-Total-Count"] = str(count)
+            response["X-Page"] = str(page)
+            response["X-Page-Size"] = str(page_size)
+            response["X-Total-Pages"] = str((count + page_size - 1) // page_size)
 
-    @staticmethod
-    def insert_pagination_headers(response, count, page, page_size):
-        response["X-Total-Count"] = str(count)
-        response["X-Page"] = str(page)
-        response["X-Page-Size"] = str(page_size)
-        response["X-Total-Pages"] = str((count + page_size - 1) // page_size)
+        return queryset[offset : offset + page_size], count
 
 
 class VocabularyService(ServiceUtils):
@@ -120,8 +129,8 @@ class VocabularyService(ServiceUtils):
         self,
         vocabulary_model: Type[Model],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = vocabulary_model.objects
@@ -134,10 +143,6 @@ class VocabularyService(ServiceUtils):
             ],
         )
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)

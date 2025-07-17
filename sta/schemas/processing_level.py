@@ -9,7 +9,7 @@ from api.schemas import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
 
 
 class ProcessingLevelFields(Schema):
@@ -26,6 +26,7 @@ ProcessingLevelOrderByFields = Literal[
 
 
 class ProcessingLevelQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[ProcessingLevelOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -49,7 +50,7 @@ class ProcessingLevelSummaryResponse(BaseGetResponse, ProcessingLevelFields):
 
 class ProcessingLevelDetailResponse(BaseGetResponse, ProcessingLevelFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceDetailResponse"]
+    workspace: Optional["WorkspaceSummaryResponse"]
 
 
 class ProcessingLevelPostBody(BasePostBody, ProcessingLevelFields):

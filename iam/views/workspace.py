@@ -1,10 +1,12 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.db import transaction
 from django.http import HttpResponse
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from iam.schemas import (
+    WorkspaceSummaryResponse,
     WorkspaceDetailResponse,
     WorkspacePostBody,
     WorkspacePatchBody,
@@ -23,7 +25,7 @@ workspace_service = WorkspaceService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[WorkspaceDetailResponse],
+        200: list[WorkspaceDetailResponse] | list[WorkspaceSummaryResponse],
         401: str,
     },
     by_alias=True,
@@ -45,6 +47,7 @@ def get_workspaces(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=True if query.expand_related is None else query.expand_related,
     )
 
 
@@ -52,7 +55,7 @@ def get_workspaces(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: WorkspaceDetailResponse,
+        201: WorkspaceDetailResponse | WorkspaceSummaryResponse,
         401: str,
         422: str,
     },
@@ -60,38 +63,50 @@ def get_workspaces(
     exclude_unset=True,
 )
 @transaction.atomic
-def create_workspace(request: HydroServerHttpRequest, data: WorkspacePostBody):
+def create_workspace(
+    request: HydroServerHttpRequest,
+    data: WorkspacePostBody,
+    expand_related: Optional[bool] = True,
+):
     """
     Create a new workspace owned by the authenticated user.
     """
 
-    return 201, workspace_service.create(principal=request.principal, data=data)
+    return 201, workspace_service.create(
+        principal=request.principal, data=data, expand_related=expand_related
+    )
 
 
 @workspace_router.get(
     "/{workspace_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: WorkspaceDetailResponse,
+        200: WorkspaceDetailResponse | WorkspaceSummaryResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_workspace(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def get_workspace(
+    request: HydroServerHttpRequest,
+    workspace_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = True,
+):
     """
     Get workspace details.
     """
 
-    return 200, workspace_service.get(principal=request.principal, uid=workspace_id)
+    return 200, workspace_service.get(
+        principal=request.principal, uid=workspace_id, expand_related=expand_related
+    )
 
 
 @workspace_router.patch(
     "/{workspace_id}",
     auth=[session_auth, bearer_auth],
     response={
-        200: WorkspaceDetailResponse,
+        200: WorkspaceDetailResponse | WorkspaceSummaryResponse,
         401: str,
         403: str,
         422: str,
@@ -104,13 +119,17 @@ def update_workspace(
     request: HydroServerHttpRequest,
     workspace_id: Path[uuid.UUID],
     data: WorkspacePatchBody,
+    expand_related: Optional[bool] = True,
 ):
     """
     Update a workspace owned by the authenticated user.
     """
 
     return 200, workspace_service.update(
-        principal=request.principal, uid=workspace_id, data=data
+        principal=request.principal,
+        uid=workspace_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 

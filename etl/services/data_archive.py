@@ -37,7 +37,7 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
         raise_400: bool = False,
     ):
         try:
@@ -77,11 +77,11 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         queryset = DataArchive.objects
 
@@ -110,11 +110,7 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return [
             (
@@ -126,7 +122,10 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         ]
 
     def get(
-        self, principal: User | APIKey, uid: uuid.UUID, expand_related: bool = False
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
     ):
         data_archive = self.get_data_archive_for_action(
             principal=principal, uid=uid, action="view", expand_related=expand_related
@@ -142,7 +141,7 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         self,
         principal: User | APIKey,
         data: DataArchivePostBody,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
@@ -200,17 +199,8 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
                     datastream_id=datastream_id,
                 )
 
-        data_archive = self.get_data_archive_for_action(
-            principal=principal,
-            uid=data_archive.id,
-            action="view",
-            expand_related=expand_related,
-        )
-
-        return (
-            DataArchiveDetailResponse.model_validate(data_archive)
-            if expand_related
-            else DataArchiveSummaryResponse.model_validate(data_archive)
+        return self.get(
+            principal=principal, uid=data_archive.id, expand_related=expand_related
         )
 
     def update(
@@ -218,10 +208,10 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
         principal: User | APIKey,
         uid: uuid.UUID,
         data: DataArchivePatchBody,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         data_archive = self.get_data_archive_for_action(
-            principal=principal, uid=uid, action="edit", expand_related=expand_related
+            principal=principal, uid=uid, action="edit"
         )
         data_archive_data = data.dict(
             include=set(DataArchiveFields.model_fields.keys()),
@@ -280,15 +270,13 @@ class DataArchiveService(ServiceUtils, OrchestrationConfigurationUtils):
 
         data_archive.save()
 
-        return (
-            DataArchiveDetailResponse.model_validate(data_archive)
-            if expand_related
-            else DataArchiveSummaryResponse.model_validate(data_archive)
+        return self.get(
+            principal=principal, uid=data_archive.id, expand_related=expand_related
         )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         data_archive = self.get_data_archive_for_action(
-            principal=principal, uid=uid, action="delete"
+            principal=principal, uid=uid, action="delete", expand_related=True
         )
 
         data_archive.delete()

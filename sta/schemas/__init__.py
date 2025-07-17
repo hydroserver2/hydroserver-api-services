@@ -57,6 +57,7 @@ from .datastream import (
 )
 from .observation import (
     ObservationSummaryResponse,
+    ObservationDetailResponse,
     ObservationQueryParameters,
     ObservationRowResponse,
     ObservationColumnarResponse,
@@ -68,8 +69,8 @@ from .observation import (
 )
 
 
-from iam.schemas import WorkspaceDetailResponse
-from etl.schemas import DataSourceDetailResponse
+from iam.schemas import WorkspaceSummaryResponse
+from etl.schemas import DataSourceSummaryResponse
 
 
 ThingDetailResponse.model_rebuild()
@@ -79,3 +80,4 @@ ResultQualifierDetailResponse.model_rebuild()
 SensorDetailResponse.model_rebuild()
 UnitDetailResponse.model_rebuild()
 DatastreamDetailResponse.model_rebuild()
+ObservationDetailResponse.model_rebuild()

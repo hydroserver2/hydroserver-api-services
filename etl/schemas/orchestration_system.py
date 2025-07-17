@@ -28,6 +28,7 @@ OrchestrationSystemOrderByFields = Literal[
 
 
 class OrchestrationSystemQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[OrchestrationSystemOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )

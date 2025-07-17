@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -13,6 +14,7 @@ from sta.schemas import (
     DatastreamPatchBody,
 )
 from sta.services import DatastreamService
+from sta.views.observation import observation_router
 
 datastream_router = Router(tags=["Datastreams"])
 datastream_service = DatastreamService()
@@ -22,7 +24,7 @@ datastream_service = DatastreamService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[DatastreamSummaryResponse],
+        200: list[DatastreamSummaryResponse] | list[DatastreamDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -43,6 +45,7 @@ def get_datastreams(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -50,7 +53,7 @@ def get_datastreams(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: DatastreamSummaryResponse,
+        201: DatastreamSummaryResponse | DatastreamDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -59,12 +62,18 @@ def get_datastreams(
     by_alias=True,
 )
 @transaction.atomic
-def create_datastream(request: HydroServerHttpRequest, data: DatastreamPostBody):
+def create_datastream(
+    request: HydroServerHttpRequest,
+    data: DatastreamPostBody,
+    expand_related: Optional[bool] = None,
+):
     """
     Create a new Datastream.
     """
 
-    return 201, datastream_service.create(principal=request.principal, data=data)
+    return 201, datastream_service.create(
+        principal=request.principal, data=data, expand_related=expand_related
+    )
 
 
 @datastream_router.get(
@@ -137,18 +146,14 @@ def get_datastream_sampled_mediums(
 def get_datastream(
     request: HydroServerHttpRequest,
     datastream_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Datastream.
     """
 
-    datastream = datastream_service.get(principal=request.principal, uid=datastream_id)
-
-    return 200, (
-        DatastreamDetailResponse.model_validate(datastream)
-        if expand_related
-        else DatastreamSummaryResponse.model_validate(datastream)
+    return 200, datastream_service.get(
+        principal=request.principal, uid=datastream_id, expand_related=expand_related
     )
 
 
@@ -156,7 +161,7 @@ def get_datastream(
     "/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DatastreamSummaryResponse,
+        200: DatastreamSummaryResponse | DatastreamDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -169,13 +174,17 @@ def update_datastream(
     request: HydroServerHttpRequest,
     datastream_id: Path[uuid.UUID],
     data: DatastreamPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Datastream.
     """
 
     return 200, datastream_service.update(
-        principal=request.principal, uid=datastream_id, data=data
+        principal=request.principal,
+        uid=datastream_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 
@@ -211,3 +220,6 @@ def get_datastream_csv(request: HydroServerHttpRequest, datastream_id: Path[uuid
     """
 
     return datastream_service.get_csv(principal=request.principal, uid=datastream_id)
+
+
+datastream_router.add_router("{datastream_id}/observations", observation_router)

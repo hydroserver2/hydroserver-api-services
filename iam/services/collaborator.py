@@ -18,8 +18,8 @@ class CollaboratorService(ServiceUtils):
         principal: Optional[User | APIKey],
         response: HttpResponse,
         workspace_id: uuid.UUID,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         filtering: Optional[dict] = None,
     ):
         queryset = Collaborator.objects
@@ -38,11 +38,7 @@ class CollaboratorService(ServiceUtils):
 
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset
 
@@ -83,7 +79,9 @@ class CollaboratorService(ServiceUtils):
                 400, f"Account with email '{data.email}' already owns the workspace"
             )
 
-        collaborator_role = role_service.get(principal=principal, uid=data.role_id)
+        collaborator_role = role_service.get_role_for_action(
+            principal=principal, uid=data.role_id, action="view", expand_related=True
+        )
 
         if not collaborator_role.is_user_role:
             raise HttpError(400, "Role not supported for collaborator assignment")
@@ -120,7 +118,12 @@ class CollaboratorService(ServiceUtils):
             )
 
         if data.role_id:
-            collaborator_role = role_service.get(principal=principal, uid=data.role_id)
+            collaborator_role = role_service.get_role_for_action(
+                principal=principal,
+                uid=data.role_id,
+                action="view",
+                expand_related=True,
+            )
 
             if not collaborator_role.is_user_role:
                 raise HttpError(400, "Role not supported for collaborator assignment")

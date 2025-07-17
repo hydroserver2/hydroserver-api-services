@@ -20,6 +20,7 @@ from sta.schemas import (
     PhotoDeleteBody,
 )
 from sta.services import ThingService
+from etl.views.hydroshare_archival import hydroshare_archival_router
 
 thing_router = Router(tags=["Things"])
 thing_service = ThingService()
@@ -29,7 +30,7 @@ thing_service = ThingService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ThingSummaryResponse],
+        200: list[ThingSummaryResponse] | list[ThingDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -50,6 +51,7 @@ def get_things(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -57,7 +59,7 @@ def get_things(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ThingSummaryResponse,
+        201: ThingSummaryResponse | ThingDetailResponse,
         400: str,
         401: str,
         422: str,
@@ -65,12 +67,18 @@ def get_things(
     by_alias=True,
 )
 @transaction.atomic
-def create_thing(request: HydroServerHttpRequest, data: ThingPostBody):
+def create_thing(
+    request: HydroServerHttpRequest,
+    data: ThingPostBody,
+    expand_related: Optional[bool] = None,
+):
     """
     Create a new Thing.
     """
 
-    return 201, thing_service.create(principal=request.principal, data=data)
+    return 201, thing_service.create(
+        principal=request.principal, data=data, expand_related=expand_related
+    )
 
 
 @thing_router.get(
@@ -147,18 +155,14 @@ def get_sampling_feature_types(
 def get_thing(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Thing.
     """
 
-    thing = thing_service.get(principal=request.principal, uid=thing_id)
-
-    return 200, (
-        ThingDetailResponse.model_validate(thing)
-        if expand_related
-        else ThingSummaryResponse.model_validate(thing)
+    return 200, thing_service.get(
+        principal=request.principal, uid=thing_id, expand_related=expand_related
     )
 
 
@@ -166,7 +170,7 @@ def get_thing(
     "/{thing_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ThingSummaryResponse,
+        200: ThingSummaryResponse | ThingDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -176,14 +180,20 @@ def get_thing(
 )
 @transaction.atomic
 def update_thing(
-    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: ThingPatchBody
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    data: ThingPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Thing.
     """
 
     return 200, thing_service.update(
-        principal=request.principal, uid=thing_id, data=data
+        principal=request.principal,
+        uid=thing_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 
@@ -377,3 +387,6 @@ def remove_photo(
         uid=thing_id,
         data=data,
     )
+
+
+thing_router.add_router("{thing_id}/archive", hydroshare_archival_router)

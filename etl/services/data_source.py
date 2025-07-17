@@ -37,7 +37,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
         raise_400: bool = False,
     ):
         try:
@@ -73,11 +73,11 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         queryset = DataSource.objects
 
@@ -105,11 +105,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
             queryset = self.select_expanded_fields(queryset)
 
         queryset = queryset.visible(principal=principal).distinct()
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return [
             (
@@ -124,7 +120,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         self,
         principal: User | APIKey,
         uid: uuid.UUID,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         data_source = self.get_data_source_for_action(
             principal=principal, uid=uid, action="view", expand_related=expand_related
@@ -140,7 +136,7 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         self,
         principal: User | APIKey,
         data: DataSourcePostBody,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=data.workspace_id
@@ -196,17 +192,8 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
                     principal=principal, uid=data_source.id, datastream_id=datastream_id
                 )
 
-        data_source = self.get_data_source_for_action(
-            principal=principal,
-            uid=data_source.id,
-            action="view",
-            expand_related=expand_related,
-        )
-
-        return (
-            DataSourceDetailResponse.model_validate(data_source)
-            if expand_related
-            else DataSourceSummaryResponse.model_validate(data_source)
+        return self.get(
+            principal=principal, uid=data_source.id, expand_related=expand_related
         )
 
     def update(
@@ -214,10 +201,10 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
         principal: User | APIKey,
         uid: uuid.UUID,
         data: DataSourcePatchBody,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         data_source = self.get_data_source_for_action(
-            principal=principal, uid=uid, action="edit", expand_related=expand_related
+            principal=principal, uid=uid, action="edit"
         )
         data_source_data = data.dict(
             include=set(DataSourceFields.model_fields.keys()),
@@ -278,15 +265,13 @@ class DataSourceService(ServiceUtils, OrchestrationConfigurationUtils):
 
         data_source.save()
 
-        return (
-            DataSourceDetailResponse.model_validate(data_source)
-            if expand_related
-            else DataSourceSummaryResponse.model_validate(data_source)
+        return self.get(
+            principal=principal, uid=data_source.id, expand_related=expand_related
         )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         data_source = self.get_data_source_for_action(
-            principal=principal, uid=uid, action="delete"
+            principal=principal, uid=uid, action="delete", expand_related=True
         )
 
         data_source.delete()

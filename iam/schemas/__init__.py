@@ -27,11 +27,13 @@ from .collaborator import (
     CollaboratorDeleteBody,
 )
 from .api_key import (
+    APIKeySummaryResponse,
     APIKeyDetailResponse,
     APIKeyQueryParameters,
     APIKeyPostBody,
     APIKeyPatchBody,
-    APIKeyPostResponse,
+    APIKeySummaryPostResponse,
+    APIKeyDetailPostResponse,
 )
 from .role import RoleDetailResponse, RoleSummaryResponse, RoleQueryParameters
 
@@ -42,6 +44,6 @@ WorkspaceDetailResponse.model_rebuild()
 RoleDetailResponse.model_rebuild()
 
 APIKeyDetailResponse.model_rebuild()
-APIKeyPostResponse.model_rebuild()
+APIKeyDetailPostResponse.model_rebuild()
 
 CollaboratorDetailResponse.model_rebuild()

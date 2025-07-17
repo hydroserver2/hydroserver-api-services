@@ -1,10 +1,11 @@
 import io
 import uuid6
 import typing
+import operator
 from typing import Literal, Optional, Union
 from django.db import models, connection
 from django.db.models import Q
-from iam.models import Workspace
+from iam.models import Workspace, Permission
 from iam.models.utils import PermissionChecker
 from .datastream import Datastream
 
@@ -105,13 +106,12 @@ class ObservationQuerySet(models.QuerySet):
     def bulk_copy(self, observations, batch_size=100_000):
         db_table_sql = connection.ops.quote_name(self.model._meta.db_table)  # noqa
         db_fields = [
-            field.column
-            for field in self.model._meta.fields
-            if not field.primary_key  # noqa
+            field.column for field in self.model._meta.fields if not field.primary_key
         ]
-        db_fields_sql = ", ".join(
-            connection.ops.quote_name(field) for field in db_fields
-        )
+        quoted_fields = [connection.ops.quote_name(field) for field in db_fields]
+        db_fields_sql = ", ".join(quoted_fields)
+
+        attr_getters = [operator.attrgetter(field) for field in db_fields]
 
         def escape_pg_copy(value):
             if value is None:
@@ -132,16 +132,13 @@ class ObservationQuerySet(models.QuerySet):
                 buffer = io.StringIO()
                 for i in range(0, len(observations), batch_size):
                     batch = observations[i : i + batch_size]
-                    buffer.write(
-                        "\n".join(
-                            "\t".join(
-                                escape_pg_copy(getattr(obs, field, None))
-                                for field in db_fields
-                            )
-                            for obs in batch
+                    lines = []
+                    for obs in batch:
+                        line = "\t".join(
+                            escape_pg_copy(getter(obs)) for getter in attr_getters
                         )
-                        + "\n"
-                    )
+                        lines.append(line)
+                    buffer.write("\n".join(lines) + "\n")
                     buffer.seek(0)
                     copy.write(buffer.read())
                     buffer.truncate(0)
@@ -168,6 +165,43 @@ class Observation(models.Model, PermissionChecker):
         return cls.check_create_permissions(
             principal=principal, workspace=workspace, resource_type="Observation"
         )
+
+    @classmethod
+    def can_principal_delete(
+        cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"
+    ):
+        if not principal:
+            return False
+
+        if hasattr(principal, "account_type"):
+            if principal.account_type in [
+                "admin",
+                "staff",
+            ]:
+                return True
+
+            if workspace.owner == principal:
+                return True
+
+            permissions = Permission.objects.filter(
+                role__collaborator_assignments__user=principal,
+                role__collaborator_assignments__workspace=workspace,
+                resource_type__in=["*", "Observation"],
+            ).values_list("permission_type", flat=True)
+
+        elif hasattr(principal, "workspace"):
+            if not workspace or principal.workspace != workspace:
+                return False
+
+            permissions = Permission.objects.filter(
+                role=principal.role,
+                resource_type__in=["*", "Observation"],
+            ).values_list("permission_type", flat=True)
+
+        else:
+            return False
+
+        return any(perm in permissions for perm in ["*", "delete"])
 
     def get_principal_permissions(
         self, principal: Optional[Union["User", "APIKey"]]

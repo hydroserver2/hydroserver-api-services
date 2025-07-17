@@ -12,7 +12,7 @@ from .orchestration_configuration import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceSummaryResponse
+    # from iam.schemas import WorkspaceSummaryResponse
     from etl.schemas import OrchestrationSystemSummaryResponse
     from sta.schemas import DatastreamSummaryResponse
 

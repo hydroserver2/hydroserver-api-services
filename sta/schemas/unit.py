@@ -9,7 +9,7 @@ from api.schemas import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
 
 
 class UnitFields(Schema):
@@ -29,6 +29,7 @@ UnitOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fiel
 
 
 class UnitQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[UnitOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -51,7 +52,7 @@ class UnitSummaryResponse(BaseGetResponse, UnitFields):
 
 class UnitDetailResponse(BaseGetResponse, UnitFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceDetailResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"] = None
 
 
 class UnitPostBody(BasePostBody, UnitFields):

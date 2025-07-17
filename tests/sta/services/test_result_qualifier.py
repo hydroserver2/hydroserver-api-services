@@ -7,7 +7,7 @@ from sta.services import ResultQualifierService
 from sta.schemas import (
     ResultQualifierPostBody,
     ResultQualifierPatchBody,
-    ResultQualifierDetailResponse,
+    ResultQualifierSummaryResponse,
 )
 
 result_qualifier_service = ResultQualifierService()
@@ -98,7 +98,7 @@ def test_list_result_qualifier(
             str(result_qualifier.code) for result_qualifier in result
         ) == Counter(result_qualifier_codes)
         assert (
-            ResultQualifierDetailResponse.from_orm(result_qualifier)
+            ResultQualifierSummaryResponse.from_orm(result_qualifier)
             for result_qualifier in result
         )
 
@@ -247,7 +247,7 @@ def test_get_result_qualifier(
             principal=get_principal(principal), uid=uuid.UUID(result_qualifier)
         )
         assert result_qualifier_get.code == message
-        assert ResultQualifierDetailResponse.from_orm(result_qualifier_get)
+        assert ResultQualifierSummaryResponse.from_orm(result_qualifier_get)
 
 
 @pytest.mark.parametrize(
@@ -334,7 +334,7 @@ def test_create_result_qualifier(
         )
         assert result_qualifier_create.code == result_qualifier_data.code
         assert result_qualifier_create.description == result_qualifier_data.description
-        assert ResultQualifierDetailResponse.from_orm(result_qualifier_create)
+        assert ResultQualifierSummaryResponse.from_orm(result_qualifier_create)
 
 
 @pytest.mark.parametrize(
@@ -460,7 +460,7 @@ def test_edit_result_qualifier(
         )
         assert result_qualifier_update.code == result_qualifier_data.code
         assert result_qualifier_update.description == result_qualifier_data.description
-        assert ResultQualifierDetailResponse.from_orm(result_qualifier_update)
+        assert ResultQualifierSummaryResponse.from_orm(result_qualifier_update)
 
 
 @pytest.mark.parametrize(

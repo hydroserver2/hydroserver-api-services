@@ -11,14 +11,14 @@ from api.schemas import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
-    from etl.schemas import DataSourceDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
+    from etl.schemas import DataSourceSummaryResponse
     from sta.schemas import (
-        ThingDetailResponse,
-        ObservedPropertyDetailResponse,
-        UnitDetailResponse,
-        SensorDetailResponse,
-        ProcessingLevelDetailResponse,
+        ThingSummaryResponse,
+        ObservedPropertySummaryResponse,
+        UnitSummaryResponse,
+        SensorSummaryResponse,
+        ProcessingLevelSummaryResponse,
     )
 
 
@@ -75,6 +75,7 @@ DatastreamOrderByFields = Literal[
 
 
 class DatastreamQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[DatastreamOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -175,15 +176,15 @@ class DatastreamSummaryResponse(
 
 class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
-    data_source: Optional["DataSourceDetailResponse"] = None
-    workspace: "WorkspaceDetailResponse" = Field(
+    data_source: Optional["DataSourceSummaryResponse"] = None
+    workspace: "WorkspaceSummaryResponse" = Field(
         ..., validation_alias=AliasPath("thing", "workspace")
     )
-    thing: "ThingDetailResponse"
-    sensor: "SensorDetailResponse"
-    observed_property: "ObservedPropertyDetailResponse"
-    processing_level: "ProcessingLevelDetailResponse"
-    unit: "UnitDetailResponse"
+    thing: "ThingSummaryResponse"
+    sensor: "SensorSummaryResponse"
+    observed_property: "ObservedPropertySummaryResponse"
+    processing_level: "ProcessingLevelSummaryResponse"
+    unit: "UnitSummaryResponse"
 
 
 class DatastreamPostBody(BasePostBody, DatastreamFields, DatastreamRelatedFields):

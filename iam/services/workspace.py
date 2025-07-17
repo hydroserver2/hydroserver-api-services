@@ -6,7 +6,13 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from iam.models import Workspace, WorkspaceTransferConfirmation, APIKey
-from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
+from iam.schemas import (
+    WorkspaceSummaryResponse,
+    WorkspaceDetailResponse,
+    WorkspacePostBody,
+    WorkspacePatchBody,
+    WorkspaceTransferBody,
+)
 from iam.schemas.workspace import WorkspaceOrderByFields
 from api.service import ServiceUtils
 
@@ -46,14 +52,15 @@ class WorkspaceService(ServiceUtils):
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = Workspace.objects
 
-        if isinstance(principal, User):
+        if isinstance(principal, User) and expand_related:
             principal.collaborator_roles = list(
                 principal.workspace_roles.select_related("role", "workspace")
                 .prefetch_related("role__permissions")
@@ -78,39 +85,56 @@ class WorkspaceService(ServiceUtils):
                 list(get_args(WorkspaceOrderByFields)),
             )
 
-        queryset = (
-            queryset.visible(principal=principal)
-            .select_related(
+        if expand_related:
+            queryset = queryset.select_related(
                 "owner", "transfer_confirmation", "transfer_confirmation__new_owner"
             )
-            .distinct()
-        )
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
+        queryset = queryset.visible(principal=principal).distinct()
 
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
-        queryset = [
-            self.attach_role_and_transfer_fields(workspace, principal)
+        if expand_related:
+            queryset = [
+                self.attach_role_and_transfer_fields(workspace, principal)
+                for workspace in queryset
+            ]
+
+        return [
+            (
+                WorkspaceDetailResponse.model_validate(workspace)
+                if expand_related
+                else WorkspaceSummaryResponse.model_validate(workspace)
+            )
             for workspace in queryset
         ]
 
-        return queryset
-
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = self.get_workspace(principal=principal, workspace_id=uid)
 
-        if isinstance(principal, User):
-            principal.collaborator_roles = list(principal.workspace_roles.all())
+        if expand_related:
+            if isinstance(principal, User):
+                principal.collaborator_roles = list(principal.workspace_roles.all())
 
-        workspace = self.attach_role_and_transfer_fields(workspace, principal)
+            workspace = self.attach_role_and_transfer_fields(workspace, principal)
 
-        return workspace
+        return (
+            WorkspaceDetailResponse.model_validate(workspace)
+            if expand_related
+            else WorkspaceSummaryResponse.model_validate(workspace)
+        )
 
-    @staticmethod
-    def create(principal: User, data: WorkspacePostBody):
+    def create(
+        self,
+        principal: User,
+        data: WorkspacePostBody,
+        expand_related: Optional[bool] = None,
+    ):
         if not Workspace.can_principal_create(principal):
             raise HttpError(403, "You do not have permission to create this workspace")
 
@@ -119,9 +143,15 @@ class WorkspaceService(ServiceUtils):
         except IntegrityError:
             raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
-        return workspace
+        return self.get(principal, uid=workspace.id, expand_related=expand_related)
 
-    def update(self, principal: User, uid: uuid.UUID, data: WorkspacePatchBody):
+    def update(
+        self,
+        principal: User,
+        uid: uuid.UUID,
+        data: WorkspacePatchBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, permissions = self.get_workspace(
             principal=principal, workspace_id=uid
         )
@@ -139,10 +169,7 @@ class WorkspaceService(ServiceUtils):
         except IntegrityError:
             raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
-        principal.collaborator_roles = list(principal.workspace_roles.all())
-        workspace = self.attach_role_and_transfer_fields(workspace, principal)
-
-        return workspace
+        return self.get(principal, uid=workspace.id, expand_related=expand_related)
 
     def delete(self, principal: User, uid: uuid.UUID):
         workspace, permissions = self.get_workspace(

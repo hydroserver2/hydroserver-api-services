@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from api.schemas import BaseGetResponse, BasePostBody, CollectionQueryParameters
 
 if TYPE_CHECKING:
-    from iam.schemas import AccountContactDetailResponse, RoleDetailResponse
+    from iam.schemas import AccountContactDetailResponse, RoleSummaryResponse
 
 
 class CollaboratorQueryParameters(CollectionQueryParameters):
@@ -14,7 +14,7 @@ class CollaboratorQueryParameters(CollectionQueryParameters):
 
 class CollaboratorDetailResponse(BaseGetResponse):
     user: "AccountContactDetailResponse"
-    role: "RoleDetailResponse"
+    role: "RoleSummaryResponse"
 
 
 class CollaboratorPostBody(BasePostBody):

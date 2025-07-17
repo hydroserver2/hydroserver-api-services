@@ -3,9 +3,15 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
 from sta.models import ResultQualifier
-from sta.schemas import ResultQualifierPostBody, ResultQualifierPatchBody
+from sta.schemas import (
+    ResultQualifierSummaryResponse,
+    ResultQualifierDetailResponse,
+    ResultQualifierPostBody,
+    ResultQualifierPatchBody,
+)
 from sta.schemas.result_qualifier import (
     ResultQualifierFields,
     ResultQualifierOrderByFields,
@@ -16,16 +22,18 @@ User = get_user_model()
 
 
 class ResultQualifierService(ServiceUtils):
-    @staticmethod
     def get_result_qualifier_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            result_qualifier = ResultQualifier.objects.select_related("workspace").get(
-                pk=uid
-            )
+            result_qualifier = ResultQualifier.objects
+            if expand_related:
+                result_qualifier = self.select_expanded_fields(result_qualifier)
+            result_qualifier = result_qualifier.get(pk=uid)
         except ResultQualifier.DoesNotExist:
             raise HttpError(404, "Result qualifier does not exist")
 
@@ -43,14 +51,19 @@ class ResultQualifierService(ServiceUtils):
 
         return result_qualifier
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = ResultQualifier.objects
 
@@ -65,22 +78,44 @@ class ResultQualifierService(ServiceUtils):
                 list(get_args(ResultQualifierOrderByFields)),
             )
 
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
+        return [
+            (
+                ResultQualifierDetailResponse.model_validate(result_qualifier)
+                if expand_related
+                else ResultQualifierSummaryResponse.model_validate(result_qualifier)
+            )
+            for result_qualifier in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        result_qualifier = self.get_result_qualifier_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-        return queryset
-
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        return self.get_result_qualifier_for_action(
-            principal=principal, uid=uid, action="view"
+        return (
+            ResultQualifierDetailResponse.model_validate(result_qualifier)
+            if expand_related
+            else ResultQualifierSummaryResponse.model_validate(result_qualifier)
         )
 
-    def create(self, principal: User | APIKey, data: ResultQualifierPostBody):
+    def create(
+        self,
+        principal: User | APIKey,
+        data: ResultQualifierPostBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = (
             self.get_workspace(principal=principal, workspace_id=data.workspace_id)
             if data.workspace_id
@@ -102,13 +137,16 @@ class ResultQualifierService(ServiceUtils):
             **data.dict(include=set(ResultQualifierFields.model_fields.keys())),
         )
 
-        return result_qualifier
+        return self.get(
+            principal=principal, uid=result_qualifier.id, expand_related=expand_related
+        )
 
     def update(
         self,
         principal: User | APIKey,
         uid: uuid.UUID,
         data: ResultQualifierPatchBody,
+        expand_related: Optional[bool] = None,
     ):
         result_qualifier = self.get_result_qualifier_for_action(
             principal=principal, uid=uid, action="edit"
@@ -122,7 +160,9 @@ class ResultQualifierService(ServiceUtils):
 
         result_qualifier.save()
 
-        return result_qualifier
+        return self.get(
+            principal=principal, uid=result_qualifier.id, expand_related=expand_related
+        )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         result_qualifier = self.get_result_qualifier_for_action(

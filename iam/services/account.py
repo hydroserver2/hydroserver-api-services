@@ -1,3 +1,4 @@
+from typing import Optional
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
@@ -98,35 +99,27 @@ class AccountService(ServiceUtils):
     def list_user_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = UserType.objects.filter(public=True).order_by(
             f"{'-' if order_desc else ''}name"
         )
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)
 
     def list_organization_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = OrganizationType.objects.filter(public=True).order_by(
             f"{'-' if order_desc else ''}name"
         )
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)

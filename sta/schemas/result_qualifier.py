@@ -9,7 +9,7 @@ from api.schemas import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
 
 
 class ResultQualifierFields(Schema):
@@ -25,6 +25,7 @@ ResultQualifierOrderByFields = Literal[
 
 
 class ResultQualifierQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[ResultQualifierOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -40,7 +41,7 @@ class ResultQualifierSummaryResponse(BaseGetResponse, ResultQualifierFields):
 
 class ResultQualifierDetailResponse(BaseGetResponse, ResultQualifierFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceDetailResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"] = None
 
 
 class ResultQualifierPostBody(BasePostBody, ResultQualifierFields):

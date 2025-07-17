@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.db import transaction
 from django.http import HttpResponse
@@ -22,7 +23,7 @@ unit_service = UnitService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[UnitSummaryResponse],
+        200: list[UnitSummaryResponse] | list[UnitDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -43,6 +44,7 @@ def get_units(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -50,7 +52,7 @@ def get_units(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: UnitSummaryResponse,
+        201: UnitSummaryResponse | UnitDetailResponse,
         400: str,
         401: str,
         422: str,
@@ -58,12 +60,20 @@ def get_units(
     by_alias=True,
 )
 @transaction.atomic
-def create_unit(request: HydroServerHttpRequest, data: UnitPostBody):
+def create_unit(
+    request: HydroServerHttpRequest,
+    data: UnitPostBody,
+    expand_related: Optional[bool] = None,
+):
     """
     Create a new Unit.
     """
 
-    return 201, unit_service.create(principal=request.principal, data=data)
+    return 201, unit_service.create(
+        principal=request.principal,
+        data=data,
+        expand_related=expand_related,
+    )
 
 
 @unit_router.get("/types", response={200: list[str]}, by_alias=True)
@@ -98,18 +108,14 @@ def get_unit_types(
 def get_unit(
     request: HydroServerHttpRequest,
     unit_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Unit.
     """
 
-    unit = unit_service.get(principal=request.principal, uid=unit_id)
-
-    return 200, (
-        UnitDetailResponse.model_validate(unit)
-        if expand_related
-        else UnitSummaryResponse.model_validate(unit)
+    return 200, unit_service.get(
+        principal=request.principal, uid=unit_id, expand_related=expand_related
     )
 
 
@@ -117,7 +123,7 @@ def get_unit(
     "/{unit_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: UnitSummaryResponse,
+        200: UnitSummaryResponse | UnitDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -127,13 +133,21 @@ def get_unit(
 )
 @transaction.atomic
 def update_unit(
-    request: HydroServerHttpRequest, unit_id: Path[uuid.UUID], data: UnitPatchBody
+    request: HydroServerHttpRequest,
+    unit_id: Path[uuid.UUID],
+    data: UnitPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Unit.
     """
 
-    return 200, unit_service.update(principal=request.principal, uid=unit_id, data=data)
+    return 200, unit_service.update(
+        principal=request.principal,
+        uid=unit_id,
+        data=data,
+        expand_related=expand_related,
+    )
 
 
 @unit_router.delete(

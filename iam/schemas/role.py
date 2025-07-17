@@ -11,13 +11,9 @@ RESOURCE_TYPES = Literal[*[choice[0] for choice in RESOURCE_TYPE_CHOICES]]
 PERMISSIONS = Literal[*[choice[0] for choice in PERMISSION_CHOICES]]
 
 
-class PermissionFields(Schema):
-    resource: RESOURCE_TYPES = Field(..., validation_alias="resource_type")
-    action: PERMISSIONS = Field(..., validation_alias="permission_type")
-
-
-class PermissionDetailResponse(BaseGetResponse, PermissionFields):
-    pass
+class PermissionDetailResponse(BaseGetResponse):
+    resource_type: RESOURCE_TYPES
+    permission_type: PERMISSIONS = Field(..., alias="action")
 
 
 class RoleFields(Schema):
@@ -37,6 +33,7 @@ RoleOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fiel
 
 
 class RoleQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[RoleOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )

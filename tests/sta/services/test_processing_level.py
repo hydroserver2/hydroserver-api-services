@@ -7,7 +7,7 @@ from sta.services import ProcessingLevelService
 from sta.schemas import (
     ProcessingLevelPostBody,
     ProcessingLevelPatchBody,
-    ProcessingLevelDetailResponse,
+    ProcessingLevelSummaryResponse,
 )
 
 processing_level_service = ProcessingLevelService()
@@ -155,7 +155,7 @@ def test_list_processing_level(
             str(processing_level.code) for processing_level in result
         ) == Counter(processing_level_codes)
         assert (
-            ProcessingLevelDetailResponse.from_orm(processing_level)
+            ProcessingLevelSummaryResponse.from_orm(processing_level)
             for processing_level in result
         )
 
@@ -304,7 +304,7 @@ def test_get_processing_level(
             principal=get_principal(principal), uid=uuid.UUID(processing_level)
         )
         assert processing_level_get.code == message
-        assert ProcessingLevelDetailResponse.from_orm(processing_level_get)
+        assert ProcessingLevelSummaryResponse.from_orm(processing_level_get)
 
 
 @pytest.mark.parametrize(
@@ -393,7 +393,7 @@ def test_create_processing_level(
         assert processing_level_create.code == processing_level_data.code
         assert processing_level_create.definition == processing_level_data.definition
         assert processing_level_create.explanation == processing_level_data.explanation
-        assert ProcessingLevelDetailResponse.from_orm(processing_level_create)
+        assert ProcessingLevelSummaryResponse.from_orm(processing_level_create)
 
 
 @pytest.mark.parametrize(
@@ -521,7 +521,7 @@ def test_edit_processing_level(
         assert processing_level_update.code == processing_level_data.code
         assert processing_level_update.definition == processing_level_data.definition
         assert processing_level_update.explanation == processing_level_data.explanation
-        assert ProcessingLevelDetailResponse.from_orm(processing_level_update)
+        assert ProcessingLevelSummaryResponse.from_orm(processing_level_update)
 
 
 @pytest.mark.parametrize(

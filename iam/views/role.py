@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
@@ -18,7 +19,7 @@ role_service = RoleService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[RoleSummaryResponse],
+        200: list[RoleSummaryResponse] | list[RoleDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -39,6 +40,7 @@ def get_roles(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -46,16 +48,22 @@ def get_roles(
     "/{role_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: RoleDetailResponse,
+        200: RoleSummaryResponse | RoleDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_role(request: HydroServerHttpRequest, role_id: Path[uuid.UUID]):
+def get_role(
+    request: HydroServerHttpRequest,
+    role_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = None,
+):
     """
     Get a Role.
     """
 
-    return 200, role_service.get(principal=request.principal, uid=role_id)
+    return 200, role_service.get(
+        principal=request.principal, uid=role_id, expand_related=expand_related
+    )

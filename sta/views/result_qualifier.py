@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -21,7 +22,7 @@ result_qualifier_service = ResultQualifierService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ResultQualifierSummaryResponse],
+        200: list[ResultQualifierSummaryResponse] | list[ResultQualifierDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -42,6 +43,7 @@ def get_result_qualifiers(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -49,7 +51,7 @@ def get_result_qualifiers(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ResultQualifierSummaryResponse,
+        201: ResultQualifierSummaryResponse | ResultQualifierDetailResponse,
         401: str,
         422: str,
     },
@@ -57,13 +59,19 @@ def get_result_qualifiers(
 )
 @transaction.atomic
 def create_result_qualifier(
-    request: HydroServerHttpRequest, data: ResultQualifierPostBody
+    request: HydroServerHttpRequest,
+    data: ResultQualifierPostBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new Result Qualifier.
     """
 
-    return 201, result_qualifier_service.create(principal=request.principal, data=data)
+    return 201, result_qualifier_service.create(
+        principal=request.principal,
+        data=data,
+        expand_related=expand_related,
+    )
 
 
 @result_qualifier_router.get(
@@ -80,20 +88,16 @@ def create_result_qualifier(
 def get_result_qualifier(
     request: HydroServerHttpRequest,
     result_qualifier_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Result Qualifier.
     """
 
-    result_qualifier = result_qualifier_service.get(
-        principal=request.principal, uid=result_qualifier_id
-    )
-
-    return 200, (
-        ResultQualifierDetailResponse.model_validate(result_qualifier)
-        if expand_related
-        else ResultQualifierSummaryResponse.model_validate(result_qualifier)
+    return 200, result_qualifier_service.get(
+        principal=request.principal,
+        uid=result_qualifier_id,
+        expand_related=expand_related,
     )
 
 
@@ -101,7 +105,7 @@ def get_result_qualifier(
     "/{result_qualifier_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ResultQualifierSummaryResponse,
+        200: ResultQualifierSummaryResponse | ResultQualifierDetailResponse,
         401: str,
         403: str,
         422: str,
@@ -113,13 +117,17 @@ def update_result_qualifier(
     request: HydroServerHttpRequest,
     result_qualifier_id: Path[uuid.UUID],
     data: ResultQualifierPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Result Qualifier.
     """
 
     return 200, result_qualifier_service.update(
-        principal=request.principal, uid=result_qualifier_id, data=data
+        principal=request.principal,
+        uid=result_qualifier_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 

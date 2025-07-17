@@ -4,7 +4,7 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from sta.services import SensorService
-from sta.schemas import SensorPostBody, SensorPatchBody, SensorDetailResponse
+from sta.schemas import SensorPostBody, SensorPatchBody, SensorSummaryResponse
 
 sensor_service = SensorService()
 
@@ -149,7 +149,7 @@ def test_list_sensor(
             filtering=params,
         )
         assert Counter(str(sensor.name) for sensor in result) == Counter(sensor_names)
-        assert (SensorDetailResponse.from_orm(sensor) for sensor in result)
+        assert (SensorSummaryResponse.from_orm(sensor) for sensor in result)
 
 
 @pytest.mark.parametrize(
@@ -214,7 +214,7 @@ def test_get_sensor(get_principal, principal, sensor, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(sensor)
         )
         assert sensor_get.name == message
-        assert SensorDetailResponse.from_orm(sensor_get)
+        assert SensorSummaryResponse.from_orm(sensor_get)
 
 
 @pytest.mark.parametrize(
@@ -300,7 +300,7 @@ def test_create_sensor(get_principal, principal, sensor_fields, message, error_c
         assert sensor_create.name == sensor_data.name
         assert sensor_create.description == sensor_data.description
         assert sensor_create.method_type == sensor_data.method_type
-        assert SensorDetailResponse.from_orm(sensor_create)
+        assert SensorSummaryResponse.from_orm(sensor_create)
 
 
 @pytest.mark.parametrize(
@@ -422,7 +422,7 @@ def test_edit_sensor(
         assert sensor_update.name == sensor_data.name
         assert sensor_update.description == sensor_data.description
         assert sensor_update.method_type == sensor_data.method_type
-        assert SensorDetailResponse.from_orm(sensor_update)
+        assert SensorSummaryResponse.from_orm(sensor_update)
 
 
 @pytest.mark.parametrize(

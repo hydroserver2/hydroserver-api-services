@@ -1,15 +1,18 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.http import HydroServerHttpRequest
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from iam.schemas import (
+    APIKeySummaryResponse,
     APIKeyDetailResponse,
     APIKeyQueryParameters,
     APIKeyPostBody,
     APIKeyPatchBody,
-    APIKeyPostResponse,
+    APIKeySummaryPostResponse,
+    APIKeyDetailPostResponse,
 )
 from iam.services import APIKeyService
 
@@ -21,7 +24,7 @@ api_key_service = APIKeyService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[APIKeyDetailResponse],
+        200: list[APIKeySummaryResponse] | list[APIKeyDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -45,6 +48,7 @@ def get_api_keys(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -52,7 +56,7 @@ def get_api_keys(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: APIKeyPostResponse,
+        201: APIKeySummaryPostResponse | APIKeyDetailPostResponse,
         401: str,
         422: str,
     },
@@ -61,14 +65,20 @@ def get_api_keys(
 )
 @transaction.atomic
 def create_api_key(
-    request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID], data: APIKeyPostBody
+    request: HydroServerHttpRequest,
+    workspace_id: Path[uuid.UUID],
+    data: APIKeyPostBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new API key for the workspace.
     """
 
     return 201, api_key_service.create(
-        principal=request.principal, workspace_id=workspace_id, data=data
+        principal=request.principal,
+        workspace_id=workspace_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 
@@ -76,7 +86,7 @@ def create_api_key(
     "/{api_key_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: APIKeyDetailResponse,
+        200: APIKeySummaryResponse | APIKeyDetailResponse,
         401: str,
         403: str,
     },
@@ -87,13 +97,17 @@ def get_api_key(
     request: HydroServerHttpRequest,
     workspace_id: Path[uuid.UUID],
     api_key_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = None,
 ):
     """
     Get API key details.
     """
 
     return 200, api_key_service.get(
-        principal=request.principal, workspace_id=workspace_id, uid=api_key_id
+        principal=request.principal,
+        workspace_id=workspace_id,
+        uid=api_key_id,
+        expand_related=expand_related,
     )
 
 
@@ -101,7 +115,7 @@ def get_api_key(
     "/{api_key_id}",
     auth=[session_auth, bearer_auth],
     response={
-        200: APIKeyDetailResponse,
+        200: APIKeySummaryResponse | APIKeyDetailResponse,
         401: str,
         403: str,
         422: str,
@@ -115,6 +129,7 @@ def update_api_key(
     workspace_id: Path[uuid.UUID],
     api_key_id: Path[uuid.UUID],
     data: APIKeyPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update an API key.
@@ -125,6 +140,7 @@ def update_api_key(
         workspace_id=workspace_id,
         uid=api_key_id,
         data=data,
+        expand_related=expand_related,
     )
 
 
@@ -157,7 +173,7 @@ def delete_api_key(
     "/{api_key_id}/regenerate",
     auth=[session_auth, bearer_auth],
     response={
-        201: APIKeyPostResponse,
+        201: APIKeySummaryPostResponse | APIKeyDetailPostResponse,
         400: str,
         401: str,
         403: str,
@@ -170,11 +186,15 @@ def regenerate_api_key(
     request: HydroServerHttpRequest,
     workspace_id: Path[uuid.UUID],
     api_key_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = None,
 ):
     """
     Regenerate an API key using existing settings.
     """
 
     return 201, api_key_service.regenerate(
-        principal=request.principal, workspace_id=workspace_id, uid=api_key_id
+        principal=request.principal,
+        workspace_id=workspace_id,
+        uid=api_key_id,
+        expand_related=expand_related,
     )

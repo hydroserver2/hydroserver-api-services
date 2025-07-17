@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -22,7 +23,7 @@ sensor_service = SensorService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[SensorSummaryResponse],
+        200: list[SensorSummaryResponse] | list[SensorDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -43,6 +44,7 @@ def get_sensors(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -50,7 +52,7 @@ def get_sensors(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: SensorSummaryResponse,
+        201: SensorSummaryResponse | SensorDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -59,12 +61,20 @@ def get_sensors(
     by_alias=True,
 )
 @transaction.atomic
-def create_sensor(request: HydroServerHttpRequest, data: SensorPostBody):
+def create_sensor(
+    request: HydroServerHttpRequest,
+    data: SensorPostBody,
+    expand_related: Optional[bool] = None,
+):
     """
     Create a new Sensor.
     """
 
-    return 201, sensor_service.create(principal=request.principal, data=data)
+    return 201, sensor_service.create(
+        principal=request.principal,
+        data=data,
+        expand_related=expand_related,
+    )
 
 
 @sensor_router.get("encoding-types", response={200: list[str]}, by_alias=True)
@@ -117,18 +127,14 @@ def get_method_types(
 def get_sensor(
     request: HydroServerHttpRequest,
     sensor_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Sensor.
     """
 
-    sensor = sensor_service.get(principal=request.principal, uid=sensor_id)
-
-    return 200, (
-        SensorDetailResponse.model_validate(sensor)
-        if expand_related
-        else SensorSummaryResponse.model_validate(sensor)
+    return 200, sensor_service.get(
+        principal=request.principal, uid=sensor_id, expand_related=expand_related
     )
 
 
@@ -136,7 +142,7 @@ def get_sensor(
     "/{sensor_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: SensorSummaryResponse,
+        200: SensorSummaryResponse | SensorDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -146,14 +152,20 @@ def get_sensor(
 )
 @transaction.atomic
 def update_sensor(
-    request: HydroServerHttpRequest, sensor_id: Path[uuid.UUID], data: SensorPatchBody
+    request: HydroServerHttpRequest,
+    sensor_id: Path[uuid.UUID],
+    data: SensorPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Sensor.
     """
 
     return 200, sensor_service.update(
-        principal=request.principal, uid=sensor_id, data=data
+        principal=request.principal,
+        uid=sensor_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 

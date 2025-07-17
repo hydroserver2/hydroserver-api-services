@@ -17,10 +17,8 @@ from sta.views import (
     sensor_router,
     unit_router,
     datastream_router,
-    observation_router,
 )
 from etl.views import (
-    hydroshare_archival_router,
     orchestration_system_router,
     data_source_router,
     data_archive_router,
@@ -38,9 +36,6 @@ api = NinjaAPI(
         AuthRateThrottle("20/s"),
     ],
 )
-
-thing_router.add_router("{thing_id}/archive", hydroshare_archival_router)
-datastream_router.add_router("{datastream_id}/observations", observation_router)
 
 api.add_router("workspaces", workspace_router)
 api.add_router("roles", role_router)

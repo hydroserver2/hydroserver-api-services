@@ -3,23 +3,27 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from iam.models import APIKey
-from iam.models import Role
-from iam.schemas.role import RoleOrderByFields
+from django.db.models import QuerySet
+from iam.models import APIKey, Role
+from iam.schemas.role import RoleOrderByFields, RoleSummaryResponse, RoleDetailResponse
 from api.service import ServiceUtils
 
 User = get_user_model()
 
 
 class RoleService(ServiceUtils):
-    @staticmethod
     def get_role_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            role = Role.objects.select_related("workspace").get(pk=uid)
+            role = Role.objects
+            if expand_related:
+                role = self.select_expanded_fields(role)
+            role = role.get(pk=uid)
         except Role.DoesNotExist:
             raise HttpError(404, "Role does not exist")
 
@@ -33,14 +37,19 @@ class RoleService(ServiceUtils):
 
         return role
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace").prefetch_related("permissions")
+
     def list(
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = Role.objects
 
@@ -65,13 +74,32 @@ class RoleService(ServiceUtils):
             .distinct()
         )
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
+        return [
+            (
+                RoleDetailResponse.model_validate(role)
+                if expand_related
+                else RoleSummaryResponse.model_validate(role)
+            )
+            for role in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        role = self.get_role_for_action(
+            principal=principal,
+            uid=uid,
+            action="view",
+            expand_related=expand_related,
         )
 
-        return queryset
-
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        return self.get_role_for_action(principal=principal, uid=uid, action="view")
+        return (
+            RoleDetailResponse.model_validate(role)
+            if expand_related
+            else RoleSummaryResponse.model_validate(role)
+        )

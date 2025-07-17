@@ -3,9 +3,15 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
 from sta.models import Unit, UnitType
-from sta.schemas import UnitPostBody, UnitPatchBody
+from sta.schemas import (
+    UnitSummaryResponse,
+    UnitDetailResponse,
+    UnitPostBody,
+    UnitPatchBody,
+)
 from sta.schemas.unit import UnitFields, UnitOrderByFields
 from api.service import ServiceUtils
 
@@ -13,14 +19,18 @@ User = get_user_model()
 
 
 class UnitService(ServiceUtils):
-    @staticmethod
     def get_unit_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            unit = Unit.objects.select_related("workspace").get(pk=uid)
+            unit = Unit.objects
+            if expand_related:
+                unit = self.select_expanded_fields(unit)
+            unit = unit.get(pk=uid)
         except Unit.DoesNotExist:
             raise HttpError(404, "Unit does not exist")
 
@@ -34,14 +44,19 @@ class UnitService(ServiceUtils):
 
         return unit
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = Unit.objects
 
@@ -62,20 +77,44 @@ class UnitService(ServiceUtils):
                 {"type": "unit_type"},
             )
 
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
+        return [
+            (
+                UnitDetailResponse.model_validate(unit)
+                if expand_related
+                else UnitSummaryResponse.model_validate(unit)
+            )
+            for unit in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        unit = self.get_unit_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-        return queryset
+        return (
+            UnitDetailResponse.model_validate(unit)
+            if expand_related
+            else UnitSummaryResponse.model_validate(unit)
+        )
 
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        return self.get_unit_for_action(principal=principal, uid=uid, action="view")
-
-    def create(self, principal: User | APIKey, data: UnitPostBody):
+    def create(
+        self,
+        principal: User | APIKey,
+        data: UnitPostBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = (
             self.get_workspace(principal=principal, workspace_id=data.workspace_id)
             if data.workspace_id
@@ -93,9 +132,15 @@ class UnitService(ServiceUtils):
             **data.dict(include=set(UnitFields.model_fields.keys())),
         )
 
-        return unit
+        return self.get(principal=principal, uid=unit.pk, expand_related=expand_related)
 
-    def update(self, principal: User | APIKey, uid: uuid.UUID, data: UnitPatchBody):
+    def update(
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        data: UnitPatchBody,
+        expand_related: Optional[bool] = None,
+    ):
         unit = self.get_unit_for_action(principal=principal, uid=uid, action="edit")
         unit_data = data.dict(
             include=set(UnitFields.model_fields.keys()), exclude_unset=True
@@ -106,7 +151,7 @@ class UnitService(ServiceUtils):
 
         unit.save()
 
-        return unit
+        return self.get(principal=principal, uid=unit.id, expand_related=expand_related)
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         unit = self.get_unit_for_action(principal=principal, uid=uid, action="delete")
@@ -121,15 +166,11 @@ class UnitService(ServiceUtils):
     def list_unit_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = UnitType.objects.order_by(f"{'-' if order_desc else ''}name")
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)

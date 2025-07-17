@@ -1,6 +1,7 @@
 import uuid
-from ninja import Schema, Query
-from typing import Optional, Literal
+from pydantic import AliasPath, model_validator
+from ninja import Schema, Query, Field
+from typing import Optional, Literal, TYPE_CHECKING
 from datetime import datetime
 from api.schemas import (
     BaseGetResponse,
@@ -8,6 +9,10 @@ from api.schemas import (
     BasePatchBody,
     CollectionQueryParameters,
 )
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceSummaryResponse
+    from sta.schemas import DatastreamSummaryResponse
 
 
 class ObservationFields(Schema):
@@ -23,6 +28,7 @@ ObservationOrderByFields = Literal[
 
 
 class ObservationQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[ObservationOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -45,6 +51,18 @@ class ObservationQueryParameters(CollectionQueryParameters):
 
 class ObservationSummaryResponse(BaseGetResponse, ObservationFields):
     id: uuid.UUID
+    workspace_id: uuid.UUID = Field(
+        ..., validation_alias=AliasPath("datastream", "thing", "workspace_id")
+    )
+    datastream_id: uuid.UUID
+
+
+class ObservationDetailResponse(BaseGetResponse, ObservationFields):
+    id: uuid.UUID
+    workspace: "WorkspaceSummaryResponse" = Field(
+        ..., validation_alias=AliasPath("datastream", "thing", "workspace")
+    )
+    datastream: "DatastreamSummaryResponse"
 
 
 class ObservationRowResponse(BaseGetResponse):
@@ -77,6 +95,26 @@ class ObservationBulkPostQueryParameters(Schema):
 class ObservationBulkPostBody(BasePostBody):
     fields: list[Literal["phenomenonTime", "result"]]
     data: list[list]
+
+    @model_validator(mode="after")
+    def convert_data(self):
+        field_map = {field: idx for idx, field in enumerate(self.fields)}
+        rows = self.data
+
+        phenomenon_time_idx = field_map.get("phenomenonTime")
+        result_idx = field_map.get("result")
+
+        for row in rows:
+            if phenomenon_time_idx is not None and isinstance(
+                row[phenomenon_time_idx], str
+            ):
+                row[phenomenon_time_idx] = datetime.fromisoformat(
+                    row[phenomenon_time_idx]
+                )
+            if result_idx is not None and row[result_idx] is not None:
+                row[result_idx] = float(row[result_idx])
+
+        return self
 
 
 class ObservationPatchBody(BasePatchBody, ObservationFields):

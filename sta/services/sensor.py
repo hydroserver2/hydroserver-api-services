@@ -3,9 +3,15 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
 from sta.models import Sensor, SensorEncodingType, MethodType
-from sta.schemas import SensorPostBody, SensorPatchBody
+from sta.schemas import (
+    SensorSummaryResponse,
+    SensorDetailResponse,
+    SensorPostBody,
+    SensorPatchBody,
+)
 from sta.schemas.sensor import SensorFields, SensorOrderByFields
 from api.service import ServiceUtils
 
@@ -13,14 +19,18 @@ User = get_user_model()
 
 
 class SensorService(ServiceUtils):
-    @staticmethod
     def get_sensor_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            sensor = Sensor.objects.select_related("workspace").get(pk=uid)
+            sensor = Sensor.objects
+            if expand_related:
+                sensor = self.select_expanded_fields(sensor)
+            sensor = sensor.get(pk=uid)
         except Sensor.DoesNotExist:
             raise HttpError(404, "Sensor does not exist")
 
@@ -34,14 +44,19 @@ class SensorService(ServiceUtils):
 
         return sensor
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = Sensor.objects
 
@@ -64,20 +79,44 @@ class SensorService(ServiceUtils):
                 {"model": "sensor_model"},
             )
 
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
+        return [
+            (
+                SensorDetailResponse.model_validate(sensor)
+                if expand_related
+                else SensorSummaryResponse.model_validate(sensor)
+            )
+            for sensor in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        sensor = self.get_sensor_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-        return queryset
+        return (
+            SensorDetailResponse.model_validate(sensor)
+            if expand_related
+            else SensorSummaryResponse.model_validate(sensor)
+        )
 
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        return self.get_sensor_for_action(principal=principal, uid=uid, action="view")
-
-    def create(self, principal: User | APIKey, data: SensorPostBody):
+    def create(
+        self,
+        principal: User | APIKey,
+        data: SensorPostBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = (
             self.get_workspace(principal=principal, workspace_id=data.workspace_id)
             if data.workspace_id
@@ -95,9 +134,17 @@ class SensorService(ServiceUtils):
             **data.dict(include=set(SensorFields.model_fields.keys())),
         )
 
-        return sensor
+        return self.get(
+            principal=principal, uid=sensor.id, expand_related=expand_related
+        )
 
-    def update(self, principal: User | APIKey, uid: uuid.UUID, data: SensorPatchBody):
+    def update(
+        self,
+        principal: User | APIKey,
+        uid: uuid.UUID,
+        data: SensorPatchBody,
+        expand_related: Optional[bool] = None,
+    ):
         sensor = self.get_sensor_for_action(principal=principal, uid=uid, action="edit")
         sensor_data = data.dict(
             include=set(SensorFields.model_fields.keys()), exclude_unset=True
@@ -108,7 +155,9 @@ class SensorService(ServiceUtils):
 
         sensor.save()
 
-        return sensor
+        return self.get(
+            principal=principal, uid=sensor.id, expand_related=expand_related
+        )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         sensor = self.get_sensor_for_action(
@@ -125,33 +174,25 @@ class SensorService(ServiceUtils):
     def list_method_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = MethodType.objects.order_by(f"{'-' if order_desc else ''}name")
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)
 
     def list_encoding_types(
         self,
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_desc: bool = False,
     ):
         queryset = SensorEncodingType.objects.order_by(
             f"{'-' if order_desc else ''}name"
         )
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)

@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -22,7 +23,8 @@ observed_property_service = ObservedPropertyService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ObservedPropertySummaryResponse],
+        200: list[ObservedPropertySummaryResponse]
+        | list[ObservedPropertyDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -43,6 +45,7 @@ def get_observed_properties(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -50,7 +53,7 @@ def get_observed_properties(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ObservedPropertySummaryResponse,
+        201: ObservedPropertySummaryResponse | ObservedPropertyDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -60,13 +63,19 @@ def get_observed_properties(
 )
 @transaction.atomic
 def create_observed_property(
-    request: HydroServerHttpRequest, data: ObservedPropertyPostBody
+    request: HydroServerHttpRequest,
+    data: ObservedPropertyPostBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new Observed Property.
     """
 
-    return 201, observed_property_service.create(principal=request.principal, data=data)
+    return 201, observed_property_service.create(
+        principal=request.principal,
+        data=data,
+        expand_related=expand_related,
+    )
 
 
 @observed_property_router.get(
@@ -103,20 +112,16 @@ def get_datastream_aggregation_statistics(
 def get_observed_property(
     request: HydroServerHttpRequest,
     observed_property_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get an Observed Property.
     """
 
-    observed_property = observed_property_service.get(
-        principal=request.principal, uid=observed_property_id
-    )
-
-    return 200, (
-        ObservedPropertyDetailResponse.model_validate(observed_property)
-        if expand_related
-        else ObservedPropertySummaryResponse.model_validate(observed_property)
+    return 200, observed_property_service.get(
+        principal=request.principal,
+        uid=observed_property_id,
+        expand_related=expand_related,
     )
 
 
@@ -124,7 +129,7 @@ def get_observed_property(
     "/{observed_property_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ObservedPropertySummaryResponse,
+        200: ObservedPropertySummaryResponse | ObservedPropertyDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -137,13 +142,17 @@ def update_observed_property(
     request: HydroServerHttpRequest,
     observed_property_id: Path[uuid.UUID],
     data: ObservedPropertyPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update an Observed Property.
     """
 
     return 200, observed_property_service.update(
-        principal=request.principal, uid=observed_property_id, data=data
+        principal=request.principal,
+        uid=observed_property_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 

@@ -7,7 +7,7 @@ from sta.services import ObservedPropertyService
 from sta.schemas import (
     ObservedPropertyPostBody,
     ObservedPropertyPatchBody,
-    ObservedPropertyDetailResponse,
+    ObservedPropertySummaryResponse,
 )
 
 observed_property_service = ObservedPropertyService()
@@ -155,7 +155,7 @@ def test_list_observed_property(
             str(observed_property.name) for observed_property in result
         ) == Counter(observed_property_names)
         assert (
-            ObservedPropertyDetailResponse.from_orm(observed_property)
+            ObservedPropertySummaryResponse.from_orm(observed_property)
             for observed_property in result
         )
 
@@ -304,7 +304,7 @@ def test_get_observed_property(
             principal=get_principal(principal), uid=uuid.UUID(observed_property)
         )
         assert observed_property_get.name == message
-        assert ObservedPropertyDetailResponse.from_orm(observed_property_get)
+        assert ObservedPropertySummaryResponse.from_orm(observed_property_get)
 
 
 @pytest.mark.parametrize(
@@ -396,7 +396,7 @@ def test_create_observed_property(
         )
         assert observed_property_create.name == observed_property_data.name
         assert observed_property_create.definition == observed_property_data.definition
-        assert ObservedPropertyDetailResponse.from_orm(observed_property_create)
+        assert ObservedPropertySummaryResponse.from_orm(observed_property_create)
 
 
 @pytest.mark.parametrize(
@@ -527,7 +527,7 @@ def test_edit_observed_property(
         )
         assert observed_property_update.name == observed_property_data.name
         assert observed_property_update.definition == observed_property_data.definition
-        assert ObservedPropertyDetailResponse.from_orm(observed_property_update)
+        assert ObservedPropertySummaryResponse.from_orm(observed_property_update)
 
 
 @pytest.mark.parametrize(

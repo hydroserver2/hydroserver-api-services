@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -21,7 +22,7 @@ processing_level_service = ProcessingLevelService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ProcessingLevelSummaryResponse],
+        200: list[ProcessingLevelSummaryResponse] | list[ProcessingLevelDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -42,6 +43,7 @@ def get_processing_levels(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -49,7 +51,7 @@ def get_processing_levels(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ProcessingLevelSummaryResponse,
+        201: ProcessingLevelSummaryResponse | ProcessingLevelDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -59,13 +61,17 @@ def get_processing_levels(
 )
 @transaction.atomic
 def create_processing_level(
-    request: HydroServerHttpRequest, data: ProcessingLevelPostBody
+    request: HydroServerHttpRequest,
+    data: ProcessingLevelPostBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new Processing Level.
     """
 
-    return 201, processing_level_service.create(principal=request.principal, data=data)
+    return 201, processing_level_service.create(
+        principal=request.principal, data=data, expand_related=expand_related
+    )
 
 
 @processing_level_router.get(
@@ -82,20 +88,16 @@ def create_processing_level(
 def get_processing_level(
     request: HydroServerHttpRequest,
     processing_level_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Processing Level.
     """
 
-    processing_level = processing_level_service.get(
-        principal=request.principal, uid=processing_level_id
-    )
-
-    return 200, (
-        ProcessingLevelDetailResponse.model_validate(processing_level)
-        if expand_related
-        else ProcessingLevelSummaryResponse.model_validate(processing_level)
+    return 200, processing_level_service.get(
+        principal=request.principal,
+        uid=processing_level_id,
+        expand_related=expand_related,
     )
 
 
@@ -103,7 +105,7 @@ def get_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ProcessingLevelSummaryResponse,
+        200: ProcessingLevelSummaryResponse | ProcessingLevelDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -116,13 +118,17 @@ def update_processing_level(
     request: HydroServerHttpRequest,
     processing_level_id: Path[uuid.UUID],
     data: ProcessingLevelPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Processing Level.
     """
 
     return 200, processing_level_service.update(
-        principal=request.principal, uid=processing_level_id, data=data
+        principal=request.principal,
+        uid=processing_level_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 

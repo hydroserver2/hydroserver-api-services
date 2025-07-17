@@ -11,7 +11,7 @@ from api.schemas import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
 
 valid_country_codes = [code for code, _ in countries_for_language("en")]
 
@@ -129,6 +129,7 @@ ThingOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fie
 
 
 class ThingQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[ThingOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -171,7 +172,7 @@ class ThingSummaryResponse(BaseGetResponse, ThingFields):
 
 class ThingDetailResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
-    workspace: "WorkspaceDetailResponse"
+    workspace: "WorkspaceSummaryResponse"
     location: LocationDetailResponse
     tags: list[TagGetResponse]
     photos: list[PhotoGetResponse]

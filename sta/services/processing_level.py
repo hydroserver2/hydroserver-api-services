@@ -3,9 +3,15 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
 from sta.models import ProcessingLevel
-from sta.schemas import ProcessingLevelPostBody, ProcessingLevelPatchBody
+from sta.schemas import (
+    ProcessingLevelSummaryResponse,
+    ProcessingLevelDetailResponse,
+    ProcessingLevelPostBody,
+    ProcessingLevelPatchBody,
+)
 from sta.schemas.processing_level import (
     ProcessingLevelFields,
     ProcessingLevelOrderByFields,
@@ -16,16 +22,18 @@ User = get_user_model()
 
 
 class ProcessingLevelService(ServiceUtils):
-    @staticmethod
     def get_processing_level_for_action(
+        self,
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            processing_level = ProcessingLevel.objects.select_related("workspace").get(
-                pk=uid
-            )
+            processing_level = ProcessingLevel.objects
+            if expand_related:
+                processing_level = self.select_expanded_fields(processing_level)
+            processing_level = processing_level.get(pk=uid)
         except ProcessingLevel.DoesNotExist:
             raise HttpError(404, "Processing level does not exist")
 
@@ -43,14 +51,19 @@ class ProcessingLevelService(ServiceUtils):
 
         return processing_level
 
+    @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = ProcessingLevel.objects
 
@@ -69,22 +82,44 @@ class ProcessingLevelService(ServiceUtils):
                 list(get_args(ProcessingLevelOrderByFields)),
             )
 
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
+        return [
+            (
+                ProcessingLevelDetailResponse.model_validate(processing_level)
+                if expand_related
+                else ProcessingLevelSummaryResponse.model_validate(processing_level)
+            )
+            for processing_level in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        processing_level = self.get_processing_level_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-        return queryset
-
-    def get(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        return self.get_processing_level_for_action(
-            principal=principal, uid=uid, action="view"
+        return (
+            ProcessingLevelDetailResponse.model_validate(processing_level)
+            if expand_related
+            else ProcessingLevelSummaryResponse.model_validate(processing_level)
         )
 
-    def create(self, principal: User | APIKey, data: ProcessingLevelPostBody):
+    def create(
+        self,
+        principal: User | APIKey,
+        data: ProcessingLevelPostBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = (
             self.get_workspace(principal=principal, workspace_id=data.workspace_id)
             if data.workspace_id
@@ -106,13 +141,16 @@ class ProcessingLevelService(ServiceUtils):
             **data.dict(include=set(ProcessingLevelFields.model_fields.keys())),
         )
 
-        return processing_level
+        return self.get(
+            principal=principal, uid=processing_level.id, expand_related=expand_related
+        )
 
     def update(
         self,
         principal: User | APIKey,
         uid: uuid.UUID,
         data: ProcessingLevelPatchBody,
+        expand_related: Optional[bool] = None,
     ):
         processing_level = self.get_processing_level_for_action(
             principal=principal, uid=uid, action="edit"
@@ -126,7 +164,9 @@ class ProcessingLevelService(ServiceUtils):
 
         processing_level.save()
 
-        return processing_level
+        return self.get(
+            principal=principal, uid=processing_level.id, expand_related=expand_related
+        )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         processing_level = self.get_processing_level_for_action(

@@ -11,7 +11,7 @@ from sta.schemas import (
     LocationPatchBody,
     TagPostBody,
     TagDeleteBody,
-    ThingDetailResponse,
+    ThingSummaryResponse,
 )
 
 thing_service = ThingService()
@@ -117,7 +117,7 @@ def test_list_thing(
             filtering=params,
         )
         assert Counter(str(thing.name) for thing in result) == Counter(thing_names)
-        assert (ThingDetailResponse.from_orm(thing) for thing in result)
+        assert (ThingSummaryResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
@@ -221,7 +221,7 @@ def test_get_thing(get_principal, principal, thing, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(thing)
         )
         assert thing_get.name == message
-        assert ThingDetailResponse.from_orm(thing_get)
+        assert ThingSummaryResponse.from_orm(thing_get)
 
 
 @pytest.mark.parametrize(
@@ -303,7 +303,7 @@ def test_create_thing(get_principal, principal, thing_fields, message, error_cod
         assert thing_create.location.longitude == thing_data.location.longitude
         assert thing_create.is_private == thing_data.is_private
         assert thing_create.workspace_id == thing_data.workspace_id
-        assert ThingDetailResponse.from_orm(thing_create)
+        assert ThingSummaryResponse.from_orm(thing_create)
 
 
 @pytest.mark.parametrize(
@@ -406,7 +406,7 @@ def test_edit_thing(get_principal, principal, thing, thing_fields, message, erro
         assert thing_update.location.latitude == thing_data.location.latitude
         assert thing_update.location.longitude == thing_data.location.longitude
         assert thing_update.is_private == thing_data.is_private
-        assert ThingDetailResponse.from_orm(thing_update)
+        assert ThingSummaryResponse.from_orm(thing_update)
 
 
 @pytest.mark.parametrize(

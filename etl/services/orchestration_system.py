@@ -28,7 +28,7 @@ class OrchestrationSystemService(ServiceUtils):
         principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
         raise_400: bool = False,
     ):
         try:
@@ -66,11 +66,11 @@ class OrchestrationSystemService(ServiceUtils):
         self,
         principal: Optional[User | APIKey],
         response: HttpResponse,
-        page: int = 1,
-        page_size: int = 100,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
         order_by: Optional[list[str]] = None,
         filtering: Optional[dict] = None,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         queryset = OrchestrationSystem.objects
 
@@ -94,26 +94,24 @@ class OrchestrationSystemService(ServiceUtils):
 
         queryset = queryset.visible(principal=principal).distinct()
 
-        queryset, count = self.apply_pagination(queryset, page, page_size)
-
-        self.insert_pagination_headers(
-            response=response, count=count, page=page, page_size=page_size
-        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return [
             (
-                OrchestrationSystemDetailResponse.model_validate(data_source)
+                OrchestrationSystemDetailResponse.model_validate(orchestration_system)
                 if expand_related
-                else OrchestrationSystemSummaryResponse.model_validate(data_source)
+                else OrchestrationSystemSummaryResponse.model_validate(
+                    orchestration_system
+                )
             )
-            for data_source in queryset.all()
+            for orchestration_system in queryset.all()
         ]
 
     def get(
         self,
         principal: Optional[User | APIKey],
         uid: uuid.UUID,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         orchestration_system = self.get_orchestration_system_for_action(
             principal=principal, uid=uid, action="view", expand_related=expand_related
@@ -129,7 +127,7 @@ class OrchestrationSystemService(ServiceUtils):
         self,
         principal: User | APIKey,
         data: OrchestrationSystemPostBody,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         workspace, _ = (
             self.get_workspace(principal=principal, workspace_id=data.workspace_id)
@@ -152,17 +150,10 @@ class OrchestrationSystemService(ServiceUtils):
             **data.dict(include=set(OrchestrationSystemFields.model_fields.keys())),
         )
 
-        orchestration_system = self.get_orchestration_system_for_action(
+        return self.get(
             principal=principal,
             uid=orchestration_system.id,
-            action="view",
             expand_related=expand_related,
-        )
-
-        return (
-            OrchestrationSystemDetailResponse.model_validate(orchestration_system)
-            if expand_related
-            else OrchestrationSystemSummaryResponse.model_validate(orchestration_system)
         )
 
     def update(
@@ -170,7 +161,7 @@ class OrchestrationSystemService(ServiceUtils):
         principal: User | APIKey,
         uid: uuid.UUID,
         data: OrchestrationSystemPatchBody,
-        expand_related: bool = False,
+        expand_related: Optional[bool] = None,
     ):
         orchestration_system = self.get_orchestration_system_for_action(
             principal=principal, uid=uid, action="edit", expand_related=expand_related
@@ -185,15 +176,15 @@ class OrchestrationSystemService(ServiceUtils):
 
         orchestration_system.save()
 
-        return (
-            OrchestrationSystemDetailResponse.model_validate(orchestration_system)
-            if expand_related
-            else OrchestrationSystemSummaryResponse.model_validate(orchestration_system)
+        return self.get(
+            principal=principal,
+            uid=orchestration_system.id,
+            expand_related=expand_related,
         )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
         orchestration_system = self.get_orchestration_system_for_action(
-            principal=principal, uid=uid, action="delete"
+            principal=principal, uid=uid, action="delete", expand_related=True
         )
 
         if orchestration_system.data_sources.exists():

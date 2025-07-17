@@ -4,7 +4,7 @@ from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from sta.services import UnitService
-from sta.schemas import UnitPostBody, UnitPatchBody, UnitDetailResponse
+from sta.schemas import UnitPostBody, UnitPatchBody, UnitSummaryResponse
 
 unit_service = UnitService()
 
@@ -144,7 +144,7 @@ def test_list_unit(
             filtering=params,
         )
         assert Counter(str(unit.name) for unit in result) == Counter(unit_names)
-        assert (UnitDetailResponse.from_orm(unit) for unit in result)
+        assert (UnitSummaryResponse.from_orm(unit) for unit in result)
 
 
 @pytest.mark.parametrize(
@@ -207,7 +207,7 @@ def test_get_unit(get_principal, principal, unit, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(unit)
         )
         assert unit_get.name == message
-        assert UnitDetailResponse.from_orm(unit_get)
+        assert UnitSummaryResponse.from_orm(unit_get)
 
 
 @pytest.mark.parametrize(
@@ -294,7 +294,7 @@ def test_create_unit(get_principal, principal, unit_fields, message, error_code)
         assert unit_create.name == unit_data.name
         assert unit_create.definition == unit_data.definition
         assert unit_create.unit_type == unit_data.unit_type
-        assert UnitDetailResponse.from_orm(unit_create)
+        assert UnitSummaryResponse.from_orm(unit_create)
 
 
 @pytest.mark.parametrize(
@@ -413,7 +413,7 @@ def test_edit_unit(get_principal, principal, unit, unit_fields, message, error_c
         assert unit_update.name == unit_data.name
         assert unit_update.symbol == unit_data.symbol
         assert unit_update.unit_type == unit_data.unit_type
-        assert UnitDetailResponse.from_orm(unit_update)
+        assert UnitSummaryResponse.from_orm(unit_update)
 
 
 @pytest.mark.parametrize(

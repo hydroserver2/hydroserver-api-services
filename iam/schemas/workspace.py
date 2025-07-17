@@ -33,6 +33,7 @@ WorkspaceOrderByFields = Literal[
 
 
 class WorkspaceQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[WorkspaceOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )

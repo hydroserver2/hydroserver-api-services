@@ -26,8 +26,10 @@ class BaseQueryParameters(Schema):
 
 
 class CollectionQueryParameters(BaseQueryParameters):
-    page: int = Query(1, ge=1, description="Page number (1-based).")
-    page_size: int = Query(100, ge=1, description="The number of items per page.")
+    page: Optional[int] = Query(None, ge=1, description="Page number (1-based).")
+    page_size: Optional[int] = Query(
+        None, ge=1, le=100000, description="The number of items per page."
+    )
 
 
 class VocabularyQueryParameters(CollectionQueryParameters):

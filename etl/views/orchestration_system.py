@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
@@ -31,7 +32,6 @@ def get_orchestration_systems(
     request: HydroServerHttpRequest,
     response: HttpResponse,
     query: Query[OrchestrationSystemQueryParameters],
-    expand_related: bool = False,
 ):
     """
     Get public Orchestration Systems and Orchestration Systems associated with the authenticated user.
@@ -44,7 +44,7 @@ def get_orchestration_systems(
         page_size=query.page_size,
         order_by=query.order_by,
         filtering=query.dict(exclude_unset=True),
-        expand_related=expand_related,
+        expand_related=query.expand_related,
     )
 
 
@@ -64,7 +64,7 @@ def get_orchestration_systems(
 def create_orchestration_system(
     request: HydroServerHttpRequest,
     data: OrchestrationSystemPostBody,
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new Orchestration System.
@@ -89,7 +89,7 @@ def create_orchestration_system(
 def get_orchestration_system(
     request: HydroServerHttpRequest,
     orchestration_system_id: Path[uuid.UUID],
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Get an Orchestration System.
@@ -119,7 +119,7 @@ def update_orchestration_system(
     request: HydroServerHttpRequest,
     orchestration_system_id: Path[uuid.UUID],
     data: OrchestrationSystemPatchBody,
-    expand_related: bool = False,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update an Orchestration System.

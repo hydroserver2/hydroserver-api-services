@@ -8,7 +8,6 @@ from sta.schemas import (
     DatastreamPostBody,
     DatastreamPatchBody,
     DatastreamSummaryResponse,
-    DatastreamDetailResponse,
 )
 
 datastream_service = DatastreamService()
@@ -166,7 +165,7 @@ def test_list_datastream(
         assert Counter(str(datastream.name) for datastream in result) == Counter(
             datastream_names
         )
-        assert (DatastreamDetailResponse.from_orm(thing) for thing in result)
+        assert (DatastreamSummaryResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
@@ -270,7 +269,7 @@ def test_get_datastream(get_principal, principal, datastream, message, error_cod
             principal=get_principal(principal), uid=uuid.UUID(datastream)
         )
         assert datastream_get.name == message
-        assert DatastreamDetailResponse.from_orm(datastream_get)
+        assert DatastreamSummaryResponse.from_orm(datastream_get)
 
 
 @pytest.mark.parametrize(
@@ -1631,42 +1630,42 @@ def test_edit_datastream(
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            7,
+            8,
         ),
         (
             "owner",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            7,
+            8,
         ),
         (
             "admin",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            7,
+            8,
         ),
         (
             "admin",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            7,
+            8,
         ),
         (
             "editor",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            8,
+            9,
         ),
         (
             "editor",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            8,
+            9,
         ),
         # Anonymous and viewers cannot delete datastreams
         (
@@ -1674,77 +1673,77 @@ def test_edit_datastream(
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "You do not have permission",
             403,
-            4,
+            5,
         ),
         (
             "viewer",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "You do not have permission",
             403,
-            4,
+            5,
         ),
         (
             "apikey",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "e0506cac-3e50-4d0a-814d-7ae0146705b2",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "cad40a75-99ca-4317-b534-0fc7880c905f",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "fcd47d93-4cae-411a-9e1e-26ef473840ed",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "42e08eea-27bb-4ea3-8ced-63acff0f3334",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "00000000-0000-0000-0000-000000000000",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "anonymous",

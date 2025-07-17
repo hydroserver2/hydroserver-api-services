@@ -9,7 +9,7 @@ from api.schemas import (
 )
 
 if TYPE_CHECKING:
-    from iam.schemas import WorkspaceDetailResponse
+    from iam.schemas import WorkspaceSummaryResponse
 
 
 class ObservedPropertyFields(Schema):
@@ -32,6 +32,7 @@ ObservedPropertyOrderByFields = Literal[
 
 
 class ObservedPropertyQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
     order_by: Optional[list[ObservedPropertyOrderByFields]] = Query(
         [], description="Select one or more fields to order the response by."
     )
@@ -58,7 +59,7 @@ class ObservedPropertySummaryResponse(BaseGetResponse, ObservedPropertyFields):
 
 class ObservedPropertyDetailResponse(BaseGetResponse, ObservedPropertyFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceDetailResponse"] = None
+    workspace: Optional["WorkspaceSummaryResponse"] = None
 
 
 class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):

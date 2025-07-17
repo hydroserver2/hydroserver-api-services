@@ -18,18 +18,33 @@ workspace_service = WorkspaceService()
     "principal, params, workspace_names, max_queries",
     [
         # Test user access
-        ("owner", {}, ["Public", "Private", "Transfer"], 5),
-        ("editor", {}, ["Public", "Private"], 5),
-        ("viewer", {}, ["Public", "Private"], 5),
-        ("admin", {}, ["Public", "Private", "Transfer"], 5),
-        ("apikey", {}, ["Public"], 5),
-        ("unaffiliated", {}, ["Public", "Transfer"], 5),
-        ("anonymous", {}, ["Public"], 5),
+        ("owner", {"expand_related": True}, ["Public", "Private", "Transfer"], 5),
+        ("editor", {"expand_related": True}, ["Public", "Private"], 5),
+        ("viewer", {"expand_related": True}, ["Public", "Private"], 5),
+        ("admin", {"expand_related": True}, ["Public", "Private", "Transfer"], 5),
+        ("apikey", {"expand_related": True}, ["Public"], 5),
+        ("unaffiliated", {"expand_related": True}, ["Public", "Transfer"], 5),
+        ("anonymous", {"expand_related": True}, ["Public"], 5),
         # Test pagination and order_by
-        ("owner", {"page": 2, "page_size": 1, "order_by": "-name"}, ["Public"], 5),
+        (
+            "owner",
+            {"page": 2, "page_size": 1, "order_by": "-name", "expand_related": True},
+            ["Public"],
+            5,
+        ),
         # Test filtering
-        ("owner", {"is_private": True}, ["Private", "Transfer"], 5),
-        ("unaffiliated", {"is_associated": True}, ["Transfer"], 5),
+        (
+            "owner",
+            {"is_private": True, "expand_related": True},
+            ["Private", "Transfer"],
+            5,
+        ),
+        (
+            "unaffiliated",
+            {"is_associated": True, "expand_related": True},
+            ["Transfer"],
+            5,
+        ),
     ],
 )
 def test_list_workspace(
@@ -95,13 +110,17 @@ def test_get_workspace(get_principal, principal, workspace, message, error_code)
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.get(
-                principal=get_principal(principal), uid=uuid.UUID(workspace)
+                principal=get_principal(principal),
+                uid=uuid.UUID(workspace),
+                expand_related=True,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_get = workspace_service.get(
-            principal=get_principal(principal), uid=uuid.UUID(workspace)
+            principal=get_principal(principal),
+            uid=uuid.UUID(workspace),
+            expand_related=True,
         )
         assert workspace_get.name == message
         assert WorkspaceDetailResponse.from_orm(workspace_get)
@@ -123,6 +142,7 @@ def test_create_workspace(get_principal, principal, name, message, error_code):
             workspace_service.create(
                 principal=get_principal(principal),
                 data=WorkspacePostBody(name=name, is_private=False),
+                expand_related=True,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
@@ -130,6 +150,7 @@ def test_create_workspace(get_principal, principal, name, message, error_code):
         workspace_create = workspace_service.create(
             principal=get_principal(principal),
             data=WorkspacePostBody(name="New", is_private=False),
+            expand_related=True,
         )
         assert workspace_create.name == message
         assert WorkspaceDetailResponse.from_orm(workspace_create)
@@ -207,6 +228,7 @@ def test_update_workspace(
                 principal=get_principal(principal),
                 uid=uuid.UUID(workspace),
                 data=WorkspacePatchBody(name=name, is_private=False),
+                expand_related=True,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
@@ -215,6 +237,7 @@ def test_update_workspace(
             principal=get_principal(principal),
             uid=uuid.UUID(workspace),
             data=WorkspacePatchBody(name="Updated", is_private=False),
+            expand_related=True,
         )
         assert workspace_update.name == message
         assert WorkspaceDetailResponse.from_orm(workspace_update)
@@ -460,8 +483,8 @@ def test_accept_workspace_transfer(
         workspace_transfer = workspace_service.accept_transfer(
             principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
-        workspace_get = workspace_service.get(
-            principal=get_principal(principal), uid=uuid.UUID(workspace)
+        workspace_get, _ = workspace_service.get_workspace(
+            principal=get_principal(principal), workspace_id=uuid.UUID(workspace)
         )
         assert workspace_transfer == message
         assert workspace_get.owner == get_principal(principal)
