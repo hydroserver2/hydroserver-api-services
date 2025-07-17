@@ -9,12 +9,14 @@ https://docs.djangoproject.com/en/4.1/howto/deployment/wsgi/
 
 import os
 
-from django.core.wsgi import get_wsgi_application
+# from django.core.wsgi import get_wsgi_application
+from configurations.wsgi import get_wsgi_application
 from django.core.management import call_command
 from django.db import connection
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hydroserver.settings")
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hydroserver.settings")
+os.environ.setdefault("DJANGO_CONFIGURATION", os.getenv("SERVER_ENVIRONMENT", "Base"))
 application = get_wsgi_application()
 
 
