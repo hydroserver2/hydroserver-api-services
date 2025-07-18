@@ -1,13 +1,20 @@
 import uuid
+from typing import TYPE_CHECKING
+from ninja import Query
 from pydantic import EmailStr
-from hydroserver.schemas import BaseGetResponse, BasePostBody
-from .role import RoleGetResponse
-from .account import AccountContactGetResponse
+from api.schemas import BaseGetResponse, BasePostBody, CollectionQueryParameters
+
+if TYPE_CHECKING:
+    from iam.schemas import AccountContactDetailResponse, RoleSummaryResponse
 
 
-class CollaboratorGetResponse(BaseGetResponse):
-    user: AccountContactGetResponse
-    role: RoleGetResponse
+class CollaboratorQueryParameters(CollectionQueryParameters):
+    role_id: list[uuid.UUID] = Query([], description="Filter collaborators by role ID.")
+
+
+class CollaboratorDetailResponse(BaseGetResponse):
+    user: "AccountContactDetailResponse"
+    role: "RoleSummaryResponse"
 
 
 class CollaboratorPostBody(BasePostBody):

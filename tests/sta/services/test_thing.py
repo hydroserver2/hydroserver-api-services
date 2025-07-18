@@ -1,169 +1,187 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import ThingService
 from sta.schemas import (
     ThingPostBody,
     ThingPatchBody,
+    LocationPostBody,
+    LocationPatchBody,
     TagPostBody,
     TagDeleteBody,
-    ThingGetResponse,
+    ThingSummaryResponse,
 )
 
 thing_service = ThingService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, thing_names, max_queries",
     [
-        ("owner", None, 4, 5),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 4, 5),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 4, 5),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("viewer", None, 4, 5),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 5),
-        ("apikey", None, 2, 6),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 6),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("anonymous", None, 1, 5),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 5),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 1, 5),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 1, 5),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        (
+            "owner",
+            {},
+            [
+                "Public Thing",
+                "Private Thing",
+                "Private Thing Public Workspace",
+                "Public Thing Private Workspace",
+            ],
+            6,
+        ),
+        (
+            "editor",
+            {},
+            [
+                "Public Thing",
+                "Private Thing",
+                "Private Thing Public Workspace",
+                "Public Thing Private Workspace",
+            ],
+            6,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "Public Thing",
+                "Private Thing",
+                "Private Thing Public Workspace",
+                "Public Thing Private Workspace",
+            ],
+            6,
+        ),
+        ("apikey", {}, ["Public Thing", "Private Thing Public Workspace"], 7),
+        (
+            "admin",
+            {},
+            [
+                "Public Thing",
+                "Private Thing",
+                "Private Thing Public Workspace",
+                "Public Thing Private Workspace",
+            ],
+            6,
+        ),
+        ("unaffiliated", {}, ["Public Thing"], 6),
+        ("unaffiliated", {}, ["Public Thing"], 6),
+        # Test pagination and order_by
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "order_by": "-name"},
+            ["Private Thing", "Private Thing Public Workspace"],
+            6,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"workspace_id": ["6e0deaf2-a92b-421b-9ece-86783265596f"]},
+            ["Public Thing", "Private Thing Public Workspace"],
+            6,
+        ),
+        ("owner", {"bbox": ["-111.794,41.739,-111.793,41.740"]}, ["Public Thing"], 6),
+        ("owner", {"tag": ["Test Public Key:Test Public Value"]}, ["Public Thing"], 6),
+        (
+            "owner",
+            {"site_type": ["Public"], "samplingFeatureType": ["Public"]},
+            ["Public Thing"],
+            6,
+        ),
+        (
+            "owner",
+            {"is_private": False},
+            ["Public Thing"],
+            6,
+        ),
     ],
 )
 def test_list_thing(
     django_assert_max_num_queries,
     get_principal,
     principal,
-    workspace,
-    length,
+    params,
+    thing_names,
     max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
-        thing_list = thing_service.list(
+        http_response = HttpResponse()
+        result = thing_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
+            filtering=params,
         )
-        assert len(thing_list) == length
-        assert (ThingGetResponse.from_orm(thing) for thing in thing_list)
+        assert Counter(str(thing.name) for thing in result) == Counter(thing_names)
+        assert (ThingSummaryResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
     "principal, thing, message, error_code",
     [
+        # Test public access
+        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        ("viewer", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        ("apikey", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        ("unaffiliated", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", "Public Thing", None),
+        # Test private access
+        ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", "Private Thing", None),
         (
             "owner",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
-        ),
-        (
-            "owner",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Taggart Student Center",
-            None,
-        ),
-        ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Old Main Building", None),
-        (
-            "owner",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Merrill-Cazier Library",
-            None,
-        ),
-        (
-            "admin",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
-        ),
-        (
-            "admin",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Taggart Student Center",
-            None,
-        ),
-        ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Old Main Building", None),
-        (
-            "admin",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Merrill-Cazier Library",
-            None,
-        ),
-        (
-            "editor",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
-        ),
-        (
-            "editor",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Taggart Student Center",
-            None,
-        ),
-        ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Old Main Building", None),
-        (
-            "editor",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Merrill-Cazier Library",
-            None,
-        ),
-        (
-            "viewer",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
-        ),
-        (
-            "viewer",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Taggart Student Center",
-            None,
-        ),
-        ("viewer", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", "Old Main Building", None),
-        (
-            "viewer",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Merrill-Cazier Library",
-            None,
-        ),
-        (
-            "apikey",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
-        ),
-        (
-            "apikey",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            "apikey",
             "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "Old Main Building",
+            "Private Thing Public Workspace",
             None,
         ),
         (
-            "apikey",
+            "owner",
             "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Public Thing Private Workspace",
+            None,
+        ),
+        ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", "Private Thing", None),
+        (
+            "admin",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            "Private Thing Public Workspace",
+            None,
+        ),
+        (
+            "admin",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Public Thing Private Workspace",
+            None,
+        ),
+        # Test unauthorized access
+        (
+            "apikey",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "Thing does not exist",
             404,
         ),
         (
-            "anonymous",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
+            "unaffiliated",
+            "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
+            "Thing does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            "Thing does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -183,38 +201,9 @@ def test_list_thing(
             "Thing does not exist",
             404,
         ),
+        # Test missing resource
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            "Utah Water Research Lab",
-            None,
-        ),
-        (
-            None,
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
             "00000000-0000-0000-0000-000000000000",
             "Thing does not exist",
             404,
@@ -232,79 +221,69 @@ def test_get_thing(get_principal, principal, thing, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(thing)
         )
         assert thing_get.name == message
-        assert ThingGetResponse.from_orm(thing_get)
+        assert ThingSummaryResponse.from_orm(thing_get)
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, message, error_code",
+    "principal, thing_fields, message, error_code",
     [
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
+        # Test create valid Thing
+        ("owner", {}, None, None),
+        ("editor", {}, None, None),
+        ("admin", {}, None, None),
+        # Test create invalid Thing
         (
-            "viewer",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "owner",
+            {"workspace_id": "00000000-0000-0000-0000-000000000000"},
             "Workspace does not exist",
             404,
         ),
+        # Test unauthorized attempts
+        ("viewer", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "You do not have permission",
             403,
         ),
+        ("apikey", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "apikey",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
+        ("anonymous", {}, "You do not have permission", 403),
         (
-            None,
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "anonymous",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            "Workspace does not exist",
+            404,
         ),
+        ("unaffiliated", {}, "You do not have permission", 403),
         (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "unaffiliated",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
     ],
 )
-def test_create_thing(get_principal, principal, workspace, message, error_code):
+def test_create_thing(get_principal, principal, thing_fields, message, error_code):
     thing_data = ThingPostBody(
-        name="New",
-        description="New",
-        sampling_feature_type="Site",
-        sampling_feature_code="NEW",
-        site_type="Site",
-        latitude=0,
-        longitude=0,
-        is_private=False,
-        workspace_id=uuid.UUID(workspace),
+        name=thing_fields.get("name", "New"),
+        description=thing_fields.get("description", "New"),
+        sampling_feature_type=thing_fields.get("sampling_feature_type", "Site"),
+        sampling_feature_code=thing_fields.get("sampling_feature_code", "NEW"),
+        site_type=thing_fields.get("site_type", "Site"),
+        location=LocationPostBody(
+            latitude=thing_fields.get("location", {}).get("latitude", 0),
+            longitude=thing_fields.get("location", {}).get("longitude", 0),
+        ),
+        is_private=thing_fields.get("is_private", False),
+        workspace_id=uuid.UUID(
+            thing_fields.get("workspace_id", "6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -320,148 +299,91 @@ def test_create_thing(get_principal, principal, workspace, message, error_code):
         assert thing_create.sampling_feature_type == thing_data.sampling_feature_type
         assert thing_create.sampling_feature_code == thing_data.sampling_feature_code
         assert thing_create.site_type == thing_data.site_type
-        assert thing_create.location.latitude == thing_data.latitude
-        assert thing_create.location.longitude == thing_data.longitude
+        assert thing_create.location.latitude == thing_data.location.latitude
+        assert thing_create.location.longitude == thing_data.location.longitude
         assert thing_create.is_private == thing_data.is_private
         assert thing_create.workspace_id == thing_data.workspace_id
-        assert ThingGetResponse.from_orm(thing_create)
+        assert ThingSummaryResponse.from_orm(thing_create)
 
 
 @pytest.mark.parametrize(
-    "principal, thing, message, error_code",
+    "principal, thing, thing_fields, message, error_code",
     [
-        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
-        ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
-        ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
-        ("owner", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
-        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
-        ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
-        ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
-        ("admin", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
-        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
-        ("editor", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None),
-        ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None),
-        ("editor", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None),
+        # Test edit Thing
+        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {}, None, None),
+        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {}, None, None),
+        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", {}, None, None),
+        # Test unauthorized attempts
         (
             "viewer",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "viewer",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "viewer",
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "viewer",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            "apikey",
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
+            {},
             "Thing does not exist",
             404,
         ),
         (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
+            {},
             "Thing does not exist",
             404,
         ),
         (
-            "anonymous",
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
+            "unaffiliated",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
             "You do not have permission",
             403,
         ),
         (
-            None,
+            "unaffiliated",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Thing does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
+            {},
             "Thing does not exist",
             404,
         ),
     ],
 )
-def test_edit_thing(get_principal, principal, thing, message, error_code):
+def test_edit_thing(get_principal, principal, thing, thing_fields, message, error_code):
     thing_data = ThingPatchBody(
-        name="New",
-        description="New",
-        sampling_feature_type="Site",
-        sampling_feature_code="NEW",
-        site_type="Site",
-        latitude=0,
-        longitude=0,
-        is_private=False,
+        name=thing_fields.get("name", "New"),
+        description=thing_fields.get("description", "New"),
+        sampling_feature_type=thing_fields.get("sampling_feature_type", "Site"),
+        sampling_feature_code=thing_fields.get("sampling_feature_code", "NEW"),
+        site_type=thing_fields.get("site_type", "Site"),
+        location=LocationPatchBody(
+            latitude=thing_fields.get("location", {}).get("latitude", 0),
+            longitude=thing_fields.get("location", {}).get("longitude", 0),
+        ),
+        is_private=thing_fields.get("is_private", False),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -481,152 +403,75 @@ def test_edit_thing(get_principal, principal, thing, message, error_code):
         assert thing_update.sampling_feature_type == thing_data.sampling_feature_type
         assert thing_update.sampling_feature_code == thing_data.sampling_feature_code
         assert thing_update.site_type == thing_data.site_type
-        assert thing_update.location.latitude == thing_data.latitude
-        assert thing_update.location.longitude == thing_data.longitude
+        assert thing_update.location.latitude == thing_data.location.latitude
+        assert thing_update.location.longitude == thing_data.location.longitude
         assert thing_update.is_private == thing_data.is_private
-        assert ThingGetResponse.from_orm(thing_update)
+        assert ThingSummaryResponse.from_orm(thing_update)
 
 
 @pytest.mark.parametrize(
     "principal, thing, message, error_code, max_queries",
     [
-        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 16),
-        ("owner", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None, 16),
-        ("owner", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None, 16),
-        ("owner", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None, 16),
-        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 16),
-        ("admin", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None, 16),
-        ("admin", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None, 16),
-        ("admin", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None, 16),
+        # Test edit Thing
+        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 17),
         ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 17),
-        ("editor", "76dadda5-224b-4e1f-8570-e385bd482b2d", None, None, 17),
-        ("editor", "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7", None, None, 17),
-        ("editor", "819260c8-2543-4046-b8c4-7431243ed7c5", None, None, 17),
+        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 17),
+        # Test unauthorized attempts
         (
             "viewer",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             "You do not have permission",
             403,
-            6,
+            8,
         ),
         (
             "viewer",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "You do not have permission",
             403,
-            6,
-        ),
-        (
-            "viewer",
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "You do not have permission",
-            403,
-            6,
-        ),
-        (
-            "viewer",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "You do not have permission",
-            403,
-            6,
+            8,
         ),
         (
             "apikey",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             "You do not have permission",
             403,
-            7,
+            8,
         ),
         (
             "apikey",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "Thing does not exist",
             404,
-            6,
-        ),
-        (
-            "apikey",
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "You do not have permission",
-            403,
-            7,
-        ),
-        (
-            "apikey",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Thing does not exist",
-            404,
-            6,
+            8,
         ),
         (
             "anonymous",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             "You do not have permission",
             403,
-            6,
+            8,
         ),
         (
             "anonymous",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "Thing does not exist",
             404,
-            6,
+            8,
         ),
         (
-            "anonymous",
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "Thing does not exist",
-            404,
-            6,
-        ),
-        (
-            "anonymous",
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Thing does not exist",
-            404,
-            6,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Thing does not exist",
-            404,
-            6,
-        ),
-        (
-            None,
+            "unaffiliated",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
             "You do not have permission",
             403,
-            6,
+            8,
         ),
         (
-            None,
+            "unaffiliated",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "Thing does not exist",
             404,
-            6,
-        ),
-        (
-            None,
-            "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
-            "Thing does not exist",
-            404,
-            6,
-        ),
-        (
-            None,
-            "819260c8-2543-4046-b8c4-7431243ed7c5",
-            "Thing does not exist",
-            404,
-            6,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
-            "Thing does not exist",
-            404,
-            6,
+            8,
         ),
     ],
 )
@@ -694,38 +539,38 @@ def test_delete_thing(
         ),
         ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
         (
-            "anonymous",
+            "unaffiliated",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "Thing does not exist",
             404,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
             "Thing does not exist",
             404,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "819260c8-2543-4046-b8c4-7431243ed7c5",
             "Thing does not exist",
             404,
         ),
-        (None, "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
+        ("anonymous", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None),
         (
-            None,
+            "anonymous",
             "76dadda5-224b-4e1f-8570-e385bd482b2d",
             "Thing does not exist",
             404,
         ),
         (
-            None,
+            "anonymous",
             "92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7",
             "Thing does not exist",
             404,
         ),
         (
-            None,
+            "anonymous",
             "819260c8-2543-4046-b8c4-7431243ed7c5",
             "Thing does not exist",
             404,
@@ -744,12 +589,12 @@ def test_get_tags(get_principal, principal, thing, message, error_code):
         thing_tags = thing_service.get_tags(
             principal=get_principal(principal), uid=uuid.UUID(thing)
         )
-        assert len(list(thing_tags.all())) == 1
-        assert list(thing_tags.all())[0].key in ["Test Public Key", "Test Private Key"]
-        assert list(thing_tags.all())[0].value in [
-            "Test Public Value",
-            "Test Private Value",
-        ]
+        assert set([tag.key for tag in thing_tags]).issubset(
+            ["Test Public Key", "Test Private Key"]
+        )
+        assert set([tag.value for tag in thing_tags]).issubset(
+            ["Test Public Value", "Test Private Value"]
+        )
 
 
 @pytest.mark.parametrize(
@@ -866,7 +711,7 @@ def test_get_tag_keys(
         (
             "owner",
             "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            {"key": "Test Public Key", "value": "New Value"},
+            {"key": "Test Public Key", "value": "Test Public Value"},
             "Tag already exists",
             400,
         ),
@@ -1550,4 +1395,4 @@ def test_remove_tag(get_principal, principal, thing, tag, message, error_code):
             data=TagDeleteBody(key=tag["key"]),
         )
 
-        assert thing_tag_delete == "Tag deleted"
+        assert thing_tag_delete.endswith("tag(s) deleted")

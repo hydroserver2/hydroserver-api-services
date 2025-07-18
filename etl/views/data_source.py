@@ -1,10 +1,17 @@
 import uuid
-from ninja import Router, Path
 from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
-from etl.schemas import DataSourceGetResponse, DataSourcePostBody, DataSourcePatchBody
+from etl.schemas import (
+    DataSourceSummaryResponse,
+    DataSourceDetailResponse,
+    DataSourcePostBody,
+    DataSourcePatchBody,
+    OrchestrationConfigurationQueryParameters,
+)
 from etl.services import DataSourceService
 
 data_source_router = Router(tags=["Data Sources"])
@@ -15,15 +22,15 @@ data_source_service = DataSourceService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[DataSourceGetResponse],
+        200: list[DataSourceSummaryResponse] | list[DataSourceDetailResponse],
         401: str,
     },
     by_alias=True,
 )
 def get_data_sources(
     request: HydroServerHttpRequest,
-    workspace_id: Optional[uuid.UUID] = None,
-    orchestration_system_id: Optional[uuid.UUID] = None,
+    response: HttpResponse,
+    query: Query[OrchestrationConfigurationQueryParameters],
 ):
     """
     Get public Data Sources and Data Sources associated with the authenticated user.
@@ -31,8 +38,12 @@ def get_data_sources(
 
     return 200, data_source_service.list(
         principal=request.principal,
-        workspace_id=workspace_id,
-        orchestration_system_id=orchestration_system_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_by=query.order_by,
+        filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -40,7 +51,7 @@ def get_data_sources(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: DataSourceGetResponse,
+        201: DataSourceSummaryResponse | DataSourceDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -49,38 +60,50 @@ def get_data_sources(
     by_alias=True,
 )
 @transaction.atomic
-def create_data_source(request: HydroServerHttpRequest, data: DataSourcePostBody):
+def create_data_source(
+    request: HydroServerHttpRequest,
+    data: DataSourcePostBody,
+    expand_related: Optional[bool] = None,
+):
     """
     Create a new Data Source.
     """
 
-    return 201, data_source_service.create(principal=request.principal, data=data)
+    return 201, data_source_service.create(
+        principal=request.principal, data=data, expand_related=expand_related
+    )
 
 
 @data_source_router.get(
     "/{data_source_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataSourceGetResponse,
+        200: DataSourceSummaryResponse | DataSourceDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_data_source(request: HydroServerHttpRequest, data_source_id: Path[uuid.UUID]):
+def get_data_source(
+    request: HydroServerHttpRequest,
+    data_source_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = None,
+):
     """
     Get a Data Source.
     """
 
-    return 200, data_source_service.get(principal=request.principal, uid=data_source_id)
+    return 200, data_source_service.get(
+        principal=request.principal, uid=data_source_id, expand_related=expand_related
+    )
 
 
 @data_source_router.patch(
     "/{data_source_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataSourceGetResponse,
+        200: DataSourceSummaryResponse | DataSourceDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -93,13 +116,17 @@ def update_data_source(
     request: HydroServerHttpRequest,
     data_source_id: Path[uuid.UUID],
     data: DataSourcePatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Data Source.
     """
 
     return 200, data_source_service.update(
-        principal=request.principal, uid=data_source_id, data=data
+        principal=request.principal,
+        uid=data_source_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 
@@ -107,7 +134,7 @@ def update_data_source(
     "/{data_source_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,
@@ -116,7 +143,8 @@ def update_data_source(
 )
 @transaction.atomic
 def delete_data_source(
-    request: HydroServerHttpRequest, data_source_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    data_source_id: Path[uuid.UUID],
 ):
     """
     Delete a Data Source.
@@ -158,7 +186,7 @@ def link_datastream(
     "/{data_source_id}/datastreams/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

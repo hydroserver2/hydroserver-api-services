@@ -1,13 +1,47 @@
 import uuid
-from typing import Optional
-from ninja import Schema, Field
+from typing import Optional, Literal, TYPE_CHECKING
+from ninja import Schema, Field, Query
 from pydantic import field_validator, AliasChoices
 from country_list import countries_for_language
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
-from .tag import TagGetResponse
-from .photo import PhotoGetResponse
+from api.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceSummaryResponse
 
 valid_country_codes = [code for code, _ in countries_for_language("en")]
+
+
+class TagGetResponse(BaseGetResponse):
+    key: str
+    value: str
+
+
+class TagPostBody(BasePostBody):
+    key: str
+    value: str
+
+
+class TagDeleteBody(BasePostBody):
+    key: str
+    value: Optional[str] = None
+
+
+class PhotoGetResponse(BaseGetResponse):
+    name: str
+    link: str
+
+
+class PhotoPostBody(BasePostBody):
+    name: str
+
+
+class PhotoDeleteBody(BasePostBody):
+    name: str
 
 
 class LocationFields(Schema):
@@ -54,6 +88,18 @@ class LocationFields(Schema):
         return value
 
 
+class LocationDetailResponse(BaseGetResponse, LocationFields):
+    pass
+
+
+class LocationPostBody(BasePostBody, LocationFields):
+    pass
+
+
+class LocationPatchBody(BasePatchBody, LocationFields):
+    pass
+
+
 class ThingFields(Schema):
     name: str = Field(..., max_length=200)
     description: str
@@ -64,16 +110,78 @@ class ThingFields(Schema):
     is_private: bool
 
 
-class ThingGetResponse(BaseGetResponse, ThingFields, LocationFields):
+_order_by_fields = (
+    "name",
+    "samplingFeatureType",
+    "samplingFeatureCode",
+    "siteType",
+    "isPrivate",
+    "latitude",
+    "longitude",
+    "elevation_m",
+    "elevationDatum",
+    "state",
+    "county",
+    "country",
+)
+
+ThingOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
+class ThingQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
+    order_by: Optional[list[ThingOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
+    workspace_id: list[uuid.UUID] = Query(
+        [], description="Filter things by workspace ID."
+    )
+    bbox: list[str] = Query(
+        [],
+        description="Filter things by bounding box. Format bounding box as {min_lon},{min_lat},{max_lon},{max_lat}",
+    )
+    locations__state: list[str] = Query(
+        [], description="Filter things by state.", alias="state"
+    )
+    locations__county: list[str] = Query(
+        [], description="Filter things by county.", alias="county"
+    )
+    locations__country: list[str] = Query(
+        [], description="Filter things by country.", alias="country"
+    )
+    site_type: list[str] = Query([], description="Filter things by site type.")
+    sampling_feature_type: list[str] = Query(
+        [], description="Filter things by sampling feature type."
+    )
+    tag: list[str] = Query(
+        [], description="Filter things by tag. Format tag filters as {key}:{value}"
+    )
+    is_private: Optional[bool] = Query(
+        None,
+        description="Controls whether the returned things should be private or public.",
+    )
+
+
+class ThingSummaryResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
+    location: LocationDetailResponse
     tags: list[TagGetResponse]
     photos: list[PhotoGetResponse]
 
 
-class ThingPostBody(BasePostBody, ThingFields, LocationFields):
+class ThingDetailResponse(BaseGetResponse, ThingFields):
+    id: uuid.UUID
+    workspace: "WorkspaceSummaryResponse"
+    location: LocationDetailResponse
+    tags: list[TagGetResponse]
+    photos: list[PhotoGetResponse]
+
+
+class ThingPostBody(BasePostBody, ThingFields):
     workspace_id: uuid.UUID
+    location: LocationPostBody
 
 
-class ThingPatchBody(BasePatchBody, ThingFields, LocationFields):
-    pass
+class ThingPatchBody(BasePatchBody, ThingFields):
+    location: LocationPatchBody

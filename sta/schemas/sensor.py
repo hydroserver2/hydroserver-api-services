@@ -1,8 +1,16 @@
 import uuid
-from typing import Optional
-from ninja import Schema, Field
+from typing import Optional, Literal, TYPE_CHECKING
+from ninja import Schema, Field, Query
 from sta.schemas.sensorthings.sensor import sensorEncodingTypes
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from api.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
+
+if TYPE_CHECKING:
+    from iam.schemas import WorkspaceSummaryResponse
 
 
 class SensorFields(Schema):
@@ -17,13 +25,49 @@ class SensorFields(Schema):
     method_code: Optional[str] = Field(None, max_length=50)
 
 
-class SensorGetResponse(BaseGetResponse, SensorFields):
+_order_by_fields = (
+    "name",
+    "encodingType",
+    "manufacturer",
+    "model",
+    "methodType",
+    "methodCode",
+)
+
+SensorOrderByFields = Literal[*_order_by_fields, *[f"-{f}" for f in _order_by_fields]]
+
+
+class SensorQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
+    order_by: Optional[list[SensorOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
+    workspace_id: list[uuid.UUID | Literal["null"]] = Query(
+        [], description="Filter sensors by workspace ID."
+    )
+    datastreams__thing_id: list[uuid.UUID] = Query(
+        [], description="Filter sensors by thing ID.", alias="thing_id"
+    )
+    datastreams__id: list[uuid.UUID] = Query(
+        [], description="Filter sensors by datastream ID.", alias="datastream_id"
+    )
+    encoding_type: list[str] = Query([], description="Filter sensors by encodingType")
+    manufacturer: list[str] = Query([], description="Filter sensors by manufacturer")
+    method_type: list[str] = Query([], description="Filter sensors by methodType")
+
+
+class SensorSummaryResponse(BaseGetResponse, SensorFields):
     id: uuid.UUID
     workspace_id: Optional[uuid.UUID]
 
 
+class SensorDetailResponse(BaseGetResponse, SensorFields):
+    id: uuid.UUID
+    workspace: Optional["WorkspaceSummaryResponse"]
+
+
 class SensorPostBody(BasePostBody, SensorFields):
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID] = None
 
 
 class SensorPatchBody(BasePatchBody, SensorFields):

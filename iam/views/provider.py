@@ -10,7 +10,7 @@ from allauth.headless.constants import Client
 from iam.schemas import (
     ProviderRedirectPostForm,
     ProviderSignupPostBody,
-    AccountGetResponse,
+    AccountDetailResponse,
 )
 
 provider_router = Router(tags=["Provider"])
@@ -102,7 +102,7 @@ def provider_signup(
 
     if response.status_code == 200:
         response_content = json.loads(response.content)
-        response_content["data"]["account"] = AccountGetResponse.from_orm(
+        response_content["data"]["account"] = AccountDetailResponse.from_orm(
             request.user
         ).dict(by_alias=True)
         response.content = json.dumps(response_content)

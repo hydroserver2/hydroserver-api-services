@@ -1,8 +1,11 @@
 from ninja import Schema
-from typing import Literal, Optional
+from typing import Literal, Optional, TYPE_CHECKING
 from pydantic import EmailStr
-from hydroserver.schemas import BasePostBody
-from .account import UserFields, OrganizationPostBody
+from api.schemas import BasePostBody
+from iam.schemas.account import UserFields
+
+if TYPE_CHECKING:
+    from iam.schemas import OrganizationPostBody
 
 
 class ProviderRedirectPostForm(Schema):
@@ -13,4 +16,4 @@ class ProviderRedirectPostForm(Schema):
 
 class ProviderSignupPostBody(BasePostBody, UserFields):
     email: EmailStr
-    organization: Optional[OrganizationPostBody] = None
+    organization: Optional["OrganizationPostBody"]

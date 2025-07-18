@@ -8,4 +8,3 @@ from .workspace import workspace_router
 from .role import role_router
 from .collaborator import collaborator_router
 from .api_key import api_key_router
-from .vocabulary import iam_vocabulary_router

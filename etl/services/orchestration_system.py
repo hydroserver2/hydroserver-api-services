@@ -1,28 +1,41 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from iam.services.utils import ServiceUtils
+from django.db.models import QuerySet
 from iam.models import APIKey
 from etl.models import OrchestrationSystem
-from etl.schemas import OrchestrationSystemPostBody, OrchestrationSystemPatchBody
-from etl.schemas.orchestration_system import OrchestrationSystemFields
+from etl.schemas import (
+    OrchestrationSystemSummaryResponse,
+    OrchestrationSystemDetailResponse,
+    OrchestrationSystemPostBody,
+    OrchestrationSystemPatchBody,
+)
+from etl.schemas.orchestration_system import (
+    OrchestrationSystemFields,
+    OrchestrationSystemOrderByFields,
+)
+from api.service import ServiceUtils
 
 User = get_user_model()
 
 
 class OrchestrationSystemService(ServiceUtils):
-    @staticmethod
+
     def get_orchestration_system_for_action(
-        principal: Union[User, APIKey],
+        self,
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
         raise_400: bool = False,
     ):
         try:
-            orchestration_system = OrchestrationSystem.objects.select_related(
-                "workspace"
-            ).get(pk=uid)
+            orchestration_system = OrchestrationSystem.objects
+            if expand_related:
+                orchestration_system = self.select_expanded_fields(orchestration_system)
+            orchestration_system = orchestration_system.get(pk=uid)
         except OrchestrationSystem.DoesNotExist:
             raise HttpError(
                 404 if not raise_400 else 400, "Orchestration system does not exist"
@@ -46,25 +59,83 @@ class OrchestrationSystemService(ServiceUtils):
         return orchestration_system
 
     @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
-        principal: Optional[Union[User, APIKey]],
-        workspace_id: Optional[uuid.UUID] = None,
+        self,
+        principal: Optional[User | APIKey],
+        response: HttpResponse,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        order_by: Optional[list[str]] = None,
+        filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = OrchestrationSystem.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in [
+            "workspace_id",
+            "orchestration_system_type",
+        ]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        return queryset.visible(principal=principal).distinct()
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(OrchestrationSystemOrderByFields)),
+                {"type": "orchestration_system_type"},
+            )
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
-        return self.get_orchestration_system_for_action(
-            principal=principal, uid=uid, action="view"
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return [
+            (
+                OrchestrationSystemDetailResponse.model_validate(orchestration_system)
+                if expand_related
+                else OrchestrationSystemSummaryResponse.model_validate(
+                    orchestration_system
+                )
+            )
+            for orchestration_system in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        orchestration_system = self.get_orchestration_system_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-    def create(self, principal: Union[User, APIKey], data: OrchestrationSystemPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
+        return (
+            OrchestrationSystemDetailResponse.model_validate(orchestration_system)
+            if expand_related
+            else OrchestrationSystemSummaryResponse.model_validate(orchestration_system)
+        )
+
+    def create(
+        self,
+        principal: User | APIKey,
+        data: OrchestrationSystemPostBody,
+        expand_related: Optional[bool] = None,
+    ):
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
         )
 
         if not OrchestrationSystem.can_principal_create(
@@ -79,16 +150,21 @@ class OrchestrationSystemService(ServiceUtils):
             **data.dict(include=set(OrchestrationSystemFields.model_fields.keys())),
         )
 
-        return orchestration_system
+        return self.get(
+            principal=principal,
+            uid=orchestration_system.id,
+            expand_related=expand_related,
+        )
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         data: OrchestrationSystemPatchBody,
+        expand_related: Optional[bool] = None,
     ):
         orchestration_system = self.get_orchestration_system_for_action(
-            principal=principal, uid=uid, action="edit"
+            principal=principal, uid=uid, action="edit", expand_related=expand_related
         )
         orchestration_system_data = data.dict(
             include=set(OrchestrationSystemFields.model_fields.keys()),
@@ -100,11 +176,15 @@ class OrchestrationSystemService(ServiceUtils):
 
         orchestration_system.save()
 
-        return orchestration_system
+        return self.get(
+            principal=principal,
+            uid=orchestration_system.id,
+            expand_related=expand_related,
+        )
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         orchestration_system = self.get_orchestration_system_for_action(
-            principal=principal, uid=uid, action="delete"
+            principal=principal, uid=uid, action="delete", expand_related=True
         )
 
         if orchestration_system.data_sources.exists():

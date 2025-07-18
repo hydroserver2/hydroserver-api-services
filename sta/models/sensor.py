@@ -83,7 +83,9 @@ class Sensor(models.Model, PermissionChecker):
 
     @classmethod
     def can_principal_create(
-        cls, principal: Optional[Union["User", "APIKey"]], workspace: "Workspace"
+        cls,
+        principal: Optional[Union["User", "APIKey"]],
+        workspace: Optional["Workspace"] = None,
     ):
         return cls.check_create_permissions(
             principal=principal, workspace=workspace, resource_type="Sensor"
