@@ -113,6 +113,8 @@ class DatastreamService(ServiceUtils):
             "observed_property_id",
             "processing_level_id",
             "unit_id",
+            "data_source_id",
+            "data_archives__id",
             "observation_type",
             "sampled_medium",
             "status",

@@ -184,4 +184,4 @@ class ThingPostBody(BasePostBody, ThingFields):
 
 
 class ThingPatchBody(BasePatchBody, ThingFields):
-    location: LocationPatchBody
+    location: Optional[LocationPatchBody] = None

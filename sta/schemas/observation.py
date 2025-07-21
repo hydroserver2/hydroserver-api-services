@@ -1,5 +1,5 @@
 import uuid
-from pydantic import AliasPath, model_validator
+from pydantic import AliasPath, AliasChoices, model_validator
 from ninja import Schema, Query, Field
 from typing import Optional, Literal, TYPE_CHECKING
 from datetime import datetime
@@ -52,7 +52,7 @@ class ObservationQueryParameters(CollectionQueryParameters):
 class ObservationSummaryResponse(BaseGetResponse, ObservationFields):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(
-        ..., validation_alias=AliasPath("datastream", "thing", "workspace_id")
+        ..., validation_alias=AliasChoices("workspaceId", AliasPath("datastream", "thing", "workspace_id"))
     )
     datastream_id: uuid.UUID
 

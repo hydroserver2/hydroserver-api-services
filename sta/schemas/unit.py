@@ -36,13 +36,13 @@ class UnitQueryParameters(CollectionQueryParameters):
     workspace_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter units by workspace ID."
     )
-    datastreams__thing_id: list[uuid.UUID] = Query(
+    datastreams__thing_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter units by thing ID.", alias="thing_id"
     )
-    datastreams__id: list[uuid.UUID] = Query(
+    datastreams__id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter units by datastream ID.", alias="datastream_id"
     )
-    unit_type: list[str] = Query([], description="Filter units by type")
+    unit_type: list[str] = Query([], description="Filter units by type", alias="type")
 
 
 class UnitSummaryResponse(BaseGetResponse, UnitFields):

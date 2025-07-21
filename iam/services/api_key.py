@@ -225,7 +225,7 @@ class APIKeyService(ServiceUtils):
         api_key.key = raw_key
 
         return (
-            APIKeyDetailResponse.model_validate(api_key)
+            APIKeyDetailPostResponse.model_validate(api_key)
             if expand_related
-            else APIKeySummaryResponse.model_validate(api_key)
+            else APIKeySummaryPostResponse.model_validate(api_key)
         )

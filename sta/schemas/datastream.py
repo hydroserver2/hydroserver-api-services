@@ -96,7 +96,7 @@ class DatastreamQueryParameters(CollectionQueryParameters):
     data_source_id: list[uuid.UUID] = Query(
         [], description="Filter datastreams by data source ID."
     )
-    dataarchives__id: list[uuid.UUID] = Query(
+    data_archives__id: list[uuid.UUID] = Query(
         [],
         description="Filter datastreams by data archive ID.",
         alias="data_archive_id",

@@ -39,10 +39,10 @@ class ObservedPropertyQueryParameters(CollectionQueryParameters):
     workspace_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter observed properties by workspace ID."
     )
-    datastreams__thing_id: list[uuid.UUID] = Query(
+    datastreams__thing_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter observed properties by thing ID.", alias="thing_id"
     )
-    datastreams__id: list[uuid.UUID] = Query(
+    datastreams__id: list[uuid.UUID | Literal["null"]] = Query(
         [],
         description="Filter observed properties by datastream ID.",
         alias="datastream_id",
