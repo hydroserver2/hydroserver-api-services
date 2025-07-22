@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                     reverse_sql="""
                     ALTER TABLE sta_observation
                     DROP CONSTRAINT IF EXISTS unique_datastream_id_phenomenon_time;
-                    """
+                    """,
                 ),
                 # Step 2: Drop the old PK constraint
                 migrations.RunSQL(
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                     ALTER TABLE sta_observation
                     ADD CONSTRAINT sta_observation_pkey
                     PRIMARY KEY (datastream_id, phenomenon_time);
-                    """
+                    """,
                 ),
                 # Step 3: Promote `id` to PK using existing index if present
                 migrations.RunSQL(
@@ -76,7 +76,7 @@ class Migration(migrations.Migration):
                     reverse_sql="""
                     ALTER TABLE sta_observation
                     DROP CONSTRAINT sta_observation_pkey;
-                    """
+                    """,
                 ),
             ],
             state_operations=[
@@ -98,9 +98,9 @@ class Migration(migrations.Migration):
                         default=uuid6.uuid7,
                         editable=False,
                         primary_key=True,
-                        serialize=False
+                        serialize=False,
                     ),
                 ),
-            ]
+            ],
         ),
     ]

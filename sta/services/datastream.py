@@ -195,7 +195,9 @@ class DatastreamService(ServiceUtils):
         thing = self.handle_http_404_error(
             thing_service.get, principal=principal, uid=data.thing_id
         )
-        workspace, _ = self.get_workspace(principal=principal, workspace_id=thing.workspace_id)
+        workspace, _ = self.get_workspace(
+            principal=principal, workspace_id=thing.workspace_id
+        )
 
         if not Datastream.can_principal_create(
             principal=principal, workspace=workspace

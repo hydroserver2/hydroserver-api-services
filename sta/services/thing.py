@@ -235,9 +235,13 @@ class ThingService(ServiceUtils):
         thing_data = data.dict(
             include=set(ThingFields.model_fields.keys()), exclude_unset=True
         )
-        location_data = data.location.dict(
-            include=set(LocationFields.model_fields.keys()), exclude_unset=True
-        ) if data.location else {}
+        location_data = (
+            data.location.dict(
+                include=set(LocationFields.model_fields.keys()), exclude_unset=True
+            )
+            if data.location
+            else {}
+        )
 
         if thing_data.get("name"):
             location_data["name"] = f"Location for {thing_data['name']}"
@@ -257,7 +261,9 @@ class ThingService(ServiceUtils):
         )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
-        thing = self.get_thing_for_action(principal=principal, uid=uid, action="delete", expand_related=True)
+        thing = self.get_thing_for_action(
+            principal=principal, uid=uid, action="delete", expand_related=True
+        )
         location = thing.location
 
         thing.delete()
