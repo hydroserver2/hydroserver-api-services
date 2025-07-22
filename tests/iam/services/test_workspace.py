@@ -1,44 +1,74 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from iam.services.workspace import WorkspaceService
 from iam.schemas import (
     WorkspacePostBody,
     WorkspacePatchBody,
     WorkspaceTransferBody,
-    WorkspaceGetResponse,
+    WorkspaceDetailResponse,
 )
 
 workspace_service = WorkspaceService()
 
 
 @pytest.mark.parametrize(
-    "principal, length, associated",
+    "principal, params, workspace_names, max_queries",
     [
-        ("owner", 3, False),
-        ("owner", 3, True),
-        ("admin", 3, False),
-        ("admin", 0, True),
-        ("editor", 2, False),
-        ("editor", 2, True),
-        ("viewer", 2, False),
-        ("viewer", 2, True),
-        ("apikey", 1, False),
-        ("apikey", 1, True),
-        ("anonymous", 2, False),
-        ("anonymous", 1, True),
-        (None, 1, False),
-        (None, 0, True),
-        ("limited", 1, False),
-        ("limited", 0, True),
+        # Test user access
+        ("owner", {"expand_related": True}, ["Public", "Private", "Transfer"], 5),
+        ("editor", {"expand_related": True}, ["Public", "Private"], 5),
+        ("viewer", {"expand_related": True}, ["Public", "Private"], 5),
+        ("admin", {"expand_related": True}, ["Public", "Private", "Transfer"], 5),
+        ("apikey", {"expand_related": True}, ["Public"], 5),
+        ("unaffiliated", {"expand_related": True}, ["Public", "Transfer"], 5),
+        ("anonymous", {"expand_related": True}, ["Public"], 5),
+        # Test pagination and order_by
+        (
+            "owner",
+            {"page": 2, "page_size": 1, "order_by": "-name", "expand_related": True},
+            ["Public"],
+            5,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"is_private": True, "expand_related": True},
+            ["Private", "Transfer"],
+            5,
+        ),
+        (
+            "unaffiliated",
+            {"is_associated": True, "expand_related": True},
+            ["Transfer"],
+            5,
+        ),
     ],
 )
-def test_list_workspace(get_principal, principal, length, associated):
-    workspace_list = workspace_service.list(
-        principal=get_principal(principal), associated_only=associated
-    )
-    assert len(workspace_list) == length
-    assert (WorkspaceGetResponse.from_orm(workspace) for workspace in workspace_list)
+def test_list_workspace(
+    django_assert_max_num_queries,
+    get_principal,
+    principal,
+    params,
+    workspace_names,
+    max_queries,
+):
+    with django_assert_max_num_queries(max_queries):
+        http_response = HttpResponse()
+        result = workspace_service.list(
+            principal=get_principal(principal),
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
+            filtering=params,
+        )
+        assert Counter(str(workspace.name) for workspace in result) == Counter(
+            workspace_names
+        )
+        assert (WorkspaceDetailResponse.from_orm(workspace) for workspace in result)
 
 
 @pytest.mark.parametrize(
@@ -47,9 +77,9 @@ def test_list_workspace(get_principal, principal, length, associated):
         ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", None),
         ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", "Private", None),
         ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
+        ("unaffiliated", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
+        ("unaffiliated", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Transfer", None),
         ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
-        ("anonymous", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", "Transfer", None),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", "Public", None),
         (
             "owner",
             "00000000-0000-0000-0000-000000000000",
@@ -63,13 +93,13 @@ def test_list_workspace(get_principal, principal, length, associated):
             404,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
         ),
         (
-            None,
+            "anonymous",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
@@ -80,16 +110,20 @@ def test_get_workspace(get_principal, principal, workspace, message, error_code)
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             workspace_service.get(
-                principal=get_principal(principal), uid=uuid.UUID(workspace)
+                principal=get_principal(principal),
+                uid=uuid.UUID(workspace),
+                expand_related=True,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
         workspace_get = workspace_service.get(
-            principal=get_principal(principal), uid=uuid.UUID(workspace)
+            principal=get_principal(principal),
+            uid=uuid.UUID(workspace),
+            expand_related=True,
         )
         assert workspace_get.name == message
-        assert WorkspaceGetResponse.from_orm(workspace_get)
+        assert WorkspaceDetailResponse.from_orm(workspace_get)
 
 
 @pytest.mark.parametrize(
@@ -108,6 +142,7 @@ def test_create_workspace(get_principal, principal, name, message, error_code):
             workspace_service.create(
                 principal=get_principal(principal),
                 data=WorkspacePostBody(name=name, is_private=False),
+                expand_related=True,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
@@ -115,9 +150,10 @@ def test_create_workspace(get_principal, principal, name, message, error_code):
         workspace_create = workspace_service.create(
             principal=get_principal(principal),
             data=WorkspacePostBody(name="New", is_private=False),
+            expand_related=True,
         )
         assert workspace_create.name == message
-        assert WorkspaceGetResponse.from_orm(workspace_create)
+        assert WorkspaceDetailResponse.from_orm(workspace_create)
 
 
 @pytest.mark.parametrize(
@@ -192,6 +228,7 @@ def test_update_workspace(
                 principal=get_principal(principal),
                 uid=uuid.UUID(workspace),
                 data=WorkspacePatchBody(name=name, is_private=False),
+                expand_related=True,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
@@ -200,9 +237,10 @@ def test_update_workspace(
             principal=get_principal(principal),
             uid=uuid.UUID(workspace),
             data=WorkspacePatchBody(name="Updated", is_private=False),
+            expand_related=True,
         )
         assert workspace_update.name == message
-        assert WorkspaceGetResponse.from_orm(workspace_update)
+        assert WorkspaceDetailResponse.from_orm(workspace_update)
 
 
 @pytest.mark.parametrize(
@@ -288,21 +326,21 @@ def test_delete_workspace(
     [
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "Workspace transfer initiated",
             None,
         ),
         (
             "admin",
-            "anonymous",
+            "unaffiliated",
             "6e0deaf2-a92b-421b-9ece-86783265596f",
             "Workspace transfer initiated",
             None,
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "00000000-0000-0000-0000-000000000000",
             "Workspace does not exist",
             404,
@@ -315,14 +353,14 @@ def test_delete_workspace(
             404,
         ),
         (
-            "anonymous",
+            "unaffiliated",
             "viewer",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
             404,
         ),
         (
-            None,
+            "anonymous",
             "viewer",
             "b27c51a0-7374-462d-8a53-d97d47176c10",
             "Workspace does not exist",
@@ -358,7 +396,7 @@ def test_delete_workspace(
         ),
         (
             "owner",
-            "anonymous",
+            "unaffiliated",
             "caf4b92e-6914-4449-8c8a-efa5a7fd1826",
             "Workspace transfer is already pending",
             400,
@@ -394,7 +432,7 @@ def test_transfer_workspace(
     "principal, workspace, message, error_code",
     [
         (
-            "anonymous",
+            "unaffiliated",
             "caf4b92e-6914-4449-8c8a-efa5a7fd1826",
             "Workspace transfer accepted",
             None,
@@ -445,8 +483,8 @@ def test_accept_workspace_transfer(
         workspace_transfer = workspace_service.accept_transfer(
             principal=get_principal(principal), uid=uuid.UUID(workspace)
         )
-        workspace_get = workspace_service.get(
-            principal=get_principal(principal), uid=uuid.UUID(workspace)
+        workspace_get, _ = workspace_service.get_workspace(
+            principal=get_principal(principal), workspace_id=uuid.UUID(workspace)
         )
         assert workspace_transfer == message
         assert workspace_get.owner == get_principal(principal)
@@ -456,7 +494,7 @@ def test_accept_workspace_transfer(
     "principal, workspace, message, error_code",
     [
         (
-            "anonymous",
+            "unaffiliated",
             "caf4b92e-6914-4449-8c8a-efa5a7fd1826",
             "Workspace transfer rejected",
             None,

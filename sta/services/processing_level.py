@@ -1,27 +1,39 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
-from iam.services.utils import ServiceUtils
 from sta.models import ProcessingLevel
-from sta.schemas import ProcessingLevelPostBody, ProcessingLevelPatchBody
-from sta.schemas.processing_level import ProcessingLevelFields
+from sta.schemas import (
+    ProcessingLevelSummaryResponse,
+    ProcessingLevelDetailResponse,
+    ProcessingLevelPostBody,
+    ProcessingLevelPatchBody,
+)
+from sta.schemas.processing_level import (
+    ProcessingLevelFields,
+    ProcessingLevelOrderByFields,
+)
+from api.service import ServiceUtils
 
 User = get_user_model()
 
 
 class ProcessingLevelService(ServiceUtils):
-    @staticmethod
     def get_processing_level_for_action(
-        principal: Union[User, APIKey],
+        self,
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            processing_level = ProcessingLevel.objects.select_related("workspace").get(
-                pk=uid
-            )
+            processing_level = ProcessingLevel.objects
+            if expand_related:
+                processing_level = self.select_expanded_fields(processing_level)
+            processing_level = processing_level.get(pk=uid)
         except ProcessingLevel.DoesNotExist:
             raise HttpError(404, "Processing level does not exist")
 
@@ -40,24 +52,81 @@ class ProcessingLevelService(ServiceUtils):
         return processing_level
 
     @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
-        principal: Optional[Union[User, APIKey]], workspace_id: Optional[uuid.UUID]
+        self,
+        principal: Optional[User | APIKey],
+        response: HttpResponse,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        order_by: Optional[list[str]] = None,
+        filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = ProcessingLevel.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in [
+            "workspace_id",
+            "datastreams__thing_id",
+            "datastreams__id",
+        ]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        return queryset.visible(principal=principal).distinct()
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(ProcessingLevelOrderByFields)),
+            )
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
-        return self.get_processing_level_for_action(
-            principal=principal, uid=uid, action="view"
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return [
+            (
+                ProcessingLevelDetailResponse.model_validate(processing_level)
+                if expand_related
+                else ProcessingLevelSummaryResponse.model_validate(processing_level)
+            )
+            for processing_level in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        processing_level = self.get_processing_level_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-    def create(self, principal: Union[User, APIKey], data: ProcessingLevelPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
+        return (
+            ProcessingLevelDetailResponse.model_validate(processing_level)
+            if expand_related
+            else ProcessingLevelSummaryResponse.model_validate(processing_level)
+        )
+
+    def create(
+        self,
+        principal: User | APIKey,
+        data: ProcessingLevelPostBody,
+        expand_related: Optional[bool] = None,
+    ):
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
         )
 
         if not ProcessingLevel.can_principal_create(
@@ -72,13 +141,16 @@ class ProcessingLevelService(ServiceUtils):
             **data.dict(include=set(ProcessingLevelFields.model_fields.keys())),
         )
 
-        return processing_level
+        return self.get(
+            principal=principal, uid=processing_level.id, expand_related=expand_related
+        )
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         data: ProcessingLevelPatchBody,
+        expand_related: Optional[bool] = None,
     ):
         processing_level = self.get_processing_level_for_action(
             principal=principal, uid=uid, action="edit"
@@ -92,9 +164,11 @@ class ProcessingLevelService(ServiceUtils):
 
         processing_level.save()
 
-        return processing_level
+        return self.get(
+            principal=principal, uid=processing_level.id, expand_related=expand_related
+        )
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         processing_level = self.get_processing_level_for_action(
             principal=principal, uid=uid, action="delete"
         )

@@ -1,27 +1,39 @@
 import uuid
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from iam.models import APIKey
-from iam.services.utils import ServiceUtils
 from sta.models import ResultQualifier
-from sta.schemas import ResultQualifierPostBody, ResultQualifierPatchBody
-from sta.schemas.result_qualifier import ResultQualifierFields
+from sta.schemas import (
+    ResultQualifierSummaryResponse,
+    ResultQualifierDetailResponse,
+    ResultQualifierPostBody,
+    ResultQualifierPatchBody,
+)
+from sta.schemas.result_qualifier import (
+    ResultQualifierFields,
+    ResultQualifierOrderByFields,
+)
+from api.service import ServiceUtils
 
 User = get_user_model()
 
 
 class ResultQualifierService(ServiceUtils):
-    @staticmethod
     def get_result_qualifier_for_action(
-        principal: Union[User, APIKey],
+        self,
+        principal: User | APIKey,
         uid: uuid.UUID,
         action: Literal["view", "edit", "delete"],
+        expand_related: Optional[bool] = None,
     ):
         try:
-            result_qualifier = ResultQualifier.objects.select_related("workspace").get(
-                pk=uid
-            )
+            result_qualifier = ResultQualifier.objects
+            if expand_related:
+                result_qualifier = self.select_expanded_fields(result_qualifier)
+            result_qualifier = result_qualifier.get(pk=uid)
         except ResultQualifier.DoesNotExist:
             raise HttpError(404, "Result qualifier does not exist")
 
@@ -40,24 +52,77 @@ class ResultQualifierService(ServiceUtils):
         return result_qualifier
 
     @staticmethod
+    def select_expanded_fields(queryset: QuerySet) -> QuerySet:
+        return queryset.select_related("workspace")
+
     def list(
-        principal: Optional[Union[User, APIKey]], workspace_id: Optional[uuid.UUID]
+        self,
+        principal: Optional[User | APIKey],
+        response: HttpResponse,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        order_by: Optional[list[str]] = None,
+        filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
         queryset = ResultQualifier.objects
 
-        if workspace_id:
-            queryset = queryset.filter(workspace_id=workspace_id)
+        for field in ["workspace_id"]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
 
-        return queryset.visible(principal=principal).distinct()
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(ResultQualifierOrderByFields)),
+            )
 
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
-        return self.get_result_qualifier_for_action(
-            principal=principal, uid=uid, action="view"
+        if expand_related:
+            queryset = self.select_expanded_fields(queryset)
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return [
+            (
+                ResultQualifierDetailResponse.model_validate(result_qualifier)
+                if expand_related
+                else ResultQualifierSummaryResponse.model_validate(result_qualifier)
+            )
+            for result_qualifier in queryset.all()
+        ]
+
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
+        result_qualifier = self.get_result_qualifier_for_action(
+            principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
-    def create(self, principal: Union[User, APIKey], data: ResultQualifierPostBody):
-        workspace, _ = self.get_workspace(
-            principal=principal, workspace_id=data.workspace_id
+        return (
+            ResultQualifierDetailResponse.model_validate(result_qualifier)
+            if expand_related
+            else ResultQualifierSummaryResponse.model_validate(result_qualifier)
+        )
+
+    def create(
+        self,
+        principal: User | APIKey,
+        data: ResultQualifierPostBody,
+        expand_related: Optional[bool] = None,
+    ):
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
         )
 
         if not ResultQualifier.can_principal_create(
@@ -72,13 +137,16 @@ class ResultQualifierService(ServiceUtils):
             **data.dict(include=set(ResultQualifierFields.model_fields.keys())),
         )
 
-        return result_qualifier
+        return self.get(
+            principal=principal, uid=result_qualifier.id, expand_related=expand_related
+        )
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         uid: uuid.UUID,
         data: ResultQualifierPatchBody,
+        expand_related: Optional[bool] = None,
     ):
         result_qualifier = self.get_result_qualifier_for_action(
             principal=principal, uid=uid, action="edit"
@@ -92,9 +160,11 @@ class ResultQualifierService(ServiceUtils):
 
         result_qualifier.save()
 
-        return result_qualifier
+        return self.get(
+            principal=principal, uid=result_qualifier.id, expand_related=expand_related
+        )
 
-    def delete(self, principal: Union[User, APIKey], uid: uuid.UUID):
+    def delete(self, principal: User | APIKey, uid: uuid.UUID):
         result_qualifier = self.get_result_qualifier_for_action(
             principal=principal, uid=uid, action="delete"
         )

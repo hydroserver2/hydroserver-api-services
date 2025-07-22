@@ -1,7 +1,13 @@
+import uuid
 from typing import Optional, Literal
 from datetime import datetime
-from ninja import Schema, Field
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from ninja import Schema, Field, Query
+from api.schemas import (
+    BaseGetResponse,
+    BasePostBody,
+    BasePatchBody,
+    CollectionQueryParameters,
+)
 
 
 class OrchestrationConfigurationScheduleFields(Schema):
@@ -12,10 +18,55 @@ class OrchestrationConfigurationScheduleFields(Schema):
     end_time: Optional[datetime] = None
 
 
-class OrchestrationConfigurationScheduleGetResponse(
+class OrchestrationConfigurationScheduleDetailResponse(
     BaseGetResponse, OrchestrationConfigurationScheduleFields
 ):
     pass
+
+
+_order_by_fields = ("name", "startTime", "endTime")
+
+OrchestrationConfigurationOrderByFields = Literal[
+    *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
+]
+
+
+class OrchestrationConfigurationQueryParameters(CollectionQueryParameters):
+    expand_related: Optional[bool] = None
+    order_by: Optional[list[OrchestrationConfigurationOrderByFields]] = Query(
+        [], description="Select one or more fields to order the response by."
+    )
+    workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.")
+    orchestration_system_id: list[uuid.UUID] = Query(
+        [], description="Filter by orchestration system ID."
+    )
+    datastreams__id: list[uuid.UUID] = Query(
+        [], description="Filter by associated datastream ID.", alias="datastream_id"
+    )
+    last_run_successful: Optional[bool] = Query(
+        None,
+        description="Filters by whether the previous job ran successfully.",
+    )
+    last_run__lte: Optional[datetime] = Query(
+        None,
+        description="Sets the maximum last run time of filtered datastreams.",
+        alias="last_run_max",
+    )
+    last_run__gte: Optional[datetime] = Query(
+        None,
+        description="Sets the minimum last run time of filtered datastreams.",
+        alias="last_run_min",
+    )
+    next_run__lte: Optional[datetime] = Query(
+        None,
+        description="Sets the maximum next run time of filtered datastreams.",
+        alias="next_run_max",
+    )
+    next_run__gte: Optional[datetime] = Query(
+        None,
+        description="Sets the minimum next run time of filtered datastreams.",
+        alias="next_run_min",
+    )
 
 
 class OrchestrationConfigurationSchedulePostBody(
@@ -38,7 +89,7 @@ class OrchestrationConfigurationStatusFields(Schema):
     paused: bool = False
 
 
-class OrchestrationConfigurationStatusGetResponse(
+class OrchestrationConfigurationStatusDetailResponse(
     BaseGetResponse, OrchestrationConfigurationStatusFields
 ):
     pass

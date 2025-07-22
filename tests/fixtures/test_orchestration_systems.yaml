@@ -3,7 +3,7 @@
   pk: 320ad0e1-1426-47f6-8a3a-886a7111a7c2
   fields:
     name: Global Orchestration System
-    orchestration_system_type: Test
+    orchestration_system_type: Global
 
 # Workspace Orchestration System
 - model: etl.orchestrationsystem
@@ -11,4 +11,4 @@
   fields:
     workspace: b27c51a0-7374-462d-8a53-d97d47176c10
     name: Workspace Orchestration System
-    orchestration_system_type: Test
+    orchestration_system_type: Workspace

@@ -1,252 +1,227 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import DatastreamService
-from sta.schemas import DatastreamPostBody, DatastreamPatchBody, DatastreamGetResponse
+from sta.schemas import (
+    DatastreamPostBody,
+    DatastreamPatchBody,
+    DatastreamSummaryResponse,
+)
 
 datastream_service = DatastreamService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, thing, length, max_queries",
+    "principal, params, datastream_names, max_queries",
     [
-        # Owners can filter datastreams by thing and workspace
-        ("owner", None, None, 9, 2),
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 5, 2),
+        # Test user access
         (
             "owner",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
+            [
+                "Public Datastream 1",
+                "Private Datastream 1",
+                "Private Datastream 2",
+                "Private Datastream 3",
+                "Private Datastream 4",
+                "Private Datastream 5",
+                "Private Datastream 6",
+                "Private Datastream 7",
+                "Public Datastream 2",
+            ],
             3,
-            2,
-        ),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 4, 2),
-        (
-            "owner",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            2,
-            2,
-        ),
-        (
-            "owner",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
-            2,
-        ),
-        # Admins can filter datastreams by thing and workspace
-        ("admin", None, None, 9, 2),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 5, 2),
-        (
-            "admin",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            3,
-            2,
-        ),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 4, 2),
-        (
-            "admin",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            2,
-            2,
-        ),
-        (
-            "admin",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
-            2,
-        ),
-        # Editors can filter datastreams by thing and workspace
-        ("editor", None, None, 9, 2),
-        ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 5, 2),
-        (
-            "editor",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            3,
-            2,
-        ),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 4, 2),
-        (
-            "editor",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            2,
-            2,
         ),
         (
             "editor",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
-            2,
-        ),
-        # Viewers can filter datastreams by thing and workspace
-        ("viewer", None, None, 9, 2),
-        ("viewer", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 5, 2),
-        (
-            "viewer",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
+            [
+                "Public Datastream 1",
+                "Private Datastream 1",
+                "Private Datastream 2",
+                "Private Datastream 3",
+                "Private Datastream 4",
+                "Private Datastream 5",
+                "Private Datastream 6",
+                "Private Datastream 7",
+                "Public Datastream 2",
+            ],
             3,
-            2,
-        ),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 4, 2),
-        (
-            "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            2,
-            2,
         ),
         (
             "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
-            2,
-        ),
-        # API keys can filter datastreams by thing and workspace
-        ("apikey", None, None, 5, 3),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 5, 3),
-        (
-            "apikey",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
+            {},
+            [
+                "Public Datastream 1",
+                "Private Datastream 1",
+                "Private Datastream 2",
+                "Private Datastream 3",
+                "Private Datastream 4",
+                "Private Datastream 5",
+                "Private Datastream 6",
+                "Private Datastream 7",
+                "Public Datastream 2",
+            ],
             3,
-            3,
         ),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 3),
         (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            0,
+            "admin",
+            {},
+            [
+                "Public Datastream 1",
+                "Private Datastream 1",
+                "Private Datastream 2",
+                "Private Datastream 3",
+                "Private Datastream 4",
+                "Private Datastream 5",
+                "Private Datastream 6",
+                "Private Datastream 7",
+                "Public Datastream 2",
+            ],
             3,
         ),
         (
             "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
+            {},
+            [
+                "Public Datastream 1",
+                "Public Datastream 2",
+                "Private Datastream 1",
+                "Private Datastream 2",
+                "Private Datastream 3",
+            ],
+            4,
+        ),
+        ("unaffiliated", {}, ["Public Datastream 1", "Public Datastream 2"], 3),
+        ("anonymous", {}, ["Public Datastream 1", "Public Datastream 2"], 3),
+        # Test pagination and order_by
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "order_by": "-name"},
+            ["Private Datastream 7", "Private Datastream 6"],
+            6,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"thing__workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            [
+                "Private Datastream 4",
+                "Private Datastream 5",
+                "Private Datastream 6",
+                "Private Datastream 7",
+            ],
             3,
         ),
-        # Anonymous can filter datastreams by thing and workspace
-        ("anonymous", None, None, 2, 2),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", None, 2, 2),
         (
-            "anonymous",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            2,
-            2,
-        ),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 2),
-        (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            0,
-            2,
+            "owner",
+            {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            ["Public Datastream 1", "Private Datastream 1", "Public Datastream 2"],
+            3,
         ),
         (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
-            2,
-        ),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", None, 0, 2),
-        ("anonymous", None, "00000000-0000-0000-0000-000000000000", 0, 2),
-        # Unauthenticated principals can filter datastreams by thing and workspace
-        (None, None, None, 2, 2),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", None, 2, 2),
-        (
-            None,
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            2,
-            2,
-        ),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 2),
-        (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "76dadda5-224b-4e1f-8570-e385bd482b2d",
-            0,
-            2,
+            "owner",
+            {"sampled_medium": "Air"},
+            ["Private Datastream 1", "Private Datastream 3"],
+            3,
         ),
         (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "3b7818af-eff7-4149-8517-e5cad9dc22e1",
-            0,
-            2,
+            "owner",
+            {"is_private": False},
+            ["Public Datastream 1", "Public Datastream 2"],
+            3,
         ),
-        (None, "00000000-0000-0000-0000-000000000000", None, 0, 2),
-        (None, None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        ("owner", {"value_count__gte": "3", "value_count__lte": "1"}, [], 3),
+        (
+            "owner",
+            {
+                "phenomenon_begin_time__gte": "2025-02-10 02:00:00.000 -0700",
+                "phenomenon_begin_time__lte": "2025-02-10 00:00:00.000 -0700",
+            },
+            [],
+            3,
+        ),
     ],
 )
 def test_list_datastream(
     django_assert_max_num_queries,
     get_principal,
     principal,
-    workspace,
-    thing,
-    length,
+    params,
+    datastream_names,
     max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
-        datastream_list = datastream_service.list(
+        http_response = HttpResponse()
+        result = datastream_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
-            thing_id=uuid.UUID(thing) if thing else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
+            filtering=params,
         )
-        assert len(datastream_list) == length
-        assert (
-            DatastreamGetResponse.from_orm(datastream) for datastream in datastream_list
+        assert Counter(str(datastream.name) for datastream in result) == Counter(
+            datastream_names
         )
+        assert (DatastreamSummaryResponse.from_orm(thing) for thing in result)
 
 
 @pytest.mark.parametrize(
     "principal, datastream, message, error_code",
     [
-        # Owners, admins, editors, viewers, and API keys can get public and private datastreams
+        # Test public access
         ("owner", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
-        ("owner", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
-        ("admin", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
-        ("admin", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
         ("editor", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
-        (
-            "editor",
-            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
-            "Private Datastream 7",
-            None,
-        ),
         ("viewer", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
-        (
-            "viewer",
-            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
-            "Private Datastream 7",
-            None,
-        ),
+        ("admin", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
         ("apikey", "27c70b41-e845-40ea-8cc7-d1b40f89816b", "Public Datastream 1", None),
         (
-            "apikey",
-            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
-            "Datastream does not exist",
-            404,
+            "unaffiliated",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            "Public Datastream 1",
+            None,
         ),
-        # Anonymous can get public but not private or non-existent datastreams
         (
             "anonymous",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
+        ),
+        # Test private access
+        ("owner", "e0506cac-3e50-4d0a-814d-7ae0146705b2", "Private Datastream 1", None),
+        ("owner", "cad40a75-99ca-4317-b534-0fc7880c905f", "Private Datastream 2", None),
+        ("owner", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", "Private Datastream 4", None),
+        ("owner", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
+        ("admin", "e0506cac-3e50-4d0a-814d-7ae0146705b2", "Private Datastream 1", None),
+        ("admin", "cad40a75-99ca-4317-b534-0fc7880c905f", "Private Datastream 2", None),
+        ("admin", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", "Private Datastream 4", None),
+        ("admin", "9f96957b-ee20-4c7b-bf2b-673a0cda3a04", "Private Datastream 7", None),
+        # Test unauthorized access
+        (
+            "unaffiliated",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "cad40a75-99ca-4317-b534-0fc7880c905f",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
+            "Datastream does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -262,25 +237,7 @@ def test_list_datastream(
         ),
         (
             "anonymous",
-            "fcd47d93-4cae-411a-9e1e-26ef473840ed",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            "anonymous",
             "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "42e08eea-27bb-4ea3-8ced-63acff0f3334",
             "Datastream does not exist",
             404,
         ),
@@ -290,63 +247,9 @@ def test_list_datastream(
             "Datastream does not exist",
             404,
         ),
+        # Test missing resource
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Datastream does not exist",
-            404,
-        ),
-        # Unauthenticated principals can get public but not private or non-existent datastreams
-        (
-            None,
-            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
-            "Public Datastream 1",
-            None,
-        ),
-        (
-            None,
-            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
-            "cad40a75-99ca-4317-b534-0fc7880c905f",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
-            "fcd47d93-4cae-411a-9e1e-26ef473840ed",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
-            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
-            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
-            "42e08eea-27bb-4ea3-8ced-63acff0f3334",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
-            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
-            "Datastream does not exist",
-            404,
-        ),
-        (
-            None,
             "00000000-0000-0000-0000-000000000000",
             "Datastream does not exist",
             404,
@@ -366,7 +269,7 @@ def test_get_datastream(get_principal, principal, datastream, message, error_cod
             principal=get_principal(principal), uid=uuid.UUID(datastream)
         )
         assert datastream_get.name == message
-        assert DatastreamGetResponse.from_orm(datastream_get)
+        assert DatastreamSummaryResponse.from_orm(datastream_get)
 
 
 @pytest.mark.parametrize(
@@ -868,7 +771,7 @@ def test_create_datastream(
             == datastream_data.time_aggregation_interval_unit
         )
         assert datastream_create.result_type == datastream_data.result_type
-        assert DatastreamGetResponse.from_orm(datastream_create)
+        assert DatastreamSummaryResponse.from_orm(datastream_create)
 
 
 @pytest.mark.parametrize(
@@ -1727,42 +1630,42 @@ def test_edit_datastream(
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            7,
+            8,
         ),
         (
             "owner",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            7,
+            8,
         ),
         (
             "admin",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            7,
+            8,
         ),
         (
             "admin",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            7,
+            8,
         ),
         (
             "editor",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            8,
+            9,
         ),
         (
             "editor",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            8,
+            9,
         ),
         # Anonymous and viewers cannot delete datastreams
         (
@@ -1770,77 +1673,77 @@ def test_edit_datastream(
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "You do not have permission",
             403,
-            4,
+            5,
         ),
         (
             "viewer",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "You do not have permission",
             403,
-            4,
+            5,
         ),
         (
             "apikey",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "e0506cac-3e50-4d0a-814d-7ae0146705b2",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "cad40a75-99ca-4317-b534-0fc7880c905f",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "fcd47d93-4cae-411a-9e1e-26ef473840ed",
             "You do not have permission",
             403,
-            5,
+            6,
         ),
         (
             "apikey",
             "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "42e08eea-27bb-4ea3-8ced-63acff0f3334",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "apikey",
             "00000000-0000-0000-0000-000000000000",
             "Datastream does not exist",
             404,
-            5,
+            6,
         ),
         (
             "anonymous",

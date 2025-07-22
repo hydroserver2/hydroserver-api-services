@@ -256,57 +256,7 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
         pass
 
     def delete_observation(self, observation_id: str) -> None:
-
-        observation = observation_service.get_observation_for_action(
-            principal=self.request.principal,  # noqa
-            uid=observation_id,
-            action="delete",
-        )
-
-        datastream_id = observation.datastream.id
-        observation.delete()
-
-        self.update_value_count(datastream_id=datastream_id)
-
-    def delete_observations(
-        self,
-        datastream_id: UUID,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> None:
-
-        datastream = datastream_service.get_datastream_for_action(
-            principal=self.request.principal,  # noqa
-            uid=datastream_id,
-            action="view",
-        )
-
-        observations_count = Observation.objects.filter(
-            datastream=datastream,
-            phenomenon_time__gte=start_time,
-            phenomenon_time__lte=end_time,
-        ).count()
-
-        observations = Observation.objects.filter(
-            datastream_id=datastream_id,
-            phenomenon_time__gte=start_time,
-            phenomenon_time__lte=end_time,
-        ).removable(
-            principal=self.request.principal  # noqa
-        )
-
-        if observations_count == 0:
-            raise HttpError(400, "No observations to delete within the given range")
-
-        if observations_count != observations.count():
-            raise HttpError(
-                403,
-                "You do not have permission to delete one or more of these observations",
-            )
-
-        observations.delete()
-
-        self.update_value_count(datastream_id=datastream.id)
+        pass
 
     @staticmethod
     def update_value_count(datastream_id: UUID) -> None:

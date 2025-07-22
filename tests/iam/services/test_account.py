@@ -4,7 +4,7 @@ from iam.schemas import (
     AccountPatchBody,
     OrganizationPostBody,
     OrganizationPatchBody,
-    AccountGetResponse,
+    AccountDetailResponse,
 )
 from iam.services.account import AccountService
 
@@ -15,7 +15,7 @@ account_service = AccountService()
 def test_get_account(get_principal, principal):
     account = account_service.get(principal=get_principal(principal))
     assert account.email.startswith(principal)
-    assert AccountGetResponse.from_orm(account)
+    assert AccountDetailResponse.from_orm(account)
 
 
 @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ def test_create_account(account_data):
     assert account.user_type == account_data.user_type
     assert account.organization.name == account_data.organization.name
     assert account.organization.code == account_data.organization.code
-    assert AccountGetResponse.from_orm(account)
+    assert AccountDetailResponse.from_orm(account)
 
 
 @pytest.mark.parametrize(
@@ -69,7 +69,7 @@ def test_update_account(get_principal, principal, account_data):
     assert account.user_type == account_data.user_type
     assert account.organization.name == account_data.organization.name
     assert account.organization.code == account_data.organization.code
-    assert AccountGetResponse.from_orm(account)
+    assert AccountDetailResponse.from_orm(account)
 
 
 @pytest.mark.parametrize(

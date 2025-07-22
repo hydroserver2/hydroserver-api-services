@@ -10,7 +10,7 @@ from allauth.headless.constants import Client
 from iam.schemas import (
     VerificationEmailPutBody,
     VerifyEmailPostBody,
-    AccountGetResponse,
+    AccountDetailResponse,
 )
 
 
@@ -82,7 +82,7 @@ def verify_email(
 
     if response.status_code == 200:
         response_content = json.loads(response.content)
-        response_content["data"]["account"] = AccountGetResponse.from_orm(
+        response_content["data"]["account"] = AccountDetailResponse.from_orm(
             request.user
         ).dict(by_alias=True)
         response.content = json.dumps(response_content)

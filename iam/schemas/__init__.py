@@ -1,31 +1,49 @@
 from .account import (
-    AccountGetResponse,
+    AccountDetailResponse,
     AccountPostBody,
     AccountPatchBody,
-    TypeGetResponse,
+    AccountContactDetailResponse,
+    TypeDetailResponse,
     OrganizationPostBody,
     OrganizationPatchBody,
 )
-from .authentication import AuthenticationMethodsGetResponse
+from .authentication import AuthenticationMethodsDetailResponse
 from .session import SessionPostBody
 from .email import VerificationEmailPutBody, VerifyEmailPostBody
 from .password import RequestResetPasswordPostBody, ResetPasswordPostBody
 from .provider import ProviderRedirectPostForm, ProviderSignupPostBody
 from .workspace import (
-    WorkspaceGetResponse,
+    WorkspaceSummaryResponse,
+    WorkspaceDetailResponse,
+    WorkspaceQueryParameters,
     WorkspacePostBody,
     WorkspacePatchBody,
     WorkspaceTransferBody,
 )
 from .collaborator import (
-    CollaboratorGetResponse,
+    CollaboratorDetailResponse,
+    CollaboratorQueryParameters,
     CollaboratorPostBody,
     CollaboratorDeleteBody,
 )
 from .api_key import (
-    APIKeyGetResponse,
+    APIKeySummaryResponse,
+    APIKeyDetailResponse,
+    APIKeyQueryParameters,
     APIKeyPostBody,
     APIKeyPatchBody,
-    APIKeyPostResponse,
+    APIKeySummaryPostResponse,
+    APIKeyDetailPostResponse,
 )
-from .role import RoleGetResponse
+from .role import RoleDetailResponse, RoleSummaryResponse, RoleQueryParameters
+
+
+ProviderSignupPostBody.model_rebuild()
+
+WorkspaceDetailResponse.model_rebuild()
+RoleDetailResponse.model_rebuild()
+
+APIKeyDetailResponse.model_rebuild()
+APIKeyDetailPostResponse.model_rebuild()
+
+CollaboratorDetailResponse.model_rebuild()

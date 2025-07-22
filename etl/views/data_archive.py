@@ -1,13 +1,16 @@
 import uuid
-from ninja import Router, Path
 from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
-    DataArchiveGetResponse,
+    DataArchiveSummaryResponse,
+    DataArchiveDetailResponse,
     DataArchivePostBody,
     DataArchivePatchBody,
+    OrchestrationConfigurationQueryParameters,
 )
 from etl.services import DataArchiveService
 
@@ -19,15 +22,15 @@ data_archive_service = DataArchiveService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[DataArchiveGetResponse],
+        200: list[DataArchiveSummaryResponse] | list[DataArchiveDetailResponse],
         401: str,
     },
     by_alias=True,
 )
 def get_data_archives(
     request: HydroServerHttpRequest,
-    workspace_id: Optional[uuid.UUID] = None,
-    orchestration_system_id: Optional[uuid.UUID] = None,
+    response: HttpResponse,
+    query: Query[OrchestrationConfigurationQueryParameters],
 ):
     """
     Get public Data Archives and Data Archives associated with the authenticated user.
@@ -35,8 +38,12 @@ def get_data_archives(
 
     return 200, data_archive_service.list(
         principal=request.principal,
-        workspace_id=workspace_id,
-        orchestration_system_id=orchestration_system_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_by=query.order_by,
+        filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -44,7 +51,7 @@ def get_data_archives(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: DataArchiveGetResponse,
+        201: DataArchiveSummaryResponse | DataArchiveDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -53,32 +60,46 @@ def get_data_archives(
     by_alias=True,
 )
 @transaction.atomic
-def create_data_archive(request: HydroServerHttpRequest, data: DataArchivePostBody):
+def create_data_archive(
+    request: HydroServerHttpRequest,
+    data: DataArchivePostBody,
+    expand_related: Optional[bool] = None,
+):
     """
     Create a new Data Archive.
     """
 
-    return 201, data_archive_service.create(principal=request.principal, data=data)
+    return 201, data_archive_service.create(
+        principal=request.principal,
+        data=data,
+        expand_related=expand_related,
+    )
 
 
 @data_archive_router.get(
     "/{data_archive_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataArchiveGetResponse,
+        200: DataArchiveSummaryResponse | DataArchiveDetailResponse,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def get_data_archive(request: HydroServerHttpRequest, data_archive_id: Path[uuid.UUID]):
+def get_data_archive(
+    request: HydroServerHttpRequest,
+    data_archive_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = None,
+):
     """
     Get a Data Archive.
     """
 
     return 200, data_archive_service.get(
-        principal=request.principal, uid=data_archive_id
+        principal=request.principal,
+        uid=data_archive_id,
+        expand_related=expand_related,
     )
 
 
@@ -86,7 +107,7 @@ def get_data_archive(request: HydroServerHttpRequest, data_archive_id: Path[uuid
     "/{data_archive_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: DataArchiveGetResponse,
+        200: DataArchiveSummaryResponse | DataArchiveDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -99,13 +120,17 @@ def update_data_archive(
     request: HydroServerHttpRequest,
     data_archive_id: Path[uuid.UUID],
     data: DataArchivePatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Data Archive.
     """
 
     return 200, data_archive_service.update(
-        principal=request.principal, uid=data_archive_id, data=data
+        principal=request.principal,
+        uid=data_archive_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 
@@ -113,7 +138,7 @@ def update_data_archive(
     "/{data_archive_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,
@@ -166,7 +191,7 @@ def link_datastream(
     "/{data_archive_id}/datastreams/{datastream_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,
