@@ -52,7 +52,10 @@ class ObservationQueryParameters(CollectionQueryParameters):
 class ObservationSummaryResponse(BaseGetResponse, ObservationFields):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(
-        ..., validation_alias=AliasChoices("workspaceId", AliasPath("datastream", "thing", "workspace_id"))
+        ...,
+        validation_alias=AliasChoices(
+            "workspaceId", AliasPath("datastream", "thing", "workspace_id")
+        ),
     )
     datastream_id: uuid.UUID
 

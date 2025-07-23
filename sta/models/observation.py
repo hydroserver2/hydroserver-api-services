@@ -105,9 +105,7 @@ class ObservationQuerySet(models.QuerySet):
 
     def bulk_copy(self, observations, batch_size=100_000):
         db_table_sql = connection.ops.quote_name(self.model._meta.db_table)  # noqa
-        db_fields = [
-            field.column for field in self.model._meta.fields if not field.primary_key
-        ]
+        db_fields = [field.column for field in self.model._meta.fields]
         quoted_fields = [connection.ops.quote_name(field) for field in db_fields]
         db_fields_sql = ", ".join(quoted_fields)
 
@@ -135,7 +133,10 @@ class ObservationQuerySet(models.QuerySet):
                     lines = []
                     for obs in batch:
                         line = "\t".join(
-                            escape_pg_copy(getter(obs)) for getter in attr_getters
+                            escape_pg_copy(
+                                uuid6.uuid7() if field == "id" else getter(obs)
+                            )
+                            for field, getter in zip(db_fields, attr_getters)
                         )
                         lines.append(line)
                     buffer.write("\n".join(lines) + "\n")
@@ -148,8 +149,7 @@ class ObservationQuerySet(models.QuerySet):
 
 
 class Observation(models.Model, PermissionChecker):
-    pk = models.CompositePrimaryKey("datastream_id", "phenomenon_time")
-    id = models.UUIDField(default=uuid6.uuid7, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     datastream = models.ForeignKey(Datastream, on_delete=models.DO_NOTHING)
     phenomenon_time = models.DateTimeField()
     result = models.FloatField()
@@ -223,4 +223,9 @@ class Observation(models.Model, PermissionChecker):
         return permissions
 
     class Meta:
-        indexes = [models.Index(fields=["id"])]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["datastream_id", "phenomenon_time"],
+                name="unique_datastream_id_phenomenon_time",
+            )
+        ]
