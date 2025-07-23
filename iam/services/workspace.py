@@ -1,12 +1,20 @@
 import uuid
-from typing import Optional, Union
+from typing import Optional, get_args
 from ninja.errors import HttpError
 from django.utils import timezone
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from iam.models import Workspace, WorkspaceTransferConfirmation, APIKey
-from iam.schemas import WorkspacePostBody, WorkspacePatchBody, WorkspaceTransferBody
-from .utils import ServiceUtils
+from iam.schemas import (
+    WorkspaceSummaryResponse,
+    WorkspaceDetailResponse,
+    WorkspacePostBody,
+    WorkspacePatchBody,
+    WorkspaceTransferBody,
+)
+from iam.schemas.workspace import WorkspaceOrderByFields
+from api.service import ServiceUtils
 
 User = get_user_model()
 
@@ -14,7 +22,7 @@ User = get_user_model()
 class WorkspaceService(ServiceUtils):
     @staticmethod
     def attach_role_and_transfer_fields(
-        workspace: Workspace, principal: Optional[Union[User, APIKey]]
+        workspace: Workspace, principal: Optional[User | APIKey]
     ):
         if not principal:
             return workspace
@@ -41,35 +49,92 @@ class WorkspaceService(ServiceUtils):
         return workspace
 
     def list(
-        self, principal: Optional[Union[User, APIKey]], associated_only: bool = False
+        self,
+        principal: Optional[User | APIKey],
+        response: HttpResponse,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        order_by: Optional[list[str]] = None,
+        filtering: Optional[dict] = None,
+        expand_related: Optional[bool] = None,
     ):
-        workspaces = Workspace.objects.visible(principal=principal).distinct()
+        queryset = Workspace.objects
 
-        if isinstance(principal, User):
-            principal.collaborator_roles = list(principal.workspace_roles.all())
+        if isinstance(principal, User) and expand_related:
+            principal.collaborator_roles = list(
+                principal.workspace_roles.select_related("role", "workspace")
+                .prefetch_related("role__permissions")
+                .all()
+            )
 
-        if associated_only:
-            workspaces = workspaces.associated(principal=principal)
+        for field in [
+            "is_associated",
+            "is_private",
+        ]:
+            if field in filtering:
+                if field == "is_associated":
+                    if filtering[field] is True:
+                        queryset = queryset.associated(principal=principal)
+                else:
+                    queryset = self.apply_filters(queryset, field, filtering[field])
 
-        workspaces = [
-            self.attach_role_and_transfer_fields(workspace, principal)
-            for workspace in workspaces
+        if order_by:
+            queryset = self.apply_ordering(
+                queryset,
+                order_by,
+                list(get_args(WorkspaceOrderByFields)),
+            )
+
+        if expand_related:
+            queryset = queryset.select_related(
+                "owner", "transfer_confirmation", "transfer_confirmation__new_owner"
+            )
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        if expand_related:
+            queryset = [
+                self.attach_role_and_transfer_fields(workspace, principal)
+                for workspace in queryset
+            ]
+
+        return [
+            (
+                WorkspaceDetailResponse.model_validate(workspace)
+                if expand_related
+                else WorkspaceSummaryResponse.model_validate(workspace)
+            )
+            for workspace in queryset
         ]
 
-        return workspaces
-
-    def get(self, principal: Optional[Union[User, APIKey]], uid: uuid.UUID):
+    def get(
+        self,
+        principal: Optional[User | APIKey],
+        uid: uuid.UUID,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, _ = self.get_workspace(principal=principal, workspace_id=uid)
 
-        if isinstance(principal, User):
-            principal.collaborator_roles = list(principal.workspace_roles.all())
+        if expand_related:
+            if isinstance(principal, User):
+                principal.collaborator_roles = list(principal.workspace_roles.all())
 
-        workspace = self.attach_role_and_transfer_fields(workspace, principal)
+            workspace = self.attach_role_and_transfer_fields(workspace, principal)
 
-        return workspace
+        return (
+            WorkspaceDetailResponse.model_validate(workspace)
+            if expand_related
+            else WorkspaceSummaryResponse.model_validate(workspace)
+        )
 
-    @staticmethod
-    def create(principal: User, data: WorkspacePostBody):
+    def create(
+        self,
+        principal: User,
+        data: WorkspacePostBody,
+        expand_related: Optional[bool] = None,
+    ):
         if not Workspace.can_principal_create(principal):
             raise HttpError(403, "You do not have permission to create this workspace")
 
@@ -78,9 +143,15 @@ class WorkspaceService(ServiceUtils):
         except IntegrityError:
             raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
-        return workspace
+        return self.get(principal, uid=workspace.id, expand_related=expand_related)
 
-    def update(self, principal: User, uid: uuid.UUID, data: WorkspacePatchBody):
+    def update(
+        self,
+        principal: User,
+        uid: uuid.UUID,
+        data: WorkspacePatchBody,
+        expand_related: Optional[bool] = None,
+    ):
         workspace, permissions = self.get_workspace(
             principal=principal, workspace_id=uid
         )
@@ -98,10 +169,7 @@ class WorkspaceService(ServiceUtils):
         except IntegrityError:
             raise HttpError(409, "Workspace name conflicts with an owned workspace")
 
-        principal.collaborator_roles = list(principal.workspace_roles.all())
-        workspace = self.attach_role_and_transfer_fields(workspace, principal)
-
-        return workspace
+        return self.get(principal, uid=workspace.id, expand_related=expand_related)
 
     def delete(self, principal: User, uid: uuid.UUID):
         workspace, permissions = self.get_workspace(

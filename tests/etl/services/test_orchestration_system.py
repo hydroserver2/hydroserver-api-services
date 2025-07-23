@@ -1,55 +1,89 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from etl.services import OrchestrationSystemService
 from etl.schemas import (
     OrchestrationSystemPostBody,
     OrchestrationSystemPatchBody,
-    OrchestrationSystemGetResponse,
+    OrchestrationSystemSummaryResponse,
 )
 
 orchestration_system_service = OrchestrationSystemService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, orchestration_system_names, max_queries",
     [
-        ("owner", None, 2, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("admin", None, 2, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("editor", None, 2, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("viewer", None, 2, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 1, 2),
-        ("apikey", None, 1, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("apikey", "00000000-0000-0000-0000-000000000000", 0, 3),
-        ("anonymous", None, 1, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 1, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        (
+            "owner",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        (
+            "editor",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        (
+            "viewer",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        (
+            "admin",
+            {},
+            ["Global Orchestration System", "Workspace Orchestration System"],
+            4,
+        ),
+        ("apikey", {}, ["Global Orchestration System"], 4),
+        ("unaffiliated", {}, ["Global Orchestration System"], 4),
+        ("anonymous", {}, ["Global Orchestration System"], 4),
+        # Test pagination and order_by
+        (
+            "owner",
+            {"page": 2, "page_size": 1, "order_by": "-name"},
+            ["Global Orchestration System"],
+            4,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"orchestration_system_type": "Workspace"},
+            ["Workspace Orchestration System"],
+            4,
+        ),
     ],
 )
 def test_list_orchestration_system(
-    django_assert_num_queries,
+    django_assert_max_num_queries,
     get_principal,
     principal,
-    workspace,
-    length,
+    params,
+    orchestration_system_names,
     max_queries,
 ):
-    with django_assert_num_queries(max_queries):
-        orchestration_system_list = orchestration_system_service.list(
+    with django_assert_max_num_queries(max_queries):
+        http_response = HttpResponse()
+        result = orchestration_system_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
+            filtering=params,
         )
-        assert len(orchestration_system_list) == length
+        assert Counter(
+            str(orchestration_system.name) for orchestration_system in result
+        ) == Counter(orchestration_system_names)
         assert (
-            OrchestrationSystemGetResponse.from_orm(orchestration_system)
-            for orchestration_system in orchestration_system_list
+            OrchestrationSystemSummaryResponse.from_orm(orchestration_system)
+            for orchestration_system in result
         )
 
 
@@ -169,7 +203,7 @@ def test_get_orchestration_system(
             principal=get_principal(principal), uid=uuid.UUID(orchestration_system)
         )
         assert orchestration_system_get.name == message
-        assert OrchestrationSystemGetResponse.from_orm(orchestration_system_get)
+        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_get)
 
 
 @pytest.mark.parametrize(
@@ -297,7 +331,7 @@ def test_create_orchestration_system(
             principal=get_principal(principal), data=orchestration_system_data
         )
         assert orchestration_system_create.name == orchestration_system_data.name
-        assert OrchestrationSystemGetResponse.from_orm(orchestration_system_create)
+        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_create)
 
 
 @pytest.mark.parametrize(
@@ -430,7 +464,7 @@ def test_edit_orchestration_system(
             data=orchestration_system_data,
         )
         assert orchestration_system_update.name == orchestration_system_data.name
-        assert OrchestrationSystemGetResponse.from_orm(orchestration_system_update)
+        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_update)
 
 
 @pytest.mark.parametrize(

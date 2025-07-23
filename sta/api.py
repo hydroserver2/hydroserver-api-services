@@ -192,23 +192,8 @@ hydroserver_extension = SensorThingsExtension(
         ),
         SensorThingsEndpointHookFactory(
             endpoint_name="delete_observation",
-            view_wrapper=transaction.atomic,
-            view_authentication=[
-                session_auth,
-                bearer_auth,
-                apikey_auth,
-                anonymous_auth,
-            ],
-        ),
-        SensorThingsEndpointHookFactory(
-            endpoint_name="delete_observations",
-            view_wrapper=transaction.atomic,
-            view_authentication=[
-                session_auth,
-                bearer_auth,
-                apikey_auth,
-                anonymous_auth,
-            ],
+            enabled=False,
+            view_authentication=lambda request: False,
         ),
         SensorThingsEndpointHookFactory(
             endpoint_name="list_observed_properties",

@@ -39,7 +39,7 @@
     observation_type: Field Observation
     result_type: Time Series
     status: Ongoing
-    sampled_medium: Surface Water
+    sampled_medium: Air
     value_count: 2
     no_data_value: -9999
     intended_time_spacing: 1
@@ -93,7 +93,7 @@
     observation_type: Field Observation
     result_type: Time Series
     status: Ongoing
-    sampled_medium: Surface Water
+    sampled_medium: Air
     value_count: 2
     no_data_value: -9999
     intended_time_spacing: 1
@@ -110,7 +110,7 @@
 - model: sta.datastream
   pk: dd1f9293-ce29-4b6a-88e6-d65110d1be65
   fields:
-    name: Public Datastream 4
+    name: Private Datastream 4
     description: Public Datastream; Public Thing; Private Workspace
     thing: 819260c8-2543-4046-b8c4-7431243ed7c5
     sensor: b2cc0c86-c131-4721-8080-9f5f722224ec

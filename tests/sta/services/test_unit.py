@@ -1,97 +1,195 @@
 import pytest
 import uuid
+from collections import Counter
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from sta.services import UnitService
-from sta.schemas import UnitPostBody, UnitPatchBody, UnitGetResponse
+from sta.schemas import UnitPostBody, UnitPatchBody, UnitSummaryResponse
 
 unit_service = UnitService()
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, length, max_queries",
+    "principal, params, unit_names, max_queries",
     [
-        ("owner", None, 6, 2),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("owner", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("admin", None, 6, 2),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("admin", "caf4b92e-6914-4449-8c8a-efa5a7fd1826", 0, 2),
-        ("editor", None, 6, 2),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("viewer", None, 6, 2),
-        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", 2, 2),
-        ("apikey", None, 4, 3),
-        ("apikey", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 3),
-        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 3),
-        ("anonymous", None, 4, 2),
-        ("anonymous", "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        ("anonymous", "00000000-0000-0000-0000-000000000000", 0, 2),
-        (None, None, 4, 2),
-        (None, "6e0deaf2-a92b-421b-9ece-86783265596f", 2, 2),
-        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", 0, 2),
-        (None, "00000000-0000-0000-0000-000000000000", 0, 2),
+        # Test user access
+        (
+            "owner",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+                "Private Unit",
+                "Private Assigned Unit",
+            ],
+            3,
+        ),
+        (
+            "editor",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+                "Private Unit",
+                "Private Assigned Unit",
+            ],
+            3,
+        ),
+        (
+            "viewer",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+                "Private Unit",
+                "Private Assigned Unit",
+            ],
+            3,
+        ),
+        (
+            "admin",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+                "Private Unit",
+                "Private Assigned Unit",
+            ],
+            3,
+        ),
+        (
+            "apikey",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+            ],
+            4,
+        ),
+        (
+            "unaffiliated",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+            ],
+            3,
+        ),
+        (
+            "anonymous",
+            {},
+            [
+                "System Unit",
+                "System Assigned Unit",
+                "Public Unit",
+                "Public Assigned Unit",
+            ],
+            3,
+        ),
+        # Test pagination and order_by
+        (
+            "owner",
+            {"page": 2, "page_size": 2, "order_by": "-name"},
+            [
+                "Public Unit",
+                "Public Assigned Unit",
+            ],
+            3,
+        ),
+        # Test filtering
+        (
+            "owner",
+            {"workspace_id": "6e0deaf2-a92b-421b-9ece-86783265596f"},
+            ["Public Unit", "Public Assigned Unit"],
+            3,
+        ),
+        (
+            "owner",
+            {"datastreams__thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
+            ["System Assigned Unit", "Public Assigned Unit"],
+            3,
+        ),
+        (
+            "owner",
+            {"datastreams__id": "27c70b41-e845-40ea-8cc7-d1b40f89816b"},
+            ["Public Assigned Unit"],
+            3,
+        ),
+        ("owner", {"unit_type": "System Unit"}, ["System Unit"], 3),
     ],
 )
 def test_list_unit(
-    django_assert_num_queries, get_principal, principal, workspace, length, max_queries
+    django_assert_num_queries, get_principal, principal, params, unit_names, max_queries
 ):
     with django_assert_num_queries(max_queries):
-        unit_list = unit_service.list(
+        http_response = HttpResponse()
+        result = unit_service.list(
             principal=get_principal(principal),
-            workspace_id=uuid.UUID(workspace) if workspace else None,
+            response=http_response,
+            page=params.pop("page", 1),
+            page_size=params.pop("page_size", 100),
+            order_by=[params.pop("order_by")] if "order_by" in params else [],
+            filtering=params,
         )
-        assert len(unit_list) == length
-        assert (UnitGetResponse.from_orm(unit) for unit in unit_list)
+        assert Counter(str(unit.name) for unit in result) == Counter(unit_names)
+        assert (UnitSummaryResponse.from_orm(unit) for unit in result)
 
 
 @pytest.mark.parametrize(
     "principal, unit, message, error_code",
     [
+        # Test public access
         ("owner", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
-        ("owner", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
         ("admin", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
-        ("admin", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
         ("editor", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("editor", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
-        ("editor", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
         ("viewer", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("viewer", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
-        ("viewer", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
         ("apikey", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
         ("apikey", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
+        ("unaffiliated", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
+        ("unaffiliated", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
+        ("anonymous", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
+        ("anonymous", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
+        # Test private access
+        ("owner", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
+        ("admin", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Private Unit", None),
+        # Test unauthorized access
         (
             "apikey",
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
             "Unit does not exist",
             404,
         ),
-        ("anonymous", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
-        ("anonymous", "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
         (
-            "anonymous",
+            "unaffiliated",
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
             "Unit does not exist",
             404,
         ),
         (
             "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Unit does not exist",
-            404,
-        ),
-        (None, "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", "System Unit", None),
-        (None, "fe3799b7-f061-42f2-b012-b569303f8a41", "Public Unit", None),
-        (
-            None,
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
             "Unit does not exist",
             404,
         ),
+        # Test missing resource
         (
-            None,
+            "anonymous",
             "00000000-0000-0000-0000-000000000000",
             "Unit does not exist",
             404,
@@ -109,75 +207,79 @@ def test_get_unit(get_principal, principal, unit, message, error_code):
             principal=get_principal(principal), uid=uuid.UUID(unit)
         )
         assert unit_get.name == message
-        assert UnitGetResponse.from_orm(unit_get)
+        assert UnitSummaryResponse.from_orm(unit_get)
 
 
 @pytest.mark.parametrize(
-    "principal, workspace, message, error_code",
+    "principal, unit_fields, message, error_code",
     [
-        ("owner", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("admin", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
-        ("editor", "6e0deaf2-a92b-421b-9ece-86783265596f", None, None),
-        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, None),
+        # Test create valid Unit
+        ("owner", {}, None, None),
+        ("owner", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("editor", {}, None, None),
         (
-            "viewer",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "editor",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            None,
+            None,
         ),
+        ("admin", {}, None, None),
+        ("admin", {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"}, None, None),
+        ("admin", {"workspace_id": None}, None, None),
+        # Test create invalid Unit
         (
-            "viewer",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "owner",
+            {"workspace_id": "00000000-0000-0000-0000-000000000000"},
             "Workspace does not exist",
             404,
         ),
+        # Test unauthorized attempts
+        ("owner", {"workspace_id": None}, "You do not have permission", 403),
+        ("viewer", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "viewer",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "You do not have permission",
             403,
         ),
+        ("apikey", {}, "You do not have permission", 403),
         (
-            "anonymous",
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "apikey",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
+        ("unaffiliated", {}, "You do not have permission", 403),
         (
-            None,
-            "6e0deaf2-a92b-421b-9ece-86783265596f",
-            "You do not have permission",
-            403,
+            "unaffiliated",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
+            "Workspace does not exist",
+            404,
         ),
+        ("anonymous", {}, "You do not have permission", 403),
         (
-            None,
-            "b27c51a0-7374-462d-8a53-d97d47176c10",
+            "anonymous",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10"},
             "Workspace does not exist",
             404,
         ),
     ],
 )
-def test_create_unit(get_principal, principal, workspace, message, error_code):
+def test_create_unit(get_principal, principal, unit_fields, message, error_code):
     unit_data = UnitPostBody(
-        name="New",
-        symbol="New",
-        definition="New",
-        unit_type="New",
-        workspace_id=uuid.UUID(workspace),
+        name=unit_fields.get("name", "New"),
+        symbol=unit_fields.get("symbol", "New"),
+        definition=unit_fields.get("definition", "New"),
+        unit_type=unit_fields.get("unit_type", "New"),
+        workspace_id=(
+            (
+                uuid.UUID(wid)
+                if (wid := unit_fields["workspace_id"]) is not None
+                else None
+            )
+            if "workspace_id" in unit_fields
+            else uuid.UUID("6e0deaf2-a92b-421b-9ece-86783265596f")
+        ),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -192,120 +294,109 @@ def test_create_unit(get_principal, principal, workspace, message, error_code):
         assert unit_create.name == unit_data.name
         assert unit_create.definition == unit_data.definition
         assert unit_create.unit_type == unit_data.unit_type
-        assert UnitGetResponse.from_orm(unit_create)
+        assert UnitSummaryResponse.from_orm(unit_create)
 
 
 @pytest.mark.parametrize(
-    "principal, unit, message, error_code",
+    "principal, unit, unit_fields, message, error_code",
     [
-        (
-            "owner",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
-        ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
-        ("owner", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
-        ("admin", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", None, None),
-        ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
-        ("admin", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
-        (
-            "editor",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
-        ("editor", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
-        ("editor", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
-        (
-            "viewer",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
+        # Test edit Unit
+        ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", {}, None, None),
+        ("editor", "fe3799b7-f061-42f2-b012-b569303f8a41", {}, None, None),
+        ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", {}, None, None),
+        # Test unauthorized attempts
         (
             "viewer",
             "fe3799b7-f061-42f2-b012-b569303f8a41",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "viewer",
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "fe3799b7-f061-42f2-b012-b569303f8a41",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "apikey",
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            {},
+            "Unit does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            {},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            {},
             "Unit does not exist",
             404,
         ),
         (
             "anonymous",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
-            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            {},
             "You do not have permission",
             403,
         ),
         (
             "anonymous",
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            None,
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "fe3799b7-f061-42f2-b012-b569303f8a41",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
-            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
+            {},
             "Unit does not exist",
             404,
         ),
     ],
 )
-def test_edit_unit(get_principal, principal, unit, message, error_code):
+def test_edit_unit(get_principal, principal, unit, unit_fields, message, error_code):
     unit_data = UnitPatchBody(
-        name="New", symbol="New", definition="New", unit_type="New"
+        name=unit_fields.get("name", "New"),
+        symbol=unit_fields.get("symbol", "New"),
+        definition=unit_fields.get("definition", "New"),
+        unit_type=unit_fields.get("unit_type", "New"),
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
@@ -322,46 +413,26 @@ def test_edit_unit(get_principal, principal, unit, message, error_code):
         assert unit_update.name == unit_data.name
         assert unit_update.symbol == unit_data.symbol
         assert unit_update.unit_type == unit_data.unit_type
-        assert UnitGetResponse.from_orm(unit_update)
+        assert UnitSummaryResponse.from_orm(unit_update)
 
 
 @pytest.mark.parametrize(
     "principal, unit, message, error_code",
     [
-        (
-            "owner",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
+        # Test delete Unit
         ("owner", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
-        ("owner", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
-        ("admin", "2ca850fa-ce19-4d8a-9dfd-8d54a261778d", None, None),
-        ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
-        ("admin", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
-        (
-            "admin",
-            "85c4118e-d1cc-4003-bbc5-5c65af802ae0",
-            "Unit in use by one or more datastreams",
-            409,
-        ),
-        (
-            "editor",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
         ("editor", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
-        ("editor", "98a74429-2be2-44c0-8f7f-2df2ca12893d", None, None),
+        ("admin", "fe3799b7-f061-42f2-b012-b569303f8a41", None, None),
+        # Test unauthorized attempts
         (
             "viewer",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
             "You do not have permission",
             403,
         ),
         (
             "viewer",
-            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
             "You do not have permission",
             403,
         ),
@@ -373,27 +444,34 @@ def test_edit_unit(get_principal, principal, unit, message, error_code):
         ),
         (
             "apikey",
-            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
             "fe3799b7-f061-42f2-b012-b569303f8a41",
             "You do not have permission",
             403,
         ),
         (
             "apikey",
-            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            "anonymous",
             "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
             "You do not have permission",
             403,
+        ),
+        ("apikey", "98a74429-2be2-44c0-8f7f-2df2ca12893d", "Unit does not exist", 404),
+        (
+            "unaffiliated",
+            "fe3799b7-f061-42f2-b012-b569303f8a41",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
+            "You do not have permission",
+            403,
+        ),
+        (
+            "unaffiliated",
+            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
+            "Unit does not exist",
+            404,
         ),
         (
             "anonymous",
@@ -403,37 +481,13 @@ def test_edit_unit(get_principal, principal, unit, message, error_code):
         ),
         (
             "anonymous",
-            "98a74429-2be2-44c0-8f7f-2df2ca12893d",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            "anonymous",
-            "00000000-0000-0000-0000-000000000000",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            None,
             "2ca850fa-ce19-4d8a-9dfd-8d54a261778d",
             "You do not have permission",
             403,
         ),
         (
-            None,
-            "fe3799b7-f061-42f2-b012-b569303f8a41",
-            "You do not have permission",
-            403,
-        ),
-        (
-            None,
+            "anonymous",
             "98a74429-2be2-44c0-8f7f-2df2ca12893d",
-            "Unit does not exist",
-            404,
-        ),
-        (
-            None,
-            "00000000-0000-0000-0000-000000000000",
             "Unit does not exist",
             404,
         ),

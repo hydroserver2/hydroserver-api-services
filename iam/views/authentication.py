@@ -3,7 +3,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.templatetags.static import static
 from django.http import JsonResponse
 from django.conf import settings
-from iam.schemas.authentication import AuthenticationMethodsGetResponse
+from iam.schemas.authentication import AuthenticationMethodsDetailResponse
 
 
 @ensure_csrf_cookie
@@ -13,7 +13,7 @@ def get_auth_methods(request):
     """
 
     return JsonResponse(
-        AuthenticationMethodsGetResponse(
+        AuthenticationMethodsDetailResponse(
             **{
                 "hydroserver_signup_enabled": settings.ACCOUNT_SIGNUP_ENABLED,
                 "providers": [

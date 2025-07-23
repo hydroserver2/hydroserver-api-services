@@ -1,10 +1,12 @@
 import uuid
-from ninja import Router, Path
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from iam.schemas import (
-    CollaboratorGetResponse,
+    CollaboratorDetailResponse,
+    CollaboratorQueryParameters,
     CollaboratorPostBody,
     CollaboratorDeleteBody,
 )
@@ -18,13 +20,18 @@ collaborator_service = CollaboratorService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[CollaboratorGetResponse],
+        200: list[CollaboratorDetailResponse],
         401: str,
         403: str,
     },
     by_alias=True,
 )
-def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.UUID]):
+def get_collaborators(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    workspace_id: Path[uuid.UUID],
+    query: Query[CollaboratorQueryParameters],
+):
     """
     Get all collaborators associated with a workspace.
     """
@@ -32,6 +39,10 @@ def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.U
     return 200, collaborator_service.list(
         principal=request.principal,
         workspace_id=workspace_id,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        filtering=query.dict(exclude_unset=True),
     )
 
 
@@ -39,7 +50,7 @@ def get_collaborators(request: HydroServerHttpRequest, workspace_id: Path[uuid.U
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: CollaboratorGetResponse,
+        201: CollaboratorDetailResponse,
         401: str,
         403: str,
         422: str,
@@ -67,7 +78,7 @@ def add_collaborator(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: CollaboratorGetResponse,
+        200: CollaboratorDetailResponse,
         401: str,
         403: str,
         422: str,
@@ -95,7 +106,7 @@ def edit_collaborator_role(
     "",
     auth=[session_auth, bearer_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         422: str,

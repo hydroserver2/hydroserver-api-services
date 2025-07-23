@@ -1,5 +1,6 @@
 import uuid6
 import secrets
+import string
 from typing import Literal, Optional, TYPE_CHECKING
 from django.db import models
 from django.db.models import Q
@@ -42,8 +43,12 @@ class APIKeyQueryset(models.QuerySet):
 
 class APIKeyManager(models.Manager.from_queryset(APIKeyQueryset)):
     def create_with_key(self, **kwargs):
-        raw_key = secrets.token_urlsafe(32)
-        hashed_key = make_password(raw_key)
+        prefix = "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(12)
+        )
+        secret = secrets.token_urlsafe(32)
+        raw_key = f"{prefix}{secret}"
+        hashed_key = f"{prefix}${make_password(raw_key)}"
         kwargs["hashed_key"] = hashed_key
 
         obj = self.model(**kwargs)
@@ -74,8 +79,12 @@ class APIKey(models.Model, PermissionChecker):
         return f"{self.name} - {self.id}"
 
     def generate_key(self):
-        raw_key = secrets.token_urlsafe(32)
-        self.hashed_key = make_password(raw_key)
+        prefix = "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(12)
+        )
+        secret = secrets.token_urlsafe(32)
+        raw_key = f"{prefix}{secret}"
+        self.hashed_key = f"{prefix}${make_password(raw_key)}"
         self.save(update_fields=["hashed_key"])
 
         return raw_key

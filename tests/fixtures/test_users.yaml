@@ -64,18 +64,18 @@
     primary: True
     user: 1000000012
 
-# Anonymous User
+# Unaffiliated User
 - model: iam.user
   pk: 1000000013
   fields:
     is_superuser: false
-    username: anonymous@example.com
+    username: unaffiliated@example.com
     password: pbkdf2_sha256$1000000$A8KhP3kiM7tvnFfoAKF0uu$B0iS+o7eanH7nDF0coOzwA0DHo/VFii4DJd1szBRJP4=
-    first_name: Anonymous
+    first_name: Unaffiliated
     last_name: Anderson
     is_staff: false
     is_active: true
-    email: anonymous@example.com
+    email: unaffiliated@example.com
     user_type: Other
     is_ownership_allowed: true
 - model: account.emailaddress

@@ -1,5 +1,5 @@
-name: CI/CD Pipeline
-run-name: Running CI/CD Pipeline
+name: Testing
+run-name: Running HydroServer API services tests
 
 on: [push, pull_request]
 
@@ -62,39 +62,3 @@ jobs:
             exit 1
           fi
           echo "Test Coverage is $coverage%"
-
-  Deploy-Dev:
-    name: Deploy to AWS S3 Dev
-    needs: [Run-Tests]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_IAM_ROLE }}
-          role-session-name: deploy-hydroserver-dev
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Create deployment package
-        run: zip -r deploy_package.zip ./
-
-      - name: Upload deployment package to S3
-        run: aws s3 cp deploy_package.zip s3://${{ vars.AWS_DJANGO_DEV_BUCKET }}/deploy_package_${{ github.sha }}.zip
-
-      - name: Create ElasticBeanstalk Application Version
-        run: |
-          aws elasticbeanstalk create-application-version \
-          --application-name ${{ vars.AWS_DJANGO_DEV_NAME }} \
-          --source-bundle S3Bucket="${{ vars.AWS_DJANGO_DEV_BUCKET }}",S3Key="deploy_package_${{ github.sha }}.zip" \
-          --version-label "${{ github.sha }}" \
-          --description "commit-sha-${{ github.sha }}"
-
-      - name: Deploy ElasticBeanstalk Application Version
-        run: |
-          aws elasticbeanstalk update-environment \
-          --environment-name ${{ vars.AWS_DJANGO_DEV_NAME }}-env \
-          --version-label "${{ github.sha }}"

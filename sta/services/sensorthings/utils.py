@@ -24,7 +24,7 @@ class SensorThingsUtils:
                 "properties__workspace__id": "workspace_id",
                 "properties__workspace__name": "workspace__name",
                 "properties__workspace__isPrivate": "workspace__is_private",
-                "Location__id": "location_id",
+                "Location__id": "locations__id",
             }.get(prop, prop)
 
         elif component.__name__ == "Location":
@@ -32,7 +32,7 @@ class SensorThingsUtils:
                 "properties__workspace__id": "thing__workspace_id",
                 "properties__workspace__name": "thing__workspace__name",
                 "properties__workspace__isPrivate": "thing__workspace__is_private",
-                "Thing__id": "id",
+                "Thing__id": "thing_id",
             }.get(prop, f"location__{prop}")
 
         elif component.__name__ == "HistoricalLocation":

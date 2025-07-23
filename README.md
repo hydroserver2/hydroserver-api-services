@@ -2,7 +2,7 @@
 
 The web app designed for real-time hydrologic data management.
 
-This repository is the Django backend API of HydroServer that allows users to store and manage large amounts of hydrologic data in a PostgreSQL/TimescaleDB database.
+This repository is the Django backend API of HydroServer that allows users to store and manage large amounts of hydrologic data in a PostgreSQL database.
 
 [Documentation](https://hydroserver2.github.io/hydroserver/)
 

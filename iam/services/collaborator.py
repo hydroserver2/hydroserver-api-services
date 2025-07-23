@@ -1,10 +1,11 @@
 import uuid
-from typing import Union
+from typing import Optional
 from ninja.errors import HttpError
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from iam.models import Collaborator, APIKey
 from iam.schemas import CollaboratorPostBody, CollaboratorDeleteBody
-from .utils import ServiceUtils
+from api.service import ServiceUtils
 from .role import RoleService
 
 User = get_user_model()
@@ -12,20 +13,38 @@ role_service = RoleService()
 
 
 class CollaboratorService(ServiceUtils):
-    def list(self, principal: Union[User, APIKey], workspace_id: uuid.UUID):
+    def list(
+        self,
+        principal: Optional[User | APIKey],
+        response: HttpResponse,
+        workspace_id: uuid.UUID,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        filtering: Optional[dict] = None,
+    ):
+        queryset = Collaborator.objects
+
         workspace, _ = self.get_workspace(
             principal=principal, workspace_id=workspace_id
         )
 
-        return (
-            Collaborator.objects.filter(workspace=workspace)
-            .visible(principal=principal)
-            .distinct()
-        )
+        queryset = queryset.filter(workspace=workspace)
+
+        for field in [
+            "role_id",
+        ]:
+            if field in filtering:
+                queryset = self.apply_filters(queryset, field, filtering[field])
+
+        queryset = queryset.visible(principal=principal).distinct()
+
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return queryset
 
     def create(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         workspace_id: uuid.UUID,
         data: CollaboratorPostBody,
     ):
@@ -60,12 +79,15 @@ class CollaboratorService(ServiceUtils):
                 400, f"Account with email '{data.email}' already owns the workspace"
             )
 
-        collaborator_role = role_service.get(
-            principal=principal, workspace_id=workspace_id, uid=data.role_id
+        collaborator_role = role_service.get_role_for_action(
+            principal=principal, uid=data.role_id, action="view", expand_related=True
         )
 
         if not collaborator_role.is_user_role:
             raise HttpError(400, "Role not supported for collaborator assignment")
+
+        if collaborator_role.workspace and collaborator_role.workspace != workspace:
+            raise HttpError(400, "Role does not belong to the workspace")
 
         return Collaborator.objects.create(
             workspace=workspace, user=new_collaborator, role_id=collaborator_role.id
@@ -73,7 +95,7 @@ class CollaboratorService(ServiceUtils):
 
     def update(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         workspace_id: uuid.UUID,
         data: CollaboratorPostBody,
     ):
@@ -96,12 +118,18 @@ class CollaboratorService(ServiceUtils):
             )
 
         if data.role_id:
-            collaborator_role = role_service.get(
-                principal=principal, workspace_id=workspace_id, uid=data.role_id
+            collaborator_role = role_service.get_role_for_action(
+                principal=principal,
+                uid=data.role_id,
+                action="view",
+                expand_related=True,
             )
 
             if not collaborator_role.is_user_role:
                 raise HttpError(400, "Role not supported for collaborator assignment")
+
+            if collaborator_role.workspace and collaborator_role.workspace != workspace:
+                raise HttpError(400, "Role does not belong to the workspace")
 
             collaborator.role = collaborator_role
 
@@ -111,7 +139,7 @@ class CollaboratorService(ServiceUtils):
 
     def delete(
         self,
-        principal: Union[User, APIKey],
+        principal: User | APIKey,
         workspace_id: uuid.UUID,
         data: CollaboratorDeleteBody,
     ):

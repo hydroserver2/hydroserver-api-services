@@ -1,11 +1,14 @@
 import uuid
-from ninja import Router, Path
 from typing import Optional
+from ninja import Router, Path, Query
+from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
 from sta.schemas import (
-    ProcessingLevelGetResponse,
+    ProcessingLevelSummaryResponse,
+    ProcessingLevelDetailResponse,
+    ProcessingLevelQueryParameters,
     ProcessingLevelPostBody,
     ProcessingLevelPatchBody,
 )
@@ -19,20 +22,28 @@ processing_level_service = ProcessingLevelService()
     "",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[ProcessingLevelGetResponse],
+        200: list[ProcessingLevelSummaryResponse] | list[ProcessingLevelDetailResponse],
         401: str,
     },
     by_alias=True,
 )
 def get_processing_levels(
-    request: HydroServerHttpRequest, workspace_id: Optional[uuid.UUID] = None
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[ProcessingLevelQueryParameters],
 ):
     """
     Get public Processing Levels and Processing Levels associated with the authenticated user.
     """
 
     return 200, processing_level_service.list(
-        principal=request.principal, workspace_id=workspace_id
+        principal=request.principal,
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_by=query.order_by,
+        filtering=query.dict(exclude_unset=True),
+        expand_related=query.expand_related,
     )
 
 
@@ -40,7 +51,7 @@ def get_processing_levels(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: ProcessingLevelGetResponse,
+        201: ProcessingLevelSummaryResponse | ProcessingLevelDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -50,20 +61,24 @@ def get_processing_levels(
 )
 @transaction.atomic
 def create_processing_level(
-    request: HydroServerHttpRequest, data: ProcessingLevelPostBody
+    request: HydroServerHttpRequest,
+    data: ProcessingLevelPostBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Create a new Processing Level.
     """
 
-    return 201, processing_level_service.create(principal=request.principal, data=data)
+    return 201, processing_level_service.create(
+        principal=request.principal, data=data, expand_related=expand_related
+    )
 
 
 @processing_level_router.get(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: ProcessingLevelGetResponse,
+        200: ProcessingLevelSummaryResponse | ProcessingLevelDetailResponse,
         401: str,
         403: str,
     },
@@ -71,14 +86,18 @@ def create_processing_level(
     exclude_unset=True,
 )
 def get_processing_level(
-    request: HydroServerHttpRequest, processing_level_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    processing_level_id: Path[uuid.UUID],
+    expand_related: Optional[bool] = None,
 ):
     """
     Get a Processing Level.
     """
 
     return 200, processing_level_service.get(
-        principal=request.principal, uid=processing_level_id
+        principal=request.principal,
+        uid=processing_level_id,
+        expand_related=expand_related,
     )
 
 
@@ -86,7 +105,7 @@ def get_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: ProcessingLevelGetResponse,
+        200: ProcessingLevelSummaryResponse | ProcessingLevelDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -99,13 +118,17 @@ def update_processing_level(
     request: HydroServerHttpRequest,
     processing_level_id: Path[uuid.UUID],
     data: ProcessingLevelPatchBody,
+    expand_related: Optional[bool] = None,
 ):
     """
     Update a Processing Level.
     """
 
     return 200, processing_level_service.update(
-        principal=request.principal, uid=processing_level_id, data=data
+        principal=request.principal,
+        uid=processing_level_id,
+        data=data,
+        expand_related=expand_related,
     )
 
 
@@ -113,7 +136,7 @@ def update_processing_level(
     "/{processing_level_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        204: str,
+        204: None,
         401: str,
         403: str,
         409: str,

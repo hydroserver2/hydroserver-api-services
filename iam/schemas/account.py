@@ -1,8 +1,8 @@
 from ninja import Schema, Field
 from pydantic import EmailStr
-from typing import List, Optional, Literal
+from typing import Optional, Literal
 from django.contrib.auth import get_user_model
-from hydroserver.schemas import BaseGetResponse, BasePostBody, BasePatchBody
+from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ class OrganizationFields(Schema):
     organization_type: str = Field(..., max_length=255, alias="type")
 
 
-class OrganizationGetResponse(BaseGetResponse, OrganizationFields):
+class OrganizationDetailResponse(BaseGetResponse, OrganizationFields):
     pass
 
 
@@ -38,16 +38,16 @@ class UserFields(UserContactFields):
     first_name: str = Field(..., max_length=30)
     middle_name: Optional[str] = Field(None, max_length=30)
     last_name: str = Field(..., max_length=150)
-    organization: Optional[OrganizationGetResponse] = None
+    organization: Optional[OrganizationDetailResponse] = None
 
 
-class AccountContactGetResponse(BaseGetResponse, UserContactFields):
+class AccountContactDetailResponse(BaseGetResponse, UserContactFields):
     name: str = Field(..., max_length=255)
     email: EmailStr
     organization_name: Optional[str] = None
 
 
-class AccountGetResponse(BaseGetResponse, UserFields):
+class AccountDetailResponse(BaseGetResponse, UserFields):
     email: EmailStr
     account_type: Literal["admin", "standard", "limited"]
 
@@ -62,6 +62,6 @@ class AccountPatchBody(BasePatchBody, UserFields):
     organization: Optional[OrganizationPatchBody] = None
 
 
-class TypeGetResponse(BaseGetResponse):
-    user_types: List[str]
-    organization_types: List[str]
+class TypeDetailResponse(BaseGetResponse):
+    user_types: list[str]
+    organization_types: list[str]

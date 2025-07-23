@@ -10,6 +10,8 @@ class SessionAuth(APIKeyCookie):
     param_name: str = settings.SESSION_COOKIE_NAME
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+        if key is None:
+            return None
         csrf_passed = check_csrf(request) if self.csrf else True
         if key and csrf_passed in [True, None] and request.user.is_authenticated:
             request.principal = request.user
