@@ -1,6 +1,5 @@
 from sensorthings import SensorThingsBaseEngine
 from sensorthings.extensions.dataarray.engine import DataArrayBaseEngine
-from sensorthings.extensions.qualitycontrol.engine import QualityControlBaseEngine
 from .datastream import DatastreamEngine
 from .feature_of_interest import FeatureOfInterestEngine
 from .historical_location import HistoricalLocationEngine
@@ -22,6 +21,5 @@ class HydroServerSensorThingsEngine(
     ThingEngine,
     SensorThingsBaseEngine,
     DataArrayBaseEngine,
-    QualityControlBaseEngine,
 ):
     pass
