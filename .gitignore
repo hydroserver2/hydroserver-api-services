@@ -9,6 +9,7 @@ db.sqlite3
 staticfiles/
 /static
 !/static/**/
+/vite_dist/
 *.db
 *test.ipynb
 *test.yaml

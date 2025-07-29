@@ -250,6 +250,10 @@ STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
+STATICFILES_DIRS = [
+    BASE_DIR / "vite_dist"
+]
+
 if DEPLOYMENT_BACKEND == "aws":
     AWS_S3_CUSTOM_DOMAIN = urlparse(PROXY_BASE_URL).hostname
     AWS_CLOUDFRONT_KEY = config("AWS_CLOUDFRONT_KEY", default="").encode("ascii")
