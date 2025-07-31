@@ -8,6 +8,7 @@ from django.db.models import Q
 from iam.models import Workspace, Permission
 from iam.models.utils import PermissionChecker
 from .datastream import Datastream
+from .result_qualifier import ResultQualifier
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -104,12 +105,18 @@ class ObservationQuerySet(models.QuerySet):
             return self.none()
 
     def bulk_copy(self, observations, batch_size=100_000):
-        db_table_sql = connection.ops.quote_name(self.model._meta.db_table)  # noqa
-        db_fields = [field.column for field in self.model._meta.fields]
-        quoted_fields = [connection.ops.quote_name(field) for field in db_fields]
-        db_fields_sql = ", ".join(quoted_fields)
+        obs_table_sql = connection.ops.quote_name(self.model._meta.db_table)  # noqa
+        obs_fields = [field.column for field in self.model._meta.fields]
+        quoted_obs_fields = [connection.ops.quote_name(field) for field in obs_fields]
+        obs_fields_sql = ", ".join(quoted_obs_fields)
 
-        attr_getters = [operator.attrgetter(field) for field in db_fields]
+        rq_model = Observation.result_qualifiers.through
+        rq_table_sql = connection.ops.quote_name(rq_model._meta.db_table)  # noqa
+        rq_fields = ["observation_id", "result_qualifier_id"]
+        rq_fields_sql = ", ".join([connection.ops.quote_name(f) for f in rq_fields])
+
+        obs_attr_getters = [operator.attrgetter(field) for field in obs_fields]
+        rq_attr_getters = [operator.attrgetter(field) for field in rq_fields]
 
         def escape_pg_copy(value):
             if value is None:
@@ -125,7 +132,7 @@ class ObservationQuerySet(models.QuerySet):
 
         with connection.cursor() as cursor:
             with cursor.copy(
-                f"COPY {db_table_sql} ({db_fields_sql}) FROM STDIN"
+                f"COPY {obs_table_sql} ({obs_fields_sql}) FROM STDIN"
             ) as copy:
                 buffer = io.StringIO()
                 for i in range(0, len(observations), batch_size):
@@ -133,12 +140,25 @@ class ObservationQuerySet(models.QuerySet):
                     lines = []
                     for obs in batch:
                         line = "\t".join(
-                            escape_pg_copy(
-                                uuid6.uuid7() if field == "id" else getter(obs)
-                            )
-                            for field, getter in zip(db_fields, attr_getters)
+                            escape_pg_copy(getter(obs))
+                            for field, getter in zip(obs_fields, obs_attr_getters)
                         )
                         lines.append(line)
+                    buffer.write("\n".join(lines) + "\n")
+                    buffer.seek(0)
+                    copy.write(buffer.read())
+                    buffer.truncate(0)
+                    buffer.seek(0)
+
+            with cursor.copy(
+                f"COPY {rq_table_sql} ({rq_fields_sql}) FROM STDIN"
+            ) as copy:
+                buffer = io.StringIO()
+                for i in range(0, len(observations), batch_size):
+                    batch = observations[i : i + batch_size]
+                    lines = []
+                    for obs in batch:
+                        pass  # What to do here?
                     buffer.write("\n".join(lines) + "\n")
                     buffer.seek(0)
                     copy.write(buffer.read())
@@ -155,6 +175,26 @@ class Observation(models.Model, PermissionChecker):
     result = models.FloatField()
     result_time = models.DateTimeField(null=True, blank=True)
     quality_code = models.CharField(max_length=255, null=True, blank=True)
+    result_qualifiers = models.ManyToManyField(
+        ResultQualifier,
+        through="ObservationResultQualifier",
+        related_name="observations"
+    )
+
+    @property
+    def result_qualifier_ids(self):
+        if hasattr(self, "_pending_result_qualifier_ids"):
+            return list(self._pending_result_qualifier_ids)
+        if self.pk is None:
+            return []
+        return list(self.result_qualifiers.values_list("id", flat=True))
+
+    @result_qualifier_ids.setter
+    def result_qualifier_ids(self, ids):
+        if self.pk is None:
+            self._pending_result_qualifier_ids = ids
+        else:
+            self.result_qualifiers.set(ids)
 
     objects = ObservationQuerySet.as_manager()
 
@@ -227,5 +267,18 @@ class Observation(models.Model, PermissionChecker):
             models.UniqueConstraint(
                 fields=["datastream_id", "phenomenon_time"],
                 name="unique_datastream_id_phenomenon_time",
+            )
+        ]
+
+
+class ObservationResultQualifier(models.Model):
+    observation = models.ForeignKey(Observation, on_delete=models.DO_NOTHING)
+    result_qualifier = models.ForeignKey(ResultQualifier, on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["observation_id", "result_qualifier_id"],
+                name="unique_observation_id_result_qualifier_id",
             )
         ]

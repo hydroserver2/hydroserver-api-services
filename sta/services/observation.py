@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.db.utils import IntegrityError
 from iam.models import APIKey
-from sta.models import Observation
+from sta.models import Observation, ObservationResultQualifier
 from sta.schemas.observation import (
     ObservationFields,
     ObservationOrderByFields,
@@ -325,6 +325,7 @@ class ObservationService(ServiceUtils):
                     and math.isnan(row[idx_result])
                     else row[idx_result]
                 ),
+
             )
             for row in data.data
         ]
@@ -398,14 +399,18 @@ class ObservationService(ServiceUtils):
                 403, "You do not have permission to delete these observations"
             )
 
-        queryset = Observation.objects.filter(datastream=datastream)
+        observation_queryset = Observation.objects.filter(datastream=datastream)
+        qualifier_queryset = ObservationResultQualifier.objects.filter(observation__datastream=datastream)
 
         if data.phenomenon_time_start is not None:
-            queryset = queryset.filter(phenomenon_time__gte=data.phenomenon_time_start)
+            observation_queryset = observation_queryset.filter(phenomenon_time__gte=data.phenomenon_time_start)
+            qualifier_queryset = qualifier_queryset.filter(observation__phenomenon_time__gte=data.phenomenon_time_start)
         if data.phenomenon_time_end is not None:
-            queryset = queryset.filter(phenomenon_time__lte=data.phenomenon_time_end)
+            observation_queryset = observation_queryset.filter(phenomenon_time__lte=data.phenomenon_time_end)
+            qualifier_queryset = qualifier_queryset.filter(observation__phenomenon_time__lte=data.phenomenon_time_end)
 
-        queryset.delete()
+        qualifier_queryset.delete()
+        observation_queryset.delete()
 
         if update_datastream_statistics is True:
             datastream_service.update_observation_statistics(

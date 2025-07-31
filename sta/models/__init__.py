@@ -11,4 +11,4 @@ from .datastream import (
     DatastreamStatus,
     SampledMedium,
 )
-from .observation import Observation
+from .observation import Observation, ObservationResultQualifier
