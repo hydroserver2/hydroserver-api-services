@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional, Literal
-from datetime import datetime
 from ninja import Schema, Field, Query
+from api.types import ISODatetime
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
@@ -14,8 +14,8 @@ class OrchestrationConfigurationScheduleFields(Schema):
     interval: Optional[int] = Field(None, gt=0)
     interval_units: Optional[Literal["minutes", "hours", "days"]] = None
     crontab: Optional[str] = Field(None, max_length=255)
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: Optional[ISODatetime] = None
+    end_time: Optional[ISODatetime] = None
 
 
 class OrchestrationConfigurationScheduleDetailResponse(
@@ -47,22 +47,22 @@ class OrchestrationConfigurationQueryParameters(CollectionQueryParameters):
         None,
         description="Filters by whether the previous job ran successfully.",
     )
-    last_run__lte: Optional[datetime] = Query(
+    last_run__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum last run time of filtered datastreams.",
         alias="last_run_max",
     )
-    last_run__gte: Optional[datetime] = Query(
+    last_run__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum last run time of filtered datastreams.",
         alias="last_run_min",
     )
-    next_run__lte: Optional[datetime] = Query(
+    next_run__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum next run time of filtered datastreams.",
         alias="next_run_max",
     )
-    next_run__gte: Optional[datetime] = Query(
+    next_run__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum next run time of filtered datastreams.",
         alias="next_run_min",
@@ -84,8 +84,8 @@ class OrchestrationConfigurationSchedulePatchBody(
 class OrchestrationConfigurationStatusFields(Schema):
     last_run_successful: Optional[bool] = None
     last_run_message: Optional[str] = Field(None, max_length=255)
-    last_run: Optional[datetime] = None
-    next_run: Optional[datetime] = None
+    last_run: Optional[ISODatetime] = None
+    next_run: Optional[ISODatetime] = None
     paused: bool = False
 
 
