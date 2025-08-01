@@ -71,6 +71,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django_tasks",
+    "django_tasks.backends.database",
     "allauth",
     "allauth.account",
     "allauth.headless",
@@ -261,6 +263,18 @@ if DEBUG:
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
         }
     }
+
+# Tasks settings
+
+USE_TASKS_BACKEND = config("USE_TASKS_BACKEND", default=False, cast=bool)
+
+if USE_TASKS_BACKEND is True:
+    TASKS = {
+        "default": {
+            "BACKEND": "django_tasks.backends.database.DatabaseBackend"
+        }
+    }
+
 
 # Storage settings
 

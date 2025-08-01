@@ -2,9 +2,11 @@ import uuid
 from typing import Union, Any, Optional, Type
 from ninja.errors import HttpError
 from pydantic.alias_generators import to_snake
+from django_tasks import Task
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet, Model, Q
+from django.conf import settings
 from iam.models import Workspace, APIKey
 
 User = get_user_model()
@@ -122,6 +124,22 @@ class ServiceUtils:
             response["X-Total-Pages"] = str((count + page_size - 1) // page_size)
 
         return queryset[offset : offset + page_size], count
+
+    @staticmethod
+    def run_task(
+        task_callable: Task,
+        response: HttpResponse,
+        **kwargs
+    ):
+        if settings.USE_TASKS_BACKEND is True:
+            result = task_callable.enqueue(**kwargs)
+            response.headers["Location"] = f"https://www.example.com/{str(result.id)}"
+            return 202, None
+
+        else:
+            kwargs["context"] = None
+            task_callable.func(**kwargs)
+            return 201, None
 
 
 class VocabularyService(ServiceUtils):

@@ -128,3 +128,7 @@ class ObservationPatchBody(BasePatchBody, ObservationFields):
 class ObservationBulkDeleteBody(BasePostBody):
     phenomenon_time_start: Optional[ISODatetime] = None
     phenomenon_time_end: Optional[ISODatetime] = None
+
+
+class ObservationCopyBody(BasePostBody):
+    source_datastream_id: uuid.UUID

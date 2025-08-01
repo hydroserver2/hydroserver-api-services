@@ -4,6 +4,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from pydantic.alias_generators import to_camel
 from psycopg.errors import UniqueViolation
+from django_tasks import task, TaskContext
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
@@ -19,6 +20,7 @@ from sta.schemas.observation import (
     ObservationPatchBody,
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
+    ObservationCopyBody,
 )
 from sta.services.datastream import DatastreamService
 from api.service import ServiceUtils
@@ -415,3 +417,37 @@ class ObservationService(ServiceUtils):
                 datastream=datastream,
                 fields=["phenomenon_begin_time", "phenomenon_end_time", "value_count"],
             )
+
+    def copy(
+        self,
+        principal: User | APIKey,
+        response: HttpResponse,
+        data: ObservationCopyBody,
+        datastream_id: uuid.UUID,
+    ):
+        destination_datastream = datastream_service.get_datastream_for_action(
+            principal, datastream_id, action="edit"
+        )
+
+        source_datastream = datastream_service.get_datastream_for_action(
+            principal, data.source_datastream_id, action="view"
+        )
+
+        if destination_datastream.thing.workspace_id != source_datastream.thing.workspace_id:
+            raise HttpError(400, "Source and destination datastreams must belong to the same workspace")
+
+        return self.run_task(
+            task_callable=self.copy_task,
+            response=response,
+            source_datastream_id=str(source_datastream.id),
+            destination_datastream_id=str(destination_datastream.id),
+        )
+
+    @staticmethod
+    @task(takes_context=True)
+    def copy_task(context: TaskContext, source_datastream_id: str, destination_datastream_id: str):
+        print('********')
+        print(source_datastream_id)
+        print(destination_datastream_id)
+        import time
+        time.sleep(5)

@@ -16,6 +16,7 @@ from sta.schemas import (
     ObservationBulkPostBody,
     ObservationBulkPostQueryParameters,
     ObservationBulkDeleteBody,
+    ObservationCopyBody,
 )
 from sta.services import ObservationService
 
@@ -131,6 +132,27 @@ def delete_observations(
 
     return 204, observation_service.bulk_delete(
         principal=request.principal, datastream_id=datastream_id, data=data
+    )
+
+
+@observation_router.post(
+    "/copy",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={201: None, 202: None, 403: str, 404: str},
+)
+@transaction.atomic
+def copy_observations(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    datastream_id: Path[uuid.UUID],
+    data: ObservationCopyBody,
+):
+    """
+    Copy observations from another datastream.
+    """
+
+    return observation_service.copy(
+        principal=request.principal, response=response, datastream_id=datastream_id, data=data
     )
 
 

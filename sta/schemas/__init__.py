@@ -66,6 +66,7 @@ from .observation import (
     ObservationBulkPostQueryParameters,
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
+    ObservationCopyBody,
 )
 
 
