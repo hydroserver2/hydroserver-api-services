@@ -24,10 +24,9 @@ COPY . .
 
 RUN curl -L -o data_mgmt_app.zip https://github.com/${DATA_MGMT_REPO}/releases/download/${RELEASE}/${DATA_MGMT_ASSET} && \
     unzip data_mgmt_app.zip -d data_mgmt_app && \
-    mkdir -p vite_dist/web && \
-    cp -f data_mgmt_app/index.html templates/index.html && \
-    cp -r data_mgmt_app/* web/static/web/ && \
-    sed -i '' "s@<script id=\"app-settings\" type=\"application/json\"></script>@{{ settings|json_script:\"app-settings\" }}@" templates/index.html && \
+    cp -f data_mgmt_app/dist/index.html templates/index.html && \
+    cp -r data_mgmt_app/dist/* web/static/web/ && \
+    sed -i "s@<script id=\"app-settings\" type=\"application/json\"></script>@{{ settings|json_script:\\\"app-settings\\\" }}@" templates/index.html && \
     rm -rf data_mgmt_app data_mgmt_app.zip
 
 EXPOSE ${PORT}
