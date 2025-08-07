@@ -80,8 +80,8 @@ def index(request):
             "clarityProjectId": instance_configuration.clarity_project_id
         },
         "legalInformation": {
-            "termsOfUse": instance_configuration.terms_of_use,
-            "privacyPolicy": instance_configuration.privacy_policy,
+            "termsOfUseLink": instance_configuration.terms_of_use_link,
+            "privacyPolicyLink": instance_configuration.privacy_policy_link,
             "copyright": instance_configuration.copyright,
         },
     }
