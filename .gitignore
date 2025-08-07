@@ -9,6 +9,7 @@ db.sqlite3
 staticfiles/
 /static
 !/static/**/
+/web/static/web/*
 *.db
 *test.ipynb
 *test.yaml
