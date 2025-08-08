@@ -27,5 +27,5 @@ def validate_iso_datetime(value: Union[str, datetime]) -> datetime:
 ISODatetime = Annotated[
     Union[str, datetime],
     AfterValidator(validate_iso_datetime),
-    WithJsonSchema({"type": "string", "format": "date-time"}, mode="serialization")
+    WithJsonSchema({"type": "string", "format": "date-time"}, mode="serialization"),
 ]

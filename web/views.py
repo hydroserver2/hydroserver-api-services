@@ -9,7 +9,7 @@ from web.models import InstanceConfiguration, MapLayer, ContactInformation
 @cache_page(60 * 10)
 def index(request):
 
-    instance_configuration = InstanceConfiguration.get_solo()
+    instance_configuration = InstanceConfiguration.get_configuration()
     contact_information = ContactInformation.objects.all()
     map_layers = MapLayer.objects.all()
     social_apps = SocialApp.objects.all()
@@ -47,37 +47,50 @@ def index(request):
                     "text": contact_option.text,
                     "action": contact_option.action,
                     "icon": contact_option.icon,
-                    "link": contact_option.link
-                } for contact_option in contact_information
-            ]
+                    "link": contact_option.link,
+                }
+                for contact_option in contact_information
+            ],
         },
         "mapConfiguration": {
-            "defaultLatitude": instance_configuration.default_latitude,
-            "defaultLongitude": instance_configuration.default_longitude,
-            "defaultZoomLevel": instance_configuration.default_zoom_level,
-            "defaultBaseLayer": getattr(instance_configuration.default_base_layer, "name", None),
-            "defaultSatelliteLayer": getattr(instance_configuration.default_satellite_layer, "name", None),
-            "elevationService": instance_configuration.elevation_service,
-            "geoService": instance_configuration.geo_service,
+            "defaultLatitude": instance_configuration.map_configuration.default_latitude,
+            "defaultLongitude": instance_configuration.map_configuration.default_longitude,
+            "defaultZoomLevel": instance_configuration.map_configuration.default_zoom_level,
+            "defaultBaseLayer": getattr(
+                instance_configuration.map_configuration.default_base_layer,
+                "name",
+                None,
+            ),
+            "defaultSatelliteLayer": getattr(
+                instance_configuration.map_configuration.default_satellite_layer,
+                "name",
+                None,
+            ),
+            "elevationService": instance_configuration.map_configuration.elevation_service,
+            "geoService": instance_configuration.map_configuration.geo_service,
             "basemapLayers": [
                 {
                     "name": map_layer.name,
                     "source": map_layer.source,
                     "attribution": map_layer.attribution,
-                } for map_layer in map_layers if map_layer.type == "basemap"
+                }
+                for map_layer in map_layers
+                if map_layer.type == "basemap"
             ],
             "overlayLayers": [
                 {
                     "name": map_layer.name,
                     "source": map_layer.source,
                     "attribution": map_layer.attribution,
-                    "priority": map_layer.priority
-                } for map_layer in map_layers if map_layer.type == "overlay"
-            ]
+                    "priority": map_layer.priority,
+                }
+                for map_layer in map_layers
+                if map_layer.type == "overlay"
+            ],
         },
         "analyticsConfiguration": {
-            "enableClarityAnalytics": instance_configuration.enable_clarity_analytics,
-            "clarityProjectId": instance_configuration.clarity_project_id
+            "enableClarityAnalytics": instance_configuration.analytics_configuration.enable_clarity_analytics,
+            "clarityProjectId": instance_configuration.analytics_configuration.clarity_project_id,
         },
         "legalInformation": {
             "termsOfUseLink": instance_configuration.terms_of_use_link,

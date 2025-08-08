@@ -22,9 +22,44 @@ class InstanceConfiguration(SingletonModel):
     show_about_information = models.BooleanField(default=False)
     about_page_title = models.CharField(max_length=255, blank=True, null=True)
     about_page_text = models.TextField(blank=True, null=True)
-    default_latitude = models.DecimalField(
-        max_digits=22, decimal_places=16, default=39
+    terms_of_use_link = models.CharField(max_length=255, blank=True, null=True)
+    privacy_policy_link = models.CharField(max_length=255, blank=True, null=True)
+    copyright = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return "Instance Configuration"
+
+    @classmethod
+    def get_configuration(cls):
+        if not cls.objects.exists():
+            instance_configuration = cls.objects.create()
+            MapConfiguration.objects.create(
+                instance_configuration=instance_configuration
+            )
+            AnalyticsConfiguration.objects.create(
+                instance_configuration=instance_configuration
+            )
+            return instance_configuration
+
+        return cls.objects.select_related(
+            "map_configuration",
+            "analytics_configuration",
+            "map_configuration__default_base_layer",
+            "map_configuration__default_satellite_layer",
+        ).first()
+
+    class Meta:
+        verbose_name = "Instance Configuration"
+        verbose_name_plural = "Instance Configuration"
+
+
+class MapConfiguration(SingletonModel):
+    instance_configuration = models.OneToOneField(
+        InstanceConfiguration,
+        on_delete=models.PROTECT,
+        related_name="map_configuration",
     )
+    default_latitude = models.DecimalField(max_digits=22, decimal_places=16, default=39)
     default_longitude = models.DecimalField(
         max_digits=22, decimal_places=16, default=-100
     )
@@ -43,20 +78,36 @@ class InstanceConfiguration(SingletonModel):
         null=True,
         related_name="default_satellite_layer",
     )
-    elevation_service = models.CharField(max_length=255, choices=ELEVATION_SERVICE_CHOICES, default="openElevation")
-    geo_service = models.CharField(max_length=255, choices=GEO_SERVICE_CHOICES, default="nominatim")
-    terms_of_use_link = models.CharField(max_length=255, blank=True, null=True)
-    privacy_policy_link = models.CharField(max_length=255, blank=True, null=True)
-    copyright = models.CharField(max_length=255, blank=True, null=True)
+    elevation_service = models.CharField(
+        max_length=255, choices=ELEVATION_SERVICE_CHOICES, default="openElevation"
+    )
+    geo_service = models.CharField(
+        max_length=255, choices=GEO_SERVICE_CHOICES, default="nominatim"
+    )
+
+    def __str__(self):
+        return "Map Configuration"
+
+    class Meta:
+        verbose_name = "Map Configuration"
+        verbose_name_plural = "Map Configuration"
+
+
+class AnalyticsConfiguration(SingletonModel):
+    instance_configuration = models.OneToOneField(
+        InstanceConfiguration,
+        on_delete=models.PROTECT,
+        related_name="analytics_configuration",
+    )
     enable_clarity_analytics = models.BooleanField(default=False)
     clarity_project_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return "Instance Configuration"
+        return "Analytics Configuration"
 
     class Meta:
-        verbose_name = "Instance Configuration"
-        verbose_name_plural = "Instance Configuration"
+        verbose_name = "Analytics Configuration"
+        verbose_name_plural = "Analytics Configuration"
 
 
 class ContactInformation(models.Model):

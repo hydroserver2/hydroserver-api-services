@@ -94,7 +94,9 @@ class DatastreamQueryParameters(CollectionQueryParameters):
     )
     unit_id: list[uuid.UUID] = Query([], description="Filter datastreams by unit ID.")
     observations__result_qualifier_id: list[uuid.UUID] = Query(
-        [], description="Filter datastreams by observation result qualifier ID.", alias="result_qualifier_id"
+        [],
+        description="Filter datastreams by observation result qualifier ID.",
+        alias="result_qualifier_id",
     )
     data_source_id: list[uuid.UUID] = Query(
         [], description="Filter datastreams by data source ID."

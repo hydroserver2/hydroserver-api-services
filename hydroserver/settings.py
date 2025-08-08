@@ -36,6 +36,8 @@ DEFAULT_SUPERUSER_PASSWORD = config("DEFAULT_SUPERUSER_PASSWORD", default="pass"
 USE_X_FORWARDED_HOST = True
 PROXY_BASE_URL = config("PROXY_BASE_URL", "http://127.0.0.1:8000")
 
+LOAD_DEFAULT_DATA = config("LOAD_DEFAULT_DATA", default=False, cast=bool)
+
 hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
 
@@ -82,6 +84,7 @@ INSTALLED_APPS = [
     "easyaudit",
     "sensorthings",
     "storages",
+    "api.apps.ApiConfig",
     "iam.apps.IamConfig",
     "sta.apps.StaConfig",
     "etl.apps.EtlConfig",

@@ -70,8 +70,13 @@ class ResultQualifierService(ServiceUtils):
         for field in ["workspace_id"]:
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
-        for field in ["observations__datastream_id", "observations__datastream__thing_id"]:
-            if field in filtering and not all(value is None for value in filtering[field]):
+        for field in [
+            "observations__datastream_id",
+            "observations__datastream__thing_id",
+        ]:
+            if field in filtering and not all(
+                value is None for value in filtering[field]
+            ):
                 queryset = ResultQualifier.objects.none()
 
         if order_by:

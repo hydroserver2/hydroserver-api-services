@@ -5,8 +5,6 @@ ENV RELEASE=${RELEASE}
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
-ENV WORKERS=3
 
 ENV DATA_MGMT_REPO=hydroserver2/hydroserver-data-management-app
 ENV DATA_MGMT_ASSET=data-management-app-${RELEASE}.zip
@@ -29,7 +27,3 @@ RUN curl -L -o data_mgmt_app.zip https://github.com/${DATA_MGMT_REPO}/releases/d
     cp -r data_mgmt_app/dist/* web/static/web/ && \
     sed -i "s@<script id=\"app-settings\" type=\"application/json\"></script>@{{ settings|json_script:\\\"app-settings\\\" }}@" templates/index.html && \
     rm -rf data_mgmt_app data_mgmt_app.zip
-
-EXPOSE ${PORT}
-
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} --workers ${WORKERS} hydroserver.wsgi:application"]

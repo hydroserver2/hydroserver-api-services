@@ -1,5 +1,11 @@
 from django.contrib import admin
-from web.models import InstanceConfiguration, MapLayer, ContactInformation
+from web.models import (
+    InstanceConfiguration,
+    MapConfiguration,
+    AnalyticsConfiguration,
+    MapLayer,
+    ContactInformation,
+)
 
 
 class ContactInformationAdmin(admin.ModelAdmin):
@@ -11,5 +17,7 @@ class MapLayerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(InstanceConfiguration)
+admin.site.register(MapConfiguration)
+admin.site.register(AnalyticsConfiguration)
 admin.site.register(MapLayer, MapLayerAdmin)
 admin.site.register(ContactInformation, ContactInformationAdmin)
