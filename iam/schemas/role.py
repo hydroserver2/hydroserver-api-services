@@ -12,7 +12,7 @@ PERMISSIONS = Literal[*[choice[0] for choice in PERMISSION_CHOICES]]
 
 
 class PermissionDetailResponse(BaseGetResponse):
-    resource_type: RESOURCE_TYPES
+    resource_type: RESOURCE_TYPES = Field(..., alias="resource")
     permission_type: PERMISSIONS = Field(..., alias="action")
 
 

@@ -113,6 +113,7 @@ class DatastreamService(ServiceUtils):
             "observed_property_id",
             "processing_level_id",
             "unit_id",
+            "observations__result_qualifier_id",
             "data_source_id",
             "data_archives__id",
             "observation_type",
@@ -142,6 +143,8 @@ class DatastreamService(ServiceUtils):
                     queryset = self.apply_filters(
                         queryset, f"thing__workspace__is_private", filtering[field]
                     )
+                elif field == "observations__result_qualifier_id":
+                    queryset = Datastream.objects.none()
                 else:
                     queryset = self.apply_filters(queryset, field, filtering[field])
 

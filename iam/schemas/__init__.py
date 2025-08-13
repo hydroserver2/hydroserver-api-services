@@ -7,7 +7,6 @@ from .account import (
     OrganizationPostBody,
     OrganizationPatchBody,
 )
-from .authentication import AuthenticationMethodsDetailResponse
 from .session import SessionPostBody
 from .email import VerificationEmailPutBody, VerifyEmailPostBody
 from .password import RequestResetPasswordPostBody, ResetPasswordPostBody
