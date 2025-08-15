@@ -1,7 +1,9 @@
 import uuid
 from ninja import Router, Path
 from typing import Optional
+from django.http import HttpResponse
 from hydroserver.security import bearer_auth, session_auth, anonymous_auth
+from hydroserver.http import HydroServerHttpRequest
 from etl.schemas import (
     HydroShareArchivalDetailResponse,
     HydroShareArchivalPostBody,
@@ -24,7 +26,7 @@ hydroshare_archival_service = HydroShareArchivalService()
     by_alias=True,
     exclude_unset=True,
 )
-def get_thing_archive(request, thing_id: Path[uuid.UUID]):
+def get_thing_archive(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
     Get HydroShare archival details for a thing.
     """
@@ -38,7 +40,8 @@ def get_thing_archive(request, thing_id: Path[uuid.UUID]):
     "",
     auth=[session_auth, bearer_auth],
     response={
-        201: HydroShareArchivalDetailResponse,
+        201: None,
+        202: None,
         400: str,
         401: str,
         403: str,
@@ -48,14 +51,14 @@ def get_thing_archive(request, thing_id: Path[uuid.UUID]):
     exclude_unset=True,
 )
 def create_thing_archive(
-    request, data: HydroShareArchivalPostBody, thing_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest, response: HttpResponse, data: HydroShareArchivalPostBody, thing_id: Path[uuid.UUID]
 ):
     """
     Create a HydroShare data archive for a thing.
     """
 
     return 201, hydroshare_archival_service.create(
-        principal=request.principal, uid=thing_id, data=data
+        principal=request.principal, response=response, uid=thing_id, data=data
     )
 
 
@@ -63,20 +66,21 @@ def create_thing_archive(
     "/trigger",
     auth=[session_auth, bearer_auth],
     response={
-        200: HydroShareArchivalDetailResponse,
+        200: None,
+        202: None,
         401: str,
         403: str,
     },
     by_alias=True,
     exclude_unset=True,
 )
-def run_thing_archival(request, thing_id: Path[uuid.UUID]):
+def run_thing_archival(request: HydroServerHttpRequest, response: HttpResponse, thing_id: Path[uuid.UUID]):
     """
     Archive thing data to HydroShare.
     """
 
     return 200, hydroshare_archival_service.run(
-        principal=request.principal, uid=thing_id
+        principal=request.principal, response=response, uid=thing_id
     )
 
 
@@ -84,7 +88,8 @@ def run_thing_archival(request, thing_id: Path[uuid.UUID]):
     "",
     auth=[session_auth, bearer_auth],
     response={
-        200: HydroShareArchivalDetailResponse,
+        200: None,
+        202: None,
         400: str,
         401: str,
         403: str,
@@ -94,14 +99,14 @@ def run_thing_archival(request, thing_id: Path[uuid.UUID]):
     exclude_unset=True,
 )
 def update_archive(
-    request, data: HydroShareArchivalPatchBody, thing_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest, response: HttpResponse, data: HydroShareArchivalPatchBody, thing_id: Path[uuid.UUID]
 ):
     """
     Update HydroShare data archive details for a thing.
     """
 
     return 200, hydroshare_archival_service.update(
-        principal=request.principal, uid=thing_id, data=data
+        principal=request.principal, response=response, uid=thing_id, data=data
     )
 
 
@@ -116,7 +121,7 @@ def update_archive(
     by_alias=True,
     exclude_unset=True,
 )
-def delete_archive(request, thing_id: Path[uuid.UUID]):
+def delete_archive(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
     Delete a HydroShare data archive for a thing. Note: This will not delete the HydroShare resource.
     """

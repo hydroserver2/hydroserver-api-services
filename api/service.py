@@ -126,18 +126,13 @@ class ServiceUtils:
         return queryset[offset : offset + page_size], count
 
     @staticmethod
-    def run_task(
-        task_callable: Task,
-        response: HttpResponse,
-        **kwargs
-    ):
+    def run_task(task_callable: Task, response: HttpResponse, **kwargs):
         if settings.USE_TASKS_BACKEND is True:
             result = task_callable.enqueue(**kwargs)
-            response.headers["Location"] = f"https://www.example.com/{str(result.id)}"
+            response.headers["Location"] = f"{settings.PROXY_BASE_URL}/api/data/tasks/{str(result.id)}/status"
             return 202, None
 
         else:
-            kwargs["context"] = None
             task_callable.func(**kwargs)
             return 201, None
 

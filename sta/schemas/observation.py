@@ -132,3 +132,5 @@ class ObservationBulkDeleteBody(BasePostBody):
 
 class ObservationCopyBody(BasePostBody):
     source_datastream_id: uuid.UUID
+    phenomenon_time_start: Optional[ISODatetime] = None
+    phenomenon_time_end: Optional[ISODatetime] = None

@@ -1,5 +1,8 @@
+import uuid
 from ninja import Schema, Query
 from typing import Optional, Any
+from datetime import datetime
+from django_tasks import ResultStatus
 from pydantic import AliasGenerator, AliasChoices, ConfigDict, field_validator
 from pydantic.alias_generators import to_camel
 from sensorthings.validators import PartialSchema
@@ -67,3 +70,14 @@ class BasePatchBody(Schema, metaclass=PartialSchema):
     model_config = ConfigDict(
         populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
     )
+
+
+class TaskStatusResponse(BaseGetResponse):
+    id: uuid.UUID
+    name: str
+    status: ResultStatus
+    arguments: Optional[dict] = None
+    received_at: datetime
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
+    message: Optional[str] = None

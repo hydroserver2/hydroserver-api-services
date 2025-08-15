@@ -4,7 +4,6 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from pydantic.alias_generators import to_camel
 from psycopg.errors import UniqueViolation
-from django_tasks import task, TaskContext
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
@@ -22,8 +21,10 @@ from sta.schemas.observation import (
     ObservationBulkDeleteBody,
     ObservationCopyBody,
 )
+from sta.tasks import copy_observations
 from sta.services.datastream import DatastreamService
 from api.service import ServiceUtils
+
 
 User = get_user_model()
 datastream_service = DatastreamService()
@@ -433,21 +434,45 @@ class ObservationService(ServiceUtils):
             principal, data.source_datastream_id, action="view"
         )
 
-        if destination_datastream.thing.workspace_id != source_datastream.thing.workspace_id:
-            raise HttpError(400, "Source and destination datastreams must belong to the same workspace")
+        if (
+            destination_datastream.thing.workspace_id
+            != source_datastream.thing.workspace_id
+        ):
+            raise HttpError(
+                400,
+                "Source and destination datastreams must belong to the same workspace",
+            )
+
+        if (
+            not data.phenomenon_time_start
+            and not data.phenomenon_time_end
+            and destination_datastream.value_count
+        ) or (
+            destination_datastream.phenomenon_begin_time
+            and destination_datastream.phenomenon_end_time
+            and (
+                (
+                    data.phenomenon_time_start
+                    and data.phenomenon_time_start
+                    <= destination_datastream.phenomenon_end_time
+                )
+                or (
+                    data.phenomenon_time_end
+                    and data.phenomenon_time_end
+                    >= destination_datastream.phenomenon_begin_time
+                )
+            )
+        ):
+            raise HttpError(
+                400,
+                "Source and destination datastream phenomenon time ranges must not overlap",
+            )
 
         return self.run_task(
-            task_callable=self.copy_task,
+            task_callable=copy_observations,
             response=response,
             source_datastream_id=str(source_datastream.id),
             destination_datastream_id=str(destination_datastream.id),
+            phenomenon_time_start=data.phenomenon_time_start,
+            phenomenon_time_end=data.phenomenon_time_end,
         )
-
-    @staticmethod
-    @task(takes_context=True)
-    def copy_task(context: TaskContext, source_datastream_id: str, destination_datastream_id: str):
-        print('********')
-        print(source_datastream_id)
-        print(destination_datastream_id)
-        import time
-        time.sleep(5)

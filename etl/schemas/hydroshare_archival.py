@@ -1,12 +1,11 @@
 from ninja import Schema, Field
-from pydantic import AnyHttpUrl
 from typing import Literal, Optional
 from uuid import UUID
 from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody
 
 
 class HydroShareArchivalFields(Schema):
-    link: Optional[AnyHttpUrl] = None
+    link: Optional[str] = None
     frequency: Optional[Literal["daily", "weekly", "monthly"]] = None
     path: str = Field(..., max_length=255)
     datastream_ids: list[UUID]

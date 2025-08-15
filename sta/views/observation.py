@@ -152,7 +152,10 @@ def copy_observations(
     """
 
     return observation_service.copy(
-        principal=request.principal, response=response, datastream_id=datastream_id, data=data
+        principal=request.principal,
+        response=response,
+        datastream_id=datastream_id,
+        data=data,
     )
 
 

@@ -2,6 +2,7 @@ from ninja import NinjaAPI
 from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 from django.urls import path
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.conf import settings
 from sensorthings import SensorThingsAPI
 from sensorthings.extensions.dataarray import data_array_extension
 from hydroserver import __version__
@@ -23,6 +24,7 @@ from etl.views import (
     data_source_router,
     data_archive_router,
 )
+from api.task_status import task_router
 
 
 api = NinjaAPI(
@@ -51,6 +53,9 @@ api.add_router("result-qualifiers", result_qualifier_router)
 api.add_router("orchestration-systems", orchestration_system_router)
 api.add_router("data-sources", data_source_router)
 api.add_router("data-archives", data_archive_router)
+
+if settings.USE_TASKS_BACKEND:
+    api.add_router("tasks", task_router)
 
 st_api_1_1 = SensorThingsAPI(
     title="HydroServer SensorThings API",
