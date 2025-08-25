@@ -2,7 +2,8 @@ import uuid
 from pydantic import AliasPath, AliasChoices, model_validator
 from ninja import Schema, Query, Field
 from typing import Optional, Literal, TYPE_CHECKING
-from datetime import datetime
+from api.types import ISODatetime
+from api.types.iso_datetime import validate_iso_datetime
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class ObservationFields(Schema):
-    phenomenon_time: datetime
+    phenomenon_time: ISODatetime
     result: float
 
 
@@ -37,12 +38,12 @@ class ObservationQueryParameters(CollectionQueryParameters):
         description="Controls the format of the observations response.",
         alias="format",
     )
-    phenomenon_time__lte: Optional[datetime] = Query(
+    phenomenon_time__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum phenomenon time of filtered observations.",
         alias="phenomenon_time_max",
     )
-    phenomenon_time__gte: Optional[datetime] = Query(
+    phenomenon_time__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum phenomenon time of filtered observations.",
         alias="phenomenon_time_min",
@@ -111,7 +112,7 @@ class ObservationBulkPostBody(BasePostBody):
             if phenomenon_time_idx is not None and isinstance(
                 row[phenomenon_time_idx], str
             ):
-                row[phenomenon_time_idx] = datetime.fromisoformat(
+                row[phenomenon_time_idx] = validate_iso_datetime(
                     row[phenomenon_time_idx]
                 )
             if result_idx is not None and row[result_idx] is not None:
@@ -125,5 +126,5 @@ class ObservationPatchBody(BasePatchBody, ObservationFields):
 
 
 class ObservationBulkDeleteBody(BasePostBody):
-    phenomenon_time_start: Optional[datetime] = None
-    phenomenon_time_end: Optional[datetime] = None
+    phenomenon_time_start: Optional[ISODatetime] = None
+    phenomenon_time_end: Optional[ISODatetime] = None

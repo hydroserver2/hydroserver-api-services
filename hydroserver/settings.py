@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DEPLOYMENT_BACKEND = config("DEPLOYMENT_BACKEND", default="dev")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config(
@@ -21,8 +22,7 @@ SECRET_KEY = config(
 )
 
 # SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = config("DEBUG", default=True, cast=bool)
-DEPLOYMENT_BACKEND = config("DEPLOYMENT_BACKEND", default="local")
+DEBUG = config("DEBUG", default=DEPLOYMENT_BACKEND == "dev", cast=bool)
 
 
 # Default Superuser Settings
@@ -34,7 +34,9 @@ DEFAULT_SUPERUSER_PASSWORD = config("DEFAULT_SUPERUSER_PASSWORD", default="pass"
 # Deployment Settings
 
 USE_X_FORWARDED_HOST = True
-PROXY_BASE_URL = config("PROXY_BASE_URL", "http://localhost")
+PROXY_BASE_URL = config("PROXY_BASE_URL", "http://127.0.0.1:8000")
+
+LOAD_DEFAULT_DATA = config("LOAD_DEFAULT_DATA", default=False, cast=bool)
 
 hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
@@ -43,9 +45,16 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=urlparse(PROXY_BASE_URL).netloc)
     ","
 ) + [local_ip]
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = False
-CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
+if DEPLOYMENT_BACKEND == "dev":
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ALLOW_CREDENTIALS = True
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+else:
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ALLOW_CREDENTIALS = False
+    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
 
 
 # Application definition
@@ -75,9 +84,11 @@ INSTALLED_APPS = [
     "easyaudit",
     "sensorthings",
     "storages",
+    "api.apps.ApiConfig",
     "iam.apps.IamConfig",
     "sta.apps.StaConfig",
     "etl.apps.EtlConfig",
+    "web.apps.WebConfig",
     "django.contrib.admin",
 ]
 
@@ -121,7 +132,7 @@ WSGI_APPLICATION = "hydroserver.wsgi.application"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 os.environ["DATABASE_URL"] = config(
-    "DATABASE_URL", default=f"postgresql://hsdbadmin:admin@localhost:5432/hydroserver"
+    "DATABASE_URL", default=f"postgresql://hsdbadmin:admin@127.0.0.1:5432/hydroserver"
 )
 
 dj_database_config = dj_database_url.config(
@@ -169,7 +180,7 @@ ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https" if DEPLOYMENT_BACKEND != "local" else "http"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https" if DEPLOYMENT_BACKEND != "dev" else "http"
 
 ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
 HEADLESS_ONLY = True
@@ -199,7 +210,7 @@ SOCIALACCOUNT_STORE_TOKENS = True
 
 EMAIL_CONFIG = dj_email_url.parse(config("SMTP_URL", default="smtp://127.0.0.1:1025"))
 
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="webmaster@localhost")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="webmaster@127.0.0.1:8000")
 EMAIL_BACKEND = EMAIL_CONFIG["EMAIL_BACKEND"]
 EMAIL_HOST = EMAIL_CONFIG["EMAIL_HOST"]
 EMAIL_PORT = EMAIL_CONFIG["EMAIL_PORT"]
@@ -242,6 +253,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Caching settings
+
+if DEBUG:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        }
+    }
 
 # Storage settings
 

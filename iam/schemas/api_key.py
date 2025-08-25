@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional, Literal, TYPE_CHECKING
-from datetime import datetime
 from ninja import Schema, Field, Query
+from api.types import ISODatetime
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
@@ -17,7 +17,7 @@ class APIKeyFields(Schema):
     name: str = Field(..., max_length=255)
     description: Optional[str] = None
     is_active: bool
-    expires_at: Optional[datetime] = None
+    expires_at: Optional[ISODatetime] = None
 
 
 _order_by_fields = (
@@ -38,8 +38,8 @@ class APIKeyQueryParameters(CollectionQueryParameters):
 
 
 class APIKeyGetFields(APIKeyFields):
-    created_at: datetime
-    last_used: Optional[datetime]
+    created_at: ISODatetime
+    last_used: Optional[ISODatetime]
 
 
 class APIKeySummaryResponse(BaseGetResponse, APIKeyGetFields):

@@ -106,6 +106,9 @@ class ObservationService(ServiceUtils):
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
 
+        if not order_by:
+            order_by.append("phenomenonTime")
+
         if order_by:
             queryset = self.apply_ordering(
                 queryset,

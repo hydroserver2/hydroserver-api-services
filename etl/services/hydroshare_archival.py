@@ -187,7 +187,7 @@ class HydroShareArchivalService(ServiceUtils):
         if "path" in archive_data:
             thing_archive.settings["path"] = archive_data["path"]
 
-        if "link" in archive_data:
+        if archive_data.get("link") is not None:
             try:
                 hs_connection.resource(data.link.split("/")[-2])
                 thing_archive.settings["link"] = archive_data["link"]

@@ -10,7 +10,6 @@ from iam.views import (
     email_router,
     password_router,
     provider_router,
-    get_auth_methods,
 )
 
 
@@ -35,5 +34,4 @@ auth_api.add_router("{client}/provider", provider_router)
 
 urlpatterns = [
     path("", auth_api.urls),
-    path("methods", get_auth_methods, name="auth_methods"),
 ]

@@ -51,7 +51,7 @@ jobs:
             --cov-report=term > coverage.txt
         env:
           DJANGO_SETTINGS_MODULE: hydroserver.settings
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
     
       - name: Parse coverage report
         id: coverage

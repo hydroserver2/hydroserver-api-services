@@ -2,7 +2,7 @@ import uuid
 from pydantic import AliasPath
 from ninja import Schema, Field, Query
 from typing import Optional, Literal, TYPE_CHECKING
-from datetime import datetime
+from api.types import ISODatetime
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
@@ -33,10 +33,10 @@ class DatastreamFields(Schema):
     status: Optional[str] = Field(None, max_length=255)
     result_type: str = Field(..., max_length=255)
     value_count: Optional[int] = Field(None, ge=0)
-    phenomenon_begin_time: Optional[datetime] = None
-    phenomenon_end_time: Optional[datetime] = None
-    result_begin_time: Optional[datetime] = None
-    result_end_time: Optional[datetime] = None
+    phenomenon_begin_time: Optional[ISODatetime] = None
+    phenomenon_end_time: Optional[ISODatetime] = None
+    result_begin_time: Optional[ISODatetime] = None
+    result_end_time: Optional[ISODatetime] = None
     is_private: bool = False
     is_visible: bool = True
     time_aggregation_interval_unit: Literal["seconds", "minutes", "hours", "days"]
@@ -93,6 +93,11 @@ class DatastreamQueryParameters(CollectionQueryParameters):
         [], description="Filter datastreams by processing level ID."
     )
     unit_id: list[uuid.UUID] = Query([], description="Filter datastreams by unit ID.")
+    observations__result_qualifier_id: list[uuid.UUID] = Query(
+        [],
+        description="Filter datastreams by observation result qualifier ID.",
+        alias="result_qualifier_id",
+    )
     data_source_id: list[uuid.UUID] = Query(
         [], description="Filter datastreams by data source ID."
     )
@@ -123,42 +128,42 @@ class DatastreamQueryParameters(CollectionQueryParameters):
         description="Sets the minimum value count of filtered datastreams.",
         alias="value_count_min",
     )
-    phenomenon_begin_time__lte: Optional[datetime] = Query(
+    phenomenon_begin_time__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum phenomenon begin time of filtered datastreams.",
         alias="phenomenon_begin_time_max",
     )
-    phenomenon_begin_time__gte: Optional[datetime] = Query(
+    phenomenon_begin_time__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum phenomenon begin time of filtered datastreams.",
         alias="phenomenon_begin_time_min",
     )
-    phenomenon_end_time__lte: Optional[datetime] = Query(
+    phenomenon_end_time__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum phenomenon end time of filtered datastreams.",
         alias="phenomenon_end_time_max",
     )
-    phenomenon_end_time__gte: Optional[datetime] = Query(
+    phenomenon_end_time__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum phenomenon end time of filtered datastreams.",
         alias="phenomenon_end_time_min",
     )
-    result_begin_time__lte: Optional[datetime] = Query(
+    result_begin_time__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum result begin time of filtered datastreams.",
         alias="result_begin_time_max",
     )
-    result_begin_time__gte: Optional[datetime] = Query(
+    result_begin_time__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum result begin time of filtered datastreams.",
         alias="result_begin_time_min",
     )
-    result_end_time__lte: Optional[datetime] = Query(
+    result_end_time__lte: Optional[ISODatetime] = Query(
         None,
         description="Sets the maximum result end time of filtered datastreams.",
         alias="result_end_time_max",
     )
-    result_end_time__gte: Optional[datetime] = Query(
+    result_end_time__gte: Optional[ISODatetime] = Query(
         None,
         description="Sets the minimum result end time of filtered datastreams.",
         alias="result_end_time_min",

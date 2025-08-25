@@ -32,6 +32,14 @@ class ResultQualifierQueryParameters(CollectionQueryParameters):
     workspace_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter sensors by workspace ID."
     )
+    observations__datastream__thing_id: list[uuid.UUID | Literal["null"]] = Query(
+        [], description="Filter result qualifiers by thing ID.", alias="thing_id"
+    )
+    observations__datastream_id: list[uuid.UUID | Literal["null"]] = Query(
+        [],
+        description="Filter result qualifiers by datastream ID.",
+        alias="datastream_id",
+    )
 
 
 class ResultQualifierSummaryResponse(BaseGetResponse, ResultQualifierFields):
