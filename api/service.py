@@ -103,12 +103,12 @@ class ServiceUtils:
         page_size: Optional[int] = None,
     ):
         page = page or 1
-        page_size = page_size or 100
+        page_size = page_size if page_size is not None else 100
 
         if page < 1:
             raise ValueError("Page must be greater >= 1.")
-        if page_size < 1:
-            raise ValueError("Page size must be >= 1.")
+        if page_size < 0:
+            raise ValueError("Page size must be >= 0.")
         if page_size > 100000:
             raise ValueError("Page size must be <= 100000.")
 
@@ -117,9 +117,11 @@ class ServiceUtils:
 
         if response:
             response["X-Total-Count"] = str(count)
-            response["X-Page"] = str(page)
             response["X-Page-Size"] = str(page_size)
-            response["X-Total-Pages"] = str((count + page_size - 1) // page_size)
+
+            if page_size > 0:
+                response["X-Page"] = str(page)
+                response["X-Total-Pages"] = str((count + page_size - 1) // page_size)
 
         return queryset[offset : offset + page_size], count
 

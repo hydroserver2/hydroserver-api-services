@@ -1,5 +1,6 @@
 import uuid
 import math
+import hashlib
 from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from pydantic.alias_generators import to_camel
@@ -108,6 +109,10 @@ class ObservationService(ServiceUtils):
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
 
+        queryset = queryset.visible(principal=principal)
+
+        checksum_uuid = queryset.order_by("-id").values_list("id", flat=True).first()
+
         queryset = queryset.annotate(
             result_qualifier_codes=Coalesce(
                 ArrayAgg(
@@ -134,9 +139,9 @@ class ObservationService(ServiceUtils):
         else:
             queryset = queryset.select_related("datastream__thing")
 
-        queryset = queryset.visible(principal=principal).distinct()
-
         queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        response["X-Checksum"] = self.generate_checksum(checksum_uuid, count)
 
         if response_format == "row":
             fields = ["phenomenon_time", "result", "result_qualifier_codes"]
@@ -410,3 +415,14 @@ class ObservationService(ServiceUtils):
                 datastream=datastream,
                 fields=["phenomenon_begin_time", "phenomenon_end_time", "value_count"],
             )
+
+    @staticmethod
+    def generate_checksum(
+        checksum_uuid, checksum_count
+    ):
+        payload = checksum_uuid.bytes + checksum_count.to_bytes(
+            (checksum_count.bit_length() + 7) // 8 or 1, byteorder="big"
+        )
+
+        return hashlib.sha256(payload).hexdigest()[:16]
+

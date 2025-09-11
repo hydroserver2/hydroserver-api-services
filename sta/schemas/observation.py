@@ -7,7 +7,6 @@ from api.types.iso_datetime import validate_iso_datetime
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
-    BasePatchBody,
     CollectionQueryParameters,
 )
 
@@ -22,7 +21,7 @@ class ObservationFields(Schema):
     result_qualifier_codes: list[str] = []
 
 
-_order_by_fields = ("id", "phenomenonTime",)
+_order_by_fields = ("phenomenonTime",)
 
 ObservationOrderByFields = Literal[
     *_order_by_fields, *[f"-{f}" for f in _order_by_fields]
