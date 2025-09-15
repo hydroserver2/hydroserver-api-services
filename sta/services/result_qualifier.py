@@ -4,6 +4,8 @@ from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
+from django.db.utils import IntegrityError
+from psycopg.errors import UniqueViolation
 from iam.models import APIKey
 from sta.models import ResultQualifier
 from sta.schemas import (
@@ -140,10 +142,18 @@ class ResultQualifierService(ServiceUtils):
                 403, "You do not have permission to create this result qualifier"
             )
 
-        result_qualifier = ResultQualifier.objects.create(
-            workspace=workspace,
-            **data.dict(include=set(ResultQualifierFields.model_fields.keys())),
-        )
+        try:
+            result_qualifier = ResultQualifier.objects.create(
+                workspace=workspace,
+                **data.dict(include=set(ResultQualifierFields.model_fields.keys())),
+            )
+        except (
+            IntegrityError,
+            UniqueViolation,
+        ):
+            raise HttpError(
+                409, "A result qualifier with this code already exists"
+            )
 
         return self.get(
             principal=principal, uid=result_qualifier.id, expand_related=expand_related
@@ -166,7 +176,15 @@ class ResultQualifierService(ServiceUtils):
         for field, value in result_qualifier_data.items():
             setattr(result_qualifier, field, value)
 
-        result_qualifier.save()
+        try:
+            result_qualifier.save()
+        except (
+            IntegrityError,
+            UniqueViolation,
+        ):
+            raise HttpError(
+                409, "A result qualifier with this code already exists"
+            )
 
         return self.get(
             principal=principal, uid=result_qualifier.id, expand_related=expand_related

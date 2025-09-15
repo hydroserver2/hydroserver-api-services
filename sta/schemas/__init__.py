@@ -62,7 +62,6 @@ from .observation import (
     ObservationRowResponse,
     ObservationColumnarResponse,
     ObservationPostBody,
-    ObservationPatchBody,
     ObservationBulkPostQueryParameters,
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,

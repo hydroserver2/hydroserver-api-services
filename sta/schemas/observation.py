@@ -7,7 +7,6 @@ from api.types.iso_datetime import validate_iso_datetime
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
-    BasePatchBody,
     CollectionQueryParameters,
 )
 
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
 class ObservationFields(Schema):
     phenomenon_time: ISODatetime
     result: float
+    result_qualifier_codes: list[str] = []
 
 
 _order_by_fields = ("phenomenonTime",)
@@ -48,6 +48,11 @@ class ObservationQueryParameters(CollectionQueryParameters):
         description="Sets the minimum phenomenon time of filtered observations.",
         alias="phenomenon_time_min",
     )
+    result_qualifiers__code: list[str] = Query(
+        [],
+        description="Filter observations by result qualifier code.",
+        alias="result_qualifier_code",
+    )
 
 
 class ObservationSummaryResponse(BaseGetResponse, ObservationFields):
@@ -70,13 +75,14 @@ class ObservationDetailResponse(BaseGetResponse, ObservationFields):
 
 
 class ObservationRowResponse(BaseGetResponse):
-    fields: list[Literal["phenomenonTime", "result"]]
+    fields: list[Literal["phenomenonTime", "result", "resultQualifierCodes"]]
     data: list[list]
 
 
 class ObservationColumnarResponse(BaseGetResponse):
     phenomenon_time: list
     result: list
+    result_qualifier_codes: list
 
 
 class ObservationPostBody(BasePostBody, ObservationFields):
@@ -97,7 +103,7 @@ class ObservationBulkPostQueryParameters(Schema):
 
 
 class ObservationBulkPostBody(BasePostBody):
-    fields: list[Literal["phenomenonTime", "result"]]
+    fields: list[Literal["phenomenonTime", "result", "resultQualifierCodes"]]
     data: list[list]
 
     @model_validator(mode="after")
@@ -119,10 +125,6 @@ class ObservationBulkPostBody(BasePostBody):
                 row[result_idx] = float(row[result_idx])
 
         return self
-
-
-class ObservationPatchBody(BasePatchBody, ObservationFields):
-    pass
 
 
 class ObservationBulkDeleteBody(BasePostBody):
