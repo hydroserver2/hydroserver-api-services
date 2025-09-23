@@ -273,6 +273,18 @@ def test_get_result_qualifier(
             "Workspace does not exist",
             404,
         ),
+        (
+            "owner",
+            {"workspace_id": "b27c51a0-7374-462d-8a53-d97d47176c10", "code": "PrivateResultQualifier"},
+            "A result qualifier with this code already exists",
+            409,
+        ),
+        (
+            "admin",
+            {"workspace_id": None, "code": "SystemResultQualifier"},
+            "A result qualifier with this code already exists",
+            409,
+        ),
         # Test unauthorized attempts
         ("owner", {"workspace_id": None}, "You do not have permission", 403),
         ("viewer", {}, "You do not have permission", 403),

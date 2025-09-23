@@ -75,7 +75,7 @@ def test_update_account(get_principal, principal, account_data):
 @pytest.mark.parametrize(
     "principal, max_queries",
     [
-        ("owner", 49),
+        ("owner", 53),
         ("admin", 42),
         ("limited", 42),
     ],

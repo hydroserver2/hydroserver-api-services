@@ -413,9 +413,9 @@ def test_edit_thing(get_principal, principal, thing, thing_fields, message, erro
     "principal, thing, message, error_code, max_queries",
     [
         # Test edit Thing
-        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 17),
-        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 17),
-        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 17),
+        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 19),
+        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 19),
+        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 19),
         # Test unauthorized attempts
         (
             "viewer",

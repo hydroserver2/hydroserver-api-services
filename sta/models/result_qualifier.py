@@ -74,6 +74,15 @@ class ResultQualifier(models.Model, PermissionChecker):
     def __str__(self):
         return f"{self.code} - {self.id}"
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["code", "workspace_id"],
+                name="unique_scoped_result_qualifier_code",
+                nulls_distinct=False
+            ),
+        ]
+
     @classmethod
     def can_principal_create(
         cls,

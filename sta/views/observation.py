@@ -12,7 +12,6 @@ from sta.schemas import (
     ObservationColumnarResponse,
     ObservationQueryParameters,
     ObservationPostBody,
-    ObservationPatchBody,
     ObservationBulkPostBody,
     ObservationBulkPostQueryParameters,
     ObservationBulkDeleteBody,
@@ -159,39 +158,6 @@ def get_observation(
         principal=request.principal,
         uid=observation_id,
         datastream_id=datastream_id,
-        expand_related=expand_related,
-    )
-
-
-@observation_router.patch(
-    "/{observation_id}",
-    auth=[session_auth, bearer_auth, apikey_auth],
-    response={
-        200: ObservationSummaryResponse | ObservationDetailResponse,
-        400: str,
-        401: str,
-        403: str,
-        422: str,
-    },
-    by_alias=True,
-)
-@transaction.atomic
-def update_observation(
-    request: HydroServerHttpRequest,
-    datastream_id: Path[uuid.UUID],
-    observation_id: Path[uuid.UUID],
-    data: ObservationPatchBody,
-    expand_related: Optional[bool] = None,
-):
-    """
-    Update an Observation.
-    """
-
-    return 200, observation_service.update(
-        principal=request.principal,
-        uid=observation_id,
-        datastream_id=datastream_id,
-        data=data,
         expand_related=expand_related,
     )
 

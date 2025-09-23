@@ -1,22 +1,24 @@
 import uuid
 import math
+import hashlib
 from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from pydantic.alias_generators import to_camel
 from psycopg.errors import UniqueViolation
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q, Value
+from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
+from django.contrib.postgres.aggregates import ArrayAgg
 from iam.models import APIKey
-from sta.models import Observation
+from sta.models import Observation, ResultQualifier
 from sta.schemas.observation import (
     ObservationFields,
     ObservationOrderByFields,
     ObservationSummaryResponse,
     ObservationDetailResponse,
     ObservationPostBody,
-    ObservationPatchBody,
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
 )
@@ -102,9 +104,25 @@ class ObservationService(ServiceUtils):
         for field in [
             "phenomenon_time__lte",
             "phenomenon_time__gte",
+            "result_qualifiers__code"
         ]:
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
+
+        queryset = queryset.visible(principal=principal)
+
+        checksum_uuid = queryset.order_by("-id").values_list("id", flat=True).first()
+
+        queryset = queryset.annotate(
+            result_qualifier_codes=Coalesce(
+                ArrayAgg(
+                    "result_qualifiers__code",
+                    distinct=True,
+                    filter=~Q(result_qualifiers__code=None)
+                ),
+                Value([])
+            )
+        )
 
         if not order_by:
             order_by.append("phenomenonTime")
@@ -121,18 +139,18 @@ class ObservationService(ServiceUtils):
         else:
             queryset = queryset.select_related("datastream__thing")
 
-        queryset = queryset.visible(principal=principal).distinct()
-
         queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
+        response["X-Checksum"] = self.generate_checksum(checksum_uuid, count)
+
         if response_format == "row":
-            fields = ["phenomenon_time", "result"]
+            fields = ["phenomenon_time", "result", "result_qualifier_codes"]
             return {
                 "fields": [to_camel(field) for field in fields],
                 "data": list(queryset.values_list(*fields)),
             }
         elif response_format == "column":
-            fields = ["phenomenon_time", "result"]
+            fields = ["phenomenon_time", "result", "result_qualifier_codes"]
             observations = list(queryset.values_list(*fields))
             return (
                 dict(zip(fields, zip(*observations)))
@@ -210,56 +228,7 @@ class ObservationService(ServiceUtils):
             )
 
         return self.get(
-            principal=principal, uid=observation.id, datastream_id=datastream_id
-        )
-
-    def update(
-        self,
-        principal: User | APIKey,
-        uid: uuid.UUID,
-        data: ObservationPatchBody,
-        datastream_id: Optional[uuid.UUID] = None,
-        expand_related: Optional[bool] = None,
-        update_datastream_statistics: bool = True,
-    ):
-        datastream = datastream_service.get_datastream_for_action(
-            principal, datastream_id, action="edit"
-        )
-        observation = self.get_observation_for_action(
-            principal=principal,
-            uid=uid,
-            action="edit",
-            expand_related=expand_related,
-        )
-        observation_data = data.dict(
-            include=set(ObservationPatchBody.model_fields.keys()), exclude_unset=True
-        )
-
-        for field, value in observation_data.items():
-            setattr(observation, field, value)
-
-        try:
-            observation.save()
-        except (
-            IntegrityError,
-            UniqueViolation,
-        ):
-            raise HttpError(409, "Duplicate phenomenonTime found on this datastream.")
-
-        if (
-            "phenomenon_time" in observation_data.keys()
-            and update_datastream_statistics is True
-        ):
-            datastream_service.update_observation_statistics(
-                datastream=datastream,
-                fields=["phenomenon_begin_time", "phenomenon_end_time"],
-            )
-
-        return self.get(
-            principal=principal,
-            uid=observation.id,
-            datastream_id=datastream_id,
-            expand_related=expand_related,
+            principal=principal, uid=observation.id, datastream_id=datastream_id, expand_related=expand_related
         )
 
     def delete(
@@ -318,7 +287,7 @@ class ObservationService(ServiceUtils):
 
         no_data_value = datastream.no_data_value
 
-        observations = [
+        observation_records = [
             Observation(
                 datastream_id=datastream_id,
                 phenomenon_time=row[idx_phenomenon],
@@ -332,9 +301,40 @@ class ObservationService(ServiceUtils):
             for row in data.data
         ]
 
+        if "resultQualifierCodes" in data.fields:
+            idx_result_qualifier_codes = field_map["resultQualifierCodes"]
+            result_qualifier_code_set = {code for row in data.data for code in row[idx_result_qualifier_codes]}
+            result_qualifiers = (
+                ResultQualifier.objects.filter(
+                    Q(workspace_id=datastream.thing.workspace_id) | Q(workspace__isnull=True)
+                ).filter(
+                    code__in=result_qualifier_code_set
+                ).visible(principal=principal).values(
+                    "id", "code", "workspace_id"
+                )
+            )
+            result_qualifier_map = {
+                row["code"]: row["id"]
+                for row in sorted(result_qualifiers, key=lambda r: r["workspace_id"] is not None)
+            }
+            invalid_codes = result_qualifier_code_set - result_qualifier_map.keys()
+            if invalid_codes:
+                raise HttpError(
+                    400,
+                    f"Invalid result qualifier codes: {', '.join(sorted(invalid_codes))}",
+                )
+            result_qualifier_records = [
+                (obs.id, result_qualifier_map[code])
+                for obs, row in zip(observation_records, data.data)
+                for code in row[idx_result_qualifier_codes]
+                if code in result_qualifier_map
+            ]
+        else:
+            result_qualifier_records = None
+
         if mode == "append" and datastream.phenomenon_end_time:
             if (
-                min(obs.phenomenon_time for obs in observations)
+                min(obs.phenomenon_time for obs in observation_records)
                 <= datastream.phenomenon_end_time
             ):
                 raise HttpError(
@@ -344,7 +344,7 @@ class ObservationService(ServiceUtils):
 
         elif mode == "backfill" and datastream.phenomenon_begin_time:
             if (
-                max(obs.phenomenon_time for obs in observations)
+                max(obs.phenomenon_time for obs in observation_records)
                 >= datastream.phenomenon_begin_time
             ):
                 raise HttpError(
@@ -353,8 +353,8 @@ class ObservationService(ServiceUtils):
                 )
 
         elif mode == "replace":
-            start_time = min(obs.phenomenon_time for obs in observations)
-            end_time = max(obs.phenomenon_time for obs in observations)
+            start_time = min(obs.phenomenon_time for obs in observation_records)
+            end_time = max(obs.phenomenon_time for obs in observation_records)
             self.bulk_delete(
                 principal=principal,
                 data=ObservationBulkDeleteBody(
@@ -366,7 +366,7 @@ class ObservationService(ServiceUtils):
             )
 
         try:
-            Observation.objects.bulk_copy(observations)
+            Observation.objects.bulk_copy(observation_records, result_qualifiers=result_qualifier_records)
         except (
             IntegrityError,
             UniqueViolation,
@@ -415,3 +415,14 @@ class ObservationService(ServiceUtils):
                 datastream=datastream,
                 fields=["phenomenon_begin_time", "phenomenon_end_time", "value_count"],
             )
+
+    @staticmethod
+    def generate_checksum(
+        checksum_uuid, checksum_count
+    ):
+        payload = checksum_uuid.bytes + checksum_count.to_bytes(
+            (checksum_count.bit_length() + 7) // 8 or 1, byteorder="big"
+        )
+
+        return hashlib.sha256(payload).hexdigest()[:16]
+
