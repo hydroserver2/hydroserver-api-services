@@ -239,6 +239,18 @@ class Observation(models.Model, PermissionChecker):
 
         return permissions
 
+    def delete(self, *args, **kwargs):
+        self.delete_contents(filter_arg=self, filter_suffix="")
+        super().delete(*args, **kwargs)
+
+    @classmethod
+    def delete_contents(cls, filter_arg: models.Model, filter_suffix: Optional[str]):
+        observation_relation_filter = (
+            f"observation__{filter_suffix}" if filter_suffix else "observation"
+        )
+
+        cls.result_qualifiers.through.objects.filter(**{observation_relation_filter: filter_arg}).delete()
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

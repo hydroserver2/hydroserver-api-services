@@ -76,8 +76,8 @@ def test_update_account(get_principal, principal, account_data):
     "principal, max_queries",
     [
         ("owner", 53),
-        ("admin", 42),
-        ("limited", 42),
+        ("admin", 43),
+        ("limited", 43),
     ],
 )
 def test_delete_account(
