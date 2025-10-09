@@ -420,9 +420,11 @@ class ObservationService(ServiceUtils):
     def generate_checksum(
         checksum_uuid, checksum_count
     ):
-        payload = checksum_uuid.bytes + checksum_count.to_bytes(
+        uuid_bytes = checksum_uuid.bytes if checksum_uuid else b"\x00" * 16
+        count_bytes = checksum_count.to_bytes(
             (checksum_count.bit_length() + 7) // 8 or 1, byteorder="big"
         )
 
+        payload = uuid_bytes + count_bytes
         return hashlib.sha256(payload).hexdigest()[:16]
 
