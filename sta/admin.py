@@ -10,7 +10,7 @@ from sta.models import (
     Location,
     Unit,
     ProcessingLevel,
-    Photo,
+    FileAttachment,
     Tag,
     ResultQualifier,
     Observation,
@@ -40,7 +40,7 @@ class LocationAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "thing__name", "thing__workspace__name")
 
 
-class PhotoAdmin(admin.ModelAdmin):
+class FileAttachmentAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "thing__name", "thing__workspace__name")
 
 
@@ -381,7 +381,7 @@ class SampledMediumAdmin(admin.ModelAdmin, VocabularyAdmin):
 
 admin.site.register(Thing, ThingAdmin)
 admin.site.register(Location, LocationAdmin)
-admin.site.register(Photo, PhotoAdmin)
+admin.site.register(FileAttachment, FileAttachmentAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Sensor, SensorAdmin)
 admin.site.register(ObservedProperty, ObservedPropertyAdmin)

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet, F, Q
 from iam.models import APIKey
-from sta.models import Thing, Location, Tag, Photo, SamplingFeatureType, SiteType
+from sta.models import Thing, Location, Tag, FileAttachment, SamplingFeatureType, SiteType
 from sta.schemas import (
     ThingSummaryResponse,
     ThingDetailResponse,
@@ -14,7 +14,7 @@ from sta.schemas import (
     ThingPatchBody,
     TagPostBody,
     TagDeleteBody,
-    PhotoDeleteBody,
+    FileAttachmentDeleteBody,
 )
 from sta.schemas.thing import ThingFields, LocationFields, ThingOrderByFields
 from api.service import ServiceUtils
@@ -35,7 +35,7 @@ class ThingService(ServiceUtils):
             if expand_related:
                 thing = self.select_expanded_fields(thing)
             else:
-                thing = thing.prefetch_related("tags", "photos").with_location()
+                thing = thing.prefetch_related("tags", "file_attachments").with_location()
             thing = thing.get(pk=uid)
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
@@ -54,7 +54,7 @@ class ThingService(ServiceUtils):
     def select_expanded_fields(queryset: QuerySet) -> QuerySet:
         return (
             queryset.select_related("workspace")
-            .prefetch_related("tags", "photos")
+            .prefetch_related("tags", "file_attachments")
             .with_location()
         )
 
@@ -161,7 +161,7 @@ class ThingService(ServiceUtils):
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
         else:
-            queryset = queryset.prefetch_related("tags", "photos").with_location()
+            queryset = queryset.prefetch_related("tags", "file_attachments").with_location()
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -334,33 +334,33 @@ class ThingService(ServiceUtils):
 
         return f"{deleted_count} tag(s) deleted"
 
-    def get_photos(self, principal: Optional[User | APIKey], uid: uuid.UUID):
+    def get_file_attachments(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.photos.all()
+        return thing.file_attachments.all()
 
-    def add_photo(self, principal: User | APIKey, uid: uuid.UUID, file):
+    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID, file):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if Photo.objects.filter(thing=thing, name=file.name).exists():
-            raise HttpError(400, "Photo already exists")
+        if FileAttachment.objects.filter(thing=thing, name=file.name).exists():
+            raise HttpError(400, "File attachment already exists")
 
-        return Photo.objects.create(thing=thing, name=file.name, photo=file)
+        return FileAttachment.objects.create(thing=thing, name=file.name, file_attachment=file)
 
-    def remove_photo(
-        self, principal: User | APIKey, uid: uuid.UUID, data: PhotoDeleteBody
+    def remove_file_attachment(
+        self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
-            photo = Photo.objects.get(thing=thing, name=data.name)
-        except Photo.DoesNotExist:
-            raise HttpError(404, "Photo does not exist")
+            file_attachment = FileAttachment.objects.get(thing=thing, name=data.name)
+        except FileAttachment.DoesNotExist:
+            raise HttpError(404, "File attachment does not exist")
 
-        photo.photo.delete()
-        photo.delete()
+        file_attachment.file_attachment.delete()
+        file_attachment.delete()
 
-        return "Photo deleted"
+        return "File attachment deleted"
 
     def list_site_types(
         self,

@@ -9,9 +9,9 @@ from .thing import (
     TagGetResponse,
     TagPostBody,
     TagDeleteBody,
-    PhotoGetResponse,
-    PhotoPostBody,
-    PhotoDeleteBody,
+    FileAttachmentGetResponse,
+    FileAttachmentPostBody,
+    FileAttachmentDeleteBody,
 )
 from .observed_property import (
     ObservedPropertySummaryResponse,

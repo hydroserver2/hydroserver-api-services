@@ -31,16 +31,16 @@ class TagDeleteBody(BasePostBody):
     value: Optional[str] = None
 
 
-class PhotoGetResponse(BaseGetResponse):
+class FileAttachmentGetResponse(BaseGetResponse):
     name: str
     link: str
 
 
-class PhotoPostBody(BasePostBody):
+class FileAttachmentPostBody(BasePostBody):
     name: str
 
 
-class PhotoDeleteBody(BasePostBody):
+class FileAttachmentDeleteBody(BasePostBody):
     name: str
 
 
@@ -167,7 +167,7 @@ class ThingSummaryResponse(BaseGetResponse, ThingFields):
     workspace_id: uuid.UUID
     location: LocationDetailResponse
     tags: list[TagGetResponse]
-    photos: list[PhotoGetResponse]
+    file_attachments: list[FileAttachmentGetResponse]
 
 
 class ThingDetailResponse(BaseGetResponse, ThingFields):
@@ -175,7 +175,7 @@ class ThingDetailResponse(BaseGetResponse, ThingFields):
     workspace: "WorkspaceSummaryResponse"
     location: LocationDetailResponse
     tags: list[TagGetResponse]
-    photos: list[PhotoGetResponse]
+    file_attachments: list[FileAttachmentGetResponse]
 
 
 class ThingPostBody(BasePostBody, ThingFields):

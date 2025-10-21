@@ -1,4 +1,4 @@
-from .thing import Thing, Tag, Photo, SiteType, SamplingFeatureType
+from .thing import Thing, Tag, FileAttachment, SiteType, SamplingFeatureType
 from .location import Location
 from .observed_property import ObservedProperty, VariableType
 from .processing_level import ProcessingLevel

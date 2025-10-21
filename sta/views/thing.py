@@ -16,8 +16,8 @@ from sta.schemas import (
     TagGetResponse,
     TagPostBody,
     TagDeleteBody,
-    PhotoGetResponse,
-    PhotoDeleteBody,
+    FileAttachmentGetResponse,
+    FileAttachmentDeleteBody,
 )
 from sta.services import ThingService
 from etl.views.hydroshare_archival import hydroshare_archival_router
@@ -316,31 +316,31 @@ def remove_tag(
 
 
 @thing_router.get(
-    "/{thing_id}/photos",
+    "/{thing_id}/file-attachments",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[PhotoGetResponse],
+        200: list[FileAttachmentGetResponse],
         401: str,
         403: str,
     },
     by_alias=True,
 )
-def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_file_attachments(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
-    Get all photos associated with a Thing.
+    Get all file attachments associated with a Thing.
     """
 
-    return 200, thing_service.get_photos(
+    return 200, thing_service.get_file_attachments(
         principal=request.principal,
         uid=thing_id,
     )
 
 
 @thing_router.post(
-    "/{thing_id}/photos",
+    "/{thing_id}/file-attachments",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: PhotoGetResponse,
+        201: FileAttachmentGetResponse,
         400: str,
         401: str,
         403: str,
@@ -349,22 +349,22 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True,
 )
-def add_photo(
+def add_file_attachment(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
     file: UploadedFile = File(...),
 ):
     """
-    Add a photo to a thing.
+    Add a file attachment to a thing.
     """
 
-    return 201, thing_service.add_photo(
+    return 201, thing_service.add_file_attachment(
         principal=request.principal, uid=thing_id, file=file
     )
 
 
 @thing_router.delete(
-    "/{thing_id}/photos",
+    "/{thing_id}/file-attachments",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: None,
@@ -375,14 +375,14 @@ def add_photo(
     },
     by_alias=True,
 )
-def remove_photo(
-    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: PhotoDeleteBody
+def remove_file_attachment(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: FileAttachmentDeleteBody
 ):
     """
-    Remove a photo from a thing.
+    Remove a file attachment from a thing.
     """
 
-    return 204, thing_service.remove_photo(
+    return 204, thing_service.remove_file_attachment(
         principal=request.principal,
         uid=thing_id,
         data=data,
