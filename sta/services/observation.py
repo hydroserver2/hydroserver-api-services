@@ -7,7 +7,7 @@ from pydantic.alias_generators import to_camel
 from psycopg.errors import UniqueViolation
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import QuerySet, Q, Value
+from django.db.models import QuerySet, Q, Value, Max, Func, F
 from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -111,7 +111,11 @@ class ObservationService(ServiceUtils):
 
         queryset = queryset.visible(principal=principal)
 
-        checksum_uuid = queryset.order_by("-id").values_list("id", flat=True).first()
+        # TODO: Can't really fix this until PostgreSQL 18 UUID v7 support
+        checksum_result = queryset.aggregate(
+            max_id=Max(Func(F("id"), function="CAST", template="%(function)s(%(expressions)s AS text)"))
+        )
+        checksum_uuid = uuid.UUID(checksum_result["max_id"]) if checksum_result["max_id"] else None
 
         queryset = queryset.annotate(
             result_qualifier_codes=Coalesce(
