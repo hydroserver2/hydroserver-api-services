@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet, F, Q
 from iam.models import APIKey
-from sta.models import Thing, Location, Tag, FileAttachment, SamplingFeatureType, SiteType
+from sta.models import Thing, Location, ThingTag, ThingFileAttachment, SamplingFeatureType, SiteType, FileAttachmentType
 from sta.schemas import (
     ThingSummaryResponse,
     ThingDetailResponse,
@@ -35,7 +35,7 @@ class ThingService(ServiceUtils):
             if expand_related:
                 thing = self.select_expanded_fields(thing)
             else:
-                thing = thing.prefetch_related("tags", "file_attachments").with_location()
+                thing = thing.prefetch_related("thing_tags", "thing_file_attachments").with_location()
             thing = thing.get(pk=uid)
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
@@ -54,7 +54,7 @@ class ThingService(ServiceUtils):
     def select_expanded_fields(queryset: QuerySet) -> QuerySet:
         return (
             queryset.select_related("workspace")
-            .prefetch_related("tags", "file_attachments")
+            .prefetch_related("thing_tags", "thing_file_attachments")
             .with_location()
         )
 
@@ -103,7 +103,7 @@ class ThingService(ServiceUtils):
 
             key, value = tag.split(":", 1)
 
-            queryset = queryset.filter(tags__key=key, tags__value=value)
+            queryset = queryset.filter(thing_tags__key=key, thing_tags__value=value)
 
         return queryset.distinct()
 
@@ -161,7 +161,7 @@ class ThingService(ServiceUtils):
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
         else:
-            queryset = queryset.prefetch_related("tags", "file_attachments").with_location()
+            queryset = queryset.prefetch_related("thing_tags", "thing_file_attachments").with_location()
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -274,7 +274,7 @@ class ThingService(ServiceUtils):
     def get_tags(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.tags.all()
+        return thing.thing_tags.all()
 
     @staticmethod
     def get_tag_keys(
@@ -282,7 +282,7 @@ class ThingService(ServiceUtils):
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
     ):
-        queryset = Tag.objects
+        queryset = ThingTag.objects
 
         if workspace_id:
             queryset = queryset.filter(thing__workspace_id=workspace_id)
@@ -301,17 +301,17 @@ class ThingService(ServiceUtils):
     def add_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if Tag.objects.filter(thing=thing, key=data.key).exists():
+        if ThingTag.objects.filter(thing=thing, key=data.key).exists():
             raise HttpError(400, "Tag already exists")
 
-        return Tag.objects.create(thing=thing, key=data.key, value=data.value)
+        return ThingTag.objects.create(thing=thing, key=data.key, value=data.value)
 
     def update_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
-            tag = Tag.objects.get(thing=thing, key=data.key)
-        except Tag.DoesNotExist:
+            tag = ThingTag.objects.get(thing=thing, key=data.key)
+        except ThingTag.DoesNotExist:
             raise HttpError(404, "Tag does not exist")
 
         tag.value = data.value
@@ -322,7 +322,7 @@ class ThingService(ServiceUtils):
     def remove_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagDeleteBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        queryset = Tag.objects.filter(thing=thing, key=data.key)
+        queryset = ThingTag.objects.filter(thing=thing, key=data.key)
 
         if data.value is not None:
             queryset = queryset.filter(value=data.value)
@@ -342,10 +342,10 @@ class ThingService(ServiceUtils):
     def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID, file):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if FileAttachment.objects.filter(thing=thing, name=file.name).exists():
+        if ThingFileAttachment.objects.filter(thing=thing, name=file.name).exists():
             raise HttpError(400, "File attachment already exists")
 
-        return FileAttachment.objects.create(thing=thing, name=file.name, file_attachment=file)
+        return ThingFileAttachment.objects.create(thing=thing, name=file.name, file_attachment=file)
 
     def remove_file_attachment(
         self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody
@@ -353,8 +353,8 @@ class ThingService(ServiceUtils):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
-            file_attachment = FileAttachment.objects.get(thing=thing, name=data.name)
-        except FileAttachment.DoesNotExist:
+            file_attachment = ThingFileAttachment.objects.get(thing=thing, name=data.name)
+        except ThingFileAttachment.DoesNotExist:
             raise HttpError(404, "File attachment does not exist")
 
         file_attachment.file_attachment.delete()
@@ -382,6 +382,20 @@ class ThingService(ServiceUtils):
         order_desc: bool = False,
     ):
         queryset = SamplingFeatureType.objects.order_by(
+            f"{'-' if order_desc else ''}name"
+        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return queryset.values_list("name", flat=True)
+
+    def list_file_attachment_types(
+        self,
+        response: HttpResponse,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        order_desc: bool = False,
+    ):
+        queryset = FileAttachmentType.objects.order_by(
             f"{'-' if order_desc else ''}name"
         )
         queryset, count = self.apply_pagination(queryset, response, page, page_size)

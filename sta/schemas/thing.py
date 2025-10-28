@@ -9,39 +9,12 @@ from api.schemas import (
     BasePatchBody,
     CollectionQueryParameters,
 )
+from .attachment import TagGetResponse, FileAttachmentGetResponse
 
 if TYPE_CHECKING:
     from iam.schemas import WorkspaceSummaryResponse
 
 valid_country_codes = [code for code, _ in countries_for_language("en")]
-
-
-class TagGetResponse(BaseGetResponse):
-    key: str
-    value: str
-
-
-class TagPostBody(BasePostBody):
-    key: str
-    value: str
-
-
-class TagDeleteBody(BasePostBody):
-    key: str
-    value: Optional[str] = None
-
-
-class FileAttachmentGetResponse(BaseGetResponse):
-    name: str
-    link: str
-
-
-class FileAttachmentPostBody(BasePostBody):
-    name: str
-
-
-class FileAttachmentDeleteBody(BasePostBody):
-    name: str
 
 
 class LocationFields(Schema):
@@ -166,16 +139,16 @@ class ThingSummaryResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
     location: LocationDetailResponse
-    tags: list[TagGetResponse]
-    file_attachments: list[FileAttachmentGetResponse]
+    thing_tags: list[TagGetResponse] = Field(..., alias="tags")
+    thing_file_attachments: list[FileAttachmentGetResponse] = Field(..., alias="fileAttachments")
 
 
 class ThingDetailResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace: "WorkspaceSummaryResponse"
     location: LocationDetailResponse
-    tags: list[TagGetResponse]
-    file_attachments: list[FileAttachmentGetResponse]
+    thing_tags: list[TagGetResponse] = Field(..., alias="tags")
+    thing_file_attachments: list[FileAttachmentGetResponse] = Field(..., alias="fileAttachments")
 
 
 class ThingPostBody(BasePostBody, ThingFields):

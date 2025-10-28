@@ -89,13 +89,13 @@ def create_thing(
         401: str,
     },
 )
-def get_tag_keys(
+def get_thing_tag_keys(
     request: HydroServerHttpRequest,
     workspace_id: Optional[uuid.UUID] = None,
     thing_id: Optional[uuid.UUID] = None,
 ):
     """
-    Get all existing unique tag keys.
+    Get all existing unique thing tag keys.
     """
 
     return 200, thing_service.get_tag_keys(
@@ -134,6 +134,24 @@ def get_sampling_feature_types(
     """
 
     return 200, thing_service.list_sampling_feature_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@thing_router.get("/file-attachment-types", response={200: list[str]}, by_alias=True)
+def get_file_attachment_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get file attachment types.
+    """
+
+    return 200, thing_service.list_file_attachment_types(
         response=response,
         page=query.page,
         page_size=query.page_size,
@@ -226,7 +244,7 @@ def delete_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True,
 )
-def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_thing_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
     Get all tags associated with a Thing.
     """
@@ -249,7 +267,7 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True,
 )
-def add_tag(
+def add_thing_tag(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody
 ):
     """
@@ -275,7 +293,7 @@ def add_tag(
     },
     by_alias=True,
 )
-def edit_tag(
+def edit_thing_tag(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody
 ):
     """
@@ -301,7 +319,7 @@ def edit_tag(
     },
     by_alias=True,
 )
-def remove_tag(
+def remove_thing_tag(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagDeleteBody
 ):
     """
@@ -325,7 +343,7 @@ def remove_tag(
     },
     by_alias=True,
 )
-def get_file_attachments(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_thing_file_attachments(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
     Get all file attachments associated with a Thing.
     """
@@ -349,7 +367,7 @@ def get_file_attachments(request: HydroServerHttpRequest, thing_id: Path[uuid.UU
     },
     by_alias=True,
 )
-def add_file_attachment(
+def add_thing_file_attachment(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
     file: UploadedFile = File(...),
@@ -375,7 +393,7 @@ def add_file_attachment(
     },
     by_alias=True,
 )
-def remove_file_attachment(
+def remove_thing_file_attachment(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: FileAttachmentDeleteBody
 ):
     """

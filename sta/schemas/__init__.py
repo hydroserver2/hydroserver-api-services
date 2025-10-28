@@ -7,11 +7,7 @@ from .thing import (
     LocationPostBody,
     LocationPatchBody,
     TagGetResponse,
-    TagPostBody,
-    TagDeleteBody,
     FileAttachmentGetResponse,
-    FileAttachmentPostBody,
-    FileAttachmentDeleteBody,
 )
 from .observed_property import (
     ObservedPropertySummaryResponse,
@@ -66,6 +62,8 @@ from .observation import (
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
 )
+from .attachment import (TagGetResponse, TagPostBody, TagDeleteBody, FileAttachmentPostBody, FileAttachmentDeleteBody,
+                         FileAttachmentGetResponse)
 
 
 from iam.schemas import WorkspaceSummaryResponse

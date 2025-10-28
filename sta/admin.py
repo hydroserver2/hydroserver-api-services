@@ -10,8 +10,10 @@ from sta.models import (
     Location,
     Unit,
     ProcessingLevel,
-    FileAttachment,
-    Tag,
+    ThingFileAttachment,
+    ThingTag,
+    DatastreamFileAttachment,
+    DatastreamTag,
     ResultQualifier,
     Observation,
     SiteType,
@@ -23,6 +25,7 @@ from sta.models import (
     DatastreamAggregation,
     DatastreamStatus,
     SampledMedium,
+    FileAttachmentType,
 )
 from sta.management.utils import generate_test_timeseries
 from hydroserver.admin import VocabularyAdmin
@@ -40,11 +43,11 @@ class LocationAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "thing__name", "thing__workspace__name")
 
 
-class FileAttachmentAdmin(admin.ModelAdmin):
+class ThingFileAttachmentAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "thing__name", "thing__workspace__name")
 
 
-class TagAdmin(admin.ModelAdmin):
+class ThingTagAdmin(admin.ModelAdmin):
     list_display = ("id", "key", "value", "thing__name", "thing__workspace__name")
 
 
@@ -166,6 +169,14 @@ class DatastreamAdmin(admin.ModelAdmin):
         "Populate with test observations"
     )
     delete_observations.short_description = "Delete datastream observations"
+
+
+class DatastreamFileAttachmentAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "datastream__name")
+
+
+class DatastreamTagAdmin(admin.ModelAdmin):
+    list_display = ("id", "key", "value", "datastream__name")
 
 
 class ResultQualifierAdmin(admin.ModelAdmin):
@@ -379,15 +390,41 @@ class SampledMediumAdmin(admin.ModelAdmin, VocabularyAdmin):
         )
 
 
+class FileAttachmentTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
+    list_display = ("id", "name")
+    change_list_template = "admin/sta/fileattachmenttype/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+
+        return [
+            path(
+                "load-default-file-attachment-type-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="file_attachment_type_load_default_data",
+            ),
+        ] + urls
+
+    def load_default_data(self, request):
+        return self.load_fixtures(
+            request,
+            "admin:sta_fileattachmenttype_changelist",
+            ["sta/fixtures/default_file_attachment_types.yaml"],
+        )
+
+
 admin.site.register(Thing, ThingAdmin)
 admin.site.register(Location, LocationAdmin)
-admin.site.register(FileAttachment, FileAttachmentAdmin)
-admin.site.register(Tag, TagAdmin)
+admin.site.register(ThingFileAttachment, ThingFileAttachmentAdmin)
+admin.site.register(ThingTag, ThingTagAdmin)
 admin.site.register(Sensor, SensorAdmin)
 admin.site.register(ObservedProperty, ObservedPropertyAdmin)
 admin.site.register(Unit, UnitAdmin)
 admin.site.register(ProcessingLevel, ProcessingLevelAdmin)
 admin.site.register(Datastream, DatastreamAdmin)
+admin.site.register(DatastreamFileAttachment, DatastreamFileAttachmentAdmin)
+admin.site.register(DatastreamTag, DatastreamTagAdmin)
+admin.site.register(FileAttachmentType, FileAttachmentTypeAdmin)
 admin.site.register(ResultQualifier, ResultQualifierAdmin)
 admin.site.register(SiteType, SiteTypeAdmin)
 admin.site.register(SamplingFeatureType, SamplingFeatureTypeAdmin)
