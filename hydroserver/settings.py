@@ -44,17 +44,24 @@ local_ip = socket.gethostbyname(hostname)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=urlparse(PROXY_BASE_URL).netloc).split(
     ","
 ) + [local_ip]
+TRUSTED_ORIGINS = config("TRUSTED_ORIGINS", None)
 
-if DEPLOYMENT_BACKEND == "dev":
-    CORS_ORIGIN_ALLOW_ALL = True
+if TRUSTED_ORIGINS:
+    TRUSTED_ORIGIN_LIST = [origin.strip() for origin in TRUSTED_ORIGINS.split(",") if origin.strip()]
+    CORS_ORIGIN_ALLOW_ALL = False
     CORS_ALLOW_CREDENTIALS = True
-    CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
+    CORS_ALLOWED_ORIGINS = TRUSTED_ORIGIN_LIST + [PROXY_BASE_URL]
+    CSRF_TRUSTED_ORIGINS = TRUSTED_ORIGIN_LIST + [PROXY_BASE_URL]
 else:
     CORS_ORIGIN_ALLOW_ALL = True
     CORS_ALLOW_CREDENTIALS = False
     CSRF_TRUSTED_ORIGINS = [PROXY_BASE_URL]
+
+if DEPLOYMENT_BACKEND == "dev":
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ALLOW_CREDENTIALS = True
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
 
 
 # Application definition
