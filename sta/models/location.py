@@ -69,8 +69,8 @@ class Location(models.Model, PermissionChecker):
         max_digits=22, decimal_places=16, null=True, blank=True
     )
     elevation_datum = models.CharField(max_length=255, null=True, blank=True)
-    state = models.CharField(max_length=200, null=True, blank=True)
-    county = models.CharField(max_length=200, null=True, blank=True)
+    admin_area_1 = models.CharField(max_length=200, null=True, blank=True)
+    admin_area_2 = models.CharField(max_length=200, null=True, blank=True)
     country = models.CharField(max_length=2, null=True, blank=True)
 
     objects = LocationQuerySet.as_manager()

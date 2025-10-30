@@ -121,8 +121,8 @@ class ThingService(ServiceUtils):
 
         for field in [
             "workspace_id",
-            "locations__state",
-            "locations__county",
+            "locations__admin_area_1",
+            "locations__admin_area_2",
             "locations__country",
             "site_type",
             "sampling_feature_type",
@@ -152,8 +152,8 @@ class ThingService(ServiceUtils):
                     "longitude": "location__longitude",
                     "elevation_m": "location__elevation_m",
                     "elevationDatum": "location__elevation_datum",
-                    "state": "location__state",
-                    "county": "location__county",
+                    "admin_area_1": "location__admin_area_1",
+                    "admin_area_2": "location__admin_area_2",
                     "country": "location__country",
                 },
             )
