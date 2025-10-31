@@ -140,7 +140,9 @@ class ThingSummaryResponse(BaseGetResponse, ThingFields):
     workspace_id: uuid.UUID
     location: LocationDetailResponse
     thing_tags: list[TagGetResponse] = Field(..., alias="tags")
-    thing_file_attachments: list[FileAttachmentGetResponse] = Field(..., alias="fileAttachments")
+    thing_file_attachments: list[FileAttachmentGetResponse] = Field(
+        ..., alias="fileAttachments"
+    )
 
 
 class ThingDetailResponse(BaseGetResponse, ThingFields):
@@ -148,7 +150,9 @@ class ThingDetailResponse(BaseGetResponse, ThingFields):
     workspace: "WorkspaceSummaryResponse"
     location: LocationDetailResponse
     thing_tags: list[TagGetResponse] = Field(..., alias="tags")
-    thing_file_attachments: list[FileAttachmentGetResponse] = Field(..., alias="fileAttachments")
+    thing_file_attachments: list[FileAttachmentGetResponse] = Field(
+        ..., alias="fileAttachments"
+    )
 
 
 class ThingPostBody(BasePostBody, ThingFields):

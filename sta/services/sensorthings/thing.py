@@ -34,7 +34,9 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
         if location_ids:
             things = things.filter(locations__id__in=location_ids)
 
-        things = things.prefetch_related("locations", "file_attachments", "tags").visible(
+        things = things.prefetch_related(
+            "locations", "file_attachments", "tags"
+        ).visible(
             principal=self.request.principal  # noqa
         )
 
@@ -80,7 +82,8 @@ class ThingEngine(ThingBaseEngine, SensorThingsUtils):
                         },
                         "tags": {tag.key: tag.value for tag in thing.tags.all()},
                         "file_attachments": {
-                            file_attachment.name: file_attachment.link for file_attachment in thing.file_attachments.all()
+                            file_attachment.name: file_attachment.link
+                            for file_attachment in thing.file_attachments.all()
                         },
                     },
                     "location_ids": [location.id for location in thing.locations.all()],

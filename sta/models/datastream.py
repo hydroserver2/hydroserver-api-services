@@ -159,7 +159,12 @@ class Datastream(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from sta.models import Observation, Datastream, DatastreamTag, DatastreamFileAttachment
+        from sta.models import (
+            Observation,
+            Datastream,
+            DatastreamTag,
+            DatastreamFileAttachment,
+        )
 
         datastream_relation_filter = (
             f"datastream__{filter_suffix}" if filter_suffix else "datastream"
@@ -175,8 +180,12 @@ class Datastream(models.Model, PermissionChecker):
             **{datastream_relation_filter: filter_arg}
         ).delete()
 
-        DatastreamTag.objects.filter(**{datastream_relation_filter: filter_arg}).delete()
-        DatastreamFileAttachment.objects.filter(**{datastream_relation_filter: filter_arg}).delete()
+        DatastreamTag.objects.filter(
+            **{datastream_relation_filter: filter_arg}
+        ).delete()
+        DatastreamFileAttachment.objects.filter(
+            **{datastream_relation_filter: filter_arg}
+        ).delete()
 
 
 class DatastreamTagQuerySet(models.QuerySet):
@@ -189,7 +198,7 @@ class DatastreamTagQuerySet(models.QuerySet):
                     Q(
                         datastream__thing__workspace__is_private=False,
                         datastream__thing__is_private=False,
-                        datastream__is_private=False
+                        datastream__is_private=False,
                     )
                     | Q(datastream__thing__workspace__owner=principal)
                     | Q(
@@ -209,7 +218,7 @@ class DatastreamTagQuerySet(models.QuerySet):
                 Q(
                     datastream__thing__workspace__is_private=False,
                     datastream__thing__is_private=False,
-                    datastream__is_private=False
+                    datastream__is_private=False,
                 )
                 | Q(
                     datastream__thing__workspace__apikeys=principal,
@@ -228,13 +237,15 @@ class DatastreamTagQuerySet(models.QuerySet):
                 Q(
                     datastream__thing__workspace__is_private=False,
                     datastream__thing__is_private=False,
-                    datastream__is_private=False
+                    datastream__is_private=False,
                 )
             )
 
 
 class DatastreamTag(models.Model, PermissionChecker):
-    datastream = models.ForeignKey(Datastream, related_name="datastream_tags", on_delete=models.DO_NOTHING)
+    datastream = models.ForeignKey(
+        Datastream, related_name="datastream_tags", on_delete=models.DO_NOTHING
+    )
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
@@ -249,9 +260,15 @@ def datastream_file_attachment_storage_path(instance, filename):
 
 
 class DatastreamFileAttachment(models.Model, PermissionChecker):
-    datastream = models.ForeignKey(Datastream, related_name="datastream_file_attachments", on_delete=models.DO_NOTHING)
+    datastream = models.ForeignKey(
+        Datastream,
+        related_name="datastream_file_attachments",
+        on_delete=models.DO_NOTHING,
+    )
     name = models.CharField(max_length=255)
-    file_attachment = models.FileField(upload_to=datastream_file_attachment_storage_path)
+    file_attachment = models.FileField(
+        upload_to=datastream_file_attachment_storage_path
+    )
     file_attachment_type = models.CharField(max_length=200)
 
     def __str__(self):

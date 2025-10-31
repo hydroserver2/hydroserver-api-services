@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional
-from ninja import Router, Path, Query, File
+from ninja import Router, Path, Query, File, Form
 from ninja.files import UploadedFile
 from django.http import HttpResponse
 from django.db import transaction
@@ -17,7 +17,6 @@ from sta.schemas import (
     TagPostBody,
     TagDeleteBody,
     FileAttachmentGetResponse,
-    FileAttachmentPostBody,
     FileAttachmentDeleteBody,
 )
 from sta.services import DatastreamService
@@ -163,7 +162,9 @@ def get_datastream_sampled_mediums(
     )
 
 
-@datastream_router.get("/file-attachment-types", response={200: list[str]}, by_alias=True)
+@datastream_router.get(
+    "/file-attachment-types", response={200: list[str]}, by_alias=True
+)
 def get_file_attachment_types(
     request: HydroServerHttpRequest,
     response: HttpResponse,
@@ -268,7 +269,9 @@ def delete_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
     },
     by_alias=True,
 )
-def get_datastream_tags(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
+def get_datastream_tags(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]
+):
     """
     Get all tags associated with a Datastream.
     """
@@ -367,7 +370,9 @@ def remove_datastream_tag(
     },
     by_alias=True,
 )
-def get_datastream_file_attachments(request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]):
+def get_datastream_file_attachments(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]
+):
     """
     Get all file attachments associated with a Datastream.
     """
@@ -394,7 +399,7 @@ def get_datastream_file_attachments(request: HydroServerHttpRequest, datastream_
 def add_datastream_file_attachment(
     request: HydroServerHttpRequest,
     datastream_id: Path[uuid.UUID],
-    data: FileAttachmentPostBody,
+    file_attachment_type: str = Form(...),
     file: UploadedFile = File(...),
 ):
     """
@@ -402,7 +407,10 @@ def add_datastream_file_attachment(
     """
 
     return 201, datastream_service.add_file_attachment(
-        principal=request.principal, uid=datastream_id, file=file, data=data
+        principal=request.principal,
+        uid=datastream_id,
+        file=file,
+        file_attachment_type=file_attachment_type,
     )
 
 
@@ -419,7 +427,9 @@ def add_datastream_file_attachment(
     by_alias=True,
 )
 def remove_datastream_file_attachment(
-    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID], data: FileAttachmentDeleteBody
+    request: HydroServerHttpRequest,
+    datastream_id: Path[uuid.UUID],
+    data: FileAttachmentDeleteBody,
 ):
     """
     Remove a file attachment from a datastream.

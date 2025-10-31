@@ -6,7 +6,15 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet, F, Q
 from iam.models import APIKey
-from sta.models import Thing, Location, ThingTag, ThingFileAttachment, SamplingFeatureType, SiteType, FileAttachmentType
+from sta.models import (
+    Thing,
+    Location,
+    ThingTag,
+    ThingFileAttachment,
+    SamplingFeatureType,
+    SiteType,
+    FileAttachmentType,
+)
 from sta.schemas import (
     ThingSummaryResponse,
     ThingDetailResponse,
@@ -14,7 +22,6 @@ from sta.schemas import (
     ThingPatchBody,
     TagPostBody,
     TagDeleteBody,
-    FileAttachmentPostBody,
     FileAttachmentDeleteBody,
 )
 from sta.schemas.thing import ThingFields, LocationFields, ThingOrderByFields
@@ -36,7 +43,9 @@ class ThingService(ServiceUtils):
             if expand_related:
                 thing = self.select_expanded_fields(thing)
             else:
-                thing = thing.prefetch_related("thing_tags", "thing_file_attachments").with_location()
+                thing = thing.prefetch_related(
+                    "thing_tags", "thing_file_attachments"
+                ).with_location()
             thing = thing.get(pk=uid)
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
@@ -162,7 +171,9 @@ class ThingService(ServiceUtils):
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
         else:
-            queryset = queryset.prefetch_related("thing_tags", "thing_file_attachments").with_location()
+            queryset = queryset.prefetch_related(
+                "thing_tags", "thing_file_attachments"
+            ).with_location()
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -338,15 +349,22 @@ class ThingService(ServiceUtils):
     def get_file_attachments(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.file_attachments.all()
+        return thing.thing_file_attachments.all()
 
-    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID,  file, data: FileAttachmentPostBody):
+    def add_file_attachment(
+        self, principal: User | APIKey, uid: uuid.UUID, file, file_attachment_type: str
+    ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if ThingFileAttachment.objects.filter(thing=thing, name=data.name).exists():
+        if ThingFileAttachment.objects.filter(thing=thing, name=file.name).exists():
             raise HttpError(400, "File attachment already exists")
 
-        return ThingFileAttachment.objects.create(thing=thing, name=data.name, file_attachment=file, file_attachment_type=data.file_attachment_type)
+        return ThingFileAttachment.objects.create(
+            thing=thing,
+            name=file.name,
+            file_attachment=file,
+            file_attachment_type=file_attachment_type,
+        )
 
     def remove_file_attachment(
         self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody
@@ -354,7 +372,9 @@ class ThingService(ServiceUtils):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
-            file_attachment = ThingFileAttachment.objects.get(thing=thing, name=data.name)
+            file_attachment = ThingFileAttachment.objects.get(
+                thing=thing, name=data.name
+            )
         except ThingFileAttachment.DoesNotExist:
             raise HttpError(404, "File attachment does not exist")
 

@@ -134,7 +134,9 @@ class ObservationQuerySet(models.QuerySet):
                     lines = []
                     for obs in batch:
                         line = "\t".join(
-                            escape_pg_copy(getter(obs) if field != "id" else str(obs.id))
+                            escape_pg_copy(
+                                getter(obs) if field != "id" else str(obs.id)
+                            )
                             for field, getter in zip(db_fields, attr_getters)
                         )
                         lines.append(line)
@@ -147,14 +149,24 @@ class ObservationQuerySet(models.QuerySet):
             if result_qualifiers:
                 through_model = self.model.result_qualifiers.through
                 through_table = connection.ops.quote_name(through_model._meta.db_table)
-                through_columns = [through_model._meta.get_field(f).column for f in ["observation", "resultqualifier"]]
-                quoted_columns_sql = ", ".join([connection.ops.quote_name(c) for c in through_columns])
+                through_columns = [
+                    through_model._meta.get_field(f).column
+                    for f in ["observation", "resultqualifier"]
+                ]
+                quoted_columns_sql = ", ".join(
+                    [connection.ops.quote_name(c) for c in through_columns]
+                )
 
-                with cursor.copy(f"COPY {through_table} ({quoted_columns_sql}) FROM STDIN") as copy:
+                with cursor.copy(
+                    f"COPY {through_table} ({quoted_columns_sql}) FROM STDIN"
+                ) as copy:
                     buffer = io.StringIO()
                     for i in range(0, len(result_qualifiers), batch_size):
-                        batch = result_qualifiers[i: i + batch_size]
-                        lines = [f"{escape_pg_copy(obs_id)}\t{escape_pg_copy(rq_id)}" for obs_id, rq_id in batch]
+                        batch = result_qualifiers[i : i + batch_size]
+                        lines = [
+                            f"{escape_pg_copy(obs_id)}\t{escape_pg_copy(rq_id)}"
+                            for obs_id, rq_id in batch
+                        ]
                         buffer.write("\n".join(lines) + "\n")
                         buffer.seek(0)
                         copy.write(buffer.read())
@@ -171,7 +183,9 @@ class Observation(models.Model, PermissionChecker):
     result = models.FloatField()
     result_time = models.DateTimeField(null=True, blank=True)
     quality_code = models.CharField(max_length=255, null=True, blank=True)
-    result_qualifiers = models.ManyToManyField(ResultQualifier, related_name="observations", blank=True)
+    result_qualifiers = models.ManyToManyField(
+        ResultQualifier, related_name="observations", blank=True
+    )
 
     objects = ObservationQuerySet.as_manager()
 
@@ -249,7 +263,9 @@ class Observation(models.Model, PermissionChecker):
             f"observation__{filter_suffix}" if filter_suffix else "observation"
         )
 
-        cls.result_qualifiers.through.objects.filter(**{observation_relation_filter: filter_arg}).delete()
+        cls.result_qualifiers.through.objects.filter(
+            **{observation_relation_filter: filter_arg}
+        ).delete()
 
     class Meta:
         constraints = [

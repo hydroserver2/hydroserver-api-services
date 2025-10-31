@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional
-from ninja import Router, Path, Query, File
+from ninja import Router, Path, Query, File, Form
 from ninja.files import UploadedFile
 from django.db import transaction
 from django.http import HttpResponse
@@ -17,7 +17,6 @@ from sta.schemas import (
     TagPostBody,
     TagDeleteBody,
     FileAttachmentGetResponse,
-    FileAttachmentPostBody,
     FileAttachmentDeleteBody,
 )
 from sta.services import ThingService
@@ -344,7 +343,9 @@ def remove_thing_tag(
     },
     by_alias=True,
 )
-def get_thing_file_attachments(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_thing_file_attachments(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]
+):
     """
     Get all file attachments associated with a Thing.
     """
@@ -371,7 +372,7 @@ def get_thing_file_attachments(request: HydroServerHttpRequest, thing_id: Path[u
 def add_thing_file_attachment(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
-    data: FileAttachmentPostBody,
+    file_attachment_type: str = Form(...),
     file: UploadedFile = File(...),
 ):
     """
@@ -379,7 +380,10 @@ def add_thing_file_attachment(
     """
 
     return 201, thing_service.add_file_attachment(
-        principal=request.principal, uid=thing_id, file=file, data=data
+        principal=request.principal,
+        uid=thing_id,
+        file=file,
+        file_attachment_type=file_attachment_type,
     )
 
 
@@ -396,7 +400,9 @@ def add_thing_file_attachment(
     by_alias=True,
 )
 def remove_thing_file_attachment(
-    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: FileAttachmentDeleteBody
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    data: FileAttachmentDeleteBody,
 ):
     """
     Remove a file attachment from a thing.

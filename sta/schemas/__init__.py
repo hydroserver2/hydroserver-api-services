@@ -62,8 +62,13 @@ from .observation import (
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
 )
-from .attachment import (TagGetResponse, TagPostBody, TagDeleteBody, FileAttachmentPostBody, FileAttachmentDeleteBody,
-                         FileAttachmentGetResponse)
+from .attachment import (
+    TagGetResponse,
+    TagPostBody,
+    TagDeleteBody,
+    FileAttachmentDeleteBody,
+    FileAttachmentGetResponse,
+)
 
 
 from iam.schemas import WorkspaceSummaryResponse

@@ -20,10 +20,6 @@ class TagDeleteBody(BasePostBody):
 class FileAttachmentGetResponse(BaseGetResponse):
     name: str
     link: str
-
-
-class FileAttachmentPostBody(BasePostBody):
-    name: str
     file_attachment_type: str
 
 

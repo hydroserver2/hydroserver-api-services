@@ -126,7 +126,9 @@ class Thing(models.Model, PermissionChecker):
 
         Location.objects.filter(**{thing_relation_filter: filter_arg}).delete()
         ThingTag.objects.filter(**{thing_relation_filter: filter_arg}).delete()
-        ThingFileAttachment.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+        ThingFileAttachment.objects.filter(
+            **{thing_relation_filter: filter_arg}
+        ).delete()
 
 
 class ThingTagQuerySet(models.QuerySet):
@@ -172,7 +174,9 @@ class ThingTagQuerySet(models.QuerySet):
 
 
 class ThingTag(models.Model, PermissionChecker):
-    thing = models.ForeignKey(Thing, related_name="thing_tags", on_delete=models.DO_NOTHING)
+    thing = models.ForeignKey(
+        Thing, related_name="thing_tags", on_delete=models.DO_NOTHING
+    )
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
@@ -187,7 +191,9 @@ def thing_file_attachment_storage_path(instance, filename):
 
 
 class ThingFileAttachment(models.Model, PermissionChecker):
-    thing = models.ForeignKey(Thing, related_name="thing_file_attachments", on_delete=models.DO_NOTHING)
+    thing = models.ForeignKey(
+        Thing, related_name="thing_file_attachments", on_delete=models.DO_NOTHING
+    )
     name = models.CharField(max_length=255)
     file_attachment = models.FileField(upload_to=thing_file_attachment_storage_path)
     file_attachment_type = models.CharField(max_length=200)

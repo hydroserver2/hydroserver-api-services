@@ -17,15 +17,14 @@ from sta.models import (
     DatastreamAggregation,
     DatastreamStatus,
     SampledMedium,
-    FileAttachmentType
+    FileAttachmentType,
 )
 from sta.schemas import (
     DatastreamPostBody,
     DatastreamPatchBody,
     TagPostBody,
     TagDeleteBody,
-    FileAttachmentPostBody,
-    FileAttachmentDeleteBody
+    FileAttachmentDeleteBody,
 )
 from sta.schemas.datastream import (
     DatastreamOrderByFields,
@@ -73,7 +72,9 @@ class DatastreamService(ServiceUtils):
             if expand_related:
                 datastream = self.select_expanded_fields(datastream)
             else:
-                datastream = datastream.select_related("thing")
+                datastream = datastream.select_related("thing").prefetch_related(
+                    "datastream_tags", "datastream_file_attachments"
+                )
             datastream = datastream.get(pk=uid)
         except Datastream.DoesNotExist:
             raise HttpError(404 if not raise_400 else 400, "Datastream does not exist")
@@ -103,7 +104,7 @@ class DatastreamService(ServiceUtils):
             "observed_property",
             "unit",
             "processing_level",
-        ).prefetch_related("thing__locations")
+        ).prefetch_related("thing__locations", "datastream_tags", "datastream_file_attachments")
 
     def list(
         self,
@@ -169,7 +170,9 @@ class DatastreamService(ServiceUtils):
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
         else:
-            queryset = queryset.select_related("thing")
+            queryset = queryset.select_related("thing").prefetch_related(
+                "datastream_tags", "datastream_file_attachments"
+            )
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -387,7 +390,9 @@ class DatastreamService(ServiceUtils):
         return "Datastream deleted"
 
     def get_tags(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="view")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="view"
+        )
 
         return datastream.datastream_tags.all()
 
@@ -414,15 +419,21 @@ class DatastreamService(ServiceUtils):
         return {entry["key"]: entry["values"] for entry in tags}
 
     def add_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="edit")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
 
         if DatastreamTag.objects.filter(datastream=datastream, key=data.key).exists():
             raise HttpError(400, "Tag already exists")
 
-        return DatastreamTag.objects.create(datastream=datastream, key=data.key, value=data.value)
+        return DatastreamTag.objects.create(
+            datastream=datastream, key=data.key, value=data.value
+        )
 
     def update_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="edit")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
 
         try:
             tag = DatastreamTag.objects.get(datastream=datastream, key=data.key)
@@ -435,7 +446,9 @@ class DatastreamService(ServiceUtils):
         return tag
 
     def remove_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagDeleteBody):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="edit")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
 
         queryset = DatastreamTag.objects.filter(datastream=datastream, key=data.key)
 
@@ -450,25 +463,42 @@ class DatastreamService(ServiceUtils):
         return f"{deleted_count} tag(s) deleted"
 
     def get_file_attachments(self, principal: Optional[User | APIKey], uid: uuid.UUID):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="view")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="view"
+        )
 
-        return datastream.file_attachments.all()
+        return datastream.datastream_file_attachments.all()
 
-    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID, file, data: FileAttachmentPostBody):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="edit")
+    def add_file_attachment(
+        self, principal: User | APIKey, uid: uuid.UUID, file, file_attachment_type: str
+    ):
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
 
-        if DatastreamFileAttachment.objects.filter(datastream=datastream, name=data.name).exists():
+        if DatastreamFileAttachment.objects.filter(
+            datastream=datastream, name=file.name
+        ).exists():
             raise HttpError(400, "File attachment already exists")
 
-        return DatastreamFileAttachment.objects.create(datastream=datastream, name=file.name, file_attachment=file, file_attachment_type=data.file_attachment_type)
+        return DatastreamFileAttachment.objects.create(
+            datastream=datastream,
+            name=file.name,
+            file_attachment=file,
+            file_attachment_type=file_attachment_type,
+        )
 
     def remove_file_attachment(
         self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody
     ):
-        datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="edit")
+        datastream = self.get_datastream_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
 
         try:
-            file_attachment = DatastreamFileAttachment.objects.get(datastream=datastream, name=data.name)
+            file_attachment = DatastreamFileAttachment.objects.get(
+                datastream=datastream, name=data.name
+            )
         except DatastreamFileAttachment.DoesNotExist:
             raise HttpError(404, "File attachment does not exist")
 
@@ -528,7 +558,6 @@ class DatastreamService(ServiceUtils):
         queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
         return queryset.values_list("name", flat=True)
-
 
     @staticmethod
     def generate_csv(datastream: Datastream):
