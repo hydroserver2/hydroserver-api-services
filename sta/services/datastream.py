@@ -19,7 +19,14 @@ from sta.models import (
     SampledMedium,
     FileAttachmentType
 )
-from sta.schemas import DatastreamPostBody, DatastreamPatchBody, TagPostBody, TagDeleteBody, FileAttachmentDeleteBody
+from sta.schemas import (
+    DatastreamPostBody,
+    DatastreamPatchBody,
+    TagPostBody,
+    TagDeleteBody,
+    FileAttachmentPostBody,
+    FileAttachmentDeleteBody
+)
 from sta.schemas.datastream import (
     DatastreamOrderByFields,
     DatastreamSummaryResponse,
@@ -447,13 +454,13 @@ class DatastreamService(ServiceUtils):
 
         return datastream.file_attachments.all()
 
-    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID, file):
+    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID, file, data: FileAttachmentPostBody):
         datastream = self.get_datastream_for_action(principal=principal, uid=uid, action="edit")
 
-        if DatastreamFileAttachment.objects.filter(datastream=datastream, name=file.name).exists():
+        if DatastreamFileAttachment.objects.filter(datastream=datastream, name=data.name).exists():
             raise HttpError(400, "File attachment already exists")
 
-        return DatastreamFileAttachment.objects.create(datastream=datastream, name=file.name, file_attachment=file)
+        return DatastreamFileAttachment.objects.create(datastream=datastream, name=file.name, file_attachment=file, file_attachment_type=data.file_attachment_type)
 
     def remove_file_attachment(
         self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody

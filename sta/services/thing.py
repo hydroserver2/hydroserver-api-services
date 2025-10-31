@@ -14,6 +14,7 @@ from sta.schemas import (
     ThingPatchBody,
     TagPostBody,
     TagDeleteBody,
+    FileAttachmentPostBody,
     FileAttachmentDeleteBody,
 )
 from sta.schemas.thing import ThingFields, LocationFields, ThingOrderByFields
@@ -339,13 +340,13 @@ class ThingService(ServiceUtils):
 
         return thing.file_attachments.all()
 
-    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID, file):
+    def add_file_attachment(self, principal: User | APIKey, uid: uuid.UUID,  file, data: FileAttachmentPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if ThingFileAttachment.objects.filter(thing=thing, name=file.name).exists():
+        if ThingFileAttachment.objects.filter(thing=thing, name=data.name).exists():
             raise HttpError(400, "File attachment already exists")
 
-        return ThingFileAttachment.objects.create(thing=thing, name=file.name, file_attachment=file)
+        return ThingFileAttachment.objects.create(thing=thing, name=data.name, file_attachment=file, file_attachment_type=data.file_attachment_type)
 
     def remove_file_attachment(
         self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody

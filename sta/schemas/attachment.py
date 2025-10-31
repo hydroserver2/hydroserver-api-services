@@ -24,6 +24,7 @@ class FileAttachmentGetResponse(BaseGetResponse):
 
 class FileAttachmentPostBody(BasePostBody):
     name: str
+    file_attachment_type: str
 
 
 class FileAttachmentDeleteBody(BasePostBody):

@@ -17,6 +17,7 @@ from sta.schemas import (
     TagPostBody,
     TagDeleteBody,
     FileAttachmentGetResponse,
+    FileAttachmentPostBody,
     FileAttachmentDeleteBody,
 )
 from sta.services import ThingService
@@ -370,6 +371,7 @@ def get_thing_file_attachments(request: HydroServerHttpRequest, thing_id: Path[u
 def add_thing_file_attachment(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
+    data: FileAttachmentPostBody,
     file: UploadedFile = File(...),
 ):
     """
@@ -377,7 +379,7 @@ def add_thing_file_attachment(
     """
 
     return 201, thing_service.add_file_attachment(
-        principal=request.principal, uid=thing_id, file=file
+        principal=request.principal, uid=thing_id, file=file, data=data
     )
 
 

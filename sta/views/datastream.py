@@ -17,6 +17,7 @@ from sta.schemas import (
     TagPostBody,
     TagDeleteBody,
     FileAttachmentGetResponse,
+    FileAttachmentPostBody,
     FileAttachmentDeleteBody,
 )
 from sta.services import DatastreamService
@@ -393,6 +394,7 @@ def get_datastream_file_attachments(request: HydroServerHttpRequest, datastream_
 def add_datastream_file_attachment(
     request: HydroServerHttpRequest,
     datastream_id: Path[uuid.UUID],
+    data: FileAttachmentPostBody,
     file: UploadedFile = File(...),
 ):
     """
@@ -400,7 +402,7 @@ def add_datastream_file_attachment(
     """
 
     return 201, datastream_service.add_file_attachment(
-        principal=request.principal, uid=datastream_id, file=file
+        principal=request.principal, uid=datastream_id, file=file, data=data
     )
 
 
