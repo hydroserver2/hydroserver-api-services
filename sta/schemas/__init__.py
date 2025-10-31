@@ -7,11 +7,7 @@ from .thing import (
     LocationPostBody,
     LocationPatchBody,
     TagGetResponse,
-    TagPostBody,
-    TagDeleteBody,
-    PhotoGetResponse,
-    PhotoPostBody,
-    PhotoDeleteBody,
+    FileAttachmentGetResponse,
 )
 from .observed_property import (
     ObservedPropertySummaryResponse,
@@ -65,6 +61,13 @@ from .observation import (
     ObservationBulkPostQueryParameters,
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
+)
+from .attachment import (
+    TagGetResponse,
+    TagPostBody,
+    TagDeleteBody,
+    FileAttachmentDeleteBody,
+    FileAttachmentGetResponse,
 )
 
 

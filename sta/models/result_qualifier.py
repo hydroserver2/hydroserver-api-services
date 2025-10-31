@@ -79,7 +79,7 @@ class ResultQualifier(models.Model, PermissionChecker):
             models.UniqueConstraint(
                 fields=["code", "workspace_id"],
                 name="unique_scoped_result_qualifier_code",
-                nulls_distinct=False
+                nulls_distinct=False,
             ),
         ]
 

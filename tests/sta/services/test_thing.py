@@ -413,9 +413,9 @@ def test_edit_thing(get_principal, principal, thing, thing_fields, message, erro
     "principal, thing, message, error_code, max_queries",
     [
         # Test edit Thing
-        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 19),
-        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 19),
-        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 19),
+        ("owner", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 20),
+        ("editor", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 20),
+        ("admin", "3b7818af-eff7-4149-8517-e5cad9dc22e1", None, None, 20),
         # Test unauthorized attempts
         (
             "viewer",
@@ -577,7 +577,7 @@ def test_delete_thing(
         ),
     ],
 )
-def test_get_tags(get_principal, principal, thing, message, error_code):
+def test_get_thing_tags(get_principal, principal, thing, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.get_tags(
@@ -672,7 +672,7 @@ def test_get_tags(get_principal, principal, thing, message, error_code):
         ),
     ],
 )
-def test_get_tag_keys(
+def test_get_thing_tag_keys(
     django_assert_num_queries,
     get_principal,
     principal,
@@ -906,7 +906,7 @@ def test_get_tag_keys(
         ),
     ],
 )
-def test_add_tag(get_principal, principal, thing, tag, message, error_code):
+def test_add_thing_tag(get_principal, principal, thing, tag, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.add_tag(
@@ -1142,7 +1142,7 @@ def test_add_tag(get_principal, principal, thing, tag, message, error_code):
         ),
     ],
 )
-def test_update_tag(get_principal, principal, thing, tag, message, error_code):
+def test_update_thing_tag(get_principal, principal, thing, tag, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.update_tag(
@@ -1378,7 +1378,7 @@ def test_update_tag(get_principal, principal, thing, tag, message, error_code):
         ),
     ],
 )
-def test_remove_tag(get_principal, principal, thing, tag, message, error_code):
+def test_remove_thing_tag(get_principal, principal, thing, tag, message, error_code):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
             thing_service.remove_tag(

@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional
-from ninja import Router, Path, Query, File
+from ninja import Router, Path, Query, File, Form
 from ninja.files import UploadedFile
 from django.db import transaction
 from django.http import HttpResponse
@@ -16,8 +16,8 @@ from sta.schemas import (
     TagGetResponse,
     TagPostBody,
     TagDeleteBody,
-    PhotoGetResponse,
-    PhotoDeleteBody,
+    FileAttachmentGetResponse,
+    FileAttachmentDeleteBody,
 )
 from sta.services import ThingService
 from etl.views.hydroshare_archival import hydroshare_archival_router
@@ -89,13 +89,13 @@ def create_thing(
         401: str,
     },
 )
-def get_tag_keys(
+def get_thing_tag_keys(
     request: HydroServerHttpRequest,
     workspace_id: Optional[uuid.UUID] = None,
     thing_id: Optional[uuid.UUID] = None,
 ):
     """
-    Get all existing unique tag keys.
+    Get all existing unique thing tag keys.
     """
 
     return 200, thing_service.get_tag_keys(
@@ -134,6 +134,24 @@ def get_sampling_feature_types(
     """
 
     return 200, thing_service.list_sampling_feature_types(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@thing_router.get("/file-attachment-types", response={200: list[str]}, by_alias=True)
+def get_file_attachment_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get file attachment types.
+    """
+
+    return 200, thing_service.list_file_attachment_types(
         response=response,
         page=query.page,
         page_size=query.page_size,
@@ -226,7 +244,7 @@ def delete_thing(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True,
 )
-def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_thing_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     """
     Get all tags associated with a Thing.
     """
@@ -249,7 +267,7 @@ def get_tags(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True,
 )
-def add_tag(
+def add_thing_tag(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody
 ):
     """
@@ -275,7 +293,7 @@ def add_tag(
     },
     by_alias=True,
 )
-def edit_tag(
+def edit_thing_tag(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagPostBody
 ):
     """
@@ -301,7 +319,7 @@ def edit_tag(
     },
     by_alias=True,
 )
-def remove_tag(
+def remove_thing_tag(
     request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: TagDeleteBody
 ):
     """
@@ -316,31 +334,33 @@ def remove_tag(
 
 
 @thing_router.get(
-    "/{thing_id}/photos",
+    "/{thing_id}/file-attachments",
     auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
     response={
-        200: list[PhotoGetResponse],
+        200: list[FileAttachmentGetResponse],
         401: str,
         403: str,
     },
     by_alias=True,
 )
-def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
+def get_thing_file_attachments(
+    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]
+):
     """
-    Get all photos associated with a Thing.
+    Get all file attachments associated with a Thing.
     """
 
-    return 200, thing_service.get_photos(
+    return 200, thing_service.get_file_attachments(
         principal=request.principal,
         uid=thing_id,
     )
 
 
 @thing_router.post(
-    "/{thing_id}/photos",
+    "/{thing_id}/file-attachments",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: PhotoGetResponse,
+        201: FileAttachmentGetResponse,
         400: str,
         401: str,
         403: str,
@@ -349,22 +369,26 @@ def get_photos(request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]):
     },
     by_alias=True,
 )
-def add_photo(
+def add_thing_file_attachment(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
+    file_attachment_type: str = Form(...),
     file: UploadedFile = File(...),
 ):
     """
-    Add a photo to a thing.
+    Add a file attachment to a thing.
     """
 
-    return 201, thing_service.add_photo(
-        principal=request.principal, uid=thing_id, file=file
+    return 201, thing_service.add_file_attachment(
+        principal=request.principal,
+        uid=thing_id,
+        file=file,
+        file_attachment_type=file_attachment_type,
     )
 
 
 @thing_router.delete(
-    "/{thing_id}/photos",
+    "/{thing_id}/file-attachments",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
         204: None,
@@ -375,14 +399,16 @@ def add_photo(
     },
     by_alias=True,
 )
-def remove_photo(
-    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID], data: PhotoDeleteBody
+def remove_thing_file_attachment(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    data: FileAttachmentDeleteBody,
 ):
     """
-    Remove a photo from a thing.
+    Remove a file attachment from a thing.
     """
 
-    return 204, thing_service.remove_photo(
+    return 204, thing_service.remove_file_attachment(
         principal=request.principal,
         uid=thing_id,
         data=data,

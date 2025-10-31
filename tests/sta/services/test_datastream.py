@@ -8,6 +8,8 @@ from sta.schemas import (
     DatastreamPostBody,
     DatastreamPatchBody,
     DatastreamSummaryResponse,
+    TagPostBody,
+    TagDeleteBody,
 )
 
 datastream_service = DatastreamService()
@@ -31,7 +33,7 @@ datastream_service = DatastreamService()
                 "Private Datastream 7",
                 "Public Datastream 2",
             ],
-            3,
+            5,
         ),
         (
             "editor",
@@ -47,7 +49,7 @@ datastream_service = DatastreamService()
                 "Private Datastream 7",
                 "Public Datastream 2",
             ],
-            3,
+            5,
         ),
         (
             "viewer",
@@ -63,7 +65,7 @@ datastream_service = DatastreamService()
                 "Private Datastream 7",
                 "Public Datastream 2",
             ],
-            3,
+            5,
         ),
         (
             "admin",
@@ -79,7 +81,7 @@ datastream_service = DatastreamService()
                 "Private Datastream 7",
                 "Public Datastream 2",
             ],
-            3,
+            5,
         ),
         (
             "apikey",
@@ -91,10 +93,10 @@ datastream_service = DatastreamService()
                 "Private Datastream 2",
                 "Private Datastream 3",
             ],
-            4,
+            6,
         ),
-        ("unaffiliated", {}, ["Public Datastream 1", "Public Datastream 2"], 3),
-        ("anonymous", {}, ["Public Datastream 1", "Public Datastream 2"], 3),
+        ("unaffiliated", {}, ["Public Datastream 1", "Public Datastream 2"], 5),
+        ("anonymous", {}, ["Public Datastream 1", "Public Datastream 2"], 5),
         # Test pagination and order_by
         (
             "owner",
@@ -112,25 +114,25 @@ datastream_service = DatastreamService()
                 "Private Datastream 6",
                 "Private Datastream 7",
             ],
-            3,
+            5,
         ),
         (
             "owner",
             {"thing_id": "3b7818af-eff7-4149-8517-e5cad9dc22e1"},
             ["Public Datastream 1", "Private Datastream 1", "Public Datastream 2"],
-            3,
+            5,
         ),
         (
             "owner",
             {"sampled_medium": "Air"},
             ["Private Datastream 1", "Private Datastream 3"],
-            3,
+            5,
         ),
         (
             "owner",
             {"is_private": False},
             ["Public Datastream 1", "Public Datastream 2"],
-            3,
+            5,
         ),
         ("owner", {"value_count__gte": "3", "value_count__lte": "1"}, [], 3),
         (
@@ -140,7 +142,7 @@ datastream_service = DatastreamService()
                 "phenomenon_begin_time__lte": "2025-02-10 00:00:00.000 -0700",
             },
             [],
-            3,
+            5,
         ),
     ],
 )
@@ -1630,42 +1632,42 @@ def test_edit_datastream(
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            11,
+            14,
         ),
         (
             "owner",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            11,
+            14,
         ),
         (
             "admin",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            11,
+            14,
         ),
         (
             "admin",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            11,
+            14,
         ),
         (
             "editor",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "Public Datastream 1",
             None,
-            11,
+            14,
         ),
         (
             "editor",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Private Datastream 7",
             None,
-            11,
+            14,
         ),
         # Anonymous and viewers cannot delete datastreams
         (
@@ -1673,203 +1675,203 @@ def test_edit_datastream(
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "You do not have permission",
             403,
-            5,
+            7,
         ),
         (
             "viewer",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "You do not have permission",
             403,
+            7,
+        ),
+        (
+            "apikey",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            "You do not have permission",
+            403,
+            8,
+        ),
+        (
+            "apikey",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            "You do not have permission",
+            403,
+            8,
+        ),
+        (
+            "apikey",
+            "cad40a75-99ca-4317-b534-0fc7880c905f",
+            "You do not have permission",
+            403,
+            8,
+        ),
+        (
+            "apikey",
+            "fcd47d93-4cae-411a-9e1e-26ef473840ed",
+            "You do not have permission",
+            403,
+            8,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            "Datastream does not exist",
+            404,
+            8,
+        ),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            "Datastream does not exist",
+            404,
+            8,
+        ),
+        (
+            "apikey",
+            "42e08eea-27bb-4ea3-8ced-63acff0f3334",
+            "Datastream does not exist",
+            404,
+            8,
+        ),
+        (
+            "apikey",
+            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
+            "Datastream does not exist",
+            404,
+            8,
+        ),
+        (
+            "apikey",
+            "00000000-0000-0000-0000-000000000000",
+            "Datastream does not exist",
+            404,
+            8,
+        ),
+        (
+            "anonymous",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            "You do not have permission",
+            403,
             5,
         ),
         (
-            "apikey",
-            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
-            "You do not have permission",
-            403,
-            6,
-        ),
-        (
-            "apikey",
-            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
-            "You do not have permission",
-            403,
-            6,
-        ),
-        (
-            "apikey",
-            "cad40a75-99ca-4317-b534-0fc7880c905f",
-            "You do not have permission",
-            403,
-            6,
-        ),
-        (
-            "apikey",
-            "fcd47d93-4cae-411a-9e1e-26ef473840ed",
-            "You do not have permission",
-            403,
-            6,
-        ),
-        (
-            "apikey",
-            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
-            "Datastream does not exist",
-            404,
-            6,
-        ),
-        (
-            "apikey",
-            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
-            "Datastream does not exist",
-            404,
-            6,
-        ),
-        (
-            "apikey",
-            "42e08eea-27bb-4ea3-8ced-63acff0f3334",
-            "Datastream does not exist",
-            404,
-            6,
-        ),
-        (
-            "apikey",
-            "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
-            "Datastream does not exist",
-            404,
-            6,
-        ),
-        (
-            "apikey",
-            "00000000-0000-0000-0000-000000000000",
-            "Datastream does not exist",
-            404,
-            6,
-        ),
-        (
-            "anonymous",
-            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
-            "You do not have permission",
-            403,
-            4,
-        ),
-        (
             "anonymous",
             "e0506cac-3e50-4d0a-814d-7ae0146705b2",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "cad40a75-99ca-4317-b534-0fc7880c905f",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "fcd47d93-4cae-411a-9e1e-26ef473840ed",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "42e08eea-27bb-4ea3-8ced-63acff0f3334",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             "anonymous",
             "00000000-0000-0000-0000-000000000000",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             "You do not have permission",
             403,
-            4,
+            5,
         ),
         (
             None,
             "e0506cac-3e50-4d0a-814d-7ae0146705b2",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "cad40a75-99ca-4317-b534-0fc7880c905f",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "fcd47d93-4cae-411a-9e1e-26ef473840ed",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "42e08eea-27bb-4ea3-8ced-63acff0f3334",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "9f96957b-ee20-4c7b-bf2b-673a0cda3a04",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
         (
             None,
             "00000000-0000-0000-0000-000000000000",
             "Datastream does not exist",
             404,
-            4,
+            5,
         ),
     ],
 )
@@ -1895,3 +1897,864 @@ def test_delete_datastream(
                 principal=get_principal(principal), uid=uuid.UUID(datastream)
             )
             assert datastream_delete == "Datastream deleted"
+
+
+@pytest.mark.parametrize(
+    "principal, datastream, message, error_code",
+    [
+        ("owner", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        ("owner", "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", None, None),
+        ("owner", "e0506cac-3e50-4d0a-814d-7ae0146705b2", None, None),
+        ("owner", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", None, None),
+        ("admin", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        ("admin", "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", None, None),
+        ("admin", "e0506cac-3e50-4d0a-814d-7ae0146705b2", None, None),
+        ("admin", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", None, None),
+        ("editor", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        ("editor", "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", None, None),
+        ("editor", "e0506cac-3e50-4d0a-814d-7ae0146705b2", None, None),
+        ("editor", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", None, None),
+        ("viewer", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        ("viewer", "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", None, None),
+        ("viewer", "e0506cac-3e50-4d0a-814d-7ae0146705b2", None, None),
+        ("viewer", "dd1f9293-ce29-4b6a-88e6-d65110d1be65", None, None),
+        ("apikey", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            None,
+            None,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            "Datastream does not exist",
+            404,
+        ),
+        ("anonymous", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        (
+            "unaffiliated",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "unaffiliated",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            "Datastream does not exist",
+            404,
+        ),
+        ("anonymous", "27c70b41-e845-40ea-8cc7-d1b40f89816b", None, None),
+        (
+            "anonymous",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            "Datastream does not exist",
+            404,
+        ),
+    ],
+)
+def test_get_datastream_tags(get_principal, principal, datastream, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            datastream_service.get_tags(
+                principal=get_principal(principal), uid=uuid.UUID(datastream)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        datastream_tags = datastream_service.get_tags(
+            principal=get_principal(principal), uid=uuid.UUID(datastream)
+        )
+        assert set([tag.key for tag in datastream_tags]).issubset(
+            ["Test Public Key", "Test Private Key"]
+        )
+        assert set([tag.value for tag in datastream_tags]).issubset(
+            ["Test Public Value", "Test Private Value"]
+        )
+
+
+@pytest.mark.parametrize(
+    "principal, workspace, datastream, length, max_queries",
+    [
+        ("owner", None, None, 2, 2),
+        ("owner", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 1, 2),
+        ("owner", None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 1, 2),
+        (
+            "owner",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            2,
+        ),
+        ("admin", None, None, 2, 2),
+        ("admin", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 1, 2),
+        ("admin", None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 1, 2),
+        (
+            "admin",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            2,
+        ),
+        ("editor", None, None, 2, 2),
+        ("editor", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 1, 2),
+        ("editor", None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 1, 2),
+        (
+            "editor",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            2,
+        ),
+        ("viewer", None, None, 2, 2),
+        ("viewer", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 1, 2),
+        ("viewer", None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 1, 2),
+        (
+            "viewer",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            2,
+        ),
+        ("apikey", None, None, 2, 3),
+        ("apikey", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 3),
+        ("apikey", None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 0, 3),
+        (
+            "apikey",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            3,
+        ),
+        ("anonymous", None, None, 2, 2),
+        ("anonymous", "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 2),
+        ("anonymous", None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 0, 2),
+        (
+            "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            2,
+        ),
+        (None, None, None, 2, 2),
+        (None, "b27c51a0-7374-462d-8a53-d97d47176c10", None, 0, 2),
+        (None, None, "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2", 0, 2),
+        (
+            None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            0,
+            2,
+        ),
+    ],
+)
+def test_get_datastream_tag_keys(
+    django_assert_num_queries,
+    get_principal,
+    principal,
+    workspace,
+    datastream,
+    length,
+    max_queries,
+):
+    with django_assert_num_queries(max_queries):
+        tag_key_list = datastream_service.get_tag_keys(
+            principal=get_principal(principal),
+            workspace_id=uuid.UUID(workspace) if workspace else None,
+            datastream_id=uuid.UUID(datastream) if datastream else None,
+        )
+        assert len(tag_key_list) == length
+        assert (isinstance(str, tag_key) for tag_key in tag_key_list)
+
+
+@pytest.mark.parametrize(
+    "principal, datastream, tag, message, error_code",
+    [
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "Test Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "Test Public Value"},
+            "Tag already exists",
+            400,
+        ),
+        (
+            "owner",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "viewer",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "New Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+    ],
+)
+def test_add_datastream_tag(
+    get_principal, principal, datastream, tag, message, error_code
+):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            datastream_service.add_tag(
+                principal=get_principal(principal),
+                uid=uuid.UUID(datastream),
+                data=TagPostBody(key=tag["key"], value=tag["value"]),
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        datastream_tag = datastream_service.add_tag(
+            principal=get_principal(principal),
+            uid=uuid.UUID(datastream),
+            data=TagPostBody(key=tag["key"], value=tag["value"]),
+        )
+
+        assert datastream_tag.key == tag["key"]
+        assert datastream_tag.value == tag["value"]
+
+
+@pytest.mark.parametrize(
+    "principal, datastream, tag, message, error_code",
+    [
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key", "value": "New Value"},
+            "Tag does not exist",
+            404,
+        ),
+        (
+            "owner",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            None,
+            None,
+        ),
+        (
+            "viewer",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key", "value": "New Value"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key", "value": "New Value"},
+            "Datastream does not exist",
+            404,
+        ),
+    ],
+)
+def test_update_datastream_tag(
+    get_principal, principal, datastream, tag, message, error_code
+):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            datastream_service.update_tag(
+                principal=get_principal(principal),
+                uid=uuid.UUID(datastream),
+                data=TagPostBody(key=tag["key"], value=tag["value"]),
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        datastream_tag = datastream_service.update_tag(
+            principal=get_principal(principal),
+            uid=uuid.UUID(datastream),
+            data=TagPostBody(key=tag["key"], value=tag["value"]),
+        )
+
+        assert datastream_tag.key == tag["key"]
+        assert datastream_tag.value == tag["value"]
+
+
+@pytest.mark.parametrize(
+    "principal, datastream, tag, message, error_code",
+    [
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "New Key"},
+            "Tag does not exist",
+            404,
+        ),
+        (
+            "owner",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "owner",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "admin",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "editor",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            None,
+            None,
+        ),
+        (
+            "viewer",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "viewer",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "apikey",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "apikey",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            "anonymous",
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            "anonymous",
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "27c70b41-e845-40ea-8cc7-d1b40f89816b",
+            {"key": "Test Public Key"},
+            "You do not have permission",
+            403,
+        ),
+        (
+            None,
+            "1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "e0506cac-3e50-4d0a-814d-7ae0146705b2",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+        (
+            None,
+            "dd1f9293-ce29-4b6a-88e6-d65110d1be65",
+            {"key": "Test Private Key"},
+            "Datastream does not exist",
+            404,
+        ),
+    ],
+)
+def test_remove_tag(get_principal, principal, datastream, tag, message, error_code):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            datastream_service.remove_tag(
+                principal=get_principal(principal),
+                uid=uuid.UUID(datastream),
+                data=TagDeleteBody(key=tag["key"]),
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        datastream_tag_delete = datastream_service.remove_tag(
+            principal=get_principal(principal),
+            uid=uuid.UUID(datastream),
+            data=TagDeleteBody(key=tag["key"]),
+        )
+
+        assert datastream_tag_delete.endswith("tag(s) deleted")

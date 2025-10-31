@@ -115,7 +115,7 @@ class Thing(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from sta.models import Datastream, Location, Tag, Photo
+        from sta.models import Datastream, Location, ThingTag, ThingFileAttachment
 
         thing_relation_filter = f"thing__{filter_suffix}" if filter_suffix else "thing"
 
@@ -125,11 +125,13 @@ class Thing(models.Model, PermissionChecker):
         Datastream.objects.filter(**{thing_relation_filter: filter_arg}).delete()
 
         Location.objects.filter(**{thing_relation_filter: filter_arg}).delete()
-        Tag.objects.filter(**{thing_relation_filter: filter_arg}).delete()
-        Photo.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+        ThingTag.objects.filter(**{thing_relation_filter: filter_arg}).delete()
+        ThingFileAttachment.objects.filter(
+            **{thing_relation_filter: filter_arg}
+        ).delete()
 
 
-class TagQuerySet(models.QuerySet):
+class ThingTagQuerySet(models.QuerySet):
     def visible(self, principal: Optional[Union["User", "APIKey"]]):
         if hasattr(principal, "account_type"):
             if principal.account_type == "admin":
@@ -171,42 +173,47 @@ class TagQuerySet(models.QuerySet):
             )
 
 
-class Tag(models.Model, PermissionChecker):
-    thing = models.ForeignKey(Thing, related_name="tags", on_delete=models.DO_NOTHING)
+class ThingTag(models.Model, PermissionChecker):
+    thing = models.ForeignKey(
+        Thing, related_name="thing_tags", on_delete=models.DO_NOTHING
+    )
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.key}: {self.value} - {self.id}"
 
-    objects = TagQuerySet.as_manager()
+    objects = ThingTagQuerySet.as_manager()
 
 
-def photo_storage_path(instance, filename):
-    return f"photos/{instance.thing.id}/{filename}"
+def thing_file_attachment_storage_path(instance, filename):
+    return f"things/{instance.thing.id}/{filename}"
 
 
-class Photo(models.Model, PermissionChecker):
-    thing = models.ForeignKey(Thing, related_name="photos", on_delete=models.DO_NOTHING)
+class ThingFileAttachment(models.Model, PermissionChecker):
+    thing = models.ForeignKey(
+        Thing, related_name="thing_file_attachments", on_delete=models.DO_NOTHING
+    )
     name = models.CharField(max_length=255)
-    photo = models.FileField(upload_to=photo_storage_path)
+    file_attachment = models.FileField(upload_to=thing_file_attachment_storage_path)
+    file_attachment_type = models.CharField(max_length=200)
 
     def __str__(self):
         return f"{self.name} - {self.id}"
 
     @property
     def link(self):
-        storage = self.photo.storage
+        storage = self.file_attachment.storage
 
         try:
-            photo_link = storage.url(self.photo.name, expire=3600)
+            file_attachment_link = storage.url(self.file_attachment.name, expire=3600)
         except TypeError:
-            photo_link = storage.url(self.photo.name)
+            file_attachment_link = storage.url(self.file_attachment.name)
 
         if settings.DEPLOYMENT_BACKEND == "local":
-            photo_link = settings.PROXY_BASE_URL + photo_link
+            file_attachment_link = settings.PROXY_BASE_URL + file_attachment_link
 
-        return photo_link
+        return file_attachment_link
 
     class Meta:
         unique_together = ("thing", "name")
@@ -217,4 +224,8 @@ class SamplingFeatureType(models.Model):
 
 
 class SiteType(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+
+class FileAttachmentType(models.Model):
     name = models.CharField(max_length=200, unique=True)

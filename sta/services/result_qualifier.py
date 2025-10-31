@@ -151,9 +151,7 @@ class ResultQualifierService(ServiceUtils):
             IntegrityError,
             UniqueViolation,
         ):
-            raise HttpError(
-                409, "A result qualifier with this code already exists"
-            )
+            raise HttpError(409, "A result qualifier with this code already exists")
 
         return self.get(
             principal=principal, uid=result_qualifier.id, expand_related=expand_related
@@ -182,9 +180,7 @@ class ResultQualifierService(ServiceUtils):
             IntegrityError,
             UniqueViolation,
         ):
-            raise HttpError(
-                409, "A result qualifier with this code already exists"
-            )
+            raise HttpError(409, "A result qualifier with this code already exists")
 
         return self.get(
             principal=principal, uid=result_qualifier.id, expand_related=expand_related

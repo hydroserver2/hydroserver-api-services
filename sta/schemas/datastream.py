@@ -9,6 +9,7 @@ from api.schemas import (
     BasePatchBody,
     CollectionQueryParameters,
 )
+from .attachment import TagGetResponse, FileAttachmentGetResponse
 
 if TYPE_CHECKING:
     from iam.schemas import WorkspaceSummaryResponse
@@ -177,6 +178,10 @@ class DatastreamSummaryResponse(
     workspace_id: uuid.UUID = Field(
         ..., validation_alias=AliasPath("thing", "workspace_id")
     )
+    datastream_tags: list[TagGetResponse] = Field(..., alias="tags")
+    datastream_file_attachments: list[FileAttachmentGetResponse] = Field(
+        ..., alias="fileAttachments"
+    )
 
 
 class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
@@ -190,6 +195,10 @@ class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
     observed_property: "ObservedPropertySummaryResponse"
     processing_level: "ProcessingLevelSummaryResponse"
     unit: "UnitSummaryResponse"
+    datastream_tags: list[TagGetResponse] = Field(..., alias="tags")
+    datastream_file_attachments: list[FileAttachmentGetResponse] = Field(
+        ..., alias="fileAttachments"
+    )
 
 
 class DatastreamPostBody(BasePostBody, DatastreamFields, DatastreamRelatedFields):
