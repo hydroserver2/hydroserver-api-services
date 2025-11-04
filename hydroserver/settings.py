@@ -47,7 +47,9 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=urlparse(PROXY_BASE_URL).netloc)
 TRUSTED_ORIGINS = config("TRUSTED_ORIGINS", None)
 
 if TRUSTED_ORIGINS:
-    TRUSTED_ORIGIN_LIST = [origin.strip() for origin in TRUSTED_ORIGINS.split(",") if origin.strip()]
+    TRUSTED_ORIGIN_LIST = [
+        origin.strip() for origin in TRUSTED_ORIGINS.split(",") if origin.strip()
+    ]
     CORS_ORIGIN_ALLOW_ALL = False
     CORS_ALLOW_CREDENTIALS = True
     CORS_ALLOWED_ORIGINS = TRUSTED_ORIGIN_LIST + [PROXY_BASE_URL]

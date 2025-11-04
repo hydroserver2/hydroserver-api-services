@@ -101,8 +101,8 @@ observation_service = ObservationService()
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {"result_qualifiers__code": "SystemResultQualifier"},
             [3.1],
-            9
-        )
+            9,
+        ),
     ],
 )
 def test_list_observation(
@@ -128,7 +128,9 @@ def test_list_observation(
         assert Counter(observation.result for observation in result) == Counter(
             observation_results
         )
-        assert (ObservationSummaryResponse.from_orm(observation) for observation in result)
+        assert (
+            ObservationSummaryResponse.from_orm(observation) for observation in result
+        )
 
 
 def test_create_observations(
@@ -144,13 +146,22 @@ def test_create_observations(
                 data=[
                     ["2025-03-10T01:00:00Z", 9.1, []],
                     ["2025-03-10T02:00:00Z", 9.2, ["SystemResultQualifier"]],
-                    ["2025-03-10T03:00:00Z", 9.2, ["SystemResultQualifier", "PublicResultQualifier"]],
-                ]
+                    [
+                        "2025-03-10T03:00:00Z",
+                        9.2,
+                        ["SystemResultQualifier", "PublicResultQualifier"],
+                    ],
+                ],
             ),
-            mode="insert"
+            mode="insert",
         )
 
-    assert Observation.objects.filter(datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b")).count() == 5
+    assert (
+        Observation.objects.filter(
+            datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b")
+        ).count()
+        == 5
+    )
 
 
 def test_delete_observations(
@@ -161,7 +172,12 @@ def test_delete_observations(
         observation_service.bulk_delete(
             principal=get_principal("owner"),
             datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
-            data=ObservationBulkDeleteBody()
+            data=ObservationBulkDeleteBody(),
         )
 
-    assert Observation.objects.filter(datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b")).count() == 0
+    assert (
+        Observation.objects.filter(
+            datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b")
+        ).count()
+        == 0
+    )

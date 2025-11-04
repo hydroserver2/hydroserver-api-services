@@ -8,6 +8,7 @@ from psycopg.errors import UniqueViolation
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet, Q, Value, Max, Func, F
+from django.db.models import OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -104,7 +105,7 @@ class ObservationService(ServiceUtils):
         for field in [
             "phenomenon_time__lte",
             "phenomenon_time__gte",
-            "result_qualifiers__code"
+            "result_qualifiers__code",
         ]:
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
@@ -113,18 +114,36 @@ class ObservationService(ServiceUtils):
 
         # TODO: Can't really fix this until PostgreSQL 18 UUID v7 support
         checksum_result = queryset.aggregate(
-            max_id=Max(Func(F("id"), function="CAST", template="%(function)s(%(expressions)s AS text)"))
+            max_id=Max(
+                Func(
+                    F("id"),
+                    function="CAST",
+                    template="%(function)s(%(expressions)s AS text)",
+                )
+            )
         )
-        checksum_uuid = uuid.UUID(checksum_result["max_id"]) if checksum_result["max_id"] else None
+        checksum_uuid = (
+            uuid.UUID(checksum_result["max_id"]) if checksum_result["max_id"] else None
+        )
+
+        result_qualifier_subquery = (
+            Observation.result_qualifiers.through.objects.filter(
+                **{"observation": OuterRef("pk")}
+            )
+            .values("observation")
+            .annotate(
+                codes=ArrayAgg(
+                    f"resultqualifier__code",
+                    distinct=True,
+                    filter=~Q(**{"resultqualifier__code": None}),
+                )
+            )
+            .values("codes")[:1]
+        )
 
         queryset = queryset.annotate(
             result_qualifier_codes=Coalesce(
-                ArrayAgg(
-                    "result_qualifiers__code",
-                    distinct=True,
-                    filter=~Q(result_qualifiers__code=None)
-                ),
-                Value([])
+                Subquery(result_qualifier_subquery), Value([])
             )
         )
 
@@ -232,7 +251,10 @@ class ObservationService(ServiceUtils):
             )
 
         return self.get(
-            principal=principal, uid=observation.id, datastream_id=datastream_id, expand_related=expand_related
+            principal=principal,
+            uid=observation.id,
+            datastream_id=datastream_id,
+            expand_related=expand_related,
         )
 
     def delete(
@@ -307,19 +329,23 @@ class ObservationService(ServiceUtils):
 
         if "resultQualifierCodes" in data.fields:
             idx_result_qualifier_codes = field_map["resultQualifierCodes"]
-            result_qualifier_code_set = {code for row in data.data for code in row[idx_result_qualifier_codes]}
+            result_qualifier_code_set = {
+                code for row in data.data for code in row[idx_result_qualifier_codes]
+            }
             result_qualifiers = (
                 ResultQualifier.objects.filter(
-                    Q(workspace_id=datastream.thing.workspace_id) | Q(workspace__isnull=True)
-                ).filter(
-                    code__in=result_qualifier_code_set
-                ).visible(principal=principal).values(
-                    "id", "code", "workspace_id"
+                    Q(workspace_id=datastream.thing.workspace_id)
+                    | Q(workspace__isnull=True)
                 )
+                .filter(code__in=result_qualifier_code_set)
+                .visible(principal=principal)
+                .values("id", "code", "workspace_id")
             )
             result_qualifier_map = {
                 row["code"]: row["id"]
-                for row in sorted(result_qualifiers, key=lambda r: r["workspace_id"] is not None)
+                for row in sorted(
+                    result_qualifiers, key=lambda r: r["workspace_id"] is not None
+                )
             }
             invalid_codes = result_qualifier_code_set - result_qualifier_map.keys()
             if invalid_codes:
@@ -370,7 +396,9 @@ class ObservationService(ServiceUtils):
             )
 
         try:
-            Observation.objects.bulk_copy(observation_records, result_qualifiers=result_qualifier_records)
+            Observation.objects.bulk_copy(
+                observation_records, result_qualifiers=result_qualifier_records
+            )
         except (
             IntegrityError,
             UniqueViolation,
@@ -421,9 +449,7 @@ class ObservationService(ServiceUtils):
             )
 
     @staticmethod
-    def generate_checksum(
-        checksum_uuid, checksum_count
-    ):
+    def generate_checksum(checksum_uuid, checksum_count):
         uuid_bytes = checksum_uuid.bytes if checksum_uuid else b"\x00" * 16
         count_bytes = checksum_count.to_bytes(
             (checksum_count.bit_length() + 7) // 8 or 1, byteorder="big"
@@ -431,4 +457,3 @@ class ObservationService(ServiceUtils):
 
         payload = uuid_bytes + count_bytes
         return hashlib.sha256(payload).hexdigest()[:16]
-
