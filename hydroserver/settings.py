@@ -65,6 +65,10 @@ if DEPLOYMENT_BACKEND == "dev":
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
 
+CORS_EXPOSE_HEADERS = [
+    "X-Total-Pages",
+    "X-Total-Count",
+]
 
 # Application definition
 
