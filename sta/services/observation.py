@@ -8,6 +8,7 @@ from psycopg.errors import UniqueViolation
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet, Q, Value, Max, Func, F
+from django.db.models import OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.db.utils import IntegrityError
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -125,14 +126,24 @@ class ObservationService(ServiceUtils):
             uuid.UUID(checksum_result["max_id"]) if checksum_result["max_id"] else None
         )
 
+        result_qualifier_subquery = (
+            Observation.result_qualifiers.through.objects.filter(
+                **{"observation": OuterRef("pk")}
+            )
+            .values("observation")
+            .annotate(
+                codes=ArrayAgg(
+                    f"resultqualifier__code",
+                    distinct=True,
+                    filter=~Q(**{"resultqualifier__code": None}),
+                )
+            )
+            .values("codes")[:1]
+        )
+
         queryset = queryset.annotate(
             result_qualifier_codes=Coalesce(
-                ArrayAgg(
-                    "result_qualifiers__code",
-                    distinct=True,
-                    filter=~Q(result_qualifiers__code=None),
-                ),
-                Value([]),
+                Subquery(result_qualifier_subquery), Value([])
             )
         )
 

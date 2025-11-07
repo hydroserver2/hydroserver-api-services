@@ -81,8 +81,9 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                     "properties": {
                         "elevation_m": location.elevation_m,
                         "elevation_datum": location.elevation_datum,
-                        "state": location.state,
-                        "county": location.county,
+                        "admin_area_1": location.admin_area_1,
+                        "admin_area_2": location.admin_area_2,
+                        "country": location.country,
                         "workspace": {
                             "id": location.thing.workspace.id,
                             "name": location.thing.workspace.name,

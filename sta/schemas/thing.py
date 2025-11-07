@@ -42,11 +42,11 @@ class LocationFields(Schema):
         max_length=255,
         validation_alias=AliasChoices("elevationDatum", "location.elevation_datum"),
     )
-    state: Optional[str] = Field(
-        None, max_length=200, validation_alias=AliasChoices("state", "location.state")
+    admin_area_1: Optional[str] = Field(
+        None, max_length=200, validation_alias=AliasChoices("adminArea1", "location.admin_area_1")
     )
-    county: Optional[str] = Field(
-        None, max_length=200, validation_alias=AliasChoices("county", "location.county")
+    admin_area_2: Optional[str] = Field(
+        None, max_length=200, validation_alias=AliasChoices("adminArea2", "location.admin_area_2")
     )
     country: Optional[str] = Field(
         None, max_length=2, validation_alias=AliasChoices("country", "location.country")
@@ -93,8 +93,8 @@ _order_by_fields = (
     "longitude",
     "elevation_m",
     "elevationDatum",
-    "state",
-    "county",
+    "adminArea1",
+    "adminArea2",
     "country",
 )
 
@@ -113,11 +113,11 @@ class ThingQueryParameters(CollectionQueryParameters):
         [],
         description="Filter things by bounding box. Format bounding box as {min_lon},{min_lat},{max_lon},{max_lat}",
     )
-    locations__state: list[str] = Query(
-        [], description="Filter things by state.", alias="state"
+    locations__admin_area_1: list[str] = Query(
+        [], description="Filter things by admin area 1.", alias="adminArea1"
     )
-    locations__county: list[str] = Query(
-        [], description="Filter things by county.", alias="county"
+    locations__admin_area_2: list[str] = Query(
+        [], description="Filter things by admin area 2.", alias="adminArea2"
     )
     locations__country: list[str] = Query(
         [], description="Filter things by country.", alias="country"

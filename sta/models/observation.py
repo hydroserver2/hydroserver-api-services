@@ -4,71 +4,56 @@ import typing
 import operator
 from typing import Literal, Optional, Union
 from django.db import models, connection
-from django.db.models import Q
-from iam.models import Workspace, Permission
+from django.db.models import Q, OuterRef, Exists
+from iam.models import Workspace, APIKey, Permission, Collaborator
 from iam.models.utils import PermissionChecker
 from .datastream import Datastream
 from .result_qualifier import ResultQualifier
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth import get_user_model
-    from iam.models import Workspace, APIKey
+    from iam.models import Workspace
 
     User = get_user_model()
 
 
 class ObservationQuerySet(models.QuerySet):
     def visible(self, principal: Optional[Union["User", "APIKey"]]):
-        if hasattr(principal, "account_type"):
-            if principal.account_type == "admin":
-                return self
-            else:
-                return self.filter(
-                    Q(
-                        datastream__thing__workspace__is_private=False,
-                        datastream__thing__is_private=False,
-                        datastream__is_private=False,
-                    )
-                    | Q(datastream__thing__workspace__owner=principal)
-                    | Q(
-                        datastream__thing__workspace__collaborators__user=principal,
-                        datastream__thing__workspace__collaborators__role__permissions__resource_type__in=[
-                            "*",
-                            "Observation",
-                        ],
-                        datastream__thing__workspace__collaborators__role__permissions__permission_type__in=[
-                            "*",
-                            "view",
-                        ],
-                    )
-                )
+        public_filter = Q(
+            datastream__thing__workspace__is_private=False,
+            datastream__thing__is_private=False,
+            datastream__is_private=False,
+        )
+
+        if hasattr(principal, "account_type") and principal.account_type == "admin":
+            return self
+
+        elif hasattr(principal, "account_type") and principal.account_type != "admin":
+            collaborator_subquery = Collaborator.objects.filter(
+                workspace=OuterRef("datastream__thing__workspace"),
+                user=principal,
+                role__permissions__resource_type__in=["*", "Observation"],
+                role__permissions__permission_type__in=["*", "view"],
+            )
+
+            return self.filter(
+                public_filter
+                | Q(datastream__thing__workspace__owner=principal)
+                | Exists(collaborator_subquery)
+            )
+
         elif hasattr(principal, "workspace"):
-            return self.filter(
-                Q(
-                    datastream__thing__workspace__is_private=False,
-                    datastream__thing__is_private=False,
-                    datastream__is_private=False,
-                )
-                | Q(
-                    datastream__thing__workspace__apikeys=principal,
-                    datastream__thing__workspace__apikeys__role__permissions__resource_type__in=[
-                        "*",
-                        "Observation",
-                    ],
-                    datastream__thing__workspace__apikeys__role__permissions__permission_type__in=[
-                        "*",
-                        "view",
-                    ],
-                )
+            apikey_subquery = APIKey.objects.filter(
+                workspace=OuterRef("datastream__thing__workspace"),
+                id=principal.id,
+                role__permissions__resource_type__in=["*", "Observation"],
+                role__permissions__permission_type__in=["*", "view"],
             )
+
+            return self.filter(public_filter | Exists(apikey_subquery))
+
         else:
-            return self.filter(
-                Q(
-                    datastream__thing__workspace__is_private=False,
-                    datastream__thing__is_private=False,
-                    datastream__is_private=False,
-                )
-            )
+            return self.filter(public_filter)
 
     def removable(self, principal: Optional[Union["User", "APIKey"]]):
         if hasattr(principal, "account_type"):
