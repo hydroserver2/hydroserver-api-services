@@ -24,6 +24,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: False
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000010
+  fields:
+    datastream: 27c70b41-e845-40ea-8cc7-d1b40f89816b
+    key: Test Public Key
+    value: Test Public Value
 
 # Private Datastream / Public Thing / Public Workspace
 - model: sta.datastream
@@ -51,6 +57,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: True
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000011
+  fields:
+    datastream: e0506cac-3e50-4d0a-814d-7ae0146705b2
+    key: Test Private Key
+    value: Test Private Value
 
 # Public Datastream / Private Thing / Public Workspace
 - model: sta.datastream
@@ -78,6 +90,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: False
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000012
+  fields:
+    datastream: cad40a75-99ca-4317-b534-0fc7880c905f
+    key: Test Private Key
+    value: Test Private Value
 
 # Private Datastream / Private Thing / Public Workspace
 - model: sta.datastream
@@ -105,6 +123,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: True
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000013
+  fields:
+    datastream: fcd47d93-4cae-411a-9e1e-26ef473840ed
+    key: Test Private Key
+    value: Test Private Value
 
 # Public Datastream / Public Thing / Private Workspace
 - model: sta.datastream
@@ -132,6 +156,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: False
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000014
+  fields:
+    datastream: dd1f9293-ce29-4b6a-88e6-d65110d1be65
+    key: Test Private Key
+    value: Test Private Value
 
 # Private Datastream / Public Thing / Private Workspace
 - model: sta.datastream
@@ -159,6 +189,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: True
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000015
+  fields:
+    datastream: 1c9a797e-6fd8-4e99-b1ae-87ab4affc0a2
+    key: Test Private Key
+    value: Test Private Value
 
 # Public Datastream / Private Thing / Private Workspace
 - model: sta.datastream
@@ -186,6 +222,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: False
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000016
+  fields:
+    datastream: 42e08eea-27bb-4ea3-8ced-63acff0f3334
+    key: Test Private Key
+    value: Test Private Value
 
 # Private Datastream / Private Thing / Private Workspace
 - model: sta.datastream
@@ -213,6 +255,12 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: True
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000017
+  fields:
+    datastream: 9f96957b-ee20-4c7b-bf2b-673a0cda3a04
+    key: Test Private Key
+    value: Test Private Value
 
 # Public Datastream with System Metadata
 - model: sta.datastream
@@ -240,3 +288,9 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: False
     is_visible: True
+- model: sta.datastreamtag
+  pk: 1000000018
+  fields:
+    datastream: dd5c60c2-a631-4e27-9aec-a59e1183861c
+    key: Test Private Key
+    value: Test Private Value

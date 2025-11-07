@@ -3,6 +3,7 @@ import typing
 from typing import Literal, Optional, Union
 from django.db import models
 from django.db.models import Q
+from django.conf import settings
 from iam.models import Workspace
 from iam.models.utils import PermissionChecker
 from .thing import Thing
@@ -158,7 +159,12 @@ class Datastream(models.Model, PermissionChecker):
 
     @staticmethod
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from sta.models import Observation, Datastream
+        from sta.models import (
+            Observation,
+            Datastream,
+            DatastreamTag,
+            DatastreamFileAttachment,
+        )
 
         datastream_relation_filter = (
             f"datastream__{filter_suffix}" if filter_suffix else "datastream"
@@ -173,6 +179,117 @@ class Datastream(models.Model, PermissionChecker):
         Datastream.data_archives.through.objects.filter(
             **{datastream_relation_filter: filter_arg}
         ).delete()
+
+        DatastreamTag.objects.filter(
+            **{datastream_relation_filter: filter_arg}
+        ).delete()
+        DatastreamFileAttachment.objects.filter(
+            **{datastream_relation_filter: filter_arg}
+        ).delete()
+
+
+class DatastreamTagQuerySet(models.QuerySet):
+    def visible(self, principal: Optional[Union["User", "APIKey"]]):
+        if hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return self
+            else:
+                return self.filter(
+                    Q(
+                        datastream__thing__workspace__is_private=False,
+                        datastream__thing__is_private=False,
+                        datastream__is_private=False,
+                    )
+                    | Q(datastream__thing__workspace__owner=principal)
+                    | Q(
+                        datastream__thing__workspace__collaborators__user=principal,
+                        datastream__thing__workspace__collaborators__role__permissions__resource_type__in=[
+                            "*",
+                            "Datastream",
+                        ],
+                        datastream__thing__workspace__collaborators__role__permissions__permission_type__in=[
+                            "*",
+                            "view",
+                        ],
+                    )
+                )
+        elif hasattr(principal, "workspace"):
+            return self.filter(
+                Q(
+                    datastream__thing__workspace__is_private=False,
+                    datastream__thing__is_private=False,
+                    datastream__is_private=False,
+                )
+                | Q(
+                    datastream__thing__workspace__apikeys=principal,
+                    datastream__thing__workspace__apikeys__role__permissions__resource_type__in=[
+                        "*",
+                        "Datastream",
+                    ],
+                    datastream__thing__workspace__apikeys__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
+            )
+        else:
+            return self.filter(
+                Q(
+                    datastream__thing__workspace__is_private=False,
+                    datastream__thing__is_private=False,
+                    datastream__is_private=False,
+                )
+            )
+
+
+class DatastreamTag(models.Model, PermissionChecker):
+    datastream = models.ForeignKey(
+        Datastream, related_name="datastream_tags", on_delete=models.DO_NOTHING
+    )
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.key}: {self.value} - {self.id}"
+
+    objects = DatastreamTagQuerySet.as_manager()
+
+
+def datastream_file_attachment_storage_path(instance, filename):
+    return f"datastreams/{instance.datastream.id}/{filename}"
+
+
+class DatastreamFileAttachment(models.Model, PermissionChecker):
+    datastream = models.ForeignKey(
+        Datastream,
+        related_name="datastream_file_attachments",
+        on_delete=models.DO_NOTHING,
+    )
+    name = models.CharField(max_length=255)
+    file_attachment = models.FileField(
+        upload_to=datastream_file_attachment_storage_path
+    )
+    file_attachment_type = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.name} - {self.id}"
+
+    @property
+    def link(self):
+        storage = self.file_attachment.storage
+
+        try:
+            file_attachment_link = storage.url(self.file_attachment.name, expire=3600)
+        except TypeError:
+            file_attachment_link = storage.url(self.file_attachment.name)
+
+        if settings.DEPLOYMENT_BACKEND == "local":
+            file_attachment_link = settings.PROXY_BASE_URL + file_attachment_link
+
+        return file_attachment_link
+
+    class Meta:
+        unique_together = ("datastream", "name")
 
 
 class DatastreamAggregation(models.Model):

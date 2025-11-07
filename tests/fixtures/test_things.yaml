@@ -23,7 +23,7 @@
     admin_area_2: Cache
     country: US
     thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
-- model: sta.tag
+- model: sta.thingtag
   pk: 1000000010
   fields:
     thing: 3b7818af-eff7-4149-8517-e5cad9dc22e1
@@ -55,7 +55,7 @@
     admin_area_2: Cache
     country: US
     thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
-- model: sta.tag
+- model: sta.thingtag
   pk: 1000000011
   fields:
     thing: 76dadda5-224b-4e1f-8570-e385bd482b2d
@@ -87,7 +87,7 @@
     admin_area_2: Cache
     country: US
     thing: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
-- model: sta.tag
+- model: sta.thingtag
   pk: 1000000012
   fields:
     thing: 92a3a099-f2d3-40ec-9b0e-d25ae8bf59b7
@@ -119,7 +119,7 @@
     admin_area_2: Cache
     country: US
     thing: 819260c8-2543-4046-b8c4-7431243ed7c5
-- model: sta.tag
+- model: sta.thingtag
   pk: 1000000013
   fields:
     thing: 819260c8-2543-4046-b8c4-7431243ed7c5
