@@ -10,8 +10,9 @@ from .workspace import WorkspaceProperties
 
 
 class LocationProperties(Schema):
-    state: Optional[str] = None
-    county: Optional[str] = None
+    admin_area_1: Optional[str] = None
+    admin_area_2: Optional[str] = None
+    country: Optional[str] = None
     elevation_m: Optional[float] = Field(None, alias="elevation_m")
     elevation_datum: Optional[str] = None
     workspace: WorkspaceProperties

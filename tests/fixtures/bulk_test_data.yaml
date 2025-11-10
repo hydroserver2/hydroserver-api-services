@@ -21,8 +21,8 @@
     longitude: 0
     elevation_m: 1
     elevation_datum: WGS84
-    state: NA
-    county: NA
+    admin_area_1: NA
+    admin_area_2: NA
     thing: 97d08ec5-0c29-49e4-906a-9b3f7a09e5ac
 
 # Observed Property

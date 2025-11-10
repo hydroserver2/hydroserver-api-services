@@ -1,6 +1,7 @@
 import uuid
 from typing import Optional
-from ninja import Router, Path, Query
+from ninja import Router, Path, Query, File, Form
+from ninja.files import UploadedFile
 from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
@@ -12,6 +13,11 @@ from sta.schemas import (
     DatastreamQueryParameters,
     DatastreamPostBody,
     DatastreamPatchBody,
+    TagGetResponse,
+    TagPostBody,
+    TagDeleteBody,
+    FileAttachmentGetResponse,
+    FileAttachmentDeleteBody,
 )
 from sta.services import DatastreamService
 from sta.views.observation import observation_router
@@ -77,6 +83,30 @@ def create_datastream(
 
 
 @datastream_router.get(
+    "/tags/keys",
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
+    response={
+        200: dict[str, list[str]],
+        401: str,
+    },
+)
+def get_datastream_tag_keys(
+    request: HydroServerHttpRequest,
+    workspace_id: Optional[uuid.UUID] = None,
+    datastream_id: Optional[uuid.UUID] = None,
+):
+    """
+    Get all existing unique datastream tag keys.
+    """
+
+    return 200, datastream_service.get_tag_keys(
+        principal=request.principal,
+        workspace_id=workspace_id,
+        datastream_id=datastream_id,
+    )
+
+
+@datastream_router.get(
     "/aggregation-statistics", response={200: list[str]}, by_alias=True
 )
 def get_datastream_aggregation_statistics(
@@ -125,6 +155,26 @@ def get_datastream_sampled_mediums(
     """
 
     return 200, datastream_service.list_sampled_mediums(
+        response=response,
+        page=query.page,
+        page_size=query.page_size,
+        order_desc=query.order_desc,
+    )
+
+
+@datastream_router.get(
+    "/file-attachment-types", response={200: list[str]}, by_alias=True
+)
+def get_file_attachment_types(
+    request: HydroServerHttpRequest,
+    response: HttpResponse,
+    query: Query[VocabularyQueryParameters],
+):
+    """
+    Get file attachment types.
+    """
+
+    return 200, datastream_service.list_file_attachment_types(
         response=response,
         page=query.page,
         page_size=query.page_size,
@@ -206,6 +256,189 @@ def delete_datastream(request: HydroServerHttpRequest, datastream_id: Path[uuid.
 
     return 204, datastream_service.delete(
         principal=request.principal, uid=datastream_id
+    )
+
+
+@datastream_router.get(
+    "/{datastream_id}/tags",
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
+    response={
+        200: list[TagGetResponse],
+        401: str,
+        403: str,
+    },
+    by_alias=True,
+)
+def get_datastream_tags(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]
+):
+    """
+    Get all tags associated with a Datastream.
+    """
+
+    return 200, datastream_service.get_tags(
+        principal=request.principal,
+        uid=datastream_id,
+    )
+
+
+@datastream_router.post(
+    "/{datastream_id}/tags",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        201: TagGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def add_datastream_tag(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID], data: TagPostBody
+):
+    """
+    Add a tag to a Datastream.
+    """
+
+    return 201, datastream_service.add_tag(
+        principal=request.principal,
+        uid=datastream_id,
+        data=data,
+    )
+
+
+@datastream_router.put(
+    "/{datastream_id}/tags",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        200: TagGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def edit_datastream_tag(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID], data: TagPostBody
+):
+    """
+    Edit a tag of a Datastream.
+    """
+
+    return 200, datastream_service.update_tag(
+        principal=request.principal,
+        uid=datastream_id,
+        data=data,
+    )
+
+
+@datastream_router.delete(
+    "/{datastream_id}/tags",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        204: None,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def remove_datastream_tag(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID], data: TagDeleteBody
+):
+    """
+    Remove a tag from a Datastream.
+    """
+
+    return 204, datastream_service.remove_tag(
+        principal=request.principal,
+        uid=datastream_id,
+        data=data,
+    )
+
+
+@datastream_router.get(
+    "/{datastream_id}/file-attachments",
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
+    response={
+        200: list[FileAttachmentGetResponse],
+        401: str,
+        403: str,
+    },
+    by_alias=True,
+)
+def get_datastream_file_attachments(
+    request: HydroServerHttpRequest, datastream_id: Path[uuid.UUID]
+):
+    """
+    Get all file attachments associated with a Datastream.
+    """
+
+    return 200, datastream_service.get_file_attachments(
+        principal=request.principal,
+        uid=datastream_id,
+    )
+
+
+@datastream_router.post(
+    "/{datastream_id}/file-attachments",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        201: FileAttachmentGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        413: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def add_datastream_file_attachment(
+    request: HydroServerHttpRequest,
+    datastream_id: Path[uuid.UUID],
+    file_attachment_type: str = Form(...),
+    file: UploadedFile = File(...),
+):
+    """
+    Add a file attachment to a datastream.
+    """
+
+    return 201, datastream_service.add_file_attachment(
+        principal=request.principal,
+        uid=datastream_id,
+        file=file,
+        file_attachment_type=file_attachment_type,
+    )
+
+
+@datastream_router.delete(
+    "/{datastream_id}/file-attachments",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        204: None,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def remove_datastream_file_attachment(
+    request: HydroServerHttpRequest,
+    datastream_id: Path[uuid.UUID],
+    data: FileAttachmentDeleteBody,
+):
+    """
+    Remove a file attachment from a datastream.
+    """
+
+    return 204, datastream_service.remove_file_attachment(
+        principal=request.principal,
+        uid=datastream_id,
+        data=data,
     )
 
 

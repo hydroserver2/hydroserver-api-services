@@ -6,7 +6,15 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet, F, Q
 from iam.models import APIKey
-from sta.models import Thing, Location, Tag, Photo, SamplingFeatureType, SiteType
+from sta.models import (
+    Thing,
+    Location,
+    ThingTag,
+    ThingFileAttachment,
+    SamplingFeatureType,
+    SiteType,
+    FileAttachmentType,
+)
 from sta.schemas import (
     ThingSummaryResponse,
     ThingDetailResponse,
@@ -14,7 +22,7 @@ from sta.schemas import (
     ThingPatchBody,
     TagPostBody,
     TagDeleteBody,
-    PhotoDeleteBody,
+    FileAttachmentDeleteBody,
 )
 from sta.schemas.thing import ThingFields, LocationFields, ThingOrderByFields
 from api.service import ServiceUtils
@@ -35,7 +43,9 @@ class ThingService(ServiceUtils):
             if expand_related:
                 thing = self.select_expanded_fields(thing)
             else:
-                thing = thing.prefetch_related("tags", "photos").with_location()
+                thing = thing.prefetch_related(
+                    "thing_tags", "thing_file_attachments"
+                ).with_location()
             thing = thing.get(pk=uid)
         except Thing.DoesNotExist:
             raise HttpError(404, "Thing does not exist")
@@ -54,7 +64,7 @@ class ThingService(ServiceUtils):
     def select_expanded_fields(queryset: QuerySet) -> QuerySet:
         return (
             queryset.select_related("workspace")
-            .prefetch_related("tags", "photos")
+            .prefetch_related("thing_tags", "thing_file_attachments")
             .with_location()
         )
 
@@ -103,7 +113,7 @@ class ThingService(ServiceUtils):
 
             key, value = tag.split(":", 1)
 
-            queryset = queryset.filter(tags__key=key, tags__value=value)
+            queryset = queryset.filter(thing_tags__key=key, thing_tags__value=value)
 
         return queryset.distinct()
 
@@ -121,8 +131,8 @@ class ThingService(ServiceUtils):
 
         for field in [
             "workspace_id",
-            "locations__state",
-            "locations__county",
+            "locations__admin_area_1",
+            "locations__admin_area_2",
             "locations__country",
             "site_type",
             "sampling_feature_type",
@@ -152,8 +162,8 @@ class ThingService(ServiceUtils):
                     "longitude": "location__longitude",
                     "elevation_m": "location__elevation_m",
                     "elevationDatum": "location__elevation_datum",
-                    "state": "location__state",
-                    "county": "location__county",
+                    "admin_area_1": "location__admin_area_1",
+                    "admin_area_2": "location__admin_area_2",
                     "country": "location__country",
                 },
             )
@@ -161,7 +171,9 @@ class ThingService(ServiceUtils):
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
         else:
-            queryset = queryset.prefetch_related("tags", "photos").with_location()
+            queryset = queryset.prefetch_related(
+                "thing_tags", "thing_file_attachments"
+            ).with_location()
 
         queryset = queryset.visible(principal=principal).distinct()
 
@@ -274,7 +286,7 @@ class ThingService(ServiceUtils):
     def get_tags(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.tags.all()
+        return thing.thing_tags.all()
 
     @staticmethod
     def get_tag_keys(
@@ -282,7 +294,7 @@ class ThingService(ServiceUtils):
         workspace_id: Optional[uuid.UUID],
         thing_id: Optional[uuid.UUID],
     ):
-        queryset = Tag.objects
+        queryset = ThingTag.objects
 
         if workspace_id:
             queryset = queryset.filter(thing__workspace_id=workspace_id)
@@ -301,17 +313,17 @@ class ThingService(ServiceUtils):
     def add_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if Tag.objects.filter(thing=thing, key=data.key).exists():
+        if ThingTag.objects.filter(thing=thing, key=data.key).exists():
             raise HttpError(400, "Tag already exists")
 
-        return Tag.objects.create(thing=thing, key=data.key, value=data.value)
+        return ThingTag.objects.create(thing=thing, key=data.key, value=data.value)
 
     def update_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagPostBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
-            tag = Tag.objects.get(thing=thing, key=data.key)
-        except Tag.DoesNotExist:
+            tag = ThingTag.objects.get(thing=thing, key=data.key)
+        except ThingTag.DoesNotExist:
             raise HttpError(404, "Tag does not exist")
 
         tag.value = data.value
@@ -322,7 +334,7 @@ class ThingService(ServiceUtils):
     def remove_tag(self, principal: User | APIKey, uid: uuid.UUID, data: TagDeleteBody):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        queryset = Tag.objects.filter(thing=thing, key=data.key)
+        queryset = ThingTag.objects.filter(thing=thing, key=data.key)
 
         if data.value is not None:
             queryset = queryset.filter(value=data.value)
@@ -334,33 +346,42 @@ class ThingService(ServiceUtils):
 
         return f"{deleted_count} tag(s) deleted"
 
-    def get_photos(self, principal: Optional[User | APIKey], uid: uuid.UUID):
+    def get_file_attachments(self, principal: Optional[User | APIKey], uid: uuid.UUID):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="view")
 
-        return thing.photos.all()
+        return thing.thing_file_attachments.all()
 
-    def add_photo(self, principal: User | APIKey, uid: uuid.UUID, file):
+    def add_file_attachment(
+        self, principal: User | APIKey, uid: uuid.UUID, file, file_attachment_type: str
+    ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
-        if Photo.objects.filter(thing=thing, name=file.name).exists():
-            raise HttpError(400, "Photo already exists")
+        if ThingFileAttachment.objects.filter(thing=thing, name=file.name).exists():
+            raise HttpError(400, "File attachment already exists")
 
-        return Photo.objects.create(thing=thing, name=file.name, photo=file)
+        return ThingFileAttachment.objects.create(
+            thing=thing,
+            name=file.name,
+            file_attachment=file,
+            file_attachment_type=file_attachment_type,
+        )
 
-    def remove_photo(
-        self, principal: User | APIKey, uid: uuid.UUID, data: PhotoDeleteBody
+    def remove_file_attachment(
+        self, principal: User | APIKey, uid: uuid.UUID, data: FileAttachmentDeleteBody
     ):
         thing = self.get_thing_for_action(principal=principal, uid=uid, action="edit")
 
         try:
-            photo = Photo.objects.get(thing=thing, name=data.name)
-        except Photo.DoesNotExist:
-            raise HttpError(404, "Photo does not exist")
+            file_attachment = ThingFileAttachment.objects.get(
+                thing=thing, name=data.name
+            )
+        except ThingFileAttachment.DoesNotExist:
+            raise HttpError(404, "File attachment does not exist")
 
-        photo.photo.delete()
-        photo.delete()
+        file_attachment.file_attachment.delete()
+        file_attachment.delete()
 
-        return "Photo deleted"
+        return "File attachment deleted"
 
     def list_site_types(
         self,
@@ -382,6 +403,20 @@ class ThingService(ServiceUtils):
         order_desc: bool = False,
     ):
         queryset = SamplingFeatureType.objects.order_by(
+            f"{'-' if order_desc else ''}name"
+        )
+        queryset, count = self.apply_pagination(queryset, response, page, page_size)
+
+        return queryset.values_list("name", flat=True)
+
+    def list_file_attachment_types(
+        self,
+        response: HttpResponse,
+        page: Optional[int] = None,
+        page_size: Optional[int] = None,
+        order_desc: bool = False,
+    ):
+        queryset = FileAttachmentType.objects.order_by(
             f"{'-' if order_desc else ''}name"
         )
         queryset, count = self.apply_pagination(queryset, response, page, page_size)

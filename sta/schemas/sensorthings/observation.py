@@ -15,14 +15,9 @@ from sensorthings.extensions.dataarray.schemas import (
 )
 
 
-class ResultQualifier(Schema):
-    code: str
-    description: str
-
-
 class ObservationResultQualityResponse(Schema):
     quality_code: Optional[str] = Field(None, alias="qualityCode")
-    result_qualifiers: list[ResultQualifier] = Field(None, alias="resultQualifiers")
+    result_qualifiers: list[str] = Field(None, alias="resultQualifiers")
 
     model_config = ConfigDict(
         populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel
@@ -31,7 +26,7 @@ class ObservationResultQualityResponse(Schema):
 
 class ObservationResultQualityBody(Schema):
     quality_code: Optional[str] = None
-    result_qualifiers: Optional[list[UUID]] = None
+    result_qualifiers: Optional[list[str]] = None
 
     model_config = ConfigDict(
         populate_by_name=True, str_strip_whitespace=True, alias_generator=to_camel

@@ -22,63 +22,63 @@ observation_service = ObservationService()
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "editor",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "viewer",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "admin",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "apikey",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "admin",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "apikey",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "unaffiliated",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         (
             "anonymous",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {},
             [1.1, 3.1],
-            9,
+            11,
         ),
         # Test pagination and order_by
         (
@@ -86,7 +86,7 @@ observation_service = ObservationService()
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {"page": 2, "page_size": 1, "order_by": "-phenomenonTime"},
             [1.1],
-            9,
+            11,
         ),
         # Test filtering
         (
@@ -94,14 +94,14 @@ observation_service = ObservationService()
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {"phenomenon_time__gte": "2025-02-10 02:00:00.000 -0700"},
             [3.1],
-            9,
+            11,
         ),
         (
             "owner",
             "27c70b41-e845-40ea-8cc7-d1b40f89816b",
             {"result_qualifiers__code": "SystemResultQualifier"},
             [3.1],
-            9,
+            11,
         ),
     ],
 )
@@ -137,7 +137,7 @@ def test_create_observations(
     django_assert_max_num_queries,
     get_principal,
 ):
-    with django_assert_max_num_queries(11):
+    with django_assert_max_num_queries(13):
         observation_service.bulk_create(
             principal=get_principal("owner"),
             datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),
@@ -168,7 +168,7 @@ def test_delete_observations(
     django_assert_max_num_queries,
     get_principal,
 ):
-    with django_assert_max_num_queries(11):
+    with django_assert_max_num_queries(13):
         observation_service.bulk_delete(
             principal=get_principal("owner"),
             datastream_id=uuid.UUID("27c70b41-e845-40ea-8cc7-d1b40f89816b"),

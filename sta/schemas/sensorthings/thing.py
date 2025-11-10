@@ -17,7 +17,7 @@ class ThingProperties(Schema):
     data_disclaimer: Optional[str] = None
     is_private: bool
     workspace: WorkspaceProperties
-    photos: dict[str, AnyHttpUrlString]
+    file_attachments: dict[str, AnyHttpUrlString]
     tags: dict[str, str]
 
     model_config = ConfigDict(

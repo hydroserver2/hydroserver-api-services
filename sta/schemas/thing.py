@@ -9,39 +9,12 @@ from api.schemas import (
     BasePatchBody,
     CollectionQueryParameters,
 )
+from .attachment import TagGetResponse, FileAttachmentGetResponse
 
 if TYPE_CHECKING:
     from iam.schemas import WorkspaceSummaryResponse
 
 valid_country_codes = [code for code, _ in countries_for_language("en")]
-
-
-class TagGetResponse(BaseGetResponse):
-    key: str
-    value: str
-
-
-class TagPostBody(BasePostBody):
-    key: str
-    value: str
-
-
-class TagDeleteBody(BasePostBody):
-    key: str
-    value: Optional[str] = None
-
-
-class PhotoGetResponse(BaseGetResponse):
-    name: str
-    link: str
-
-
-class PhotoPostBody(BasePostBody):
-    name: str
-
-
-class PhotoDeleteBody(BasePostBody):
-    name: str
 
 
 class LocationFields(Schema):
@@ -69,11 +42,11 @@ class LocationFields(Schema):
         max_length=255,
         validation_alias=AliasChoices("elevationDatum", "location.elevation_datum"),
     )
-    state: Optional[str] = Field(
-        None, max_length=200, validation_alias=AliasChoices("state", "location.state")
+    admin_area_1: Optional[str] = Field(
+        None, max_length=200, validation_alias=AliasChoices("adminArea1", "location.admin_area_1")
     )
-    county: Optional[str] = Field(
-        None, max_length=200, validation_alias=AliasChoices("county", "location.county")
+    admin_area_2: Optional[str] = Field(
+        None, max_length=200, validation_alias=AliasChoices("adminArea2", "location.admin_area_2")
     )
     country: Optional[str] = Field(
         None, max_length=2, validation_alias=AliasChoices("country", "location.country")
@@ -120,8 +93,8 @@ _order_by_fields = (
     "longitude",
     "elevation_m",
     "elevationDatum",
-    "state",
-    "county",
+    "adminArea1",
+    "adminArea2",
     "country",
 )
 
@@ -140,11 +113,11 @@ class ThingQueryParameters(CollectionQueryParameters):
         [],
         description="Filter things by bounding box. Format bounding box as {min_lon},{min_lat},{max_lon},{max_lat}",
     )
-    locations__state: list[str] = Query(
-        [], description="Filter things by state.", alias="state"
+    locations__admin_area_1: list[str] = Query(
+        [], description="Filter things by admin area 1.", alias="adminArea1"
     )
-    locations__county: list[str] = Query(
-        [], description="Filter things by county.", alias="county"
+    locations__admin_area_2: list[str] = Query(
+        [], description="Filter things by admin area 2.", alias="adminArea2"
     )
     locations__country: list[str] = Query(
         [], description="Filter things by country.", alias="country"
@@ -166,16 +139,20 @@ class ThingSummaryResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace_id: uuid.UUID
     location: LocationDetailResponse
-    tags: list[TagGetResponse]
-    photos: list[PhotoGetResponse]
+    thing_tags: list[TagGetResponse] = Field(..., alias="tags")
+    thing_file_attachments: list[FileAttachmentGetResponse] = Field(
+        ..., alias="fileAttachments"
+    )
 
 
 class ThingDetailResponse(BaseGetResponse, ThingFields):
     id: uuid.UUID
     workspace: "WorkspaceSummaryResponse"
     location: LocationDetailResponse
-    tags: list[TagGetResponse]
-    photos: list[PhotoGetResponse]
+    thing_tags: list[TagGetResponse] = Field(..., alias="tags")
+    thing_file_attachments: list[FileAttachmentGetResponse] = Field(
+        ..., alias="fileAttachments"
+    )
 
 
 class ThingPostBody(BasePostBody, ThingFields):
