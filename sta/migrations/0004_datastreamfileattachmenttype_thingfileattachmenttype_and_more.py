@@ -15,6 +15,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
+            model_name='location',
+            old_name='state',
+            new_name='admin_area_1',
+        ),
+        migrations.RenameField(
+            model_name='location',
+            old_name='county',
+            new_name='admin_area_2',
+        ),
+        migrations.RenameField(
             model_name="photo",
             old_name="photo",
             new_name="file_attachment",
