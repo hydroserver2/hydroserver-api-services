@@ -1,9 +1,10 @@
 import math
 from uuid import UUID
-from datetime import datetime
 from typing import Optional
-from django.db.models import Min, Max, Count
+from django.db.models.functions import Coalesce
+from django.db.models import Min, Max, Count, Q, Value, OuterRef, Subquery
 from django.db.utils import IntegrityError, DatabaseError, DataError
+from django.contrib.postgres.aggregates import ArrayAgg
 from psycopg.errors import UniqueViolation
 from ninja.errors import HttpError
 from sta.models import Observation, Datastream
@@ -75,6 +76,27 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                 if order_rule["field"] not in ["Datastream/id", "phenomenonTime"]
             ]
 
+        result_qualifier_subquery = (
+            Observation.result_qualifiers.through.objects.filter(
+                **{"observation": OuterRef("pk")}
+            )
+            .values("observation")
+            .annotate(
+                codes=ArrayAgg(
+                    f"resultqualifier__code",
+                    distinct=True,
+                    filter=~Q(**{"resultqualifier__code": None}),
+                )
+            )
+            .values("codes")[:1]
+        )
+
+        observations = observations.annotate(
+            result_qualifier_codes=Coalesce(
+                Subquery(result_qualifier_subquery), Value([])
+            )
+        )
+
         observations = self.apply_order(
             queryset=observations, component=ObservationSchema, order_by=ordering
         )
@@ -100,17 +122,6 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                 skip=pagination.get("skip") if pagination else 0,
             )
 
-        # result_qualifier_ids = list(set([rq_id for rq_ids in [
-        #     observation.result_qualifiers for observation in observations if observation.result_qualifiers
-        # ] for rq_id in rq_ids]))
-        #
-        # result_qualifiers = ResultQualifier.objects.filter(id__in=result_qualifier_ids)
-        #
-        # result_qualifiers = {
-        #     result_qualifier.id: result_qualifier
-        #     for result_qualifier in result_qualifiers
-        # }
-
         try:
             return {
                 observation.id: {
@@ -123,16 +134,11 @@ class ObservationEngine(ObservationBaseEngine, SensorThingsUtils):
                         else None
                     ),
                     "datastream_id": observation.datastream_id,
-                    "result_quality": None,
-                    # "result_quality": {
-                    #     "quality_code": observation.quality_code,
-                    #     "result_qualifiers": [
-                    #         {
-                    #             "code": result_qualifiers.get(result_qualifier).code,
-                    #             "description": result_qualifiers.get(result_qualifier).description
-                    #         } for result_qualifier in observation.result_qualifiers
-                    #     ] if observation.result_qualifiers is not None else []
-                    # }
+                    "result_quality": {
+                        "quality_code": observation.quality_code,
+                        "result_qualifiers": observation.result_qualifier_codes
+                        if observation.result_qualifiers is not None else []
+                    }
                 }
                 for observation in observations
             }, count
