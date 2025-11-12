@@ -70,6 +70,11 @@ CORS_EXPOSE_HEADERS = [
     "X-Total-Count",
 ]
 
+# Celery
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND = "django-db"
+
 # Application definition
 
 AUTHENTICATION_BACKENDS = [
@@ -97,6 +102,8 @@ INSTALLED_APPS = [
     "easyaudit",
     "sensorthings",
     "storages",
+    "django_celery_results",
+    "django_celery_beat",
     "api.apps.ApiConfig",
     "iam.apps.IamConfig",
     "sta.apps.StaConfig",
