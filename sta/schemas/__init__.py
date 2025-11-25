@@ -72,7 +72,6 @@ from .attachment import (
 
 
 from iam.schemas import WorkspaceSummaryResponse
-from etl.schemas import DataSourceSummaryResponse
 
 
 ThingDetailResponse.model_rebuild()

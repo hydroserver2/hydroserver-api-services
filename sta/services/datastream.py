@@ -99,7 +99,6 @@ class DatastreamService(ServiceUtils):
         return queryset.select_related(
             "thing__workspace",
             "thing",
-            "data_source",
             "sensor",
             "observed_property",
             "unit",
@@ -126,8 +125,6 @@ class DatastreamService(ServiceUtils):
             "processing_level_id",
             "unit_id",
             "observations__result_qualifier_id",
-            "data_source_id",
-            "data_archives__id",
             "observation_type",
             "sampled_medium",
             "status",

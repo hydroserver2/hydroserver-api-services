@@ -20,7 +20,6 @@ from sta.schemas import (
     FileAttachmentDeleteBody,
 )
 from sta.services import ThingService
-from etl.views.hydroshare_archival import hydroshare_archival_router
 
 thing_router = Router(tags=["Things"])
 thing_service = ThingService()
@@ -413,6 +412,3 @@ def remove_thing_file_attachment(
         uid=thing_id,
         data=data,
     )
-
-
-thing_router.add_router("{thing_id}/archive", hydroshare_archival_router)

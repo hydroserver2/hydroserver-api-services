@@ -7,9 +7,7 @@ from api.schemas import (
     BasePatchBody,
     CollectionQueryParameters,
 )
-
-if TYPE_CHECKING:
-    from iam.schemas import WorkspaceSummaryResponse
+from iam.schemas import WorkspaceSummaryResponse
 
 
 class OrchestrationSystemFields(Schema):
@@ -47,7 +45,7 @@ class OrchestrationSystemSummaryResponse(BaseGetResponse, OrchestrationSystemFie
 
 class OrchestrationSystemDetailResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceSummaryResponse"]
+    workspace: Optional[WorkspaceSummaryResponse]
 
 
 class OrchestrationSystemPostBody(BasePostBody, OrchestrationSystemFields):

@@ -132,7 +132,6 @@ class Workspace(models.Model):
             Sensor,
             Unit,
         )
-        from etl.models import OrchestrationSystem, DataSource, DataArchive
 
         workspace_relation_filter = (
             f"workspace__{filter_suffix}" if filter_suffix else "workspace"
@@ -163,23 +162,6 @@ class Workspace(models.Model):
         ).delete()
         Sensor.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
         Unit.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
-
-        DataSource.delete_contents(
-            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
-        )
-        DataSource.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
-
-        DataArchive.delete_contents(
-            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
-        )
-        DataArchive.objects.filter(**{workspace_relation_filter: filter_arg}).delete()
-
-        OrchestrationSystem.delete_contents(
-            filter_arg=filter_arg, filter_suffix=workspace_relation_filter
-        )
-        OrchestrationSystem.objects.filter(
-            **{workspace_relation_filter: filter_arg}
-        ).delete()
 
 
 class WorkspaceTransferConfirmation(models.Model):

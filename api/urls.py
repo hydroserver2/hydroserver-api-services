@@ -19,9 +19,10 @@ from sta.views import (
     datastream_router,
 )
 from etl.views import (
+    job_router,
     orchestration_system_router,
-    data_source_router,
-    data_archive_router,
+    task_router,
+    task_run_router
 )
 
 
@@ -48,9 +49,22 @@ api.add_router("sensors", sensor_router)
 api.add_router("processing-levels", processing_level_router)
 api.add_router("result-qualifiers", result_qualifier_router)
 
-api.add_router("orchestration-systems", orchestration_system_router)
-api.add_router("data-sources", data_source_router)
-api.add_router("data-archives", data_archive_router)
+etl_api = NinjaAPI(
+    title="HydroServer ETL API",
+    version=__version__,
+    urls_namespace="etl",
+    docs_decorator=ensure_csrf_cookie,
+    renderer=ORJSONRenderer(),
+    throttle=[
+        AnonRateThrottle("20/s"),
+        AuthRateThrottle("20/s"),
+    ],
+)
+
+etl_api.add_router("jobs", job_router)
+etl_api.add_router("tasks", task_router)
+etl_api.add_router("tasks", task_run_router)
+etl_api.add_router("orchestration-systems", orchestration_system_router)
 
 st_api_1_1 = SensorThingsAPI(
     title="HydroServer SensorThings API",
@@ -67,5 +81,6 @@ st_api_1_1 = SensorThingsAPI(
 
 urlpatterns = [
     path("data/", api.urls),
+    path("etl/", etl_api.urls),
     path("sensorthings/v1.1/", st_api_1_1.urls),
 ]

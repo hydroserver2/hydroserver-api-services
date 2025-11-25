@@ -1,31 +1,35 @@
 from django.contrib import admin
-from etl.models import OrchestrationSystem, DataSource, DataArchive
+from etl.models import OrchestrationSystem, Job, Task, TaskMapping, TaskMappingPath, TaskRun
 
 
 class OrchestrationSystemAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "orchestration_system_type", "workspace__name")
 
-    def delete_queryset(self, request, queryset):
-        OrchestrationSystem.delete_contents(filter_arg=queryset, filter_suffix="in")
-        queryset.delete()
+
+class JobAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "job_type", "workspace__name")
 
 
-class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "orchestration_system__name", "workspace__name")
-
-    def delete_queryset(self, request, queryset):
-        DataSource.delete_contents(filter_arg=queryset, filter_suffix="in")
-        queryset.delete()
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "job__name", "orchestration_system__name", "job__workspace__name")
 
 
-class DataArchiveAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "orchestration_system__name", "workspace__name")
+class TaskMappingAdmin(admin.ModelAdmin):
+    list_display = ("id", "task__name", "source_identifier", "task__job__name", "task__job__workspace__name")
 
-    def delete_queryset(self, request, queryset):
-        DataArchive.delete_contents(filter_arg=queryset, filter_suffix="in")
-        queryset.delete()
+
+class TaskMappingPathAdmin(admin.ModelAdmin):
+    list_display = ("id", "task_mapping__task__name", "target_identifier", "task_mapping__task__job__name",
+                    "task_mapping__task__job__workspace__name")
+
+
+class TaskRunAdmin(admin.ModelAdmin):
+    list_display = ("id", "status", "started_at", "finished_at", "result")
 
 
 admin.site.register(OrchestrationSystem, OrchestrationSystemAdmin)
-admin.site.register(DataSource, DataSourceAdmin)
-admin.site.register(DataArchive, DataArchiveAdmin)
+admin.site.register(Job, JobAdmin)
+admin.site.register(Task, TaskAdmin)
+admin.site.register(TaskMapping, TaskMappingAdmin)
+admin.site.register(TaskMappingPath, TaskMappingPathAdmin)
+admin.site.register(TaskRun, TaskRunAdmin)

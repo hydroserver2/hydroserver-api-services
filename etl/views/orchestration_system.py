@@ -1,29 +1,23 @@
 import uuid
-from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from etl.schemas import (
-    OrchestrationSystemSummaryResponse,
-    OrchestrationSystemDetailResponse,
-    OrchestrationSystemQueryParameters,
-    OrchestrationSystemPostBody,
-    OrchestrationSystemPatchBody,
-)
+from hydroserver.security import bearer_auth, session_auth, apikey_auth
 from etl.services import OrchestrationSystemService
+from etl.schemas import (OrchestrationSystemSummaryResponse, OrchestrationSystemDetailResponse, 
+                         OrchestrationSystemPostBody, OrchestrationSystemPatchBody, OrchestrationSystemQueryParameters)
 
-orchestration_system_router = Router(tags=["Orchestration Systems"])
+
+orchestration_system_router = Router(tags=["ETL Orchestration Systems"])
 orchestration_system_service = OrchestrationSystemService()
 
 
 @orchestration_system_router.get(
     "",
-    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: list[OrchestrationSystemSummaryResponse]
-        | list[OrchestrationSystemDetailResponse],
+        200: list[OrchestrationSystemSummaryResponse] | list[OrchestrationSystemDetailResponse],
         401: str,
     },
     by_alias=True,
@@ -34,7 +28,7 @@ def get_orchestration_systems(
     query: Query[OrchestrationSystemQueryParameters],
 ):
     """
-    Get public Orchestration Systems and Orchestration Systems associated with the authenticated user.
+    Get ETL Orchestration Systems associated with the authenticated user.
     """
 
     return 200, orchestration_system_service.list(
@@ -52,7 +46,7 @@ def get_orchestration_systems(
     "",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        201: OrchestrationSystemSummaryResponse | OrchestrationSystemDetailResponse,
+        201: OrchestrationSystemDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -60,24 +54,22 @@ def get_orchestration_systems(
     },
     by_alias=True,
 )
-@transaction.atomic
 def create_orchestration_system(
     request: HydroServerHttpRequest,
-    data: OrchestrationSystemPostBody,
-    expand_related: Optional[bool] = None,
+    data: OrchestrationSystemPostBody
 ):
     """
-    Create a new Orchestration System.
+    Create a new ETL Orchestration System.
     """
 
     return 201, orchestration_system_service.create(
-        principal=request.principal, data=data, expand_related=expand_related
+        principal=request.principal, data=data
     )
 
 
 @orchestration_system_router.get(
     "/{orchestration_system_id}",
-    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
+    auth=[session_auth, bearer_auth, apikey_auth],
     response={
         200: OrchestrationSystemSummaryResponse | OrchestrationSystemDetailResponse,
         401: str,
@@ -89,16 +81,14 @@ def create_orchestration_system(
 def get_orchestration_system(
     request: HydroServerHttpRequest,
     orchestration_system_id: Path[uuid.UUID],
-    expand_related: Optional[bool] = None,
+    expand_related: bool | None = None,
 ):
     """
-    Get an Orchestration System.
+    Get an ETL Orchestration System.
     """
 
     return 200, orchestration_system_service.get(
-        principal=request.principal,
-        uid=orchestration_system_id,
-        expand_related=expand_related,
+        principal=request.principal, uid=orchestration_system_id, expand_related=expand_related,
     )
 
 
@@ -106,7 +96,7 @@ def get_orchestration_system(
     "/{orchestration_system_id}",
     auth=[session_auth, bearer_auth, apikey_auth],
     response={
-        200: OrchestrationSystemSummaryResponse | OrchestrationSystemDetailResponse,
+        200: OrchestrationSystemDetailResponse,
         400: str,
         401: str,
         403: str,
@@ -119,17 +109,15 @@ def update_orchestration_system(
     request: HydroServerHttpRequest,
     orchestration_system_id: Path[uuid.UUID],
     data: OrchestrationSystemPatchBody,
-    expand_related: Optional[bool] = None,
 ):
     """
-    Update an Orchestration System.
+    Update a ETL Orchestration System.
     """
 
     return 200, orchestration_system_service.update(
         principal=request.principal,
         uid=orchestration_system_id,
         data=data,
-        expand_related=expand_related,
     )
 
 
@@ -146,10 +134,11 @@ def update_orchestration_system(
 )
 @transaction.atomic
 def delete_orchestration_system(
-    request: HydroServerHttpRequest, orchestration_system_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    orchestration_system_id: Path[uuid.UUID],
 ):
     """
-    Delete an Orchestration System.
+    Delete an ETL Orchestration System.
     """
 
     return 204, orchestration_system_service.delete(

@@ -23,6 +23,6 @@
     phenomenon_end_time: 2025-02-10 02:00:00.000 -0700
     is_private: False
     is_visible: True
-    data_source: 8bc6ba8b-dc67-4ca2-bed1-5abb4b067024
-    data_archives:
-    - 6ff5de63-753b-458e-9735-e1ea68f9816c
+#    data_source: 8bc6ba8b-dc67-4ca2-bed1-5abb4b067024
+#    data_archives:
+#    - 6ff5de63-753b-458e-9735-e1ea68f9816c

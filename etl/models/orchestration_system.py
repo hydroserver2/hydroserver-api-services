@@ -60,7 +60,7 @@ class OrchestrationSystem(models.Model, PermissionChecker):
     workspace = models.ForeignKey(
         Workspace,
         related_name="orchestration_systems",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
     )
@@ -94,30 +94,3 @@ class OrchestrationSystem(models.Model, PermissionChecker):
         )
 
         return permissions
-
-    def delete(self, *args, **kwargs):
-        self.delete_contents(filter_arg=self, filter_suffix="")
-        super().delete(*args, **kwargs)
-
-    @staticmethod
-    def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
-        from etl.models import DataSource, DataArchive
-
-        orchestration_system_relation_filter = (
-            f"orchestration_system__{filter_suffix}"
-            if filter_suffix
-            else "orchestration_system"
-        )
-
-        DataSource.delete_contents(
-            filter_arg=filter_arg, filter_suffix=orchestration_system_relation_filter
-        )
-        DataSource.objects.filter(
-            **{orchestration_system_relation_filter: filter_arg}
-        ).delete()
-        DataArchive.delete_contents(
-            filter_arg=filter_arg, filter_suffix=orchestration_system_relation_filter
-        )
-        DataArchive.objects.filter(
-            **{orchestration_system_relation_filter: filter_arg}
-        ).delete()

@@ -26,7 +26,6 @@ class PermissionChecker:
                 "staff",
             ]:
                 if not workspace and resource_type not in [
-                    "OrchestrationSystem",
                     "ProcessingLevel",
                     "Unit",
                     "Sensor",

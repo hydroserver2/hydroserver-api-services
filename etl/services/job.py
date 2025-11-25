@@ -5,25 +5,25 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from iam.models import APIKey
-from etl.models import OrchestrationSystem
+from etl.models import Job
 from etl.schemas import (
-    OrchestrationSystemSummaryResponse,
-    OrchestrationSystemDetailResponse,
-    OrchestrationSystemPostBody,
-    OrchestrationSystemPatchBody,
+    JobSummaryResponse,
+    JobDetailResponse,
+    JobPostBody,
+    JobPatchBody,
 )
-from etl.schemas.orchestration_system import (
-    OrchestrationSystemFields,
-    OrchestrationSystemOrderByFields,
+from etl.schemas.job import (
+    JobFields,
+    JobOrderByFields,
 )
 from api.service import ServiceUtils
 
 User = get_user_model()
 
 
-class OrchestrationSystemService(ServiceUtils):
+class JobService(ServiceUtils):
 
-    def get_orchestration_system_for_action(
+    def get_job_for_action(
         self,
         principal: User | APIKey,
         uid: uuid.UUID,
@@ -32,31 +32,31 @@ class OrchestrationSystemService(ServiceUtils):
         raise_400: bool = False,
     ):
         try:
-            orchestration_system = OrchestrationSystem.objects
+            job = Job.objects
             if expand_related:
-                orchestration_system = self.select_expanded_fields(orchestration_system)
-            orchestration_system = orchestration_system.get(pk=uid)
-        except OrchestrationSystem.DoesNotExist:
+                job = self.select_expanded_fields(job)
+            job = job.get(pk=uid)
+        except Job.DoesNotExist:
             raise HttpError(
-                404 if not raise_400 else 400, "Orchestration system does not exist"
+                404 if not raise_400 else 400, "ETL Job does not exist"
             )
 
-        orchestration_system_permissions = (
-            orchestration_system.get_principal_permissions(principal=principal)
+        job_permissions = (
+            job.get_principal_permissions(principal=principal)
         )
 
-        if "view" not in orchestration_system_permissions:
+        if "view" not in job_permissions:
             raise HttpError(
-                404 if not raise_400 else 400, "Orchestration system does not exist"
+                404 if not raise_400 else 400, "ETL Job does not exist"
             )
 
-        if action not in orchestration_system_permissions:
+        if action not in job_permissions:
             raise HttpError(
                 403 if not raise_400 else 400,
-                f"You do not have permission to {action} this orchestration system",
+                f"You do not have permission to {action} this ETL job",
             )
 
-        return orchestration_system
+        return job
 
     @staticmethod
     def select_expanded_fields(queryset: QuerySet) -> QuerySet:
@@ -72,11 +72,14 @@ class OrchestrationSystemService(ServiceUtils):
         filtering: Optional[dict] = None,
         expand_related: Optional[bool] = None,
     ):
-        queryset = OrchestrationSystem.objects
+        queryset = Job.objects
 
         for field in [
             "workspace_id",
-            "orchestration_system_type",
+            "job_type",
+            "extractor_type",
+            "transformer_type",
+            "loader_type"
         ]:
             if field in filtering:
                 queryset = self.apply_filters(queryset, field, filtering[field])
@@ -85,8 +88,8 @@ class OrchestrationSystemService(ServiceUtils):
             queryset = self.apply_ordering(
                 queryset,
                 order_by,
-                list(get_args(OrchestrationSystemOrderByFields)),
-                {"type": "orchestration_system_type"},
+                list(get_args(JobOrderByFields)),
+                {"type": "job_type"},
             )
 
         if expand_related:
@@ -98,13 +101,13 @@ class OrchestrationSystemService(ServiceUtils):
 
         return [
             (
-                OrchestrationSystemDetailResponse.model_validate(orchestration_system)
+                JobDetailResponse.model_validate(job)
                 if expand_related
-                else OrchestrationSystemSummaryResponse.model_validate(
-                    orchestration_system
+                else JobSummaryResponse.model_validate(
+                    job
                 )
             )
-            for orchestration_system in queryset.all()
+            for job in queryset.all()
         ]
 
     def get(
@@ -113,38 +116,44 @@ class OrchestrationSystemService(ServiceUtils):
         uid: uuid.UUID,
         expand_related: Optional[bool] = None,
     ):
-        orchestration_system = self.get_orchestration_system_for_action(
+        job = self.get_job_for_action(
             principal=principal, uid=uid, action="view", expand_related=expand_related
         )
 
         return (
-            OrchestrationSystemDetailResponse.model_validate(orchestration_system)
+            JobDetailResponse.model_validate(job)
             if expand_related
-            else OrchestrationSystemSummaryResponse.model_validate(orchestration_system)
+            else JobSummaryResponse.model_validate(job)
         )
 
     def create(
         self,
         principal: User | APIKey,
-        data: OrchestrationSystemPostBody,
+        data: JobPostBody,
     ):
         workspace, _ = self.get_workspace(principal=principal, workspace_id=data.workspace_id)
 
-        if not OrchestrationSystem.can_principal_create(
+        if not Job.can_principal_create(
             principal=principal, workspace=workspace
         ):
             raise HttpError(
-                403, "You do not have permission to create this orchestration system"
+                403, "You do not have permission to create this ETL job"
             )
 
-        orchestration_system = OrchestrationSystem.objects.create(
+        job = Job.objects.create(
             workspace=workspace,
-            **data.dict(include=set(OrchestrationSystemFields.model_fields.keys())),
+            extractor_type=data.extractor.settings_type if data.extractor else None,
+            extractor_settings=data.extractor.settings if data.extractor else None,
+            transformer_type=data.transformer.settings_type if data.transformer else None,
+            transformer_settings=data.transformer.settings if data.transformer else None,
+            loader_type=data.loader.settings_type if data.loader else None,
+            loader_settings=data.loader.settings if data.loader else None,
+            **data.dict(include=set(JobFields.model_fields.keys())),
         )
 
         return self.get(
             principal=principal,
-            uid=orchestration_system.id,
+            uid=job.id,
             expand_related=True,
         )
 
@@ -152,32 +161,38 @@ class OrchestrationSystemService(ServiceUtils):
         self,
         principal: User | APIKey,
         uid: uuid.UUID,
-        data: OrchestrationSystemPatchBody,
+        data: JobPatchBody,
     ):
-        orchestration_system = self.get_orchestration_system_for_action(
+        job = self.get_job_for_action(
             principal=principal, uid=uid, action="edit"
         )
-        orchestration_system_data = data.dict(
-            include=set(OrchestrationSystemFields.model_fields.keys()),
+        job_data = data.dict(
+            include=set(JobFields.model_fields.keys() | {"extractor", "transformer", "loader"}),
             exclude_unset=True,
         )
 
-        for field, value in orchestration_system_data.items():
-            setattr(orchestration_system, field, value)
+        for field, value in job_data.items():
+            if field in ["extractor", "transformer", "loader"]:
+                if "settings_type" in value:
+                    setattr(job, f"{field}_type", value["settings_type"])
+                if "settings" in value:
+                    setattr(job, f"{field}_settings", value["settings"])
+            else:
+                setattr(job, field, value)
 
-        orchestration_system.save()
+        job.save()
 
         return self.get(
             principal=principal,
-            uid=orchestration_system.id,
+            uid=job.id,
             expand_related=True,
         )
 
     def delete(self, principal: User | APIKey, uid: uuid.UUID):
-        orchestration_system = self.get_orchestration_system_for_action(
+        job = self.get_job_for_action(
             principal=principal, uid=uid, action="delete", expand_related=True
         )
 
-        orchestration_system.delete()
+        job.delete()
 
-        return "Orchestration system deleted"
+        return "ETL Job deleted"
