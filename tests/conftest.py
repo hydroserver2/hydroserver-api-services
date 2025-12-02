@@ -15,7 +15,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command("loaddata", "iam/fixtures/default_roles.yaml")
         call_command("load_iam_test_data")
         call_command("load_sta_test_data")
-        # call_command("load_etl_test_data")
+        call_command("load_etl_test_data")
 
 
 @pytest.fixture(scope="function")

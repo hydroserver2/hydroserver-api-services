@@ -1,10 +1,16 @@
+import logging
+import pandas as pd
 from uuid import UUID
 from celery import shared_task
+from pydantic import TypeAdapter
 from celery.signals import task_prerun, task_success, task_failure
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from etl.models import Task, TaskRun
-# from hydroserverpy.api.services import etl
+from etl.schemas.task import TaskMappingResponse
+from etl.services.loader import HydroServerInternalLoader
+from hydroserverpy.etl.factories import extractor_factory, transformer_factory
+from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConfig
 
 
 @shared_task(bind=True, expires=10)
@@ -17,7 +23,32 @@ def run_etl_task(self, task_id: str):
         "mappings", "mappings__paths"
     ).get(pk=UUID(task_id))
 
-    # TODO: ETL factory logic goes here
+    extractor_cls = extractor_factory(TypeAdapter(ExtractorConfig).validate_python({
+        "type": task.job.extractor_type,
+        **task.job.extractor_settings
+    }))
+    transformer_cls = transformer_factory(TypeAdapter(TransformerConfig).validate_python({
+        "type": task.job.transformer_type,
+        **task.job.transformer_settings
+    }))
+    loader_cls = HydroServerInternalLoader(task)
+
+    task_mappings = [
+        TaskMappingResponse.from_orm(task_mapping) for task_mapping in task.mappings.all()
+    ]
+
+    logging.info("Starting extract")
+    data = extractor_cls.extract(task, loader_cls)
+    if data is None or (isinstance(data, pd.DataFrame) and data.empty):
+        return {"message": f"No data returned from the extractor for task: {str(task.id)}"}
+
+    logging.info("Starting transform")
+    data = transformer_cls.transform(data, task_mappings)
+    if data is None or (isinstance(data, pd.DataFrame) and data.empty):
+        return {"message": f"No data returned from the transformer for task: {str(task.id)}"}
+
+    logging.info("Starting load")
+    loader_cls.load(data, task)
 
     return {"message": f"Finished processing task: {str(task.id)}"}
 

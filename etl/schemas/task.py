@@ -12,6 +12,7 @@ from .run import TaskRunResponse
 
 
 _order_by_fields = (
+    "name",
     "orchestrationSystemType",
     "latestRunStatus",
     "latestRunStartedAt",
@@ -124,7 +125,7 @@ class TaskSchedulePatchBody(BasePatchBody, TaskScheduleFields):
 
 class TaskMappingPathFields(Schema):
     target_identifier: str
-    transformations: dict[str, Any] = Field(default_factory=dict)
+    data_transformations: dict[str, Any] | list[Any] = Field(default_factory=dict)
 
 
 class TaskMappingPathResponse(BaseGetResponse, TaskMappingPathFields):
@@ -149,8 +150,6 @@ class TaskMappingPostBody(BasePostBody, TaskMappingFields):
 
 class TaskFields(Schema):
     name: str
-    paused: bool = False
-    next_run_at: datetime | None = None
     extractor_variables: dict[str, Any] = Field(default_factory=dict)
     transformer_variables: dict[str, Any] = Field(default_factory=dict)
     loader_variables: dict[str, Any] = Field(default_factory=dict)
@@ -160,8 +159,10 @@ class TaskSummaryResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(..., validation_alias=AliasPath("job", "workspace_id"))
     job_id: uuid.UUID
+    orchestration_system_id: uuid.UUID | None = None
     schedule: TaskScheduleResponse | None = None
     latest_run: TaskRunResponse | None = None
+    mappings: list[TaskMappingResponse]
 
 
 class TaskDetailResponse(BaseGetResponse, TaskFields):

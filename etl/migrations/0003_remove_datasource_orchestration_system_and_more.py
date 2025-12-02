@@ -4,95 +4,234 @@ import django.db.models.deletion
 import iam.models.utils
 import uuid6
 from django.db import migrations, models
+from django.utils import timezone
 
 
-# def update_settings_fields(apps, schema_editor):
-#     DataSource = apps.get_model("etl", "DataSource")
-#     Payload = apps.get_model("etl", "Payload")
-#     PayloadMapping = apps.get_model("etl", "PayloadMapping")
-#     PayloadMappingPath = apps.get_model("etl", "PayloadMappingPath")
-#     PeriodicTask = apps.get_model("django_celery_beat", "PeriodicTask")
-#     CrontabSchedule = apps.get_model("django_celery_beat", "CrontabSchedule")
-#     IntervalSchedule = apps.get_model("django_celery_beat", "IntervalSchedule")
-#
-#     for data_source in DataSource.objects.all():
-#         settings = data_source.settings or {}
-#
-#         data_source.data_source_type = settings.get("type", "ETL")
-#         data_source.extractor_type = settings.get("extractor", {}).get("type")
-#         data_source.extractor_settings = {
-#             k: v for k, v in settings.get("extractor", {}).items() if k != "type"
-#         }
-#         data_source.transformer_type = settings.get("transformer", {}).get("type")
-#         data_source.transformer_settings = {
-#             k: v for k, v in settings.get("transformer", {}).items() if k != "type"
-#         }
-#         data_source.loader_type = settings.get("loader", {}).get("type")
-#         data_source.loader_settings = {
-#             k: v for k, v in settings.get("loader", {}).items() if k != "type"
-#         }
-#
-#         if data_source.interval or data_source.crontab:
-#             periodic_task = PeriodicTask.objects.create(
-#                 name=str(data_source.id),
-#                 task="etl.tasks.process_data_source",
-#                 kwargs={"data_source_id": str(data_source.id)},
-#                 enabled=not data_source.paused,
-#                 last_run_at=data_source.last_run,
-#                 date_changed=datetime.now(timezone.utc),
-#                 start_time=data_source.start_time,
-#             )
-#
-#             if data_source.interval:
-#                 interval_schedule = IntervalSchedule.objects.create(
-#                     every=data_source.interval,
-#                     period=data_source.interval_units,
-#                 )
-#                 periodic_task.interval = interval_schedule
-#
-#             elif data_source.crontab:
-#                 crontab_split = data_source.crontab.split(" ")
-#                 crontab_schedule = CrontabSchedule.objects.create(
-#                     minute=crontab_split[0],
-#                     hour=crontab_split[1],
-#                     day_of_week=crontab_split[2],
-#                     day_of_month=crontab_split[3],
-#                     month_of_year=crontab_split[4],
-#                     timezone="UTC"
-#                 )
-#                 periodic_task.crontab = crontab_schedule
-#
-#             periodic_task.save()
-#             data_source.schedule = periodic_task
-#
-#         for payload_setting in settings.get("payloads", []):
-#             payload = Payload.objects.create(
-#                 id=str(payload_setting.get("id", uuid6.uuid7())),
-#                 name=payload_setting["name"],
-#                 data_source=data_source,
-#                 extractor_variables=payload_setting.get("extractorVariables", {}),
-#                 transformer_variables=payload_setting.get("transformerVariables", {}),
-#                 loader_variables=payload_setting.get("loaderVariables", {}),
-#             )
-#
-#             for mapping_setting in payload_setting.get("mappings", []):
-#                 mapping = PayloadMapping.objects.create(
-#                     payload=payload,
-#                     source_identifier=mapping_setting["sourceIdentifier"]
-#                 )
-#
-#                 for path_setting in mapping_setting.get("paths", []):
-#                     PayloadMappingPath.objects.create(
-#                         payload_mapping=mapping,
-#                         target_identifier=path_setting["targetIdentifier"],
-#                         transformations=path_setting.get("dataTransformations", []),
-#                     )
-#
-#         data_source.save()
-#
-#
-# def reverse_update_settings_fields(apps, schema_editor):
-#     raise RuntimeError("This migration is irreversible.")
+def update_settings_fields(apps, schema_editor):
+    DataSource = apps.get_model("etl", "DataSource")
+    OrchestrationSystem = apps.get_model("etl", "OrchestrationSystem")
+    Job = apps.get_model("etl", "Job")
+    Task = apps.get_model("etl", "Task")
+    TaskMapping = apps.get_model("etl", "TaskMapping")
+    TaskMappingPath = apps.get_model("etl", "TaskMappingPath")
+    PeriodicTask = apps.get_model("django_celery_beat", "PeriodicTask")
+    CrontabSchedule = apps.get_model("django_celery_beat", "CrontabSchedule")
+    IntervalSchedule = apps.get_model("django_celery_beat", "IntervalSchedule")
+
+    for data_source in DataSource.objects.all():
+        orchestration_system = OrchestrationSystem.objects.get(id=data_source.orchestration_system_id)
+
+        if not orchestration_system.workspace_id:
+            orchestration_system = None
+
+        settings = data_source.settings or {}
+        job = Job.objects.create(
+            name=data_source.name,
+            job_type=data_source.settings.get("type", "ETL"),
+            workspace=data_source.workspace,
+            extractor_type=data_source.settings.get("extractor", {}).get("type"),
+            extractor_settings={
+                k: v for k, v in data_source.settings.get("extractor", {}).items() if k != "type"
+            },
+            transformer_type=data_source.settings.get("transformer", {}).get("type"),
+            transformer_settings={
+                k: v for k, v in data_source.settings.get("transformer", {}).items() if k != "type"
+            },
+            loader_type=data_source.settings.get("loader", {}).get("type"),
+            loader_settings={
+                k: v for k, v in data_source.settings.get("loader", {}).items() if k != "type"
+            },
+        )
+
+        for payload in settings.get("payloads", []):
+            task = Task.objects.create(
+                name=payload.get("name", "ETL Task"),
+                job=job,
+                orchestration_system=orchestration_system,
+                paused=data_source.paused,
+                next_run_at=data_source.next_run,
+                extractor_variables=payload.get("extractorVariables", {}),
+                transformer_variables=payload.get("transformerVariables", {}),
+                loader_variables=payload.get("loaderVariables", {}),
+            )
+
+            if data_source.crontab is not None or data_source.interval is not None:
+                periodic_task = PeriodicTask.objects.create(
+                    name=f"{task.name} — {str(task.id)}",
+                    task="etl.tasks.run_etl_task",
+                    kwargs={"task_id": str(task.id)},
+                    enabled=not data_source.paused and not orchestration_system,
+                    last_run_at=data_source.last_run,
+                    date_changed=timezone.now(),
+                    start_time=data_source.start_time or timezone.now(),
+                    expire_seconds=3600
+                )
+                if data_source.interval is not None:
+                    interval_schedule = IntervalSchedule.objects.create(
+                        every=data_source.interval,
+                        period=data_source.interval_units,
+                    )
+                    periodic_task.interval = interval_schedule
+
+                elif data_source.crontab is not None:
+                    crontab_split = data_source.crontab.split(" ")
+                    crontab_schedule = CrontabSchedule.objects.create(
+                        minute=crontab_split[0],
+                        hour=crontab_split[1],
+                        day_of_week=crontab_split[2],
+                        day_of_month=crontab_split[3],
+                        month_of_year=crontab_split[4],
+                        timezone="UTC"
+                    )
+                    periodic_task.crontab = crontab_schedule
+
+                periodic_task.save()
+                task.periodic_task = periodic_task
+
+            for mapping_setting in payload.get("mappings", []):
+                mapping = TaskMapping.objects.create(
+                    task=task,
+                    source_identifier=mapping_setting.get("sourceIdentifier")
+                )
+
+                for path_setting in mapping_setting.get("paths", []):
+                    TaskMappingPath.objects.create(
+                        task_mapping=mapping,
+                        target_identifier=path_setting["targetIdentifier"],
+                        data_transformations=path_setting.get("dataTransformations", []),
+                    )
+
+            task.save()
+
+
+def reverse_update_settings_fields(apps, schema_editor):
+    DataSource = apps.get_model("etl", "DataSource")
+    OrchestrationSystem = apps.get_model("etl", "OrchestrationSystem")
+    Job = apps.get_model("etl", "Job")
+    Task = apps.get_model("etl", "Task")
+    TaskMapping = apps.get_model("etl", "TaskMapping")
+    TaskMappingPath = apps.get_model("etl", "TaskMappingPath")
+
+    for job in Job.objects.all():
+        reconstructed = {}
+
+        if job.job_type:
+            reconstructed["type"] = job.job_type
+
+        if job.extractor_type:
+            reconstructed["extractor"] = {
+                "type": job.extractor_type,
+                **(job.extractor_settings or {}),
+            }
+
+        if job.transformer_type:
+            reconstructed["transformer"] = {
+                "type": job.transformer_type,
+                **(job.transformer_settings or {}),
+            }
+
+        if job.loader_type:
+            reconstructed["loader"] = {
+                "type": job.loader_type,
+                **(job.loader_settings or {}),
+            }
+
+        payloads = []
+        tasks = Task.objects.filter(job=job)
+        orchestration_system = None
+
+        paused = None
+        next_run = None
+        start_time = None
+        crontab = None
+        interval = None
+        interval_units = None
+
+        for task in tasks:
+            orchestration_system = task.orchestration_system
+
+            payload = {
+                "name": task.name,
+                "extractorVariables": task.extractor_variables or {},
+                "transformerVariables": task.transformer_variables or {},
+                "loaderVariables": task.loader_variables or {},
+                "mappings": [],
+            }
+
+            mappings = TaskMapping.objects.filter(task=task)
+            for mapping in mappings:
+                mapping_data = {
+                    "sourceIdentifier": mapping.source_identifier,
+                    "paths": [],
+                }
+
+                paths = TaskMappingPath.objects.filter(task_mapping=mapping)
+                for path in paths:
+                    mapping_data["paths"].append(
+                        {
+                            "targetIdentifier": path.target_identifier,
+                            "dataTransformations": path.data_transformations or [],
+                        }
+                    )
+
+                payload["mappings"].append(mapping_data)
+
+            payloads.append(payload)
+
+            if task.periodic_task:
+                paused = task.paused
+                next_run = task.next_run_at
+                start_time = task.periodic_task.start_time
+                crontab_record = None
+                interval_record = None
+
+                if task.periodic_task.crontab:
+                    minute = task.periodic_task.crontab.minute,
+                    hour = task.periodic_task.crontab.hour,
+                    day_of_week = task.periodic_task.crontab.day_of_week,
+                    day_of_month = task.periodic_task.crontab.day_of_month,
+                    month_of_year = task.periodic_task.crontab.month_of_year,
+                    crontab = f"{minute[0]} {hour[0]} {day_of_week[0]} {day_of_month[0]} {month_of_year[0]}"
+                    crontab_record = task.periodic_task.crontab
+
+                elif task.periodic_task.interval:
+                    interval = task.periodic_task.interval.every
+                    interval_units = task.periodic_task.interval.period
+                    interval_record = task.periodic_task.interval
+
+                task.periodic_task.delete()
+
+                if crontab_record:
+                    crontab_record.delete()
+
+                if interval_record:
+                    interval_record.delete()
+
+        if payloads:
+            reconstructed["payloads"] = payloads
+
+        if not orchestration_system:
+            orchestration_system, _ = OrchestrationSystem.objects.get_or_create(
+                name="ReverseMigrationOrchestrationSystem",
+                defaults={
+                    "workspace": None,
+                    "orchestration_system_type": "ETL",
+                },
+            )
+
+        DataSource.objects.create(
+            name=job.name,
+            workspace=job.workspace,
+            settings=reconstructed,
+            crontab=crontab,
+            interval=interval,
+            interval_units=interval_units,
+            paused=paused,
+            last_run=None,
+            next_run=next_run,
+            start_time=start_time,
+            orchestration_system=orchestration_system,
+        )
 
 
 class Migration(migrations.Migration):
@@ -105,25 +244,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="datasource",
-            name="orchestration_system",
-        ),
-        migrations.RemoveField(
-            model_name="datasource",
-            name="workspace",
-        ),
-        migrations.AlterField(
-            model_name="orchestrationsystem",
-            name="workspace",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="orchestration_systems",
-                to="iam.workspace",
-            ),
-        ),
         migrations.CreateModel(
             name="Job",
             fields=[
@@ -249,7 +369,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("target_identifier", models.CharField(max_length=255)),
-                ("transformations", models.JSONField(default=dict)),
+                ("data_transformations", models.JSONField(default=dict)),
                 (
                     "task_mapping",
                     models.ForeignKey(
@@ -283,6 +403,26 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
+        ),
+        migrations.RunPython(update_settings_fields, reverse_update_settings_fields),
+        migrations.RemoveField(
+            model_name="datasource",
+            name="orchestration_system",
+        ),
+        migrations.RemoveField(
+            model_name="datasource",
+            name="workspace",
+        ),
+        migrations.AlterField(
+            model_name="orchestrationsystem",
+            name="workspace",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="orchestration_systems",
+                to="iam.workspace",
+            ),
         ),
         migrations.DeleteModel(
             name="DataArchive",

@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet, Subquery, OuterRef
 from django.utils import timezone
+from django.conf import settings
 from django_celery_beat.models import PeriodicTask, CrontabSchedule, IntervalSchedule
 from iam.models import APIKey
 from etl.models import Task, TaskMapping, TaskMappingPath, TaskRun
@@ -84,7 +85,18 @@ class TaskService(ServiceUtils):
             } if getattr(task, "latest_run_id", None) else None,
             "extractor_variables": task.extractor_variables,
             "transformer_variables": task.transformer_variables,
-            "loader_variables": task.loader_variables
+            "loader_variables": task.loader_variables,
+            "mappings": [
+                {
+                    "source_identifier": mapping.source_identifier,
+                    "paths": [
+                        {
+                            "target_identifier": path.target_identifier,
+                            "data_transformations": path.data_transformations
+                        } for path in mapping.paths.all()
+                    ]
+                } for mapping in task.mappings.all()
+            ]
         }
 
         if expand:
@@ -111,20 +123,10 @@ class TaskService(ServiceUtils):
                     "settings": task.job.loader_settings
                 } if task.job.loader_type else None
             }
-            response["mappings"] = [
-                {
-                    "source_identifier": mapping.source_identifier,
-                    "paths": [
-                        {
-                            "target_identifier": path.target_identifier,
-                            "transformations": path.transformations
-                        } for path in mapping.paths.all()
-                    ]
-                } for mapping in task.mappings.all()
-            ]
         else:
             response["workspace_id"] = task.job.workspace_id
             response["job_id"] = task.job_id
+            response["orchestration_system_id"] = task.orchestration_system_id
 
         return response
 
@@ -271,8 +273,6 @@ class TaskService(ServiceUtils):
             name=data.name,
             job=job,
             orchestration_system=orchestration_system,
-            paused=data.paused,
-            next_run_at=data.next_run_at,
             extractor_variables=data.extractor_variables or {},
             transformer_variables=data.transformer_variables or {},
             loader_variables=data.loader_variables or {},
@@ -344,7 +344,7 @@ class TaskService(ServiceUtils):
 
         task.delete()
 
-        return "ETL task deleted"
+        return "ETL Task deleted"
 
     def run(self, principal: User | APIKey, task_id: uuid.UUID, file=None):
         """"""
@@ -356,7 +356,7 @@ class TaskService(ServiceUtils):
         if task.orchestration_system_id is not None:
             raise HttpError(400, "Cannot run task managed by external orchestration system")
 
-        if True:  # TODO: Add Celery enabled setting
+        if settings.CELERY_ENABLED is True:
             run_etl_task.delay(task_id=str(task.id))
         else:
             run_etl_task.apply(kwargs={"task_id": str(task.id)})
@@ -520,7 +520,7 @@ class TaskService(ServiceUtils):
                 TaskMappingPath.objects.create(
                     task_mapping=task_mapping,
                     target_identifier=path["target_identifier"],
-                    transformations=path.get("transformations", {}),
+                    data_transformations=path.get("data_transformations", {}),
                 )
 
         return task

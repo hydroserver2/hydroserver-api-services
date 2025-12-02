@@ -5,6 +5,7 @@ from .orchestration_system import (OrchestrationSystemSummaryResponse, Orchestra
                                    OrchestrationSystemFields, OrchestrationSystemOrderByFields,
                                    OrchestrationSystemQueryParameters)
 from .task import (TaskSummaryResponse, TaskDetailResponse, TaskPostBody, TaskPatchBody, TaskRunResponse, TaskFields,
-                   TaskQueryParameters, TaskOrderByFields, TaskScheduleFields)
+                   TaskQueryParameters, TaskOrderByFields, TaskScheduleFields, TaskSchedulePostBody,
+                   TaskMappingPostBody, TaskMappingPathPostBody)
 from .run import (TaskRunFields, TaskRunResponse, TaskRunPostBody, TaskRunPatchBody, TaskRunQueryParameters,
                   TaskRunOrderByFields)

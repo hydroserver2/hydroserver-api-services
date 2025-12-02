@@ -143,11 +143,11 @@ class JobService(ServiceUtils):
         job = Job.objects.create(
             workspace=workspace,
             extractor_type=data.extractor.settings_type if data.extractor else None,
-            extractor_settings=data.extractor.settings if data.extractor else None,
+            extractor_settings=data.extractor.settings if data.extractor else {},
             transformer_type=data.transformer.settings_type if data.transformer else None,
-            transformer_settings=data.transformer.settings if data.transformer else None,
+            transformer_settings=data.transformer.settings if data.transformer else {},
             loader_type=data.loader.settings_type if data.loader else None,
-            loader_settings=data.loader.settings if data.loader else None,
+            loader_settings=data.loader.settings if data.loader else {},
             **data.dict(include=set(JobFields.model_fields.keys())),
         )
 
@@ -176,7 +176,7 @@ class JobService(ServiceUtils):
                 if "settings_type" in value:
                     setattr(job, f"{field}_type", value["settings_type"])
                 if "settings" in value:
-                    setattr(job, f"{field}_settings", value["settings"])
+                    setattr(job, f"{field}_settings", value["settings"] or {})
             else:
                 setattr(job, field, value)
 

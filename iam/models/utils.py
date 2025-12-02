@@ -117,8 +117,8 @@ class PermissionChecker:
                 "Thing",
                 "Datastream",
                 "OrchestrationSystem",
-                "DataSource",
-                "DataArchive",
+                "Job",
+                "Task",
                 "APIKey",
             ]:
                 permissions.append("view")
