@@ -59,7 +59,7 @@ def update_settings_fields(apps, schema_editor):
                 periodic_task = PeriodicTask.objects.create(
                     name=f"{task.name} — {str(task.id)}",
                     task="etl.tasks.run_etl_task",
-                    kwargs={"task_id": str(task.id)},
+                    kwargs=f'{{"task_id": "{str(task.id)}"}}',
                     enabled=not data_source.paused and not orchestration_system,
                     last_run_at=data_source.last_run,
                     date_changed=timezone.now(),
