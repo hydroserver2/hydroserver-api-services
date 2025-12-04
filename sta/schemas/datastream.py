@@ -1,5 +1,5 @@
 import uuid
-from pydantic import AliasPath
+from pydantic import AliasPath, AliasChoices
 from ninja import Schema, Field, Query
 from typing import Optional, Literal, TYPE_CHECKING
 from api.types import ISODatetime
@@ -166,7 +166,7 @@ class DatastreamSummaryResponse(
 ):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(
-        ..., validation_alias=AliasPath("thing", "workspace_id")
+        ..., validation_alias=AliasChoices("workspaceId", AliasPath("thing", "workspace_id"))
     )
     datastream_tags: list[TagGetResponse] = Field(..., alias="tags")
     datastream_file_attachments: list[FileAttachmentGetResponse] = Field(

@@ -2,7 +2,7 @@ import uuid
 from typing import Any, Literal
 from datetime import datetime
 from ninja import Schema, Field, Query
-from pydantic import AliasPath
+from pydantic import AliasPath, AliasChoices
 from api.types import ISODatetime
 from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
 from iam.schemas import WorkspaceSummaryResponse
@@ -157,7 +157,9 @@ class TaskFields(Schema):
 
 class TaskSummaryResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID = Field(..., validation_alias=AliasPath("job", "workspace_id"))
+    workspace_id: uuid.UUID = Field(
+        ..., validation_alias=AliasChoices("workspaceId", AliasPath("job", "workspace_id"))
+    )
     job_id: uuid.UUID
     orchestration_system_id: uuid.UUID
     schedule: TaskScheduleResponse | None = None
