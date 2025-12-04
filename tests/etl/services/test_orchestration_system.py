@@ -21,35 +21,35 @@ orchestration_system_service = OrchestrationSystemService()
         (
             "owner",
             {},
-            ["Test Streaming Data Loader"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
         (
             "editor",
             {},
-            ["Test Streaming Data Loader"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
         (
             "viewer",
             {},
-            ["Test Streaming Data Loader"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
         (
             "admin",
             {},
-            ["Test Streaming Data Loader"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
-        ("apikey", {}, [], 4),
-        ("unaffiliated", {}, [], 4),
-        ("anonymous", {}, [], 4),
+        ("apikey", {}, ["HydroServer"], 4),
+        ("unaffiliated", {}, ["HydroServer"], 4),
+        ("anonymous", {}, ["HydroServer"], 4),
         # Test pagination and order_by
         (
             "owner",
             {"page": 2, "page_size": 1, "order_by": "-name"},
-            [],
+            ["HydroServer"],
             4,
         ),
         # Test filtering

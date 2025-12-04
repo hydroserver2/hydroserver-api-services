@@ -1,6 +1,6 @@
 import uuid
 from ninja import Schema, Field, Query
-from typing import Optional, Literal, TYPE_CHECKING
+from typing import Optional, Literal
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
@@ -40,12 +40,12 @@ class OrchestrationSystemQueryParameters(CollectionQueryParameters):
 
 class OrchestrationSystemSummaryResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID]
+    workspace_id: Optional[uuid.UUID] = None
 
 
 class OrchestrationSystemDetailResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace: Optional[WorkspaceSummaryResponse]
+    workspace: Optional[WorkspaceSummaryResponse] = None
 
 
 class OrchestrationSystemPostBody(BasePostBody, OrchestrationSystemFields):

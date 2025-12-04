@@ -21,9 +21,6 @@ def update_settings_fields(apps, schema_editor):
     for data_source in DataSource.objects.all():
         orchestration_system = OrchestrationSystem.objects.get(id=data_source.orchestration_system_id)
 
-        if not orchestration_system.workspace_id:
-            orchestration_system = None
-
         settings = data_source.settings or {}
         job = Job.objects.create(
             name=data_source.name,
@@ -210,15 +207,6 @@ def reverse_update_settings_fields(apps, schema_editor):
         if payloads:
             reconstructed["payloads"] = payloads
 
-        if not orchestration_system:
-            orchestration_system, _ = OrchestrationSystem.objects.get_or_create(
-                name="ReverseMigrationOrchestrationSystem",
-                defaults={
-                    "workspace": None,
-                    "orchestration_system_type": "ETL",
-                },
-            )
-
         DataSource.objects.create(
             name=job.name,
             workspace=job.workspace,
@@ -313,9 +301,7 @@ class Migration(migrations.Migration):
                 (
                     "orchestration_system",
                     models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
+                        on_delete=django.db.models.deletion.CASCADE,
                         related_name="tasks",
                         to="etl.orchestrationsystem",
                     ),

@@ -159,7 +159,7 @@ class TaskSummaryResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(..., validation_alias=AliasPath("job", "workspace_id"))
     job_id: uuid.UUID
-    orchestration_system_id: uuid.UUID | None = None
+    orchestration_system_id: uuid.UUID
     schedule: TaskScheduleResponse | None = None
     latest_run: TaskRunResponse | None = None
     mappings: list[TaskMappingResponse]
@@ -169,7 +169,7 @@ class TaskDetailResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
     workspace: WorkspaceSummaryResponse
     job: JobSummaryResponse
-    orchestration_system: OrchestrationSystemSummaryResponse | None = None
+    orchestration_system: OrchestrationSystemSummaryResponse
     schedule: TaskScheduleResponse | None = None
     latest_run: TaskRunResponse | None = None
     mappings: list[TaskMappingResponse]
@@ -177,7 +177,7 @@ class TaskDetailResponse(BaseGetResponse, TaskFields):
 
 class TaskPostBody(BasePostBody, TaskFields):
     job_id: uuid.UUID
-    orchestration_system_id: uuid.UUID | None = None
+    orchestration_system_id: uuid.UUID
     schedule: TaskSchedulePostBody | None = None
     mappings: list[TaskMappingPostBody]
 

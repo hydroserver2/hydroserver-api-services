@@ -1,9 +1,30 @@
+from django.urls import path
 from django.contrib import admin
 from etl.models import OrchestrationSystem, Job, Task, TaskMapping, TaskMappingPath, TaskRun
+from hydroserver.admin import VocabularyAdmin
 
 
-class OrchestrationSystemAdmin(admin.ModelAdmin):
+class OrchestrationSystemAdmin(admin.ModelAdmin, VocabularyAdmin):
     list_display = ("id", "name", "orchestration_system_type", "workspace__name")
+    change_list_template = "admin/etl/orchestrationsystem/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+
+        return [
+            path(
+                "load-default-orchestration-system-data/",
+                self.admin_site.admin_view(self.load_default_data),
+                name="orchestration_system_load_default_data",
+            ),
+        ] + urls
+
+    def load_default_data(self, request):
+        return self.load_fixtures(
+            request,
+            "admin:etl_orchestrationsystem_changelist",
+            ["etl/fixtures/default_orchestration_systems.yaml"],
+        )
 
 
 class JobAdmin(admin.ModelAdmin):

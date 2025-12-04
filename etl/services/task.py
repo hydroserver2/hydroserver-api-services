@@ -123,6 +123,12 @@ class TaskService(ServiceUtils):
                     "settings": task.job.loader_settings
                 } if task.job.loader_type else None
             }
+            response["orchestration_system"] = {
+                "id": task.orchestration_system.id,
+                "name": task.orchestration_system.name,
+                "orchestration_system_type": task.orchestration_system.orchestration_system_type,
+                "workspace_id": task.orchestration_system.workspace_id
+            }
         else:
             response["workspace_id"] = task.job.workspace_id
             response["job_id"] = task.job_id
@@ -259,15 +265,12 @@ class TaskService(ServiceUtils):
                 403, "You do not have permission to create this ETL task"
             )
 
-        if data.orchestration_system_id:
-            orchestration_system = orchestration_system_service.get_orchestration_system_for_action(
-                principal=principal, uid=data.orchestration_system_id, action="edit", raise_400=True
-            )
+        orchestration_system = orchestration_system_service.get_orchestration_system_for_action(
+            principal=principal, uid=data.orchestration_system_id, action="view", raise_400=True
+        )
 
-            if orchestration_system.workspace_id != job.workspace_id:
-                raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
-        else:
-            orchestration_system = None
+        if orchestration_system.workspace and orchestration_system.workspace_id != job.workspace_id:
+            raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
         task = Task.objects.create(
             name=data.name,
@@ -310,10 +313,10 @@ class TaskService(ServiceUtils):
 
         if "orchestration_system_id" in task_data:
             orchestration_system = orchestration_system_service.get_orchestration_system_for_action(
-                principal=principal, uid=data.orchestration_system_id, action="edit", raise_400=True
+                principal=principal, uid=data.orchestration_system_id, action="view", raise_400=True
             )
 
-            if orchestration_system.workspace_id != task.job.workspace_id:
+            if orchestration_system.workspace and orchestration_system.workspace_id != task.job.workspace_id:
                 raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
         if "schedule" in task_data:
@@ -353,7 +356,7 @@ class TaskService(ServiceUtils):
             principal=principal, uid=task_id, action="edit", expand_related=True
         )
 
-        if task.orchestration_system_id is not None:
+        if task.orchestration_system.orchestration_system_type != "INTERNAL":
             raise HttpError(400, "Cannot run task managed by external orchestration system")
 
         if settings.CELERY_ENABLED is True:

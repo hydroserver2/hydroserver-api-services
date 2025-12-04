@@ -61,7 +61,7 @@ class Task(models.Model, PermissionChecker):
     name = models.CharField(max_length=255)
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="tasks")
     orchestration_system = models.ForeignKey(
-        OrchestrationSystem, on_delete=models.SET_NULL, related_name="tasks", blank=True, null=True
+        OrchestrationSystem, on_delete=models.CASCADE, related_name="tasks"
     )
     periodic_task = models.OneToOneField(
         PeriodicTask, null=True, blank=True, on_delete=models.SET_NULL, related_name="etl_task"

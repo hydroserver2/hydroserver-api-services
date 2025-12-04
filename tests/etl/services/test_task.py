@@ -231,7 +231,7 @@ def test_create_task(
     get_principal, principal, job, message, error_code
 ):
     task_data = TaskPostBody(
-        name="New", job_id=uuid.UUID(job),
+        name="New", job_id=uuid.UUID(job), orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
         schedule=TaskSchedulePostBody(
             paused=True,
             crontab="* * * * *"
