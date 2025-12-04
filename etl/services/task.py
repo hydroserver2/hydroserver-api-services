@@ -496,7 +496,7 @@ class TaskService(ServiceUtils):
             task.periodic_task.start_time = schedule_data["start_time"]
 
         task.periodic_task.enabled = (
-            not task.orchestration_system_id
+            task.orchestration_system.orchestration_system_type == "INTERNAL"
             and not schedule_data.get("paused", False)
         )
         task.periodic_task.date_changed = timezone.now()
