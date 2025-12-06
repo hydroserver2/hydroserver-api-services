@@ -477,7 +477,7 @@ class TaskService(ServiceUtils):
             task.periodic_task = PeriodicTask.objects.create(
                 name=f"{task.name} — {task.id}",
                 task="etl.tasks.run_etl_task",
-                kwargs={"task_id": str(task.id)},
+                kwargs=f'{{"task_id": "{str(task.id)}"}}',
                 enabled=True,
                 date_changed=timezone.now(),
                 interval=interval_schedule,
