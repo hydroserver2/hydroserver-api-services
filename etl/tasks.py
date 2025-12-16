@@ -7,10 +7,9 @@ from celery.signals import task_prerun, task_success, task_failure
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from etl.models import Task, TaskRun
-from etl.schemas.task import TaskMappingResponse
 from etl.services.loader import HydroServerInternalLoader
 from hydroserverpy.etl.factories import extractor_factory, transformer_factory
-from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConfig
+from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConfig, SourceTargetMapping, MappingPath
 
 
 @shared_task(bind=True, expires=10)
@@ -34,7 +33,15 @@ def run_etl_task(self, task_id: str):
     loader_cls = HydroServerInternalLoader(task)
 
     task_mappings = [
-        TaskMappingResponse.from_orm(task_mapping) for task_mapping in task.mappings.all()
+        SourceTargetMapping(
+            source_identifier=task_mapping.source_identifier,
+            paths=[
+                MappingPath(
+                    target_identifier=task_mapping_path.target_identifier,
+                    data_transformations=task_mapping_path.data_transformations,
+                ) for task_mapping_path in task_mapping.paths.all()
+            ]
+        ) for task_mapping in task.mappings.all()
     ]
 
     logging.info("Starting extract")
