@@ -1,9 +1,10 @@
 import logging
 import pandas as pd
 from uuid import UUID
+from datetime import timedelta
 from celery import shared_task
 from pydantic import TypeAdapter
-from celery.signals import task_prerun, task_success, task_failure
+from celery.signals import task_prerun, task_success, task_failure, task_postrun
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from etl.models import Task, TaskRun
@@ -14,7 +15,9 @@ from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConf
 
 @shared_task(bind=True, expires=10)
 def run_etl_task(self, task_id: str):
-    """"""
+    """
+    Runs a HydroServer ETL task based on the task configuration provided.
+    """
 
     task = Task.objects.select_related(
         "job"
@@ -62,6 +65,10 @@ def run_etl_task(self, task_id: str):
 
 @task_prerun.connect
 def mark_etl_task_started(sender, task_id, kwargs, **extra):
+    """
+    Marks an ETL task as RUNNING.
+    """
+
     if sender != run_etl_task:
         return
 
@@ -76,8 +83,38 @@ def mark_etl_task_started(sender, task_id, kwargs, **extra):
         return
 
 
+@task_postrun.connect
+def update_next_run(sender, task_id, kwargs, **extra):
+    if sender != run_etl_task:
+        return
+
+    try:
+        task = Task.objects.select_related("periodic_task").get(
+            pk=kwargs["task_id"]
+        )
+    except Task.DoesNotExist:
+        return
+
+    if not task.periodic_task:
+        task.next_run_at = None
+        task.save(update_fields=["next_run_at"])
+        return
+
+    now = timezone.now()
+
+    time_delta = task.periodic_task.schedule.remaining_estimate(now)
+    time_delta = max(time_delta, timedelta(0))
+
+    task.next_run_at = now + time_delta
+    task.save(update_fields=["next_run_at"])
+
+
 @task_success.connect
 def mark_etl_task_success(sender, result, **extra):
+    """
+    Marks an ETL task as SUCCESS.
+    """
+
     if sender != run_etl_task:
         return
 
@@ -95,6 +132,10 @@ def mark_etl_task_success(sender, result, **extra):
 
 @task_failure.connect
 def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
+    """
+    Marks an ETL task as FAILED.
+    """
+
     if sender != run_etl_task:
         return
 

@@ -1,6 +1,5 @@
 import uuid
-from ninja import Router, Path, Query, File
-from ninja.files import UploadedFile
+from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
 from hydroserver.http import HydroServerHttpRequest
@@ -110,14 +109,13 @@ def get_task(
 def run_task(
     request: HydroServerHttpRequest,
     task_id: Path[uuid.UUID],
-    file: UploadedFile | None = File(None),
 ):
     """
     Run an ETL Task.
     """
 
     return 200, task_service.run(
-        principal=request.principal, task_id=task_id, file=file
+        principal=request.principal, task_id=task_id
     )
 
 
