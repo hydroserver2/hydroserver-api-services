@@ -8,6 +8,7 @@ from uuid import UUID
 from corsheaders.defaults import default_headers
 from decouple import config
 from urllib.parse import urlparse
+from celery.schedules import crontab
 
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
@@ -76,6 +77,14 @@ CELERY_ENABLED = config("CELERY_ENABLED", default=True, cast=bool)
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+CELERY_BEAT_SCHEDULE = {
+    "cleanup_task_runs": {
+        "task": "etl.tasks.cleanup_etl_task_runs",
+        "schedule": crontab(hour=3, minute=0),
+        "args": (14,),
+    },
+}
 
 # Application definition
 

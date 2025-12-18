@@ -7,6 +7,7 @@ from pydantic import TypeAdapter
 from celery.signals import task_prerun, task_success, task_failure, task_postrun
 from django.utils import timezone
 from django.db.utils import IntegrityError
+from django.core.management import call_command
 from etl.models import Task, TaskRun
 from etl.services.loader import HydroServerInternalLoader
 from hydroserverpy.etl.factories import extractor_factory, transformer_factory
@@ -152,3 +153,12 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
     }
 
     task_run.save(update_fields=["status", "finished_at", "result"])
+
+
+@shared_task(bind=True, expires=10)
+def cleanup_etl_task_runs(self, days=14):
+    """
+    Celery task to run the cleanup_etl_task_runs management command.
+    """
+
+    call_command("cleanup_etl_task_runs", f"--days={days}")
