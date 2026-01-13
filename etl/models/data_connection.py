@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     User = get_user_model()
 
 
-class JobQuerySet(models.QuerySet):
+class DataConnectionQuerySet(models.QuerySet):
     def visible(self, principal: Union["User", "APIKey"]):
         if not principal:
             return self.none()
@@ -25,7 +25,7 @@ class JobQuerySet(models.QuerySet):
                         workspace__collaborators__user=principal,
                         workspace__collaborators__role__permissions__resource_type__in=[
                             "*",
-                            "Job",
+                            "DataConnection",
                         ],
                         workspace__collaborators__role__permissions__permission_type__in=[
                             "*",
@@ -39,7 +39,7 @@ class JobQuerySet(models.QuerySet):
                     workspace__apikeys=principal,
                     workspace__apikeys__role__permissions__resource_type__in=[
                         "*",
-                        "Job",
+                        "DataConnection",
                     ],
                     workspace__apikeys__role__permissions__permission_type__in=[
                         "*",
@@ -51,13 +51,13 @@ class JobQuerySet(models.QuerySet):
             return self.none()
 
 
-class Job(models.Model, PermissionChecker):
+class DataConnection(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     name = models.CharField(max_length=255)
-    job_type = models.CharField(max_length=255)
+    data_connection_type = models.CharField(max_length=255)
 
     workspace = models.ForeignKey(
-        "iam.Workspace", related_name="jobs", on_delete=models.CASCADE
+        "iam.Workspace", related_name="data_connections", on_delete=models.CASCADE
     )
 
     extractor_type = models.CharField(max_length=255, blank=True, null=True)
@@ -69,7 +69,7 @@ class Job(models.Model, PermissionChecker):
     loader_type = models.CharField(max_length=255, blank=True, null=True)
     loader_settings = models.JSONField(default=dict)
 
-    objects = JobQuerySet.as_manager()
+    objects = DataConnectionQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.name} - {self.id}"
@@ -100,14 +100,14 @@ class Job(models.Model, PermissionChecker):
         cls, principal: Union["User", "APIKey", None], workspace: "Workspace"
     ):
         return cls.check_create_permissions(
-            principal=principal, workspace=workspace, resource_type="Job"
+            principal=principal, workspace=workspace, resource_type="DataConnection"
         )
 
     def get_principal_permissions(
         self, principal: Union["User", "APIKey", None]
     ) -> list[Literal["edit", "delete", "view"]]:
         permissions = self.check_object_permissions(
-            principal=principal, workspace=self.workspace, resource_type="Job"
+            principal=principal, workspace=self.workspace, resource_type="DataConnection"
         )
 
         return permissions

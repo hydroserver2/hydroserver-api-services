@@ -1,10 +1,10 @@
-# ETL Job
-- model: etl.job
+# ETL Data Connection
+- model: etl.dataconnection
   pk: 019adb5c-da8b-7970-877d-c3b4ca37cc60
   fields:
     workspace: b27c51a0-7374-462d-8a53-d97d47176c10
-    name: Test ETL Job
-    job_type: SDL
+    name: Test ETL Data Connection
+    data_connection_type: SDL
     extractor_type: HTTP
     extractor_settings: {}
     transformer_type: CSV

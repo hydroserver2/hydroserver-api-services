@@ -85,7 +85,7 @@ def get_task_run(
     run_id: Path[uuid.UUID],
 ):
     """
-    Get an ETL Job.
+    Get an ETL Task Run.
     """
 
     return 200, task_run_service.get(

@@ -118,7 +118,7 @@ class PermissionChecker:
                 "Thing",
                 "Datastream",
                 "OrchestrationSystem",
-                "Job",
+                "DataConnection",
                 "Task",
                 "APIKey",
             ]:

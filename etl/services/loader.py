@@ -27,8 +27,8 @@ class HydroServerInternalLoader(Loader):
     def load(self, data: pd.DataFrame, task: Task) -> None:
         """
         Load observations from a DataFrame to the HydroServer.
-        :param data: A Pandas DataFrame where each column corresponds to a datastream.
         """
+
         begin_date = self.earliest_begin_date(task)
         new_data = data[data["timestamp"] > begin_date]
         for col in new_data.columns.difference(["timestamp"]):
@@ -64,7 +64,7 @@ class HydroServerInternalLoader(Loader):
 
                 try:
                     observation_service.bulk_create(
-                        principal=self.task.job.workspace.owner,
+                        principal=self.task.data_connection.workspace.owner,
                         data=chunk_data,
                         datastream_id=UUID(col),
                         mode="append",

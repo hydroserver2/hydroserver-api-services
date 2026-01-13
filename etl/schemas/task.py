@@ -6,7 +6,7 @@ from pydantic import AliasPath, AliasChoices
 from api.types import ISODatetime
 from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
 from iam.schemas import WorkspaceSummaryResponse
-from .job import JobSummaryResponse
+from .data_connection import DataConnectionSummaryResponse
 from .orchestration_system import OrchestrationSystemSummaryResponse
 from .run import TaskRunResponse
 
@@ -20,10 +20,10 @@ _order_by_fields = (
     "nextRunAt",
     "paused",
     "startTime",
-    "jobType",
-    "jobExtractorType",
-    "jobTransformerType",
-    "jobLoaderType"
+    "dataConnectionType",
+    "dataConnectionExtractorType",
+    "dataConnectionTransformerType",
+    "dataConnectionLoaderType"
 )
 
 TaskOrderByFields = Literal[
@@ -35,12 +35,12 @@ class TaskQueryParameters(CollectionQueryParameters):
     order_by: list[TaskOrderByFields] | None = Query(
         [], description="Select one or more fields to order the response by."
     )
-    job_id: list[uuid.UUID] = Query([], description="Filter by job ID.")
+    data_connection_id: list[uuid.UUID] = Query([], description="Filter by data connection ID.")
     orchestration_system_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter by orchestration system ID."
     )
     orchestration_system__type: list[str] = Query([], description="Filter by orchestration system type.")
-    job__workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.", alias="workspace_id")
+    data_connection__workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.", alias="workspace_id")
     latest_run_status: list[str | Literal["null"]] = Query(
         [], description="Filters tasks by the status of their most recent run."
     )
@@ -79,17 +79,17 @@ class TaskQueryParameters(CollectionQueryParameters):
         None, description="Filters for scheduled tasks with a start time on or after this value.",
         alias="start_time_min"
     )
-    job__job_type: list[str] = Query(
-        [], description="Filters by the type of the job.", alias="job_type"
+    data_connection__data_connection_type: list[str] = Query(
+        [], description="Filters by the type of the data connection.", alias="data_connection_type"
     )
-    job__extractor_type: list[str | Literal["null"]] = Query(
-        [], description="Filters by the extractor type of the job.", alias="extractor_type"
+    data_connection__extractor_type: list[str | Literal["null"]] = Query(
+        [], description="Filters by the extractor type of the data connection.", alias="extractor_type"
     )
-    job__transformer_type: list[str | Literal["null"]] = Query(
-        [], description="Filters by the transformer type of the job.", alias="transformer_type"
+    data_connection__transformer_type: list[str | Literal["null"]] = Query(
+        [], description="Filters by the transformer type of the data connection.", alias="transformer_type"
     )
-    job__loader_type: list[str | Literal["null"]] = Query(
-        [], description="Filters by the loader type of the job.", alias="loader_type"
+    data_connection__loader_type: list[str | Literal["null"]] = Query(
+        [], description="Filters by the loader type of the data connection.", alias="loader_type"
     )
     mappings__source_identifier: list[str | Literal["null"]] = Query(
         [], description="Filters by source identifiers associated with the task.",
@@ -158,9 +158,9 @@ class TaskFields(Schema):
 class TaskSummaryResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(
-        ..., validation_alias=AliasChoices("workspaceId", AliasPath("job", "workspace_id"))
+        ..., validation_alias=AliasChoices("workspaceId", AliasPath("data_connection", "workspace_id"))
     )
-    job_id: uuid.UUID
+    data_connection_id: uuid.UUID
     orchestration_system_id: uuid.UUID
     schedule: TaskScheduleResponse | None = None
     latest_run: TaskRunResponse | None = None
@@ -170,7 +170,7 @@ class TaskSummaryResponse(BaseGetResponse, TaskFields):
 class TaskDetailResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
     workspace: WorkspaceSummaryResponse
-    job: JobSummaryResponse
+    data_connection: DataConnectionSummaryResponse
     orchestration_system: OrchestrationSystemSummaryResponse
     schedule: TaskScheduleResponse | None = None
     latest_run: TaskRunResponse | None = None
@@ -178,14 +178,14 @@ class TaskDetailResponse(BaseGetResponse, TaskFields):
 
 
 class TaskPostBody(BasePostBody, TaskFields):
-    job_id: uuid.UUID
+    data_connection_id: uuid.UUID
     orchestration_system_id: uuid.UUID
     schedule: TaskSchedulePostBody | None = None
     mappings: list[TaskMappingPostBody]
 
 
 class TaskPatchBody(BasePatchBody, TaskFields):
-    job_id: uuid.UUID | None = None
+    data_connection_id: uuid.UUID | None = None
     orchestration_system_id: uuid.UUID | None = None
     schedule: TaskSchedulePatchBody | None = None
     mappings: list[TaskMappingPostBody] | None = None

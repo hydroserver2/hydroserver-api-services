@@ -3,43 +3,43 @@ import uuid
 from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
-from etl.services import JobService
+from etl.services import DataConnectionService
 from etl.schemas import (
-    JobPostBody,
-    JobPatchBody,
-    JobSummaryResponse,
-    JobDetailResponse
+    DataConnectionPostBody,
+    DataConnectionPatchBody,
+    DataConnectionSummaryResponse,
+    DataConnectionDetailResponse
 )
 
-job_service = JobService()
+data_connection_service = DataConnectionService()
 
 
 @pytest.mark.parametrize(
-    "principal, params, job_names, max_queries",
+    "principal, params, data_connection_names, max_queries",
     [
         # Test user access
         (
             "owner",
             {},
-            ["Test ETL Job"],
+            ["Test ETL Data Connection"],
             4,
         ),
         (
             "editor",
             {},
-            ["Test ETL Job"],
+            ["Test ETL Data Connection"],
             4,
         ),
         (
             "viewer",
             {},
-            ["Test ETL Job"],
+            ["Test ETL Data Connection"],
             4,
         ),
         (
             "admin",
             {},
-            ["Test ETL Job"],
+            ["Test ETL Data Connection"],
             4,
         ),
         ("apikey", {}, [], 4),
@@ -55,23 +55,23 @@ job_service = JobService()
         # Test filtering
         (
             "owner",
-            {"job_type": "SDL"},
-            ["Test ETL Job"],
+            {"data_connection_type": "SDL"},
+            ["Test ETL Data Connection"],
             4,
         ),
     ],
 )
-def test_list_job(
+def test_list_data_connection(
     django_assert_max_num_queries,
     get_principal,
     principal,
     params,
-    job_names,
+    data_connection_names,
     max_queries,
 ):
     with django_assert_max_num_queries(max_queries):
         http_response = HttpResponse()
-        result = job_service.list(
+        result = data_connection_service.list(
             principal=get_principal(principal),
             response=http_response,
             page=params.pop("page", 1),
@@ -80,89 +80,89 @@ def test_list_job(
             filtering=params,
         )
         assert Counter(
-            str(job.name) for job in result
-        ) == Counter(job_names)
+            str(data_connection.name) for data_connection in result
+        ) == Counter(data_connection_names)
         assert (
-            JobSummaryResponse.from_orm(job)
-            for job in result
+            DataConnectionSummaryResponse.from_orm(data_connection)
+            for data_connection in result
         )
 
 
 @pytest.mark.parametrize(
-    "principal, job, message, error_code",
+    "principal, data_connection, message, error_code",
     [
         (
             "owner",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "Test ETL Job",
+            "Test ETL Data Connection",
             None,
         ),
         (
             "admin",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "Test ETL Job",
+            "Test ETL Data Connection",
             None,
         ),
         (
             "editor",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "Test ETL Job",
+            "Test ETL Data Connection",
             None,
         ),
         (
             "viewer",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "Test ETL Job",
+            "Test ETL Data Connection",
             None,
         ),
         (
             "apikey",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
     ],
 )
-def test_get_job(
-    get_principal, principal, job, message, error_code
+def test_get_data_connection(
+    get_principal, principal, data_connection, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            job_service.get(
-                principal=get_principal(principal), uid=uuid.UUID(job)
+            data_connection_service.get(
+                principal=get_principal(principal), uid=uuid.UUID(data_connection)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        job_get = job_service.get(
-            principal=get_principal(principal), uid=uuid.UUID(job)
+        data_connection_get = data_connection_service.get(
+            principal=get_principal(principal), uid=uuid.UUID(data_connection)
         )
-        assert job_get.name == message
-        assert JobSummaryResponse.from_orm(job_get)
+        assert data_connection_get.name == message
+        assert DataConnectionSummaryResponse.from_orm(data_connection_get)
 
 
 @pytest.mark.parametrize(
@@ -266,29 +266,29 @@ def test_get_job(
         ),
     ],
 )
-def test_create_job(
+def test_create_data_connection(
     get_principal, principal, workspace, message, error_code
 ):
-    job_data = JobPostBody(
-        name="New", workspace_id=uuid.UUID(workspace), job_type="Test", extractor=None, transformer=None, loader=None
+    data_connection_data = DataConnectionPostBody(
+        name="New", workspace_id=uuid.UUID(workspace), data_connection_type="Test", extractor=None, transformer=None, loader=None
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            job_service.create(
-                principal=get_principal(principal), data=job_data
+            data_connection_service.create(
+                principal=get_principal(principal), data=data_connection_data
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        job_create = job_service.create(
-            principal=get_principal(principal), data=job_data
+        data_connection_create = data_connection_service.create(
+            principal=get_principal(principal), data=data_connection_data
         )
-        assert job_create.name == job_data.name
-        assert JobDetailResponse.from_orm(job_create)
+        assert data_connection_create.name == data_connection_data.name
+        assert DataConnectionDetailResponse.from_orm(data_connection_create)
 
 
 @pytest.mark.parametrize(
-    "principal, job, message, error_code",
+    "principal, data_connection, message, error_code",
     [
         ("admin", "019adb5c-da8b-7970-877d-c3b4ca37cc60", None, None),
         ("admin", "019adb5c-da8b-7970-877d-c3b4ca37cc60", None, None),
@@ -311,80 +311,80 @@ def test_create_job(
         (
             "apikey",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "apikey",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
     ],
 )
-def test_edit_job(
-    get_principal, principal, job, message, error_code
+def test_edit_data_connection(
+    get_principal, principal, data_connection, message, error_code
 ):
-    job_data = JobPatchBody(
-        name="New", job_type="Test"
+    data_connection_data = DataConnectionPatchBody(
+        name="New", data_connection_type="Test"
     )
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            job_service.update(
+            data_connection_service.update(
                 principal=get_principal(principal),
-                uid=uuid.UUID(job),
-                data=job_data,
+                uid=uuid.UUID(data_connection),
+                data=data_connection_data,
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        job_update = job_service.update(
+        data_connection_update = data_connection_service.update(
             principal=get_principal(principal),
-            uid=uuid.UUID(job),
-            data=job_data,
+            uid=uuid.UUID(data_connection),
+            data=data_connection_data,
         )
-        assert job_update.name == job_data.name
-        assert JobDetailResponse.from_orm(job_update)
+        assert data_connection_update.name == data_connection_data.name
+        assert DataConnectionDetailResponse.from_orm(data_connection_update)
 
 
 @pytest.mark.parametrize(
-    "principal, job, message, error_code",
+    "principal, data_connection, message, error_code",
     [
         ("admin", "019adb5c-da8b-7970-877d-c3b4ca37cc60", None, None),
         ("admin", "019adb5c-da8b-7970-877d-c3b4ca37cc60", None, None),
@@ -407,65 +407,65 @@ def test_edit_job(
         (
             "apikey",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "apikey",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             "anonymous",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
         (
             None,
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             404,
         ),
     ],
 )
-def test_delete_job(
-    get_principal, principal, job, message, error_code
+def test_delete_data_connection(
+    get_principal, principal, data_connection, message, error_code
 ):
     if error_code:
         with pytest.raises(HttpError) as exc_info:
-            job_service.delete(
-                principal=get_principal(principal), uid=uuid.UUID(job)
+            data_connection_service.delete(
+                principal=get_principal(principal), uid=uuid.UUID(data_connection)
             )
         assert exc_info.value.status_code == error_code
         assert exc_info.value.message.startswith(message)
     else:
-        job_delete = job_service.delete(
-            principal=get_principal(principal), uid=uuid.UUID(job)
+        data_connection_delete = data_connection_service.delete(
+            principal=get_principal(principal), uid=uuid.UUID(data_connection)
         )
-        assert job_delete == "ETL Job deleted"
+        assert data_connection_delete == "ETL Data Connection deleted"

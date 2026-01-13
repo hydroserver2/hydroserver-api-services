@@ -1,5 +1,6 @@
-from .job import (JobSummaryResponse, JobDetailResponse, JobPostBody, JobPatchBody, JobFields, JobOrderByFields,
-                  JobQueryParameters)
+from .data_connection import (DataConnectionSummaryResponse, DataConnectionDetailResponse, DataConnectionPostBody,
+                              DataConnectionPatchBody, DataConnectionFields, DataConnectionOrderByFields,
+                              DataConnectionQueryParameters)
 from .orchestration_system import (OrchestrationSystemSummaryResponse, OrchestrationSystemDetailResponse,
                                    OrchestrationSystemPostBody, OrchestrationSystemPatchBody,
                                    OrchestrationSystemFields, OrchestrationSystemOrderByFields,

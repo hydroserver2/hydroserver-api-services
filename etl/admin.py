@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib import admin
-from etl.models import OrchestrationSystem, Job, Task, TaskMapping, TaskMappingPath, TaskRun
+from etl.models import OrchestrationSystem, DataConnection, Task, TaskMapping, TaskMappingPath, TaskRun
 from hydroserver.admin import VocabularyAdmin
 
 
@@ -27,21 +27,23 @@ class OrchestrationSystemAdmin(admin.ModelAdmin, VocabularyAdmin):
         )
 
 
-class JobAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "job_type", "workspace__name")
+class DataConnectionAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "data_connection_type", "workspace__name")
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "job__name", "orchestration_system__name", "job__workspace__name")
+    list_display = ("id", "name", "data_connection__name", "orchestration_system__name",
+                    "data_connection__workspace__name")
 
 
 class TaskMappingAdmin(admin.ModelAdmin):
-    list_display = ("id", "task__name", "source_identifier", "task__job__name", "task__job__workspace__name")
+    list_display = ("id", "task__name", "source_identifier", "task__data_connection__name",
+                    "task__data_connection__workspace__name")
 
 
 class TaskMappingPathAdmin(admin.ModelAdmin):
-    list_display = ("id", "task_mapping__task__name", "target_identifier", "task_mapping__task__job__name",
-                    "task_mapping__task__job__workspace__name")
+    list_display = ("id", "task_mapping__task__name", "target_identifier", "task_mapping__task__data_connection__name",
+                    "task_mapping__task__data_connection__workspace__name")
 
 
 class TaskRunAdmin(admin.ModelAdmin):
@@ -49,7 +51,7 @@ class TaskRunAdmin(admin.ModelAdmin):
 
 
 admin.site.register(OrchestrationSystem, OrchestrationSystemAdmin)
-admin.site.register(Job, JobAdmin)
+admin.site.register(DataConnection, DataConnectionAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(TaskMapping, TaskMappingAdmin)
 admin.site.register(TaskMappingPath, TaskMappingPathAdmin)

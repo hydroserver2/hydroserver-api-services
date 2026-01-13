@@ -14,12 +14,12 @@ from etl.models import Task, TaskMapping, TaskMappingPath, TaskRun
 from etl.schemas import TaskFields, TaskPostBody, TaskPatchBody, TaskOrderByFields
 from etl.tasks import run_etl_task
 from api.service import ServiceUtils
-from .job import JobService
+from .data_connection import DataConnectionService
 from .orchestration_system import OrchestrationSystemService
 
 User = get_user_model()
 
-job_service = JobService()
+data_connection_service = DataConnectionService()
 orchestration_system_service = OrchestrationSystemService()
 
 
@@ -101,27 +101,27 @@ class TaskService(ServiceUtils):
 
         if expand:
             response["workspace"] = {
-                "id": task.job.workspace.id,
-                "name": task.job.workspace.name,
-                "is_private": task.job.workspace.is_private,
+                "id": task.data_connection.workspace.id,
+                "name": task.data_connection.workspace.name,
+                "is_private": task.data_connection.workspace.is_private,
             }
-            response["job"] = {
-                "id": task.job.id,
-                "name": task.job.name,
-                "job_type": task.job.job_type,
-                "workspace_id": task.job.workspace.id,
+            response["data_connection"] = {
+                "id": task.data_connection.id,
+                "name": task.data_connection.name,
+                "data_connection_type": task.data_connection.data_connection_type,
+                "workspace_id": task.data_connection.workspace.id,
                 "extractor": {
-                    "settings_type": task.job.extractor_type,
-                    "settings": task.job.extractor_settings
-                } if task.job.extractor_type else None,
+                    "settings_type": task.data_connection.extractor_type,
+                    "settings": task.data_connection.extractor_settings
+                } if task.data_connection.extractor_type else None,
                 "transformer": {
-                    "settings_type": task.job.transformer_type,
-                    "settings": task.job.transformer_settings
-                } if task.job.transformer_type else None,
+                    "settings_type": task.data_connection.transformer_type,
+                    "settings": task.data_connection.transformer_settings
+                } if task.data_connection.transformer_type else None,
                 "loader": {
-                    "settings_type": task.job.loader_type,
-                    "settings": task.job.loader_settings
-                } if task.job.loader_type else None
+                    "settings_type": task.data_connection.loader_type,
+                    "settings": task.data_connection.loader_settings
+                } if task.data_connection.loader_type else None
             }
             response["orchestration_system"] = {
                 "id": task.orchestration_system.id,
@@ -130,8 +130,8 @@ class TaskService(ServiceUtils):
                 "workspace_id": task.orchestration_system.workspace_id
             }
         else:
-            response["workspace_id"] = task.job.workspace_id
-            response["job_id"] = task.job_id
+            response["workspace_id"] = task.data_connection.workspace_id
+            response["data_connection_id"] = task.data_connection_id
             response["orchestration_system_id"] = task.orchestration_system_id
 
         return response
@@ -139,7 +139,7 @@ class TaskService(ServiceUtils):
     @staticmethod
     def select_expanded_fields(queryset: QuerySet) -> QuerySet:
         return queryset.select_related(
-            "job", "job__workspace", "orchestration_system", "periodic_task", "periodic_task__crontab",
+            "data_connection", "data_connection__workspace", "orchestration_system", "periodic_task", "periodic_task__crontab",
             "periodic_task__interval"
         ).prefetch_related(
             "mappings", "mappings__paths"
@@ -185,10 +185,10 @@ class TaskService(ServiceUtils):
         queryset = self.annotate_latest_task_result(queryset)
 
         for field in [
-            "job_id",
+            "data_connection_id",
             "orchestration_system_id",
             "orchestration_system__type",
-            "job__workspace_id",
+            "data_connection__workspace_id",
             "latest_run_status",
             "latest_run_started_at__lte",
             "latest_run_started_at__gte",
@@ -199,10 +199,10 @@ class TaskService(ServiceUtils):
             "paused",
             "periodic_task__start_time__lte",
             "periodic_task__start_time__gte",
-            "job__job_type",
-            "job__extractor_type",
-            "job__transformer_type",
-            "job__loader_type",
+            "data_connection__data_connection_type",
+            "data_connection__extractor_type",
+            "data_connection__transformer_type",
+            "data_connection__loader_type",
             "mappings__source_identifier",
             "mappings__paths__target_identifier",
         ]:
@@ -213,10 +213,10 @@ class TaskService(ServiceUtils):
             order_by_aliases = {
                 "orchestrationSystemType": "orchestration_system__type",
                 "startTime": "periodic_task__start_time",
-                "jobType": "job__job_type",
-                "jobExtractorType": "job__extractor_type",
-                "jobTransformerType": "job__transformer_type",
-                "jobLoaderType": "job__loader_type",
+                "dataConnectionType": "data_connection__data_connection_type",
+                "dataConnectionExtractorType": "data_connection__extractor_type",
+                "dataConnectionTransformerType": "data_connection__transformer_type",
+                "dataConnectionLoaderType": "data_connection__loader_type",
             }
 
             queryset = self.apply_ordering(
@@ -254,12 +254,12 @@ class TaskService(ServiceUtils):
         principal: User | APIKey,
         data: TaskPostBody,
     ):
-        job = job_service.get_job_for_action(
-            principal=principal, uid=data.job_id, action="edit", raise_400=True, expand_related=True
+        data_connection = data_connection_service.get_data_connection_for_action(
+            principal=principal, uid=data.data_connection_id, action="edit", raise_400=True, expand_related=True
         )
 
         if not Task.can_principal_create(
-            principal=principal, workspace=job.workspace
+            principal=principal, workspace=data_connection.workspace
         ):
             raise HttpError(
                 403, "You do not have permission to create this ETL task"
@@ -269,12 +269,12 @@ class TaskService(ServiceUtils):
             principal=principal, uid=data.orchestration_system_id, action="view", raise_400=True
         )
 
-        if orchestration_system.workspace and orchestration_system.workspace_id != job.workspace_id:
+        if orchestration_system.workspace and orchestration_system.workspace_id != data_connection.workspace_id:
             raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
         task = Task.objects.create(
             name=data.name,
-            job=job,
+            data_connection=data_connection,
             orchestration_system=orchestration_system,
             extractor_variables=data.extractor_variables or {},
             transformer_variables=data.transformer_variables or {},
@@ -299,16 +299,16 @@ class TaskService(ServiceUtils):
             principal=principal, uid=uid, action="edit"
         )
         task_data = data.dict(
-            include=set(TaskFields.model_fields.keys()) | {"schedule", "mappings", "job_id", "orchestration_system_id"},
+            include=set(TaskFields.model_fields.keys()) | {"schedule", "mappings", "data_connection_id", "orchestration_system_id"},
             exclude_unset=True,
         )
 
-        if "job_id" in task_data:
-            job = job_service.get_job_for_action(
-                principal=principal, uid=data.job_id, action="edit", raise_400=True, expand_related=True
+        if "data_connection_id" in task_data:
+            data_connection = data_connection_service.get_data_connection_for_action(
+                principal=principal, uid=data.data_connection_id, action="edit", raise_400=True, expand_related=True
             )
 
-            if job.workspace_id != task.job.workspace_id:
+            if data_connection.workspace_id != task.data_connection.workspace_id:
                 raise HttpError(400, f"Cannot change the workspace of a task")
 
         if "orchestration_system_id" in task_data:
@@ -316,7 +316,7 @@ class TaskService(ServiceUtils):
                 principal=principal, uid=data.orchestration_system_id, action="view", raise_400=True
             )
 
-            if orchestration_system.workspace and orchestration_system.workspace_id != task.job.workspace_id:
+            if orchestration_system.workspace and orchestration_system.workspace_id != task.data_connection.workspace_id:
                 raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
         if "schedule" in task_data:

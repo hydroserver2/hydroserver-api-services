@@ -169,7 +169,7 @@ def test_get_task(
 
 
 @pytest.mark.parametrize(
-    "principal, job, message, error_code",
+    "principal, data_connection, message, error_code",
     [
         (
             "admin",
@@ -180,7 +180,7 @@ def test_get_task(
         (
             "admin",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             400,
         ),
         (
@@ -204,34 +204,35 @@ def test_get_task(
         (
             "anonymous",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             400,
         ),
         (
             "anonymous",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             400,
         ),
         (
             None,
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             400,
         ),
         (
             None,
             "00000000-0000-0000-0000-000000000000",
-            "ETL Job does not exist",
+            "ETL Data Connection does not exist",
             400,
         ),
     ],
 )
 def test_create_task(
-    get_principal, principal, job, message, error_code
+    get_principal, principal, data_connection, message, error_code
 ):
     task_data = TaskPostBody(
-        name="New", job_id=uuid.UUID(job), orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
+        name="New", data_connection_id=uuid.UUID(data_connection),
+        orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
         schedule=TaskSchedulePostBody(
             paused=True,
             crontab="* * * * *"

@@ -21,18 +21,18 @@ def run_etl_task(self, task_id: str):
     """
 
     task = Task.objects.select_related(
-        "job"
+        "data_connection"
     ).prefetch_related(
         "mappings", "mappings__paths"
     ).get(pk=UUID(task_id))
 
     extractor_cls = extractor_factory(TypeAdapter(ExtractorConfig).validate_python({
-        "type": task.job.extractor_type,
-        **task.job.extractor_settings
+        "type": task.data_connection.extractor_type,
+        **task.data_connection.extractor_settings
     }))
     transformer_cls = transformer_factory(TypeAdapter(TransformerConfig).validate_python({
-        "type": task.job.transformer_type,
-        **task.job.transformer_settings
+        "type": task.data_connection.transformer_type,
+        **task.data_connection.transformer_settings
     }))
     loader_cls = HydroServerInternalLoader(task)
 

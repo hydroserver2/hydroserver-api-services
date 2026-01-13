@@ -6,7 +6,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from iam.models.utils import PermissionChecker
 from django_celery_beat.models import PeriodicTask
-from .job import Job
+from .data_connection import DataConnection
 from .orchestration_system import OrchestrationSystem
 
 if TYPE_CHECKING:
@@ -25,14 +25,14 @@ class TaskQuerySet(models.QuerySet):
                 return self
             else:
                 return self.filter(
-                    Q(job__workspace__owner=principal)
+                    Q(data_connection__workspace__owner=principal)
                     | Q(
-                        job__workspace__collaborators__user=principal,
-                        job__workspace__collaborators__role__permissions__resource_type__in=[
+                        data_connection__workspace__collaborators__user=principal,
+                        data_connection__workspace__collaborators__role__permissions__resource_type__in=[
                             "*",
                             "Task",
                         ],
-                        job__workspace__collaborators__role__permissions__permission_type__in=[
+                        data_connection__workspace__collaborators__role__permissions__permission_type__in=[
                             "*",
                             "view",
                         ],
@@ -41,12 +41,12 @@ class TaskQuerySet(models.QuerySet):
         elif hasattr(principal, "workspace"):
             return self.filter(
                 Q(
-                    job__workspace__apikeys=principal,
-                    job__workspace__apikeys__role__permissions__resource_type__in=[
+                    data_connection__workspace__apikeys=principal,
+                    data_connection__workspace__apikeys__role__permissions__resource_type__in=[
                         "*",
                         "Task",
                     ],
-                    job__workspace__apikeys__role__permissions__permission_type__in=[
+                    data_connection__workspace__apikeys__role__permissions__permission_type__in=[
                         "*",
                         "view",
                     ],
@@ -59,7 +59,7 @@ class TaskQuerySet(models.QuerySet):
 class Task(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     name = models.CharField(max_length=255)
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="tasks")
+    data_connection = models.ForeignKey(DataConnection, on_delete=models.CASCADE, related_name="tasks")
     orchestration_system = models.ForeignKey(
         OrchestrationSystem, on_delete=models.CASCADE, related_name="tasks"
     )
@@ -82,14 +82,14 @@ class Task(models.Model, PermissionChecker):
         cls, principal: Union["User", "APIKey", None], workspace: "Workspace"
     ):
         return cls.check_create_permissions(
-            principal=principal, workspace=workspace, resource_type="Job"
+            principal=principal, workspace=workspace, resource_type="DataConnection"
         )
 
     def get_principal_permissions(
         self, principal: Union["User", "APIKey", None]
     ) -> list[Literal["edit", "delete", "view"]]:
         permissions = self.check_object_permissions(
-            principal=principal, workspace=self.job.workspace, resource_type="Job"
+            principal=principal, workspace=self.data_connection.workspace, resource_type="DataConnection"
         )
 
         return permissions
