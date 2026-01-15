@@ -31,7 +31,7 @@ class OrchestrationSystemQueryParameters(CollectionQueryParameters):
         [], description="Select one or more fields to order the response by."
     )
     workspace_id: list[uuid.UUID | Literal["null"]] = Query(
-        [], description="Filter sensors by workspace ID."
+        [], description="Filter orchestration systems by workspace ID."
     )
     orchestration_system_type: list[str] = Query(
         [], description="Filter orchestration systems by type.", alias="type"

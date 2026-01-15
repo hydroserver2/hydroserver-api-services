@@ -131,7 +131,14 @@ class DataConnectionService(ServiceUtils):
         principal: User | APIKey,
         data: DataConnectionPostBody,
     ):
-        workspace, _ = self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+        workspace, _ = (
+            self.get_workspace(principal=principal, workspace_id=data.workspace_id)
+            if data.workspace_id
+            else (
+                None,
+                None,
+            )
+        )
 
         if not DataConnection.can_principal_create(
             principal=principal, workspace=workspace

@@ -169,69 +169,85 @@ def test_get_task(
 
 
 @pytest.mark.parametrize(
-    "principal, data_connection, message, error_code",
+    "principal, workspace, data_connection, message, error_code",
     [
         (
             "admin",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
             None,
             None,
         ),
         (
             "admin",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "00000000-0000-0000-0000-000000000000",
             "ETL Data Connection does not exist",
             400,
         ),
         (
+            "admin",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "Task and data connection must belong to the same workspace.",
+            400,
+        ),
+        (
             "owner",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
             None,
             None,
         ),
         (
             "editor",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
             None,
             None,
         ),
         (
             "viewer",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
             "You do not have permission",
-            400,
+            403,
         ),
         (
             "anonymous",
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Data Connection does not exist",
-            400,
+            "Workspace does not exist",
+            404,
         ),
         (
             "anonymous",
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Data Connection does not exist",
-            400,
+            "You do not have permission",
+            403,
         ),
         (
             None,
+            "b27c51a0-7374-462d-8a53-d97d47176c10",
             "019adb5c-da8b-7970-877d-c3b4ca37cc60",
-            "ETL Data Connection does not exist",
-            400,
+            "Workspace does not exist",
+            404,
         ),
         (
             None,
+            "6e0deaf2-a92b-421b-9ece-86783265596f",
             "00000000-0000-0000-0000-000000000000",
-            "ETL Data Connection does not exist",
-            400,
+            "You do not have permission",
+            403,
         ),
     ],
 )
 def test_create_task(
-    get_principal, principal, data_connection, message, error_code
+    get_principal, principal, workspace, data_connection, message, error_code
 ):
     task_data = TaskPostBody(
-        name="New", data_connection_id=uuid.UUID(data_connection),
+        name="New", workspace_id=uuid.UUID(workspace), data_connection_id=uuid.UUID(data_connection),
         orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
         schedule=TaskSchedulePostBody(
             paused=True,

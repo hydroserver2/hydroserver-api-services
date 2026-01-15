@@ -101,9 +101,9 @@ class TaskService(ServiceUtils):
 
         if expand:
             response["workspace"] = {
-                "id": task.data_connection.workspace.id,
-                "name": task.data_connection.workspace.name,
-                "is_private": task.data_connection.workspace.is_private,
+                "id": task.workspace.id,
+                "name": task.workspace.name,
+                "is_private": task.workspace.is_private,
             }
             response["data_connection"] = {
                 "id": task.data_connection.id,
@@ -130,7 +130,7 @@ class TaskService(ServiceUtils):
                 "workspace_id": task.orchestration_system.workspace_id
             }
         else:
-            response["workspace_id"] = task.data_connection.workspace_id
+            response["workspace_id"] = task.workspace_id
             response["data_connection_id"] = task.data_connection_id
             response["orchestration_system_id"] = task.orchestration_system_id
 
@@ -139,7 +139,7 @@ class TaskService(ServiceUtils):
     @staticmethod
     def select_expanded_fields(queryset: QuerySet) -> QuerySet:
         return queryset.select_related(
-            "data_connection", "data_connection__workspace", "orchestration_system", "periodic_task", "periodic_task__crontab",
+            "data_connection", "workspace", "orchestration_system", "periodic_task", "periodic_task__crontab",
             "periodic_task__interval"
         ).prefetch_related(
             "mappings", "mappings__paths"
@@ -185,10 +185,10 @@ class TaskService(ServiceUtils):
         queryset = self.annotate_latest_task_result(queryset)
 
         for field in [
+            "workspace_id",
             "data_connection_id",
             "orchestration_system_id",
             "orchestration_system__type",
-            "data_connection__workspace_id",
             "latest_run_status",
             "latest_run_started_at__lte",
             "latest_run_started_at__gte",
@@ -254,26 +254,34 @@ class TaskService(ServiceUtils):
         principal: User | APIKey,
         data: TaskPostBody,
     ):
-        data_connection = data_connection_service.get_data_connection_for_action(
-            principal=principal, uid=data.data_connection_id, action="edit", raise_400=True, expand_related=True
+        workspace, _ = self.get_workspace(
+            principal=principal, workspace_id=data.workspace_id
         )
 
         if not Task.can_principal_create(
-            principal=principal, workspace=data_connection.workspace
+            principal=principal, workspace=workspace
         ):
             raise HttpError(
                 403, "You do not have permission to create this ETL task"
             )
 
+        data_connection = data_connection_service.get_data_connection_for_action(
+            principal=principal, uid=data.data_connection_id, action="edit", raise_400=True, expand_related=True
+        )
+
+        if data_connection.workspace and data_connection.workspace_id != workspace.id:
+            raise HttpError(400, "Task and data connection must belong to the same workspace.")
+
         orchestration_system = orchestration_system_service.get_orchestration_system_for_action(
             principal=principal, uid=data.orchestration_system_id, action="view", raise_400=True
         )
 
-        if orchestration_system.workspace and orchestration_system.workspace_id != data_connection.workspace_id:
+        if orchestration_system.workspace and orchestration_system.workspace_id != workspace.id:
             raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
         task = Task.objects.create(
             name=data.name,
+            workspace=workspace,
             data_connection=data_connection,
             orchestration_system=orchestration_system,
             extractor_variables=data.extractor_variables or {},
@@ -308,15 +316,15 @@ class TaskService(ServiceUtils):
                 principal=principal, uid=data.data_connection_id, action="edit", raise_400=True, expand_related=True
             )
 
-            if data_connection.workspace_id != task.data_connection.workspace_id:
-                raise HttpError(400, f"Cannot change the workspace of a task")
+            if data_connection.workspace_id != task.workspace_id:
+                raise HttpError(400, f"Task and data connection must belong to the same workspace.")
 
         if "orchestration_system_id" in task_data:
             orchestration_system = orchestration_system_service.get_orchestration_system_for_action(
                 principal=principal, uid=data.orchestration_system_id, action="view", raise_400=True
             )
 
-            if orchestration_system.workspace and orchestration_system.workspace_id != task.data_connection.workspace_id:
+            if orchestration_system.workspace and orchestration_system.workspace_id != task.workspace_id:
                 raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
         if "schedule" in task_data:

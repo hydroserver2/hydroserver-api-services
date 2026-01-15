@@ -1,5 +1,5 @@
 import uuid6
-from typing import Union, Literal, TYPE_CHECKING
+from typing import Union, Literal, Optional, TYPE_CHECKING
 from django.db import models
 from django.db.models import Q
 from iam.models.utils import PermissionChecker
@@ -12,15 +12,16 @@ if TYPE_CHECKING:
 
 
 class DataConnectionQuerySet(models.QuerySet):
-    def visible(self, principal: Union["User", "APIKey"]):
+    def visible(self, principal: Optional[Union["User", "APIKey"]]):
         if not principal:
-            return self.none()
+            return self.filter(Q(workspace__isnull=True))
         elif hasattr(principal, "account_type"):
             if principal.account_type == "admin":
                 return self
             else:
                 return self.filter(
-                    Q(workspace__owner=principal)
+                    Q(workspace__isnull=True)
+                    | Q(workspace__owner=principal)
                     | Q(
                         workspace__collaborators__user=principal,
                         workspace__collaborators__role__permissions__resource_type__in=[
@@ -35,7 +36,8 @@ class DataConnectionQuerySet(models.QuerySet):
                 )
         elif hasattr(principal, "workspace"):
             return self.filter(
-                Q(
+                Q(workspace__isnull=True)
+                | Q(
                     workspace__apikeys=principal,
                     workspace__apikeys__role__permissions__resource_type__in=[
                         "*",
@@ -48,7 +50,7 @@ class DataConnectionQuerySet(models.QuerySet):
                 )
             )
         else:
-            return self.none()
+            return self.filter(Q(workspace__isnull=True))
 
 
 class DataConnection(models.Model, PermissionChecker):
@@ -57,7 +59,11 @@ class DataConnection(models.Model, PermissionChecker):
     data_connection_type = models.CharField(max_length=255)
 
     workspace = models.ForeignKey(
-        "iam.Workspace", related_name="data_connections", on_delete=models.CASCADE
+        "iam.Workspace",
+        related_name="data_connections",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True
     )
 
     extractor_type = models.CharField(max_length=255, blank=True, null=True)
@@ -97,17 +103,23 @@ class DataConnection(models.Model, PermissionChecker):
 
     @classmethod
     def can_principal_create(
-        cls, principal: Union["User", "APIKey", None], workspace: "Workspace"
+        cls,
+        principal: Optional[Union["User", "APIKey"]],
+        workspace: Optional["Workspace"] = None,
     ):
         return cls.check_create_permissions(
-            principal=principal, workspace=workspace, resource_type="DataConnection"
+            principal=principal,
+            workspace=workspace,
+            resource_type="DataConnection"
         )
 
     def get_principal_permissions(
-        self, principal: Union["User", "APIKey", None]
+        self, principal: Optional[Union["User", "APIKey"]]
     ) -> list[Literal["edit", "delete", "view"]]:
         permissions = self.check_object_permissions(
-            principal=principal, workspace=self.workspace, resource_type="DataConnection"
+            principal=principal,
+            workspace=self.workspace,
+            resource_type="DataConnection"
         )
 
         return permissions

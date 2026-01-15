@@ -25,14 +25,14 @@ class TaskQuerySet(models.QuerySet):
                 return self
             else:
                 return self.filter(
-                    Q(data_connection__workspace__owner=principal)
+                    Q(workspace__owner=principal)
                     | Q(
-                        data_connection__workspace__collaborators__user=principal,
-                        data_connection__workspace__collaborators__role__permissions__resource_type__in=[
+                        workspace__collaborators__user=principal,
+                        workspace__collaborators__role__permissions__resource_type__in=[
                             "*",
                             "Task",
                         ],
-                        data_connection__workspace__collaborators__role__permissions__permission_type__in=[
+                        workspace__collaborators__role__permissions__permission_type__in=[
                             "*",
                             "view",
                         ],
@@ -41,12 +41,12 @@ class TaskQuerySet(models.QuerySet):
         elif hasattr(principal, "workspace"):
             return self.filter(
                 Q(
-                    data_connection__workspace__apikeys=principal,
-                    data_connection__workspace__apikeys__role__permissions__resource_type__in=[
+                    workspace__apikeys=principal,
+                    workspace__apikeys__role__permissions__resource_type__in=[
                         "*",
                         "Task",
                     ],
-                    data_connection__workspace__apikeys__role__permissions__permission_type__in=[
+                    workspace__apikeys__role__permissions__permission_type__in=[
                         "*",
                         "view",
                     ],
@@ -59,6 +59,9 @@ class TaskQuerySet(models.QuerySet):
 class Task(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     name = models.CharField(max_length=255)
+    workspace = models.ForeignKey(
+        "iam.Workspace", related_name="tasks", on_delete=models.DO_NOTHING
+    )
     data_connection = models.ForeignKey(DataConnection, on_delete=models.CASCADE, related_name="tasks")
     orchestration_system = models.ForeignKey(
         OrchestrationSystem, on_delete=models.CASCADE, related_name="tasks"
@@ -82,14 +85,14 @@ class Task(models.Model, PermissionChecker):
         cls, principal: Union["User", "APIKey", None], workspace: "Workspace"
     ):
         return cls.check_create_permissions(
-            principal=principal, workspace=workspace, resource_type="DataConnection"
+            principal=principal, workspace=workspace, resource_type="Task"
         )
 
     def get_principal_permissions(
         self, principal: Union["User", "APIKey", None]
     ) -> list[Literal["edit", "delete", "view"]]:
         permissions = self.check_object_permissions(
-            principal=principal, workspace=self.data_connection.workspace, resource_type="DataConnection"
+            principal=principal, workspace=self.data_connection.workspace, resource_type="Task"
         )
 
         return permissions
@@ -105,7 +108,7 @@ class TaskMappingPath(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     task_mapping = models.ForeignKey(TaskMapping, on_delete=models.CASCADE, related_name="paths")
     target_identifier = models.CharField(max_length=255)
-    data_transformations = models.JSONField(default=dict)
+    data_transformations = models.JSONField(default=list)
 
 
 @receiver(pre_delete, sender=Task)

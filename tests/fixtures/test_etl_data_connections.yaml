@@ -11,3 +11,16 @@
     transformer_settings: {}
     loader_type: HydroServer
     loader_settings: {}
+
+# ETL Global Data Connection
+- model: etl.dataconnection
+  pk: 019bbd9d-ee62-7669-8db0-3ef50802f1d8
+  fields:
+    name: Test Global ETL Data Connection
+    data_connection_type: ETL
+    extractor_type: HTTP
+    extractor_settings: {}
+    transformer_type: CSV
+    transformer_settings: {}
+    loader_type: HydroServer
+    loader_settings: {}

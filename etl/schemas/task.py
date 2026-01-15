@@ -2,7 +2,6 @@ import uuid
 from typing import Any, Literal
 from datetime import datetime
 from ninja import Schema, Field, Query
-from pydantic import AliasPath, AliasChoices
 from api.types import ISODatetime
 from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
 from iam.schemas import WorkspaceSummaryResponse
@@ -35,12 +34,14 @@ class TaskQueryParameters(CollectionQueryParameters):
     order_by: list[TaskOrderByFields] | None = Query(
         [], description="Select one or more fields to order the response by."
     )
+    workspace_id: list[uuid.UUID] = Query(
+        [], description="Filter by workspace ID."
+    )
     data_connection_id: list[uuid.UUID] = Query([], description="Filter by data connection ID.")
     orchestration_system_id: list[uuid.UUID | Literal["null"]] = Query(
         [], description="Filter by orchestration system ID."
     )
     orchestration_system__type: list[str] = Query([], description="Filter by orchestration system type.")
-    data_connection__workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.", alias="workspace_id")
     latest_run_status: list[str | Literal["null"]] = Query(
         [], description="Filters tasks by the status of their most recent run."
     )
@@ -157,9 +158,7 @@ class TaskFields(Schema):
 
 class TaskSummaryResponse(BaseGetResponse, TaskFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID = Field(
-        ..., validation_alias=AliasChoices("workspaceId", AliasPath("data_connection", "workspace_id"))
-    )
+    workspace_id: uuid.UUID
     data_connection_id: uuid.UUID
     orchestration_system_id: uuid.UUID
     schedule: TaskScheduleResponse | None = None
@@ -178,6 +177,7 @@ class TaskDetailResponse(BaseGetResponse, TaskFields):
 
 
 class TaskPostBody(BasePostBody, TaskFields):
+    workspace_id: uuid.UUID
     data_connection_id: uuid.UUID
     orchestration_system_id: uuid.UUID
     schedule: TaskSchedulePostBody | None = None

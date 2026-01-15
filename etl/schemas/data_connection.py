@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 from ninja import Schema, Field, Query
 from api.schemas import BaseGetResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
 from iam.schemas import WorkspaceSummaryResponse
@@ -18,7 +18,9 @@ class DataConnectionQueryParameters(CollectionQueryParameters):
     order_by: list[DataConnectionOrderByFields] | None = Query(
         [], description="Select one or more fields to order the response by."
     )
-    workspace_id: list[uuid.UUID] = Query([], description="Filter by workspace ID.")
+    workspace_id: list[uuid.UUID | Literal["null"]] = Query(
+        [], description="Filter data connections by workspace ID."
+    )
     data_connection_type: list[str] = Query(
         [], description="Filters by the type of the data connection.", alias="type"
     )
@@ -58,7 +60,7 @@ class DataConnectionFields(Schema):
 
 class DataConnectionSummaryResponse(BaseGetResponse, DataConnectionFields):
     id: uuid.UUID
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID] = None
     extractor: DataConnectionSettingsResponse | None = None
     transformer: DataConnectionSettingsResponse | None = None
     loader: DataConnectionSettingsResponse | None = None
@@ -66,14 +68,14 @@ class DataConnectionSummaryResponse(BaseGetResponse, DataConnectionFields):
 
 class DataConnectionDetailResponse(BaseGetResponse, DataConnectionFields):
     id: uuid.UUID
-    workspace: WorkspaceSummaryResponse
+    workspace: Optional[WorkspaceSummaryResponse] = None
     extractor: DataConnectionSettingsResponse | None = None
     transformer: DataConnectionSettingsResponse | None = None
     loader: DataConnectionSettingsResponse | None = None
 
 
 class DataConnectionPostBody(BasePostBody, DataConnectionFields):
-    workspace_id: uuid.UUID
+    workspace_id: Optional[uuid.UUID] = None
     extractor: DataConnectionSettingsPostBody | None = None
     transformer: DataConnectionSettingsPostBody | None = None
     loader: DataConnectionSettingsPostBody | None = None

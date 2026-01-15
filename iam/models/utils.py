@@ -27,6 +27,7 @@ class PermissionChecker:
             ]:
                 if not workspace and resource_type not in [
                     "OrchestrationSystem",
+                    "DataConnection",
                     "ProcessingLevel",
                     "Unit",
                     "Sensor",
