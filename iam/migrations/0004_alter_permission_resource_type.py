@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                     ("Role", "Role"),
                     ("Collaborator", "Collaborator"),
                     ("Task", "Task"),
-                    ("Job", "Job"),
+                    ("DataConnection", "Data Connection"),
                     ("OrchestrationSystem", "Orchestration System"),
                     ("Thing", "Thing"),
                     ("Datastream", "Datastream"),

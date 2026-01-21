@@ -10,7 +10,7 @@ from django.utils import timezone
 def update_settings_fields(apps, schema_editor):
     DataSource = apps.get_model("etl", "DataSource")
     OrchestrationSystem = apps.get_model("etl", "OrchestrationSystem")
-    Job = apps.get_model("etl", "Job")
+    DataConnection = apps.get_model("etl", "DataConnection")
     Task = apps.get_model("etl", "Task")
     TaskMapping = apps.get_model("etl", "TaskMapping")
     TaskMappingPath = apps.get_model("etl", "TaskMappingPath")
@@ -22,9 +22,9 @@ def update_settings_fields(apps, schema_editor):
         orchestration_system = OrchestrationSystem.objects.get(id=data_source.orchestration_system_id)
 
         settings = data_source.settings or {}
-        job = Job.objects.create(
+        data_connection = DataConnection.objects.create(
             name=data_source.name,
-            job_type=data_source.settings.get("type", "ETL"),
+            data_connection_type=data_source.settings.get("type", "ETL"),
             workspace=data_source.workspace,
             extractor_type=data_source.settings.get("extractor", {}).get("type"),
             extractor_settings={
@@ -43,7 +43,8 @@ def update_settings_fields(apps, schema_editor):
         for payload in settings.get("payloads", []):
             task = Task.objects.create(
                 name=payload.get("name", "ETL Task"),
-                job=job,
+                workspace=data_source.workspace,
+                data_connection=data_connection,
                 orchestration_system=orchestration_system,
                 paused=data_source.paused,
                 next_run_at=data_source.next_run,
@@ -104,37 +105,38 @@ def update_settings_fields(apps, schema_editor):
 def reverse_update_settings_fields(apps, schema_editor):
     DataSource = apps.get_model("etl", "DataSource")
     OrchestrationSystem = apps.get_model("etl", "OrchestrationSystem")
-    Job = apps.get_model("etl", "Job")
+    DataConnection = apps.get_model("etl", "DataConnection")
+    PeriodicTask = apps.get_model("django_celery_beat", "PeriodicTask")
     Task = apps.get_model("etl", "Task")
     TaskMapping = apps.get_model("etl", "TaskMapping")
     TaskMappingPath = apps.get_model("etl", "TaskMappingPath")
 
-    for job in Job.objects.all():
+    for data_connection in DataConnection.objects.all():
         reconstructed = {}
 
-        if job.job_type:
-            reconstructed["type"] = job.job_type
+        if data_connection.data_connection_type:
+            reconstructed["type"] = data_connection.data_connection_type
 
-        if job.extractor_type:
+        if data_connection.extractor_type:
             reconstructed["extractor"] = {
-                "type": job.extractor_type,
-                **(job.extractor_settings or {}),
+                "type": data_connection.extractor_type,
+                **(data_connection.extractor_settings or {}),
             }
 
-        if job.transformer_type:
+        if data_connection.transformer_type:
             reconstructed["transformer"] = {
-                "type": job.transformer_type,
-                **(job.transformer_settings or {}),
+                "type": data_connection.transformer_type,
+                **(data_connection.transformer_settings or {}),
             }
 
-        if job.loader_type:
+        if data_connection.loader_type:
             reconstructed["loader"] = {
-                "type": job.loader_type,
-                **(job.loader_settings or {}),
+                "type": data_connection.loader_type,
+                **(data_connection.loader_settings or {}),
             }
 
         payloads = []
-        tasks = Task.objects.filter(job=job)
+        tasks = Task.objects.filter(data_connection=data_connection)
         orchestration_system = None
 
         paused = None
@@ -143,6 +145,9 @@ def reverse_update_settings_fields(apps, schema_editor):
         crontab = None
         interval = None
         interval_units = None
+
+        if not tasks:
+            continue
 
         for task in tasks:
             orchestration_system = task.orchestration_system
@@ -175,7 +180,12 @@ def reverse_update_settings_fields(apps, schema_editor):
 
             payloads.append(payload)
 
-            if task.periodic_task:
+            try:
+                periodic_task = task.periodic_task
+            except PeriodicTask.DoesNotExist:
+                periodic_task = None
+
+            if periodic_task:
                 paused = task.paused
                 next_run = task.next_run_at
                 start_time = task.periodic_task.start_time
@@ -208,13 +218,13 @@ def reverse_update_settings_fields(apps, schema_editor):
             reconstructed["payloads"] = payloads
 
         DataSource.objects.create(
-            name=job.name,
-            workspace=job.workspace,
+            name=data_connection.name,
+            workspace=data_connection.workspace,
             settings=reconstructed,
             crontab=crontab,
             interval=interval,
             interval_units=interval_units,
-            paused=paused,
+            paused=paused if paused is not None else True,
             last_run=None,
             next_run=next_run,
             start_time=start_time,
@@ -233,7 +243,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="Job",
+            name="DataConnection",
             fields=[
                 (
                     "id",
@@ -245,7 +255,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=255)),
-                ("job_type", models.CharField(max_length=255)),
+                ("data_connection_type", models.CharField(max_length=255)),
                 (
                     "extractor_type",
                     models.CharField(blank=True, max_length=255, null=True),
@@ -264,8 +274,10 @@ class Migration(migrations.Migration):
                 (
                     "workspace",
                     models.ForeignKey(
+                        blank=True,
+                        null=True,
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="jobs",
+                        related_name="data_connections",
                         to="iam.workspace",
                     ),
                 ),
@@ -291,11 +303,19 @@ class Migration(migrations.Migration):
                 ("transformer_variables", models.JSONField(default=dict)),
                 ("loader_variables", models.JSONField(default=dict)),
                 (
-                    "job",
+                    "workspace",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="tasks",
-                        to="etl.job",
+                        to="iam.workspace",
+                    ),
+                ),
+                (
+                    "data_connection",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tasks",
+                        to="etl.dataconnection",
                     ),
                 ),
                 (

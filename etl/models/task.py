@@ -60,7 +60,7 @@ class Task(models.Model, PermissionChecker):
     id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
     name = models.CharField(max_length=255)
     workspace = models.ForeignKey(
-        "iam.Workspace", related_name="tasks", on_delete=models.DO_NOTHING
+        "iam.Workspace", related_name="tasks", on_delete=models.CASCADE
     )
     data_connection = models.ForeignKey(DataConnection, on_delete=models.CASCADE, related_name="tasks")
     orchestration_system = models.ForeignKey(
