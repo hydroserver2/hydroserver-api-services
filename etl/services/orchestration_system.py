@@ -140,7 +140,7 @@ class OrchestrationSystemService(ServiceUtils):
 
         if not OrchestrationSystem.can_principal_create(
             principal=principal, workspace=workspace
-        ):
+        ) or data.orchestration_system_type.upper() == "INTERNAL":
             raise HttpError(
                 403, "You do not have permission to create this orchestration system"
             )
@@ -172,6 +172,10 @@ class OrchestrationSystemService(ServiceUtils):
         )
 
         for field, value in orchestration_system_data.items():
+            if field == "orchestration_system_type" and value.upper() == "INTERNAL":
+                raise HttpError(
+                    403, "You do not have permission to set this orchestration system type to INTERNAL"
+                )
             setattr(orchestration_system, field, value)
 
         orchestration_system.save()
@@ -186,11 +190,6 @@ class OrchestrationSystemService(ServiceUtils):
         orchestration_system = self.get_orchestration_system_for_action(
             principal=principal, uid=uid, action="delete", expand_related=True
         )
-
-        if orchestration_system.data_sources.exists():
-            raise HttpError(
-                409, "Orchestration system in use by one or more data sources"
-            )
 
         orchestration_system.delete()
 

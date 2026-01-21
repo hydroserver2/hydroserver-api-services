@@ -110,16 +110,6 @@ class Datastream(models.Model, PermissionChecker):
     result_begin_time = models.DateTimeField(null=True, blank=True)  # Unused
     is_private = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=True)
-    data_source = models.ForeignKey(
-        "etl.DataSource",
-        related_name="datastreams",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-    )
-    data_archives = models.ManyToManyField(
-        "etl.DataArchive", related_name="datastreams"
-    )
 
     objects = DatastreamQuerySet.as_manager()
 
@@ -161,7 +151,6 @@ class Datastream(models.Model, PermissionChecker):
     def delete_contents(filter_arg: models.Model, filter_suffix: Optional[str]):
         from sta.models import (
             Observation,
-            Datastream,
             DatastreamTag,
             DatastreamFileAttachment,
         )
@@ -175,10 +164,6 @@ class Datastream(models.Model, PermissionChecker):
         )
         obs_qs = Observation.objects.filter(**{datastream_relation_filter: filter_arg})
         obs_qs._raw_delete(using=obs_qs.db)  # noqa
-
-        Datastream.data_archives.through.objects.filter(
-            **{datastream_relation_filter: filter_arg}
-        ).delete()
 
         DatastreamTag.objects.filter(
             **{datastream_relation_filter: filter_arg}

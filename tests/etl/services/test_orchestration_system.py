@@ -8,6 +8,7 @@ from etl.schemas import (
     OrchestrationSystemPostBody,
     OrchestrationSystemPatchBody,
     OrchestrationSystemSummaryResponse,
+    OrchestrationSystemDetailResponse
 )
 
 orchestration_system_service = OrchestrationSystemService()
@@ -20,42 +21,42 @@ orchestration_system_service = OrchestrationSystemService()
         (
             "owner",
             {},
-            ["Global Orchestration System", "Workspace Orchestration System"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
         (
             "editor",
             {},
-            ["Global Orchestration System", "Workspace Orchestration System"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
         (
             "viewer",
             {},
-            ["Global Orchestration System", "Workspace Orchestration System"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
         (
             "admin",
             {},
-            ["Global Orchestration System", "Workspace Orchestration System"],
+            ["HydroServer", "Test Streaming Data Loader"],
             4,
         ),
-        ("apikey", {}, ["Global Orchestration System"], 4),
-        ("unaffiliated", {}, ["Global Orchestration System"], 4),
-        ("anonymous", {}, ["Global Orchestration System"], 4),
+        ("apikey", {}, ["HydroServer"], 4),
+        ("unaffiliated", {}, ["HydroServer"], 4),
+        ("anonymous", {}, ["HydroServer"], 4),
         # Test pagination and order_by
         (
             "owner",
             {"page": 2, "page_size": 1, "order_by": "-name"},
-            ["Global Orchestration System"],
+            ["HydroServer"],
             4,
         ),
         # Test filtering
         (
             "owner",
-            {"orchestration_system_type": "Workspace"},
-            ["Workspace Orchestration System"],
+            {"orchestration_system_type": "SDL"},
+            ["Test Streaming Data Loader"],
             4,
         ),
     ],
@@ -92,56 +93,26 @@ def test_list_orchestration_system(
     [
         (
             "owner",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
-            None,
-        ),
-        (
-            "owner",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
-            "Workspace Orchestration System",
-            None,
-        ),
-        (
-            "admin",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
+            "Test Streaming Data Loader",
             None,
         ),
         (
             "admin",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
-            "Workspace Orchestration System",
-            None,
-        ),
-        (
-            "editor",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
+            "Test Streaming Data Loader",
             None,
         ),
         (
             "editor",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
-            "Workspace Orchestration System",
-            None,
-        ),
-        (
-            "viewer",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
+            "Test Streaming Data Loader",
             None,
         ),
         (
             "viewer",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
-            "Workspace Orchestration System",
-            None,
-        ),
-        (
-            "apikey",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
+            "Test Streaming Data Loader",
             None,
         ),
         (
@@ -149,12 +120,6 @@ def test_list_orchestration_system(
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
             "Orchestration system does not exist",
             404,
-        ),
-        (
-            "anonymous",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
-            None,
         ),
         (
             "anonymous",
@@ -167,12 +132,6 @@ def test_list_orchestration_system(
             "00000000-0000-0000-0000-000000000000",
             "Orchestration system does not exist",
             404,
-        ),
-        (
-            None,
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Global Orchestration System",
-            None,
         ),
         (
             None,
@@ -331,37 +290,18 @@ def test_create_orchestration_system(
             principal=get_principal(principal), data=orchestration_system_data
         )
         assert orchestration_system_create.name == orchestration_system_data.name
-        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_create)
+        assert OrchestrationSystemDetailResponse.from_orm(orchestration_system_create)
 
 
 @pytest.mark.parametrize(
     "principal, orchestration_system, message, error_code",
     [
-        ("admin", "320ad0e1-1426-47f6-8a3a-886a7111a7c2", None, None),
         ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
         ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
-        (
-            "owner",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
-        ),
         ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
         ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
-        (
-            "editor",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
-        ),
         ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
         ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
-        (
-            "viewer",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
-        ),
         (
             "viewer",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
@@ -371,12 +311,6 @@ def test_create_orchestration_system(
         (
             "viewer",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
             "You do not have permission",
             403,
         ),
@@ -391,12 +325,6 @@ def test_create_orchestration_system(
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
             "Orchestration system does not exist",
             404,
-        ),
-        (
-            "anonymous",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
         ),
         (
             "anonymous",
@@ -415,12 +343,6 @@ def test_create_orchestration_system(
             "00000000-0000-0000-0000-000000000000",
             "Orchestration system does not exist",
             404,
-        ),
-        (
-            None,
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
         ),
         (
             None,
@@ -464,42 +386,18 @@ def test_edit_orchestration_system(
             data=orchestration_system_data,
         )
         assert orchestration_system_update.name == orchestration_system_data.name
-        assert OrchestrationSystemSummaryResponse.from_orm(orchestration_system_update)
+        assert OrchestrationSystemDetailResponse.from_orm(orchestration_system_update)
 
 
 @pytest.mark.parametrize(
     "principal, orchestration_system, message, error_code",
     [
-        (
-            "admin",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "Orchestration system in use",
-            409,
-        ),
         ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
         ("admin", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
-        (
-            "owner",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
-        ),
         ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
         ("owner", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
-        (
-            "editor",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
-        ),
         ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
         ("editor", "7cb900d2-eb11-4a59-a05b-dd02d95af312", None, None),
-        (
-            "viewer",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
-        ),
         (
             "viewer",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
@@ -509,12 +407,6 @@ def test_edit_orchestration_system(
         (
             "viewer",
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
-            "You do not have permission",
-            403,
-        ),
-        (
-            "apikey",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
             "You do not have permission",
             403,
         ),
@@ -529,12 +421,6 @@ def test_edit_orchestration_system(
             "7cb900d2-eb11-4a59-a05b-dd02d95af312",
             "Orchestration system does not exist",
             404,
-        ),
-        (
-            "anonymous",
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
         ),
         (
             "anonymous",
@@ -553,12 +439,6 @@ def test_edit_orchestration_system(
             "00000000-0000-0000-0000-000000000000",
             "Orchestration system does not exist",
             404,
-        ),
-        (
-            None,
-            "320ad0e1-1426-47f6-8a3a-886a7111a7c2",
-            "You do not have permission",
-            403,
         ),
         (
             None,

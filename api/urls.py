@@ -19,9 +19,10 @@ from sta.views import (
     datastream_router,
 )
 from etl.views import (
+    data_connection_router,
     orchestration_system_router,
-    data_source_router,
-    data_archive_router,
+    task_router,
+    task_run_router
 )
 
 
@@ -48,9 +49,10 @@ api.add_router("sensors", sensor_router)
 api.add_router("processing-levels", processing_level_router)
 api.add_router("result-qualifiers", result_qualifier_router)
 
-api.add_router("orchestration-systems", orchestration_system_router)
-api.add_router("data-sources", data_source_router)
-api.add_router("data-archives", data_archive_router)
+api.add_router("etl-data-connections", data_connection_router)
+api.add_router("etl-tasks", task_router)
+api.add_router("etl-tasks", task_run_router)
+api.add_router("etl-orchestration-systems", orchestration_system_router)
 
 st_api_1_1 = SensorThingsAPI(
     title="HydroServer SensorThings API",

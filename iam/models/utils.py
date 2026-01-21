@@ -27,6 +27,7 @@ class PermissionChecker:
             ]:
                 if not workspace and resource_type not in [
                     "OrchestrationSystem",
+                    "DataConnection",
                     "ProcessingLevel",
                     "Unit",
                     "Sensor",
@@ -118,8 +119,8 @@ class PermissionChecker:
                 "Thing",
                 "Datastream",
                 "OrchestrationSystem",
-                "DataSource",
-                "DataArchive",
+                "DataConnection",
+                "Task",
                 "APIKey",
             ]:
                 permissions.append("view")

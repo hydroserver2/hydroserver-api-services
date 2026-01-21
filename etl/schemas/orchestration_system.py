@@ -1,15 +1,13 @@
 import uuid
 from ninja import Schema, Field, Query
-from typing import Optional, Literal, TYPE_CHECKING
+from typing import Optional, Literal
 from api.schemas import (
     BaseGetResponse,
     BasePostBody,
     BasePatchBody,
     CollectionQueryParameters,
 )
-
-if TYPE_CHECKING:
-    from iam.schemas import WorkspaceSummaryResponse
+from iam.schemas import WorkspaceSummaryResponse
 
 
 class OrchestrationSystemFields(Schema):
@@ -33,7 +31,7 @@ class OrchestrationSystemQueryParameters(CollectionQueryParameters):
         [], description="Select one or more fields to order the response by."
     )
     workspace_id: list[uuid.UUID | Literal["null"]] = Query(
-        [], description="Filter sensors by workspace ID."
+        [], description="Filter orchestration systems by workspace ID."
     )
     orchestration_system_type: list[str] = Query(
         [], description="Filter orchestration systems by type.", alias="type"
@@ -42,12 +40,12 @@ class OrchestrationSystemQueryParameters(CollectionQueryParameters):
 
 class OrchestrationSystemSummaryResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace_id: Optional[uuid.UUID]
+    workspace_id: Optional[uuid.UUID] = None
 
 
 class OrchestrationSystemDetailResponse(BaseGetResponse, OrchestrationSystemFields):
     id: uuid.UUID
-    workspace: Optional["WorkspaceSummaryResponse"]
+    workspace: Optional[WorkspaceSummaryResponse] = None
 
 
 class OrchestrationSystemPostBody(BasePostBody, OrchestrationSystemFields):

@@ -3,18 +3,14 @@ from typing import Optional
 from ninja import Router, Path, Query
 from django.http import HttpResponse
 from django.db import transaction
-from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from hydroserver.http import HydroServerHttpRequest
-from etl.schemas import (
-    OrchestrationSystemSummaryResponse,
-    OrchestrationSystemDetailResponse,
-    OrchestrationSystemQueryParameters,
-    OrchestrationSystemPostBody,
-    OrchestrationSystemPatchBody,
-)
+from hydroserver.security import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from etl.services import OrchestrationSystemService
+from etl.schemas import (OrchestrationSystemSummaryResponse, OrchestrationSystemDetailResponse, 
+                         OrchestrationSystemPostBody, OrchestrationSystemPatchBody, OrchestrationSystemQueryParameters)
 
-orchestration_system_router = Router(tags=["Orchestration Systems"])
+
+orchestration_system_router = Router(tags=["ETL Orchestration Systems"])
 orchestration_system_service = OrchestrationSystemService()
 
 
@@ -149,7 +145,7 @@ def delete_orchestration_system(
     request: HydroServerHttpRequest, orchestration_system_id: Path[uuid.UUID]
 ):
     """
-    Delete an Orchestration System.
+    Delete an ETL Orchestration System.
     """
 
     return 204, orchestration_system_service.delete(

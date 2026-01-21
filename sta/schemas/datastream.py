@@ -1,5 +1,5 @@
 import uuid
-from pydantic import AliasPath
+from pydantic import AliasPath, AliasChoices
 from ninja import Schema, Field, Query
 from typing import Optional, Literal, TYPE_CHECKING
 from api.types import ISODatetime
@@ -13,7 +13,6 @@ from .attachment import TagGetResponse, FileAttachmentGetResponse
 
 if TYPE_CHECKING:
     from iam.schemas import WorkspaceSummaryResponse
-    from etl.schemas import DataSourceSummaryResponse
     from sta.schemas import (
         ThingSummaryResponse,
         ObservedPropertySummaryResponse,
@@ -48,7 +47,6 @@ class DatastreamFields(Schema):
 
 
 class DatastreamRelatedFields(Schema):
-    data_source_id: Optional[uuid.UUID] = None
     thing_id: uuid.UUID
     sensor_id: uuid.UUID
     observed_property_id: uuid.UUID
@@ -98,14 +96,6 @@ class DatastreamQueryParameters(CollectionQueryParameters):
         [],
         description="Filter datastreams by observation result qualifier ID.",
         alias="result_qualifier_id",
-    )
-    data_source_id: list[uuid.UUID] = Query(
-        [], description="Filter datastreams by data source ID."
-    )
-    data_archives__id: list[uuid.UUID] = Query(
-        [],
-        description="Filter datastreams by data archive ID.",
-        alias="data_archive_id",
     )
     observation_type: list[str] = Query(
         [], description="Filter things by observation type."
@@ -176,7 +166,7 @@ class DatastreamSummaryResponse(
 ):
     id: uuid.UUID
     workspace_id: uuid.UUID = Field(
-        ..., validation_alias=AliasPath("thing", "workspace_id")
+        ..., validation_alias=AliasChoices("workspaceId", AliasPath("thing", "workspace_id"))
     )
     datastream_tags: list[TagGetResponse] = Field(..., alias="tags")
     datastream_file_attachments: list[FileAttachmentGetResponse] = Field(
@@ -186,7 +176,6 @@ class DatastreamSummaryResponse(
 
 class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
     id: uuid.UUID
-    data_source: Optional["DataSourceSummaryResponse"]
     workspace: "WorkspaceSummaryResponse" = Field(
         ..., validation_alias=AliasPath("thing", "workspace")
     )
