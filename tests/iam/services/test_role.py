@@ -3,8 +3,8 @@ import uuid
 from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
-from iam.services.role import RoleService
-from iam.schemas import RoleSummaryResponse
+from domains.iam.services.role import RoleService
+from interfaces.api.schemas import RoleSummaryResponse
 
 role_service = RoleService()
 

@@ -2,9 +2,9 @@ import pytest
 import uuid
 from collections import Counter
 from django.http import HttpResponse
-from sta.models import Observation
-from sta.services import ObservationService
-from sta.schemas import (
+from domains.sta.models import Observation
+from domains.sta.services import ObservationService
+from interfaces.api.schemas import (
     ObservationBulkPostBody,
     ObservationBulkDeleteBody,
     ObservationSummaryResponse,
