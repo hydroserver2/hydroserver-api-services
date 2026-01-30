@@ -3,8 +3,8 @@ import uuid
 from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
-from etl.services import OrchestrationSystemService
-from etl.schemas import (
+from domains.etl.services import OrchestrationSystemService
+from interfaces.api.schemas import (
     OrchestrationSystemPostBody,
     OrchestrationSystemPatchBody,
     OrchestrationSystemSummaryResponse,

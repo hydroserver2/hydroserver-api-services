@@ -107,19 +107,20 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
     "allauth.socialaccount.providers.openid_connect",
-    "iam.auth.providers.hydroshare",
-    "iam.auth.providers.orcidsandbox",
+    "domains.iam.auth.providers.hydroshare",
+    "domains.iam.auth.providers.orcidsandbox",
     "corsheaders",
     "easyaudit",
     "sensorthings",
     "storages",
     "django_celery_results",
     "django_celery_beat",
-    "api.apps.ApiConfig",
-    "iam.apps.IamConfig",
-    "sta.apps.StaConfig",
-    "etl.apps.EtlConfig",
-    "web.apps.WebConfig",
+    "interfaces.api.apps.ApiConfig",
+    "interfaces.actions.apps.ActionsConfig",
+    "domains.iam.apps.IamConfig",
+    "domains.sta.apps.StaConfig",
+    "domains.etl.apps.EtlConfig",
+    "domains.web.apps.WebConfig",
     "django.contrib.admin",
 ]
 
@@ -210,10 +211,10 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SIGNUP_FORM_CLASS = "iam.auth.forms.UserSignupForm"
+ACCOUNT_SIGNUP_FORM_CLASS = "domains.iam.auth.forms.UserSignupForm"
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https" if DEPLOYMENT_BACKEND != "dev" else "http"
 
-ACCOUNT_ADAPTER = "iam.auth.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "domains.iam.auth.adapters.AccountAdapter"
 HEADLESS_ONLY = True
 
 HEADLESS_FRONTEND_URLS = {

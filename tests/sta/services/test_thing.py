@@ -3,8 +3,8 @@ import uuid
 from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
-from sta.services import ThingService
-from sta.schemas import (
+from domains.sta.services import ThingService
+from interfaces.api.schemas import (
     ThingPostBody,
     ThingPatchBody,
     LocationPostBody,

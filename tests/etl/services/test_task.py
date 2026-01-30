@@ -3,8 +3,8 @@ import uuid
 from collections import Counter
 from ninja.errors import HttpError
 from django.http import HttpResponse
-from etl.services import TaskService
-from etl.schemas import (
+from domains.etl.services import TaskService
+from interfaces.api.schemas import (
     TaskPostBody,
     TaskPatchBody,
     TaskSummaryResponse,
