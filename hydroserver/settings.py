@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "interfaces.api.apps.ApiConfig",
+    "interfaces.web.apps.WebConfig",
     "interfaces.actions.apps.ActionsConfig",
     "domains.iam.apps.IamConfig",
     "domains.sta.apps.StaConfig",
