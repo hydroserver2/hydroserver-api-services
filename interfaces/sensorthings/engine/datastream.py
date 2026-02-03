@@ -40,6 +40,8 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
 
         datastreams = datastreams.select_related(
             "processing_level", "unit", "thing__workspace"
+        ).prefetch_related(
+            "datastream_file_attachments", "datastream_tags"
         ).visible(
             principal=self.request.principal  # noqa
         )
@@ -127,6 +129,11 @@ class DatastreamEngine(DatastreamBaseEngine, SensorThingsUtils):
                             "name": datastream.thing.workspace.name,
                             "link": datastream.thing.workspace.link,
                             "is_private": datastream.thing.workspace.is_private,
+                        },
+                        "tags": {tag.key: tag.value for tag in datastream.datastream_tags.all()},
+                        "file_attachments": {
+                            file_attachment.name: file_attachment.link
+                            for file_attachment in datastream.datastream_file_attachments.all()
                         },
                     },
                 }
