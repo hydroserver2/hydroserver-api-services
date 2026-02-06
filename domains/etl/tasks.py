@@ -139,7 +139,34 @@ def _describe_transformed_data(data: Any) -> dict[str, Any]:
 
 
 def _success_message(stats: dict[str, Any]) -> str:
-    transform_stats = stats.get("transform") or stats.get("load") or {}
+    load_stats = stats.get("load") or {}
+    loaded = load_stats.get("observations_loaded")
+    datastreams_loaded = load_stats.get("datastreams_loaded")
+    available = load_stats.get("observations_available")
+    timestamps_after_cutoff = load_stats.get("timestamps_after_cutoff")
+    timestamps_total = load_stats.get("timestamps_total")
+
+    if loaded is not None:
+        if loaded == 0:
+            if timestamps_total and timestamps_after_cutoff == 0:
+                cutoff = load_stats.get("cutoff")
+                if cutoff:
+                    return (
+                        "No new observations to load "
+                        f"(all timestamps were at or before {cutoff})."
+                    )
+                return "No new observations to load (all timestamps were at or before the cutoff)."
+            if available == 0:
+                return "No new observations to load."
+            return "No new observations were loaded."
+
+        if datastreams_loaded is not None:
+            return (
+                f"Load completed successfully ({loaded} rows across {datastreams_loaded} datastreams)."
+            )
+        return f"Load completed successfully ({loaded} rows loaded)."
+
+    transform_stats = stats.get("transform") or {}
     rows = transform_stats.get("rows")
     datastreams = transform_stats.get("datastreams")
     if rows is not None and datastreams is not None:
@@ -299,8 +326,11 @@ def run_etl_task(self, task_id: str):
 
             context.stage = "load"
             logging.info("Starting load")
-            loader_cls.load(data, task)
-            context.stats["load"] = _describe_transformed_data(data)
+            load_stats = loader_cls.load(data, task)
+            if isinstance(load_stats, dict):
+                context.stats["load"] = load_stats
+            else:
+                context.stats["load"] = _describe_transformed_data(data)
 
             return _build_task_result(
                 _success_message(context.stats),
