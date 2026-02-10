@@ -20,7 +20,12 @@ from .etl_errors import (
     user_facing_error_from_validation_error,
 )
 from hydroserverpy.etl.factories import extractor_factory, transformer_factory
-from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConfig, SourceTargetMapping, MappingPath
+from hydroserverpy.etl.etl_configuration import (
+    ExtractorConfig,
+    TransformerConfig,
+    SourceTargetMapping,
+    MappingPath,
+)
 
 
 @dataclass
@@ -29,58 +34,6 @@ class TaskRunContext:
     runtime_source_uri: Optional[str] = None
     log_handler: Optional["TaskLogHandler"] = None
     task_meta: dict[str, Any] = field(default_factory=dict)
-    emitted_runtime_vars_log: bool = False
-    emitted_task_vars_log: bool = False
-
-
-def _enum_value(value: Any) -> Any:
-    return getattr(value, "value", value)
-
-
-def _safe_lower(value: Any) -> str:
-    if value is None:
-        return ""
-    v = _enum_value(value)
-    if isinstance(v, str):
-        return v.lower()
-    return str(v).lower()
-
-
-def _validate_daylight_savings_timezone(transformer_cfg: Any, *, stage: str) -> None:
-    """
-    hydroserverpy allows timezoneMode=daylightSavings with timezone unset, which later fails
-    with a non-obvious TypeError from zoneinfo. Catch and explain it.
-    """
-    ts = getattr(transformer_cfg, "timestamp", None)
-    if not ts:
-        return
-    mode = _safe_lower(getattr(ts, "timezone_mode", None))
-    if mode != "daylightsavings":
-        return
-    tz = getattr(ts, "timezone", None)
-    if tz is None or (isinstance(tz, str) and not tz.strip()):
-        raise EtlUserFacingError(
-            message=(
-                "Missing required timezone: transformer.timestamp.timezone "
-                "(required when transformer.timestamp.timezoneMode is 'daylightSavings')."
-            ),
-            stage=stage,
-            code="missing_daylight_savings_offset",
-            hint=(
-                "If transformer.timestamp.timezoneMode is 'daylightSavings', you must set "
-                "transformer.timestamp.timezone to an IANA time zone like 'America/Denver'. "
-                "In exported config JSON this is typically at: "
-                "dataConnection.transformer.settings.timestamp.timezone"
-            ),
-            details=[
-                {
-                    "path": "transformer.timestamp.timezone",
-                    "message": "Required when transformer.timestamp.timezoneMode is 'daylightSavings'.",
-                    "input": tz,
-                }
-            ],
-            debug_error="transformer.timestamp.timezone is null/empty while timezoneMode=daylightSavings",
-        )
 
 
 class TaskLogFilter(logging.Filter):
@@ -96,12 +49,6 @@ class TaskLogHandler(logging.Handler):
         self.lines: list[str] = []
         self.entries: list[dict[str, Any]] = []
         self._formatter = logging.Formatter()
-        # hydroserverpy extractor logs (v1.7.0+) are very verbose: it logs one line
-        # per variable resolution. We collapse that into at most one runtime-vars
-        # log and one task-vars log for the whole task run.
-        self._pending_runtime_vars: set[str] = set()
-        self._pending_task_vars: set[str] = set()
-        self._collecting_placeholder_vars: bool = False
 
     def emit(self, record: logging.LogRecord) -> None:
         if not self.filter(record):
@@ -109,13 +56,9 @@ class TaskLogHandler(logging.Handler):
 
         message = record.getMessage()
 
-        # Condense hydroserverpy extractor variable resolution logs into one line
-        # each for runtime vars and task vars.
-        if self._capture_placeholder_var_log(message, record):
-            return
-        self._flush_placeholder_var_summaries_if_needed(message, record)
-
-        timestamp = datetime.fromtimestamp(record.created, tz=dt_timezone.utc).isoformat()
+        timestamp = datetime.fromtimestamp(
+            record.created, tz=dt_timezone.utc
+        ).isoformat()
         line = f"{timestamp} {record.levelname:<8} {message}"
         if record.exc_info:
             line = f"{line}\n{self._formatter.formatException(record.exc_info)}"
@@ -134,92 +77,6 @@ class TaskLogHandler(logging.Handler):
         self.entries.append(entry)
 
         self._capture_runtime_uri(message)
-
-    def _append_synthetic_entry(
-        self, *, timestamp: str, level: str, message: str, record: logging.LogRecord
-    ) -> None:
-        # Mirror the structure of "real" log capture entries.
-        line = f"{timestamp} {level:<8} {message}"
-        self.lines.append(line)
-        self.entries.append(
-            {
-                "timestamp": timestamp,
-                "level": level,
-                "logger": record.name,
-                "message": message,
-                "pathname": record.pathname,
-                "lineno": record.lineno,
-            }
-        )
-
-    def _capture_placeholder_var_log(self, message: str, record: logging.LogRecord) -> bool:
-        """
-        Returns True if this record should be suppressed from captured logs.
-
-        hydroserverpy.etl.extractors.base logs:
-        - "Creating runtime variables..."
-        - "Resolving runtime var: <name>"
-        - "Resolving task var: <name>"
-        - "Resolving extractor placeholder variables (<n> configured)."
-        - "Resolving per-task var: <name>"
-        - "Resolved placeholder '<name>' (...) -> '...'"
-        """
-
-        # Suppress extractor placeholder variable resolution chatter entirely.
-        # This includes both the verbose per-variable lines and our older synthetic summaries.
-        if message.startswith("Resolving extractor placeholder variables"):
-            return True
-        if message.startswith("Resolving per-task var:"):
-            return True
-        if message.startswith("Resolved placeholder"):
-            return True
-
-        # If we see a new "creating" marker while already collecting, treat it as a
-        # boundary and flush pending summaries first.
-        if message == "Creating runtime variables...":
-            self._flush_placeholder_var_summaries(record)
-            self._collecting_placeholder_vars = True
-            return True
-
-        runtime_prefix = "Resolving runtime var:"
-        if message.startswith(runtime_prefix):
-            name = message.split(runtime_prefix, 1)[1].strip()
-            if not self.context.emitted_runtime_vars_log and name:
-                self._pending_runtime_vars.add(name)
-            self._collecting_placeholder_vars = True
-            return True
-
-        task_prefix = "Resolving task var:"
-        if message.startswith(task_prefix):
-            name = message.split(task_prefix, 1)[1].strip()
-            if not self.context.emitted_task_vars_log and name:
-                self._pending_task_vars.add(name)
-            self._collecting_placeholder_vars = True
-            return True
-
-        return False
-
-    def _flush_placeholder_var_summaries_if_needed(
-        self, message: str, record: logging.LogRecord
-    ) -> None:
-        if not self._collecting_placeholder_vars:
-            return
-
-        # As soon as we leave the "variable resolution" block, emit summaries.
-        if (
-            message != "Creating runtime variables..."
-            and not message.startswith("Resolving runtime var:")
-            and not message.startswith("Resolving task var:")
-        ):
-            self._flush_placeholder_var_summaries(record)
-
-    def _flush_placeholder_var_summaries(self, record: logging.LogRecord) -> None:
-        # Previously we emitted synthetic summary lines like:
-        # "Runtime variables (1): start_time"
-        # Those are now removed to keep run logs focused.
-        self._pending_runtime_vars.clear()
-        self._pending_task_vars.clear()
-        self._collecting_placeholder_vars = False
 
     def _capture_runtime_uri(self, message: str) -> None:
         if self.context.runtime_source_uri:
@@ -322,18 +179,16 @@ def _success_message(load: Optional[LoadSummary]) -> str:
         if load.timestamps_total and load.timestamps_after_cutoff == 0:
             if load.cutoff:
                 return (
-                    "No new observations to load "
+                    "Already up to date - no new observations loaded "
                     f"(all timestamps were at or before {load.cutoff})."
                 )
-            return "No new observations to load (all timestamps were at or before the cutoff)."
+            return "Already up to date - no new observations loaded (all timestamps were at or before the cutoff)."
         if load.observations_available == 0:
-            return "No new observations to load."
+            return "Already up to date - no new observations loaded."
         return "No new observations were loaded."
 
     if load.datastreams_loaded:
-        return (
-            f"Load completed successfully ({loaded} rows across {load.datastreams_loaded} datastreams)."
-        )
+        return f"Load completed successfully ({loaded} rows across {load.datastreams_loaded} datastreams)."
     return f"Load completed successfully ({loaded} rows loaded)."
 
 
@@ -381,37 +236,13 @@ def _build_task_result(
     context: Optional[TaskRunContext] = None,
     *,
     stage: Optional[str] = None,
-    error: Optional[str] = None,
     traceback: Optional[str] = None,
-    code: Optional[str] = None,
-    hint: Optional[str] = None,
-    details: Optional[list[dict[str, Any]]] = None,
-    debug_error: Optional[str] = None,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {"message": message, "summary": message}
     if stage:
         result["stage"] = stage
-    if error:
-        result.update(
-            {
-                "error": error,
-                "failure_reason": error,
-                "failureReason": error,
-            }
-        )
     if traceback:
         result["traceback"] = traceback
-    if code or hint or details or debug_error:
-        failure: dict[str, Any] = {}
-        if code:
-            failure["code"] = code
-        if hint:
-            failure["hint"] = hint
-        if details:
-            failure["details"] = details
-        if debug_error:
-            failure["debug_error"] = debug_error
-        result["failure"] = failure
 
     if context and context.runtime_source_uri:
         _apply_runtime_uri_aliases(result, context.runtime_source_uri)
@@ -441,11 +272,13 @@ def _last_logged_error(context: Optional[TaskRunContext]) -> Optional[str]:
     return None
 
 
-def _validate_component_config(component: str, adapter: TypeAdapter, raw: dict[str, Any], *, stage: str):
+def _validate_component_config(
+    component: str, adapter: TypeAdapter, raw: dict[str, Any]
+):
     try:
         return adapter.validate_python(raw)
     except ValidationError as ve:
-        raise user_facing_error_from_validation_error(component, ve, raw=raw, stage=stage) from ve
+        raise user_facing_error_from_validation_error(component, ve, raw=raw) from ve
 
 
 @shared_task(bind=True, expires=10, name="etl.tasks.run_etl_task")
@@ -460,11 +293,11 @@ def run_etl_task(self, task_id: str):
 
     with capture_task_logs(context):
         try:
-            task = Task.objects.select_related(
-                "data_connection"
-            ).prefetch_related(
-                "mappings", "mappings__paths"
-            ).get(pk=UUID(task_id))
+            task = (
+                Task.objects.select_related("data_connection")
+                .prefetch_related("mappings", "mappings__paths")
+                .get(pk=UUID(task_id))
+            )
 
             context.task_meta = {
                 "id": str(task.id),
@@ -483,11 +316,21 @@ def run_etl_task(self, task_id: str):
                 **(task.data_connection.transformer_settings or {}),
             }
 
+            timestamp_cfg = transformer_raw.get("timestamp") or {}
+            if isinstance(timestamp_cfg, dict):
+                tz_mode = timestamp_cfg.get("timezoneMode")
+                tz_value = timestamp_cfg.get("timezone")
+                if tz_mode == "daylightSavings" and not tz_value:
+                    raise EtlUserFacingError(
+                        "Invalid transformer configuration at transformer.timestamp.timezone: "
+                        "timezone is required when timezoneMode is 'daylightSavings'. "
+                    )
+
             extractor_cfg = _validate_component_config(
-                "extractor", TypeAdapter(ExtractorConfig), extractor_raw, stage=context.stage
+                "extractor", TypeAdapter(ExtractorConfig), extractor_raw
             )
             transformer_cfg = _validate_component_config(
-                "transformer", TypeAdapter(TransformerConfig), transformer_raw, stage=context.stage
+                "transformer", TypeAdapter(TransformerConfig), transformer_raw
             )
 
             extractor_cls = extractor_factory(extractor_cfg)
@@ -501,9 +344,11 @@ def run_etl_task(self, task_id: str):
                         MappingPath(
                             target_identifier=task_mapping_path.target_identifier,
                             data_transformations=task_mapping_path.data_transformations,
-                        ) for task_mapping_path in task_mapping.paths.all()
-                    ]
-                ) for task_mapping in task.mappings.all()
+                        )
+                        for task_mapping_path in task_mapping.paths.all()
+                    ],
+                )
+                for task_mapping in task.mappings.all()
             ]
 
             context.stage = "extract"
@@ -524,24 +369,26 @@ def run_etl_task(self, task_id: str):
 
             context.stage = "transform"
             logging.info("Starting transform")
-            _validate_daylight_savings_timezone(transformer_cfg, stage=context.stage)
             data = transformer_cls.transform(data, task_mappings)
             transform_summary = _describe_transformed_data(data)
             logging.info("Transform result: %s", transform_summary)
+            if isinstance(data, pd.DataFrame) and "timestamp" in data.columns:
+                bad = data["timestamp"].isna().sum()
+                if bad:
+                    raise EtlUserFacingError(
+                        f"One or more timestamps could not be read with the current settings "
+                        f"({bad} row(s) failed to parse). "
+                        "Update transformer.timestamp.format/timezoneMode/timezone/customFormat "
+                        "and confirm the extracted timestamp values match."
+                    )
             if _is_empty(data):
                 # hydroserverpy's CSVTransformer returns None on read errors (but logs ERROR).
                 # Treat that as a failure to avoid misleading "produced no rows" messaging.
                 last_err = _last_logged_error(context)
                 if last_err and last_err.startswith("Error reading CSV data:"):
                     raise EtlUserFacingError(
-                        message=(
-                            f"{last_err}. Check delimiter/headerRow/dataStartRow/identifierType "
-                            "and confirm the upstream CSV columns match your task mappings."
-                        ),
-                        stage=context.stage,
-                        code="transform_read_error",
-                        hint="Fix the CSV transformer settings (delimiter/headerRow/dataStartRow/identifierType) or the upstream CSV format.",
-                        debug_error=last_err,
+                        f"{last_err}. Check delimiter/headerRow/dataStartRow/identifierType "
+                        "and confirm the upstream CSV columns match your task mappings."
                     )
                 return _build_task_result(
                     "Transform produced no rows. Nothing to load.",
@@ -565,9 +412,9 @@ def run_etl_task(self, task_id: str):
                 stage=context.stage,
             )
         except Exception as e:
-            mapped = user_facing_error_from_exception(e, stage=getattr(context, "stage", None))
+            mapped = user_facing_error_from_exception(e)
             if mapped:
-                logging.error("%s", mapped.message)
+                logging.error("%s", str(mapped))
                 if mapped is e:
                     raise
                 raise mapped from e
@@ -601,9 +448,7 @@ def update_next_run(sender, task_id, kwargs, **extra):
         return
 
     try:
-        task = Task.objects.select_related("periodic_task").get(
-            pk=kwargs["task_id"]
-        )
+        task = Task.objects.select_related("periodic_task").get(pk=kwargs["task_id"])
     except Task.DoesNotExist:
         return
 
@@ -668,25 +513,23 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
         return
 
     stage = context.stage if context else None
-    mapped = user_facing_error_from_exception(exception, stage=stage)
+    mapped = user_facing_error_from_exception(exception)
     if mapped:
-        message = mapped.message
+        message = str(mapped)
         if stage and message:
-            prefix = f"failed during {stage.lower()}:"
-            if not message.lower().startswith(prefix):
-                message = f"Failed during {stage}: {message}"
-        code = mapped.code
-        hint = mapped.hint
-        details = mapped.details
-        debug_error = mapped.debug_error
-        error_str = message
+            if stage.lower() == "setup":
+                prefix = "setup failed:"
+                if not message.lower().startswith(prefix):
+                    message = f"Setup failed: {message}"
+            else:
+                prefix = f"failed during {stage.lower()}:"
+                if not message.lower().startswith(prefix):
+                    message = f"Failed during {stage}: {message}"
     else:
-        message = f"Failed during {stage}: {exception}" if stage else f"{exception}"
-        code = None
-        hint = None
-        details = None
-        debug_error = None
-        error_str = str(exception)
+        if stage and stage.lower() == "setup":
+            message = f"Setup failed: {exception}"
+        else:
+            message = f"Failed during {stage}: {exception}" if stage else f"{exception}"
 
     task_run.status = "FAILURE"
     task_run.finished_at = timezone.now()
@@ -694,12 +537,7 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
         message,
         context,
         stage=stage,
-        error=error_str,
         traceback=einfo.traceback,
-        code=code,
-        hint=hint,
-        details=details,
-        debug_error=debug_error,
     )
 
     task_run.save(update_fields=["status", "finished_at", "result"])
