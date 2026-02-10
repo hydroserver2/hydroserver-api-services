@@ -2,17 +2,23 @@ import logging
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone as dt_timezone
+import os
 from typing import Any, Optional
 from uuid import UUID
 import pandas as pd
 from celery import shared_task
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 from celery.signals import task_prerun, task_success, task_failure, task_postrun
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.core.management import call_command
 from domains.etl.models import Task, TaskRun
-from .loader import HydroServerInternalLoader
+from .loader import HydroServerInternalLoader, LoadSummary
+from .etl_errors import (
+    EtlUserFacingError,
+    user_facing_error_from_exception,
+    user_facing_error_from_validation_error,
+)
 from hydroserverpy.etl.factories import extractor_factory, transformer_factory
 from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConfig, SourceTargetMapping, MappingPath
 
@@ -21,8 +27,60 @@ from hydroserverpy.etl.etl_configuration import ExtractorConfig, TransformerConf
 class TaskRunContext:
     stage: str = "setup"
     runtime_source_uri: Optional[str] = None
-    stats: dict[str, Any] = field(default_factory=dict)
     log_handler: Optional["TaskLogHandler"] = None
+    task_meta: dict[str, Any] = field(default_factory=dict)
+    emitted_runtime_vars_log: bool = False
+    emitted_task_vars_log: bool = False
+
+
+def _enum_value(value: Any) -> Any:
+    return getattr(value, "value", value)
+
+
+def _safe_lower(value: Any) -> str:
+    if value is None:
+        return ""
+    v = _enum_value(value)
+    if isinstance(v, str):
+        return v.lower()
+    return str(v).lower()
+
+
+def _validate_daylight_savings_timezone(transformer_cfg: Any, *, stage: str) -> None:
+    """
+    hydroserverpy allows timezoneMode=daylightSavings with timezone unset, which later fails
+    with a non-obvious TypeError from zoneinfo. Catch and explain it.
+    """
+    ts = getattr(transformer_cfg, "timestamp", None)
+    if not ts:
+        return
+    mode = _safe_lower(getattr(ts, "timezone_mode", None))
+    if mode != "daylightsavings":
+        return
+    tz = getattr(ts, "timezone", None)
+    if tz is None or (isinstance(tz, str) and not tz.strip()):
+        raise EtlUserFacingError(
+            message=(
+                "Missing required timezone: transformer.timestamp.timezone "
+                "(required when transformer.timestamp.timezoneMode is 'daylightSavings')."
+            ),
+            stage=stage,
+            code="missing_daylight_savings_offset",
+            hint=(
+                "If transformer.timestamp.timezoneMode is 'daylightSavings', you must set "
+                "transformer.timestamp.timezone to an IANA time zone like 'America/Denver'. "
+                "In exported config JSON this is typically at: "
+                "dataConnection.transformer.settings.timestamp.timezone"
+            ),
+            details=[
+                {
+                    "path": "transformer.timestamp.timezone",
+                    "message": "Required when transformer.timestamp.timezoneMode is 'daylightSavings'.",
+                    "input": tz,
+                }
+            ],
+            debug_error="transformer.timestamp.timezone is null/empty while timezoneMode=daylightSavings",
+        )
 
 
 class TaskLogFilter(logging.Filter):
@@ -38,15 +96,26 @@ class TaskLogHandler(logging.Handler):
         self.lines: list[str] = []
         self.entries: list[dict[str, Any]] = []
         self._formatter = logging.Formatter()
+        # hydroserverpy extractor logs (v1.7.0+) are very verbose: it logs one line
+        # per variable resolution. We collapse that into at most one runtime-vars
+        # log and one task-vars log for the whole task run.
+        self._pending_runtime_vars: set[str] = set()
+        self._pending_task_vars: set[str] = set()
+        self._collecting_placeholder_vars: bool = False
 
     def emit(self, record: logging.LogRecord) -> None:
         if not self.filter(record):
             return
 
-        timestamp = datetime.fromtimestamp(
-            record.created, tz=dt_timezone.utc
-        ).isoformat()
         message = record.getMessage()
+
+        # Condense hydroserverpy extractor variable resolution logs into one line
+        # each for runtime vars and task vars.
+        if self._capture_placeholder_var_log(message, record):
+            return
+        self._flush_placeholder_var_summaries_if_needed(message, record)
+
+        timestamp = datetime.fromtimestamp(record.created, tz=dt_timezone.utc).isoformat()
         line = f"{timestamp} {record.levelname:<8} {message}"
         if record.exc_info:
             line = f"{line}\n{self._formatter.formatException(record.exc_info)}"
@@ -65,6 +134,92 @@ class TaskLogHandler(logging.Handler):
         self.entries.append(entry)
 
         self._capture_runtime_uri(message)
+
+    def _append_synthetic_entry(
+        self, *, timestamp: str, level: str, message: str, record: logging.LogRecord
+    ) -> None:
+        # Mirror the structure of "real" log capture entries.
+        line = f"{timestamp} {level:<8} {message}"
+        self.lines.append(line)
+        self.entries.append(
+            {
+                "timestamp": timestamp,
+                "level": level,
+                "logger": record.name,
+                "message": message,
+                "pathname": record.pathname,
+                "lineno": record.lineno,
+            }
+        )
+
+    def _capture_placeholder_var_log(self, message: str, record: logging.LogRecord) -> bool:
+        """
+        Returns True if this record should be suppressed from captured logs.
+
+        hydroserverpy.etl.extractors.base logs:
+        - "Creating runtime variables..."
+        - "Resolving runtime var: <name>"
+        - "Resolving task var: <name>"
+        - "Resolving extractor placeholder variables (<n> configured)."
+        - "Resolving per-task var: <name>"
+        - "Resolved placeholder '<name>' (...) -> '...'"
+        """
+
+        # Suppress extractor placeholder variable resolution chatter entirely.
+        # This includes both the verbose per-variable lines and our older synthetic summaries.
+        if message.startswith("Resolving extractor placeholder variables"):
+            return True
+        if message.startswith("Resolving per-task var:"):
+            return True
+        if message.startswith("Resolved placeholder"):
+            return True
+
+        # If we see a new "creating" marker while already collecting, treat it as a
+        # boundary and flush pending summaries first.
+        if message == "Creating runtime variables...":
+            self._flush_placeholder_var_summaries(record)
+            self._collecting_placeholder_vars = True
+            return True
+
+        runtime_prefix = "Resolving runtime var:"
+        if message.startswith(runtime_prefix):
+            name = message.split(runtime_prefix, 1)[1].strip()
+            if not self.context.emitted_runtime_vars_log and name:
+                self._pending_runtime_vars.add(name)
+            self._collecting_placeholder_vars = True
+            return True
+
+        task_prefix = "Resolving task var:"
+        if message.startswith(task_prefix):
+            name = message.split(task_prefix, 1)[1].strip()
+            if not self.context.emitted_task_vars_log and name:
+                self._pending_task_vars.add(name)
+            self._collecting_placeholder_vars = True
+            return True
+
+        return False
+
+    def _flush_placeholder_var_summaries_if_needed(
+        self, message: str, record: logging.LogRecord
+    ) -> None:
+        if not self._collecting_placeholder_vars:
+            return
+
+        # As soon as we leave the "variable resolution" block, emit summaries.
+        if (
+            message != "Creating runtime variables..."
+            and not message.startswith("Resolving runtime var:")
+            and not message.startswith("Resolving task var:")
+        ):
+            self._flush_placeholder_var_summaries(record)
+
+    def _flush_placeholder_var_summaries(self, record: logging.LogRecord) -> None:
+        # Previously we emitted synthetic summary lines like:
+        # "Runtime variables (1): start_time"
+        # Those are now removed to keep run logs focused.
+        self._pending_runtime_vars.clear()
+        self._pending_task_vars.clear()
+        self._collecting_placeholder_vars = False
 
     def _capture_runtime_uri(self, message: str) -> None:
         if self.context.runtime_source_uri:
@@ -123,7 +278,27 @@ def _describe_payload(data: Any) -> dict[str, Any]:
             "rows": len(data),
             "columns": len(data.columns),
         }
-    return {"type": type(data).__name__}
+    info: dict[str, Any] = {"type": type(data).__name__}
+    if isinstance(data, (bytes, bytearray)):
+        info["bytes"] = len(data)
+        return info
+    # BytesIO and similar
+    try:
+        buf = getattr(data, "getbuffer", None)
+        if callable(buf):
+            info["bytes"] = len(data.getbuffer())
+            return info
+    except Exception:
+        pass
+    # Real file handles
+    try:
+        fileno = getattr(data, "fileno", None)
+        if callable(fileno):
+            info["bytes"] = os.fstat(data.fileno()).st_size
+            return info
+    except Exception:
+        pass
+    return info
 
 
 def _describe_transformed_data(data: Any) -> dict[str, Any]:
@@ -138,44 +313,28 @@ def _describe_transformed_data(data: Any) -> dict[str, Any]:
     }
 
 
-def _success_message(stats: dict[str, Any]) -> str:
-    load_stats = stats.get("load") or {}
-    loaded = load_stats.get("observations_loaded")
-    datastreams_loaded = load_stats.get("datastreams_loaded")
-    available = load_stats.get("observations_available")
-    timestamps_after_cutoff = load_stats.get("timestamps_after_cutoff")
-    timestamps_total = load_stats.get("timestamps_total")
+def _success_message(load: Optional[LoadSummary]) -> str:
+    if not load:
+        return "Load completed successfully."
 
-    if loaded is not None:
-        if loaded == 0:
-            if timestamps_total and timestamps_after_cutoff == 0:
-                cutoff = load_stats.get("cutoff")
-                if cutoff:
-                    return (
-                        "No new observations to load "
-                        f"(all timestamps were at or before {cutoff})."
-                    )
-                return "No new observations to load (all timestamps were at or before the cutoff)."
-            if available == 0:
-                return "No new observations to load."
-            return "No new observations were loaded."
+    loaded = load.observations_loaded
+    if loaded == 0:
+        if load.timestamps_total and load.timestamps_after_cutoff == 0:
+            if load.cutoff:
+                return (
+                    "No new observations to load "
+                    f"(all timestamps were at or before {load.cutoff})."
+                )
+            return "No new observations to load (all timestamps were at or before the cutoff)."
+        if load.observations_available == 0:
+            return "No new observations to load."
+        return "No new observations were loaded."
 
-        if datastreams_loaded is not None:
-            return (
-                f"Load completed successfully ({loaded} rows across {datastreams_loaded} datastreams)."
-            )
-        return f"Load completed successfully ({loaded} rows loaded)."
-
-    transform_stats = stats.get("transform") or {}
-    rows = transform_stats.get("rows")
-    datastreams = transform_stats.get("datastreams")
-    if rows is not None and datastreams is not None:
+    if load.datastreams_loaded:
         return (
-            f"Load completed successfully ({rows} rows across {datastreams} datastreams)."
+            f"Load completed successfully ({loaded} rows across {load.datastreams_loaded} datastreams)."
         )
-    if rows is not None:
-        return f"Load completed successfully ({rows} rows processed)."
-    return "Load completed successfully."
+    return f"Load completed successfully ({loaded} rows loaded)."
 
 
 def _apply_runtime_uri_aliases(result: dict[str, Any], runtime_source_uri: str) -> None:
@@ -213,9 +372,6 @@ def _merge_result_with_context(
             if "log_entries" not in result and context.log_handler.entries:
                 result["log_entries"] = context.log_handler.entries
 
-        if context.stats and "stats" not in result:
-            result["stats"] = context.stats
-
     _apply_log_aliases(result)
     return result
 
@@ -227,6 +383,10 @@ def _build_task_result(
     stage: Optional[str] = None,
     error: Optional[str] = None,
     traceback: Optional[str] = None,
+    code: Optional[str] = None,
+    hint: Optional[str] = None,
+    details: Optional[list[dict[str, Any]]] = None,
+    debug_error: Optional[str] = None,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {"message": message, "summary": message}
     if stage:
@@ -241,9 +401,23 @@ def _build_task_result(
         )
     if traceback:
         result["traceback"] = traceback
+    if code or hint or details or debug_error:
+        failure: dict[str, Any] = {}
+        if code:
+            failure["code"] = code
+        if hint:
+            failure["hint"] = hint
+        if details:
+            failure["details"] = details
+        if debug_error:
+            failure["debug_error"] = debug_error
+        result["failure"] = failure
 
     if context and context.runtime_source_uri:
         _apply_runtime_uri_aliases(result, context.runtime_source_uri)
+
+    if context and context.task_meta and "task" not in result:
+        result["task"] = context.task_meta
 
     if context and context.log_handler:
         logs_text = context.log_handler.as_text()
@@ -252,11 +426,27 @@ def _build_task_result(
         if context.log_handler.entries:
             result["log_entries"] = context.log_handler.entries
 
-    if context and context.stats:
-        result["stats"] = context.stats
-
     _apply_log_aliases(result)
     return result
+
+
+def _last_logged_error(context: Optional[TaskRunContext]) -> Optional[str]:
+    if not context or not context.log_handler or not context.log_handler.entries:
+        return None
+    for entry in reversed(context.log_handler.entries):
+        if entry.get("level") == "ERROR":
+            msg = entry.get("message")
+            if msg:
+                return msg
+    return None
+
+
+def _validate_component_config(component: str, adapter: TypeAdapter, raw: dict[str, Any], *, stage: str):
+    try:
+        return adapter.validate_python(raw)
+    except ValidationError as ve:
+        raise user_facing_error_from_validation_error(component, ve, raw=raw, stage=stage) from ve
+
 
 @shared_task(bind=True, expires=10, name="etl.tasks.run_etl_task")
 def run_etl_task(self, task_id: str):
@@ -276,14 +466,32 @@ def run_etl_task(self, task_id: str):
                 "mappings", "mappings__paths"
             ).get(pk=UUID(task_id))
 
-            extractor_cls = extractor_factory(TypeAdapter(ExtractorConfig).validate_python({
+            context.task_meta = {
+                "id": str(task.id),
+                "name": task.name,
+                "data_connection_id": str(task.data_connection_id),
+                "data_connection_name": task.data_connection.name,
+            }
+
+            context.stage = "setup"
+            extractor_raw = {
                 "type": task.data_connection.extractor_type,
-                **task.data_connection.extractor_settings
-            }))
-            transformer_cls = transformer_factory(TypeAdapter(TransformerConfig).validate_python({
+                **(task.data_connection.extractor_settings or {}),
+            }
+            transformer_raw = {
                 "type": task.data_connection.transformer_type,
-                **task.data_connection.transformer_settings
-            }))
+                **(task.data_connection.transformer_settings or {}),
+            }
+
+            extractor_cfg = _validate_component_config(
+                "extractor", TypeAdapter(ExtractorConfig), extractor_raw, stage=context.stage
+            )
+            transformer_cfg = _validate_component_config(
+                "transformer", TypeAdapter(TransformerConfig), transformer_raw, stage=context.stage
+            )
+
+            extractor_cls = extractor_factory(extractor_cfg)
+            transformer_cls = transformer_factory(transformer_cfg)
             loader_cls = HydroServerInternalLoader(task)
 
             task_mappings = [
@@ -305,7 +513,8 @@ def run_etl_task(self, task_id: str):
                 getattr(extractor_cls, "runtime_source_uri", None)
                 or context.runtime_source_uri
             )
-            context.stats["extract"] = _describe_payload(data)
+            extract_summary = _describe_payload(data)
+            logging.info("Extractor returned payload: %s", extract_summary)
             if _is_empty(data):
                 return _build_task_result(
                     "No data returned from the extractor. Nothing to load.",
@@ -315,9 +524,25 @@ def run_etl_task(self, task_id: str):
 
             context.stage = "transform"
             logging.info("Starting transform")
+            _validate_daylight_savings_timezone(transformer_cfg, stage=context.stage)
             data = transformer_cls.transform(data, task_mappings)
-            context.stats["transform"] = _describe_transformed_data(data)
+            transform_summary = _describe_transformed_data(data)
+            logging.info("Transform result: %s", transform_summary)
             if _is_empty(data):
+                # hydroserverpy's CSVTransformer returns None on read errors (but logs ERROR).
+                # Treat that as a failure to avoid misleading "produced no rows" messaging.
+                last_err = _last_logged_error(context)
+                if last_err and last_err.startswith("Error reading CSV data:"):
+                    raise EtlUserFacingError(
+                        message=(
+                            f"{last_err}. Check delimiter/headerRow/dataStartRow/identifierType "
+                            "and confirm the upstream CSV columns match your task mappings."
+                        ),
+                        stage=context.stage,
+                        code="transform_read_error",
+                        hint="Fix the CSV transformer settings (delimiter/headerRow/dataStartRow/identifierType) or the upstream CSV format.",
+                        debug_error=last_err,
+                    )
                 return _build_task_result(
                     "Transform produced no rows. Nothing to load.",
                     context,
@@ -326,18 +551,26 @@ def run_etl_task(self, task_id: str):
 
             context.stage = "load"
             logging.info("Starting load")
-            load_stats = loader_cls.load(data, task)
-            if isinstance(load_stats, dict):
-                context.stats["load"] = load_stats
-            else:
-                context.stats["load"] = _describe_transformed_data(data)
+            load_summary = loader_cls.load(data, task)
+            logging.info(
+                "Load result: loaded=%s available=%s cutoff=%s",
+                getattr(load_summary, "observations_loaded", None),
+                getattr(load_summary, "observations_available", None),
+                getattr(load_summary, "cutoff", None),
+            )
 
             return _build_task_result(
-                _success_message(context.stats),
+                _success_message(load_summary),
                 context,
                 stage=context.stage,
             )
-        except Exception:
+        except Exception as e:
+            mapped = user_facing_error_from_exception(e, stage=getattr(context, "stage", None))
+            if mapped:
+                logging.error("%s", mapped.message)
+                if mapped is e:
+                    raise
+                raise mapped from e
             logging.exception("ETL task failed during %s", context.stage)
             raise
 
@@ -435,9 +668,25 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
         return
 
     stage = context.stage if context else None
-    message = (
-        f"Failed during {stage}: {exception}" if stage else f"{exception}"
-    )
+    mapped = user_facing_error_from_exception(exception, stage=stage)
+    if mapped:
+        message = mapped.message
+        if stage and message:
+            prefix = f"failed during {stage.lower()}:"
+            if not message.lower().startswith(prefix):
+                message = f"Failed during {stage}: {message}"
+        code = mapped.code
+        hint = mapped.hint
+        details = mapped.details
+        debug_error = mapped.debug_error
+        error_str = message
+    else:
+        message = f"Failed during {stage}: {exception}" if stage else f"{exception}"
+        code = None
+        hint = None
+        details = None
+        debug_error = None
+        error_str = str(exception)
 
     task_run.status = "FAILURE"
     task_run.finished_at = timezone.now()
@@ -445,8 +694,12 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
         message,
         context,
         stage=stage,
-        error=str(exception),
+        error=error_str,
         traceback=einfo.traceback,
+        code=code,
+        hint=hint,
+        details=details,
+        debug_error=debug_error,
     )
 
     task_run.save(update_fields=["status", "finished_at", "result"])
