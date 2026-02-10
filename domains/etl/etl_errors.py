@@ -339,7 +339,7 @@ def user_facing_error_from_exception(
 
         if msg_str == "Could not connect to the source system.":
             return EtlUserFacingError(
-                "The orchestration system could't connect to the source system. This is often temporary, so try running the job again in a few minutes. "
+                "The orchestration system couldn't connect to the source system. This is often temporary, so try running the job again in a few minutes. "
                 "If it continues, the source system may be offline."
             )
 
