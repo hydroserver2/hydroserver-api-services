@@ -234,6 +234,7 @@ def user_facing_error_from_exception(
 
         # CSV read errors from hydroserverpy (already user-friendly, but add the one place to fix)
         if msg_str in (
+            "One or more configured CSV columns were not found in the header row.",
             "The header row contained unexpected values and could not be processed.",
             "One or more data rows contained unexpected values and could not be processed.",
         ):

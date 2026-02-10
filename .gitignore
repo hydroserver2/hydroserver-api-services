@@ -20,6 +20,8 @@ staticfiles/
 coverage.txt
 photos/
 csrf_test.py
+tmp/
+.env
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
