@@ -63,7 +63,9 @@ class HydroServerInternalLoader(Loader):
             available = len(df)
             observations_available += available
             if available == 0:
-                logging.warning("No new data for %s after filtering; skipping.", col)
+                logging.warning(
+                    "No new observations for %s after filtering; skipping.", col
+                )
                 continue
 
             df = df.rename(columns={"timestamp": "phenomenonTime", "value": "result"})

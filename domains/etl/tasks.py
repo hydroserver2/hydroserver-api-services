@@ -172,24 +172,22 @@ def _describe_transformed_data(data: Any) -> dict[str, Any]:
 
 def _success_message(load: Optional[LoadSummary]) -> str:
     if not load:
-        return "Load completed successfully."
+        return "Load complete."
 
     loaded = load.observations_loaded
     if loaded == 0:
         if load.timestamps_total and load.timestamps_after_cutoff == 0:
-            if load.cutoff:
-                return (
-                    "Already up to date - no new observations loaded "
-                    f"(all timestamps were at or before {load.cutoff})."
-                )
-            return "Already up to date - no new observations loaded (all timestamps were at or before the cutoff)."
-        if load.observations_available == 0:
-            return "Already up to date - no new observations loaded."
+            # We know the source returned timestamps, but every timestamp was filtered out by the cutoff.
+            return (
+                "Already up to date. No new observations were loaded because all timestamps in the source are older "
+                "than what is already stored."
+            )
+        # Otherwise, we don't have strong evidence for why nothing loaded beyond "no new observations".
         return "No new observations were loaded."
 
-    if load.datastreams_loaded:
-        return f"Load completed successfully ({loaded} rows across {load.datastreams_loaded} datastreams)."
-    return f"Load completed successfully ({loaded} rows loaded)."
+    ds_count = load.datastreams_loaded or 0
+    ds_word = "datastream" if ds_count == 1 else "datastreams"
+    return f"Load complete. {loaded} rows were added to {ds_count} {ds_word}."
 
 
 def _apply_runtime_uri_aliases(result: dict[str, Any], runtime_source_uri: str) -> None:
@@ -322,8 +320,8 @@ def run_etl_task(self, task_id: str):
                 tz_value = timestamp_cfg.get("timezone")
                 if tz_mode == "daylightSavings" and not tz_value:
                     raise EtlUserFacingError(
-                        "Invalid transformer configuration at transformer.timestamp.timezone: "
-                        "timezone is required when timezoneMode is 'daylightSavings'. "
+                        "Timezone information is required when daylight savings mode is enabled. "
+                        "Select a valid timezone such as America/Denver and try again."
                     )
 
             extractor_cfg = _validate_component_config(
@@ -361,8 +359,15 @@ def run_etl_task(self, task_id: str):
             extract_summary = _describe_payload(data)
             logging.info("Extractor returned payload: %s", extract_summary)
             if _is_empty(data):
+                if task.data_connection.extractor_type == "HTTP":
+                    return _build_task_result(
+                        "The connection to the source worked but no observations were returned. "
+                        "Confirm the source has data for the requested time range and that the endpoint is correct.",
+                        context,
+                        stage=context.stage,
+                    )
                 return _build_task_result(
-                    "No data returned from the extractor. Nothing to load.",
+                    "The extractor returned no data. Nothing to load.",
                     context,
                     stage=context.stage,
                 )
@@ -376,10 +381,8 @@ def run_etl_task(self, task_id: str):
                 bad = data["timestamp"].isna().sum()
                 if bad:
                     raise EtlUserFacingError(
-                        f"One or more timestamps could not be read with the current settings "
-                        f"({bad} row(s) failed to parse). "
-                        "Update transformer.timestamp.format/timezoneMode/timezone/customFormat "
-                        "and confirm the extracted timestamp values match."
+                        "One or more timestamps could not be read using the current format and timezone settings. "
+                        "Confirm how dates appear in the source file and update the transformer configuration to match."
                     )
             if _is_empty(data):
                 # hydroserverpy's CSVTransformer returns None on read errors (but logs ERROR).
@@ -515,16 +518,8 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
     stage = context.stage if context else None
     mapped = user_facing_error_from_exception(exception)
     if mapped:
+        # User-facing errors are already stage-aware and readable; don't prepend robotic prefixes.
         message = str(mapped)
-        if stage and message:
-            if stage.lower() == "setup":
-                prefix = "setup failed:"
-                if not message.lower().startswith(prefix):
-                    message = f"Setup failed: {message}"
-            else:
-                prefix = f"failed during {stage.lower()}:"
-                if not message.lower().startswith(prefix):
-                    message = f"Failed during {stage}: {message}"
     else:
         if stage and stage.lower() == "setup":
             message = f"Setup failed: {exception}"
