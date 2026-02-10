@@ -356,12 +356,11 @@ def user_facing_error_from_exception(
             )
 
         if msg_str in (
-            "The connection to the source worked but no data was returned.",
-            "The connection to the source worked but no data were returned.",
+            "The connection to the source worked but no observations were returned.",
         ):
             return EtlUserFacingError(
                 "The connection to the source worked but no observations were returned. "
-                "Confirm the source has data for the requested time range and that the endpoint is correct."
+                "Confirm the source has observations for the requested time range and that the endpoint is correct."
             )
 
         # Backward-compatible mappings for older hydroserverpy strings.
@@ -373,8 +372,8 @@ def user_facing_error_from_exception(
 
         if msg_str == "The source system returned no data.":
             return EtlUserFacingError(
-                "The connection to the source worked but no data were returned. "
-                "Confirm the source has data for the requested time range and that the endpoint is correct."
+                "The connection to the source worked but no observations were returned. "
+                "Confirm the source has observations for the requested time range and that the endpoint is correct."
             )
 
         if (

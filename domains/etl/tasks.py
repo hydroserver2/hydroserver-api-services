@@ -362,12 +362,12 @@ def run_etl_task(self, task_id: str):
                 if task.data_connection.extractor_type == "HTTP":
                     return _build_task_result(
                         "The connection to the source worked but no observations were returned. "
-                        "Confirm the source has data for the requested time range and that the endpoint is correct.",
+                        "Confirm the source has observations for the requested time range and that the endpoint is correct.",
                         context,
                         stage=context.stage,
                     )
                 return _build_task_result(
-                    "The extractor returned no data. Nothing to load.",
+                    "The extractor returned no observations. Nothing to load.",
                     context,
                     stage=context.stage,
                 )
