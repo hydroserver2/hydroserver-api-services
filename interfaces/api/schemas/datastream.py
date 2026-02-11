@@ -105,6 +105,9 @@ class DatastreamQueryParameters(CollectionQueryParameters):
     )
     status: list[str] = Query([], description="Filter things by status.")
     result_type: list[str] = Query([], description="Filter things by result type.")
+    tag: list[str] = Query(
+        [], description="Filter datastreams by tag. Format tag filters as {key}:{value}"
+    )
     is_private: Optional[bool] = Query(
         None,
         description="Controls whether the datastreams should be private or public.",

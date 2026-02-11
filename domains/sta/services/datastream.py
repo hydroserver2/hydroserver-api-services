@@ -105,6 +105,21 @@ class DatastreamService(ServiceUtils):
             "processing_level",
         ).prefetch_related("thing__locations", "datastream_tags", "datastream_file_attachments")
 
+    @staticmethod
+    def apply_tag_filter(queryset, tags: list[str]):
+        if not tags:
+            return queryset
+
+        for tag in tags:
+            if ":" not in tag:
+                raise ValueError(f"Invalid tag format: '{tag}'. Must be 'key:value'.")
+
+            key, value = tag.split(":", 1)
+
+            queryset = queryset.filter(datastream_tags__key=key, datastream_tags__value=value)
+
+        return queryset.distinct()
+
     def list(
         self,
         principal: Optional[User | APIKey],
@@ -156,6 +171,8 @@ class DatastreamService(ServiceUtils):
                     queryset = Datastream.objects.none()
                 else:
                     queryset = self.apply_filters(queryset, field, filtering[field])
+
+        queryset = self.apply_tag_filter(queryset, filtering.get("tag"))
 
         if order_by:
             queryset = self.apply_ordering(
