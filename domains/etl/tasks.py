@@ -177,17 +177,14 @@ def _success_message(load: Optional[LoadSummary]) -> str:
     loaded = load.observations_loaded
     if loaded == 0:
         if load.timestamps_total and load.timestamps_after_cutoff == 0:
-            # We know the source returned timestamps, but every timestamp was filtered out by the cutoff.
-            return (
-                "Already up to date. No new observations were loaded because all timestamps in the source are older "
-                "than what is already stored."
-            )
+            return "Already up to date. No new observations were loaded."
         # Otherwise, we don't have strong evidence for why nothing loaded beyond "no new observations".
         return "No new observations were loaded."
 
     ds_count = load.datastreams_loaded or 0
+    preposition = "into" if ds_count == 1 else "across"
     ds_word = "datastream" if ds_count == 1 else "datastreams"
-    return f"Load complete. {loaded} rows were added to {ds_count} {ds_word}."
+    return f"Loaded {loaded} total observations {preposition} {ds_count} {ds_word}."
 
 
 def _apply_runtime_uri_aliases(result: dict[str, Any], runtime_source_uri: str) -> None:
@@ -267,6 +264,39 @@ def _last_logged_error(context: Optional[TaskRunContext]) -> Optional[str]:
             msg = entry.get("message")
             if msg:
                 return msg
+    return None
+
+
+def _mapped_csv_error_from_log(last_err: str) -> Optional[str]:
+    prefix = "Error reading CSV data:"
+    if not last_err.startswith(prefix):
+        return None
+
+    detail = last_err[len(prefix) :].strip()
+    if detail == "One or more configured CSV columns were not found in the header row.":
+        return (
+            "Configured CSV columns were not found in the file header. "
+            "This often means the delimiter or headerRow setting is incorrect. "
+            "Verify the delimiter and headerRow settings, then run the job again."
+        )
+    if (
+        detail
+        == "The header row contained unexpected values and could not be processed."
+    ):
+        return (
+            "A required column was not found in the file header. "
+            "The source file may have changed or the header row may be set incorrectly. "
+            "Confirm the file layout and update the column mappings if needed."
+        )
+    if (
+        detail
+        == "One or more data rows contained unexpected values and could not be processed."
+    ):
+        return (
+            "A required column was not found in the file header. "
+            "The source file may have changed or the header row may be set incorrectly. "
+            "Confirm the file layout and update the column mappings if needed."
+        )
     return None
 
 
@@ -361,8 +391,8 @@ def run_etl_task(self, task_id: str):
             if _is_empty(data):
                 if task.data_connection.extractor_type == "HTTP":
                     return _build_task_result(
-                        "The connection to the source worked but no observations were returned. "
-                        "Confirm the source has observations for the requested time range and that the endpoint is correct.",
+                        "No observations were returned from the source system. "
+                        "Confirm the configured source system has observations available for the requested time range.",
                         context,
                         stage=context.stage,
                     )
@@ -389,8 +419,11 @@ def run_etl_task(self, task_id: str):
                 # Treat that as a failure to avoid misleading "produced no rows" messaging.
                 last_err = _last_logged_error(context)
                 if last_err and last_err.startswith("Error reading CSV data:"):
+                    mapped_csv_error = _mapped_csv_error_from_log(last_err)
+                    if mapped_csv_error:
+                        raise EtlUserFacingError(mapped_csv_error)
                     raise EtlUserFacingError(
-                        f"{last_err}. Check delimiter/headerRow/dataStartRow/identifierType "
+                        f"{last_err}. Check delimiter/headerRow/dataStartRow/identifierType settings "
                         "and confirm the upstream CSV columns match your task mappings."
                     )
                 return _build_task_result(
@@ -415,7 +448,9 @@ def run_etl_task(self, task_id: str):
                 stage=context.stage,
             )
         except Exception as e:
-            mapped = user_facing_error_from_exception(e)
+            mapped = user_facing_error_from_exception(
+                e, transformer_raw=locals().get("transformer_raw")
+            )
             if mapped:
                 logging.error("%s", str(mapped))
                 if mapped is e:

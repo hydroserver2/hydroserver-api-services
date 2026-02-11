@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import re
 from typing import Any, Iterable, Optional
@@ -174,10 +175,59 @@ _SOURCE_INDEX_OOR_RE = re.compile(
 _SOURCE_COL_NOT_FOUND_RE = re.compile(
     r"Source column '([^']+)' not found in extracted data\."
 )
+_USECOLS_NOT_FOUND_RE = re.compile(
+    r"columns expected but not found:\s*(\[[^\]]*\])",
+    re.IGNORECASE,
+)
+
+
+def _iter_exception_chain(exc: Exception) -> Iterable[Exception]:
+    seen: set[int] = set()
+    current: Optional[Exception] = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        yield current
+        next_exc = current.__cause__ or current.__context__
+        current = next_exc if isinstance(next_exc, Exception) else None
+
+
+def _extract_missing_usecols(exc: Exception) -> list[str]:
+    for err in _iter_exception_chain(exc):
+        msg = str(err)
+        match = _USECOLS_NOT_FOUND_RE.search(msg)
+        if not match:
+            continue
+
+        raw_list = match.group(1)
+        try:
+            parsed = ast.literal_eval(raw_list)
+            if isinstance(parsed, (list, tuple, set)):
+                cols = [str(c).strip() for c in parsed if str(c).strip()]
+                if cols:
+                    return cols
+        except Exception:
+            pass
+
+        inner = raw_list.strip()[1:-1]
+        if inner:
+            cols = [part.strip().strip("'\"") for part in inner.split(",")]
+            cols = [c for c in cols if c]
+            if cols:
+                return cols
+    return []
+
+
+def _format_cols(cols: list[str], max_cols: int = 4) -> str:
+    shown = [f"'{c}'" for c in cols[:max_cols]]
+    if len(cols) > max_cols:
+        shown.append(f"+{len(cols) - max_cols} more")
+    return ", ".join(shown)
 
 
 def user_facing_error_from_exception(
     exc: Exception,
+    *,
+    transformer_raw: Optional[dict[str, Any]] = None,
 ) -> Optional[EtlUserFacingError]:
     """
     Map common ETL/hydroserverpy exceptions to a single readable message.
@@ -268,7 +318,7 @@ def user_facing_error_from_exception(
 
         if "identifierType='index' requires timestamp.key" in msg_str:
             return EtlUserFacingError(
-                "The timestamp column is set incorrectly. Index mode expects a column number such as 1 for the first column. "
+                "The timestamp column is set incorrectly. Index mode expects a 1-based column number (1 for the first column). "
                 "Update the timestamp setting to a valid column index."
             )
 
@@ -280,11 +330,43 @@ def user_facing_error_from_exception(
                 "Confirm how dates appear in the source file and update the transformer configuration to match."
             )
 
-        # CSV read errors from hydroserverpy (already user-friendly, but add the one place to fix)
-        if msg_str in (
-            "One or more configured CSV columns were not found in the header row.",
-            "The header row contained unexpected values and could not be processed.",
-            "One or more data rows contained unexpected values and could not be processed.",
+        if (
+            msg_str
+            == "One or more configured CSV columns were not found in the header row."
+        ):
+            missing_cols = _extract_missing_usecols(exc)
+            if len(missing_cols) > 1:
+                return EtlUserFacingError(
+                    f"Configured CSV columns were not found in the file header ({_format_cols(missing_cols)}). "
+                    "This often means the delimiter or headerRow setting is incorrect. "
+                    "Verify the delimiter and headerRow settings, then run the job again."
+                )
+            if len(missing_cols) == 1 and isinstance(transformer_raw, dict):
+                ts_cfg = transformer_raw.get("timestamp")
+                ts_key = ts_cfg.get("key") if isinstance(ts_cfg, dict) else None
+                if ts_key is not None and str(missing_cols[0]) == str(ts_key):
+                    col = missing_cols[0]
+                    return EtlUserFacingError(
+                        f"The configured timestamp column '{col}' was not found in the file header. "
+                        "Confirm the timestamp mapping and verify the delimiter/headerRow settings match the source file."
+                    )
+            return EtlUserFacingError(
+                "A required column was not found in the file header. "
+                "The source file may have changed or the header row may be set incorrectly. "
+                "Confirm the file layout and update the column mappings if needed."
+            )
+        if (
+            msg_str
+            == "The header row contained unexpected values and could not be processed."
+        ):
+            return EtlUserFacingError(
+                "A required column was not found in the file header. "
+                "The source file may have changed or the header row may be set incorrectly. "
+                "Confirm the file layout and update the column mappings if needed."
+            )
+        if (
+            msg_str
+            == "One or more data rows contained unexpected values and could not be processed."
         ):
             return EtlUserFacingError(
                 "A required column was not found in the file header. "
@@ -295,7 +377,7 @@ def user_facing_error_from_exception(
         # JSON transformer common configuration errors
         if msg_str == "The payload's expected fields were not found.":
             return EtlUserFacingError(
-                "The job could not find the expected timestamp or value fields using the current JSON query. "
+                "Failed to find the timestamp or value using the current JSON query. "
                 "Confirm the JMESPath expression matches the structure returned by the source."
             )
         if (
@@ -303,15 +385,16 @@ def user_facing_error_from_exception(
             == "The timestamp or value key could not be found with the specified query."
         ):
             return EtlUserFacingError(
-                "The job could not find the timestamp or value using the current JSON query. "
+                "Failed to find the timestamp or value using the current JSON query. "
                 "Confirm the JMESPath expression matches the structure returned by the source."
             )
 
         m = _TIMESTAMP_COL_NOT_FOUND_RE.search(msg_str)
         if m:
+            col = m.group(1)
             return EtlUserFacingError(
-                "The column mapped as the timestamp does not exist in the file. "
-                "Confirm the source layout and update the mapping."
+                f"The configured timestamp column '{col}' was not found in the file header. "
+                "Confirm the timestamp mapping and verify the delimiter/headerRow settings match the source file."
             )
 
         m = _SOURCE_INDEX_OOR_RE.search(msg_str)
@@ -339,8 +422,8 @@ def user_facing_error_from_exception(
 
         if msg_str == "Could not connect to the source system.":
             return EtlUserFacingError(
-                "The orchestration system couldn't connect to the source system. This is often temporary, so try running the job again in a few minutes. "
-                "If it continues, the source system may be offline."
+                "Failed to connect to the source system. This may be temporary; try again shortly. "
+                "If it persists, the source system may be offline."
             )
 
         if msg_str == "The requested data could not be found on the source system.":
@@ -359,8 +442,8 @@ def user_facing_error_from_exception(
             "The connection to the source worked but no observations were returned.",
         ):
             return EtlUserFacingError(
-                "The connection to the source worked but no observations were returned. "
-                "Confirm the source has observations for the requested time range and that the endpoint is correct."
+                "No observations were returned from the source system. "
+                "Confirm the configured source system has observations available for the requested time range."
             )
 
         # Backward-compatible mappings for older hydroserverpy strings.
@@ -372,8 +455,8 @@ def user_facing_error_from_exception(
 
         if msg_str == "The source system returned no data.":
             return EtlUserFacingError(
-                "The connection to the source worked but no observations were returned. "
-                "Confirm the source has observations for the requested time range and that the endpoint is correct."
+                "No observations were returned from the source system. "
+                "Confirm the configured source system has observations available for the requested time range."
             )
 
         if (
@@ -397,7 +480,7 @@ def user_facing_error_from_exception(
         "The target datastream was not found.",
     ):
         return EtlUserFacingError(
-            "One or more destination datastream identifiers could not be found. "
+            "One or more destination datastream identifiers could not be found in HydroServer. "
             "Update the task mappings to use valid datastream IDs."
         )
 
