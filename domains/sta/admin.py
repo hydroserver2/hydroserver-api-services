@@ -74,7 +74,7 @@ class ObservedPropertyAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_observedproperty_changelist",
-            ["sta/fixtures/default_observed_properties.yaml"],
+            ["domains/sta/fixtures/default_observed_properties.yaml"],
         )
 
 
@@ -95,7 +95,7 @@ class UnitAdmin(admin.ModelAdmin, VocabularyAdmin):
 
     def load_default_data(self, request):
         return self.load_fixtures(
-            request, "admin:sta_unit_changelist", ["sta/fixtures/default_units.yaml"]
+            request, "admin:sta_unit_changelist", ["domains/sta/fixtures/default_units.yaml"]
         )
 
 
@@ -118,7 +118,7 @@ class ProcessingLevelAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_processinglevel_changelist",
-            ["sta/fixtures/default_processing_levels.yaml"],
+            ["domains/sta/fixtures/default_processing_levels.yaml"],
         )
 
 
@@ -202,7 +202,7 @@ class SiteTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_sitetype_changelist",
-            ["sta/fixtures/default_site_types.yaml"],
+            ["domains/sta/fixtures/default_site_types.yaml"],
         )
 
 
@@ -225,7 +225,7 @@ class SamplingFeatureTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_samplingfeaturetype_changelist",
-            ["sta/fixtures/default_sampling_feature_types.yaml"],
+            ["domains/sta/fixtures/default_sampling_feature_types.yaml"],
         )
 
 
@@ -248,7 +248,7 @@ class MethodTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_methodtype_changelist",
-            ["sta/fixtures/default_method_types.yaml"],
+            ["domains/sta/fixtures/default_method_types.yaml"],
         )
 
 
@@ -271,7 +271,7 @@ class SensorEncodingTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_sensorencodingtype_changelist",
-            ["sta/fixtures/default_sensor_encoding_types.yaml"],
+            ["domains/sta/fixtures/default_sensor_encoding_types.yaml"],
         )
 
 
@@ -294,7 +294,7 @@ class VariableTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_variabletype_changelist",
-            ["sta/fixtures/default_variable_types.yaml"],
+            ["domains/sta/fixtures/default_variable_types.yaml"],
         )
 
 
@@ -317,7 +317,7 @@ class UnitTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_unittype_changelist",
-            ["sta/fixtures/default_unit_types.yaml"],
+            ["domains/sta/fixtures/default_unit_types.yaml"],
         )
 
 
@@ -340,7 +340,7 @@ class DatastreamAggregationAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_datastreamaggregation_changelist",
-            ["sta/fixtures/default_datastream_aggregations.yaml"],
+            ["domains/sta/fixtures/default_datastream_aggregations.yaml"],
         )
 
 
@@ -363,7 +363,7 @@ class DatastreamStatusAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_datastreamstatus_changelist",
-            ["sta/fixtures/default_datastream_statuses.yaml"],
+            ["domains/sta/fixtures/default_datastream_statuses.yaml"],
         )
 
 
@@ -386,7 +386,7 @@ class SampledMediumAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_sampledmedium_changelist",
-            ["sta/fixtures/default_sampled_mediums.yaml"],
+            ["domains/sta/fixtures/default_sampled_mediums.yaml"],
         )
 
 
@@ -409,7 +409,7 @@ class FileAttachmentTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:sta_fileattachmenttype_changelist",
-            ["sta/fixtures/default_file_attachment_types.yaml"],
+            ["domains/sta/fixtures/default_file_attachment_types.yaml"],
         )
 
 
