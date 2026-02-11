@@ -23,7 +23,7 @@ class OrchestrationSystemAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:etl_orchestrationsystem_changelist",
-            ["etl/fixtures/default_orchestration_systems.yaml"],
+            ["domains/etl/fixtures/default_orchestration_systems.yaml"],
         )
 
 

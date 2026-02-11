@@ -46,7 +46,7 @@ class UserTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:iam_usertype_changelist",
-            ["iam/fixtures/default_user_types.yaml"],
+            ["domains/iam/fixtures/default_user_types.yaml"],
         )
 
 
@@ -69,7 +69,7 @@ class OrganizationTypeAdmin(admin.ModelAdmin, VocabularyAdmin):
         return self.load_fixtures(
             request,
             "admin:iam_organizationtype_changelist",
-            ["iam/fixtures/default_organization_types.yaml"],
+            ["domains/iam/fixtures/default_organization_types.yaml"],
         )
 
 
@@ -98,7 +98,7 @@ class RoleAdmin(admin.ModelAdmin, VocabularyAdmin):
 
     def load_default_data(self, request):
         return self.load_fixtures(
-            request, "admin:iam_role_changelist", ["iam/fixtures/default_roles.yaml"]
+            request, "admin:iam_role_changelist", ["domains/iam/fixtures/default_roles.yaml"]
         )
 
     def delete_queryset(self, request, queryset):
