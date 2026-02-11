@@ -19,6 +19,7 @@ from .etl_errors import (
     user_facing_error_from_exception,
     user_facing_error_from_validation_error,
 )
+from .run_result_normalizer import normalize_task_run_result, task_transformer_raw
 from hydroserverpy.etl.factories import extractor_factory, transformer_factory
 from hydroserverpy.etl.etl_configuration import (
     ExtractorConfig,
@@ -527,6 +528,13 @@ def mark_etl_task_success(sender, result, **extra):
     if context and context.stage and "stage" not in result:
         result["stage"] = context.stage
 
+    transformer_raw = task_transformer_raw(task_run.task)
+    result = normalize_task_run_result(
+        status="SUCCESS",
+        result=result,
+        transformer_raw=transformer_raw,
+    )
+
     task_run.status = "SUCCESS"
     task_run.finished_at = timezone.now()
     task_run.result = result
@@ -563,11 +571,16 @@ def mark_etl_task_failure(sender, task_id, einfo, exception, **extra):
 
     task_run.status = "FAILURE"
     task_run.finished_at = timezone.now()
-    task_run.result = _build_task_result(
-        message,
-        context,
-        stage=stage,
-        traceback=einfo.traceback,
+    transformer_raw = task_transformer_raw(task_run.task)
+    task_run.result = normalize_task_run_result(
+        status="FAILURE",
+        result=_build_task_result(
+            message,
+            context,
+            stage=stage,
+            traceback=einfo.traceback,
+        ),
+        transformer_raw=transformer_raw,
     )
 
     task_run.save(update_fields=["status", "finished_at", "result"])

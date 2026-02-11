@@ -5,6 +5,10 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from domains.iam.models import APIKey
 from domains.etl.models import TaskRun
+from domains.etl.run_result_normalizer import (
+    normalize_task_run_result,
+    task_transformer_raw,
+)
 from interfaces.api.schemas import TaskRunFields, TaskRunPostBody, TaskRunPatchBody, TaskRunOrderByFields
 from interfaces.api.service import ServiceUtils
 from .task import TaskService
@@ -79,9 +83,16 @@ class TaskRunService(ServiceUtils):
             principal=principal, uid=task_id, action="edit", expand_related=True
         )
 
+        task_run_data = data.dict(include=set(TaskRunFields.model_fields.keys()))
+        task_run_data["result"] = normalize_task_run_result(
+            status=task_run_data["status"],
+            result=task_run_data.get("result"),
+            transformer_raw=task_transformer_raw(task),
+        )
+
         task_run = TaskRun.objects.create(
             task=task,
-            **data.dict(include=set(TaskRunFields.model_fields.keys())),
+            **task_run_data,
         )
 
         return self.get(
@@ -114,6 +125,11 @@ class TaskRunService(ServiceUtils):
         for field, value in task_run_data.items():
             setattr(task_run, field, value)
 
+        task_run.result = normalize_task_run_result(
+            status=task_run.status,
+            result=task_run.result,
+            transformer_raw=task_transformer_raw(task),
+        )
         task_run.save()
 
         return self.get(

@@ -285,7 +285,7 @@ def user_facing_error_from_exception(
         message = getattr(exc, "message", None) or msg_str
         if "Datastream does not exist" in message:
             return EtlUserFacingError(
-                "One or more destination datastream identifiers could not be found. "
+                "One or more destination datastream identifiers could not be found in HydroServer. "
                 "Update the task mappings to use valid datastream IDs."
             )
         if status in (401, 403):
