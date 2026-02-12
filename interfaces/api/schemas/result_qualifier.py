@@ -53,6 +53,7 @@ class ResultQualifierDetailResponse(BaseGetResponse, ResultQualifierFields):
 
 
 class ResultQualifierPostBody(BasePostBody, ResultQualifierFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = None
 
 

@@ -3,6 +3,7 @@ from typing import Optional, Literal, Sequence, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet, Min, Max, Count, F
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.utils import timezone
@@ -285,9 +286,13 @@ class DatastreamService(ServiceUtils):
                 400, "The given unit cannot be associated with this datastream"
             )
 
-        datastream = Datastream.objects.create(
-            **data.dict(include=set(DatastreamPostBody.model_fields.keys()))
-        )
+        try:
+            datastream = Datastream.objects.create(
+                pk=data.id,
+                **data.dict(include=set(DatastreamPostBody.model_fields.keys()))
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(
             principal=principal, uid=datastream.id, expand_related=expand_related

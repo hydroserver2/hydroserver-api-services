@@ -3,6 +3,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet
 from domains.iam.models import APIKey
 from domains.sta.models import ProcessingLevel
@@ -136,10 +137,14 @@ class ProcessingLevelService(ServiceUtils):
                 403, "You do not have permission to create this processing level"
             )
 
-        processing_level = ProcessingLevel.objects.create(
-            workspace=workspace,
-            **data.dict(include=set(ProcessingLevelFields.model_fields.keys())),
-        )
+        try:
+            processing_level = ProcessingLevel.objects.create(
+                pk=data.id,
+                workspace=workspace,
+                **data.dict(include=set(ProcessingLevelFields.model_fields.keys())),
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(
             principal=principal, uid=processing_level.id, expand_related=expand_related

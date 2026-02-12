@@ -139,9 +139,9 @@ class WorkspaceService(ServiceUtils):
             raise HttpError(403, "You do not have permission to create this workspace")
 
         try:
-            workspace = Workspace.objects.create(owner=principal, **data.dict())
+            workspace = Workspace.objects.create(pk=data.id, owner=principal, **data.dict())
         except IntegrityError:
-            raise HttpError(409, "Workspace name conflicts with an owned workspace")
+            raise HttpError(409, "Workspace name or ID conflicts with an owned workspace")
 
         return self.get(principal, uid=workspace.id, expand_related=expand_related)
 

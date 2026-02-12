@@ -4,6 +4,7 @@ from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.db import IntegrityError
 from django.db.models import QuerySet, F, Q
 from domains.iam.models import APIKey
 from domains.sta.models import (
@@ -217,10 +218,14 @@ class ThingService(ServiceUtils):
         if not Thing.can_principal_create(principal=principal, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this Thing")
 
-        thing = Thing.objects.create(
-            workspace=workspace,
-            **data.dict(include=set(ThingFields.model_fields.keys())),
-        )
+        try:
+            thing = Thing.objects.create(
+                pk=data.id,
+                workspace=workspace,
+                **data.dict(include=set(ThingFields.model_fields.keys())),
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         Location.objects.create(
             name=f"Location for {data.name}",

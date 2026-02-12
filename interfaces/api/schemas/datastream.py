@@ -194,7 +194,7 @@ class DatastreamDetailResponse(BaseGetResponse, DatastreamFields):
 
 
 class DatastreamPostBody(BasePostBody, DatastreamFields, DatastreamRelatedFields):
-    pass
+    id: Optional[uuid.UUID] = None
 
 
 class DatastreamPatchBody(BasePatchBody, DatastreamFields, DatastreamRelatedFields):

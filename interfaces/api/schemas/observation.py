@@ -86,7 +86,7 @@ class ObservationColumnarResponse(BaseGetResponse):
 
 
 class ObservationPostBody(BasePostBody, ObservationFields):
-    pass
+    id: Optional[uuid.UUID] = None
 
 
 class ObservationBulkPostQueryParameters(Schema):

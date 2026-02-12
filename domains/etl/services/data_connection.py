@@ -3,6 +3,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet
 from domains.iam.models import APIKey
 from domains.etl.models import DataConnection
@@ -147,16 +148,20 @@ class DataConnectionService(ServiceUtils):
                 403, "You do not have permission to create this ETL data connection"
             )
 
-        data_connection = DataConnection.objects.create(
-            workspace=workspace,
-            extractor_type=data.extractor.settings_type if data.extractor else None,
-            extractor_settings=data.extractor.settings if data.extractor else {},
-            transformer_type=data.transformer.settings_type if data.transformer else None,
-            transformer_settings=data.transformer.settings if data.transformer else {},
-            loader_type=data.loader.settings_type if data.loader else None,
-            loader_settings=data.loader.settings if data.loader else {},
-            **data.dict(include=set(DataConnectionFields.model_fields.keys())),
-        )
+        try:
+            data_connection = DataConnection.objects.create(
+                pk=data.id,
+                workspace=workspace,
+                extractor_type=data.extractor.settings_type if data.extractor else None,
+                extractor_settings=data.extractor.settings if data.extractor else {},
+                transformer_type=data.transformer.settings_type if data.transformer else None,
+                transformer_settings=data.transformer.settings if data.transformer else {},
+                loader_type=data.loader.settings_type if data.loader else None,
+                loader_settings=data.loader.settings if data.loader else {},
+                **data.dict(include=set(DataConnectionFields.model_fields.keys())),
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(
             principal=principal,

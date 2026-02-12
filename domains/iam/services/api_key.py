@@ -3,6 +3,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet
 from domains.iam.models import APIKey
 from interfaces.api.schemas import (
@@ -139,9 +140,12 @@ class APIKeyService(ServiceUtils):
         if not apikey_role.is_apikey_role:
             raise HttpError(400, "Role not supported for API key assignment")
 
-        api_key, raw_key = APIKey.objects.create_with_key(
-            workspace=workspace, **data.dict()
-        )
+        try:
+            api_key, raw_key = APIKey.objects.create_with_key(
+                pk=data.id, workspace=workspace, **data.dict()
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         api_key = self.get_api_key_for_action(
             principal=principal,
