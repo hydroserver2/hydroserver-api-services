@@ -144,6 +144,7 @@ class ResultQualifierService(ServiceUtils):
 
         try:
             result_qualifier = ResultQualifier.objects.create(
+                pk=data.id,
                 workspace=workspace,
                 **data.dict(include=set(ResultQualifierFields.model_fields.keys())),
             )
@@ -151,7 +152,7 @@ class ResultQualifierService(ServiceUtils):
             IntegrityError,
             UniqueViolation,
         ):
-            raise HttpError(409, "A result qualifier with this code already exists")
+            raise HttpError(409, "A result qualifier with this ID or code already exists")
 
         return self.get(
             principal=principal, uid=result_qualifier.id, expand_related=expand_related

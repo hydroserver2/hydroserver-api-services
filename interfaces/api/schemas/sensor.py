@@ -67,6 +67,7 @@ class SensorDetailResponse(BaseGetResponse, SensorFields):
 
 
 class SensorPostBody(BasePostBody, SensorFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = None
 
 

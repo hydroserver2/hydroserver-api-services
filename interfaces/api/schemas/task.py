@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 from datetime import datetime
 from ninja import Schema, Field, Query
 from interfaces.api.types import ISODatetime
@@ -177,6 +177,7 @@ class TaskDetailResponse(BaseGetResponse, TaskFields):
 
 
 class TaskPostBody(BasePostBody, TaskFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: uuid.UUID
     data_connection_id: uuid.UUID
     orchestration_system_id: uuid.UUID

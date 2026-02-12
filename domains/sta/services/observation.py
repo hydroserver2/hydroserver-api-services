@@ -235,6 +235,7 @@ class ObservationService(ServiceUtils):
 
         try:
             observation = Observation.objects.create(
+                pk=data.id,
                 datastream=datastream,
                 **data.dict(include=set(ObservationFields.model_fields.keys())),
             )
@@ -242,7 +243,7 @@ class ObservationService(ServiceUtils):
             IntegrityError,
             UniqueViolation,
         ):
-            raise HttpError(409, "Duplicate phenomenonTime found on this datastream.")
+            raise HttpError(409, "Duplicate phenomenonTime or ID found on this datastream.")
 
         if update_datastream_statistics is True:
             datastream_service.update_observation_statistics(

@@ -49,6 +49,7 @@ class OrchestrationSystemDetailResponse(BaseGetResponse, OrchestrationSystemFiel
 
 
 class OrchestrationSystemPostBody(BasePostBody, OrchestrationSystemFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = None
 
 

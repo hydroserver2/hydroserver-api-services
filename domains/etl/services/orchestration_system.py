@@ -3,6 +3,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet
 from domains.iam.models import APIKey
 from domains.etl.models import OrchestrationSystem
@@ -145,10 +146,14 @@ class OrchestrationSystemService(ServiceUtils):
                 403, "You do not have permission to create this orchestration system"
             )
 
-        orchestration_system = OrchestrationSystem.objects.create(
-            workspace=workspace,
-            **data.dict(include=set(OrchestrationSystemFields.model_fields.keys())),
-        )
+        try:
+            orchestration_system = OrchestrationSystem.objects.create(
+                pk=data.id,
+                workspace=workspace,
+                **data.dict(include=set(OrchestrationSystemFields.model_fields.keys())),
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(
             principal=principal,

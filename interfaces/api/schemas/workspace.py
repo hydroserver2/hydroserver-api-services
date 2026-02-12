@@ -71,7 +71,7 @@ class WorkspaceDetailResponse(BaseGetResponse, WorkspaceFields):
 
 
 class WorkspacePostBody(BasePostBody, WorkspaceFields):
-    pass
+    id: Optional[uuid.UUID] = None
 
 
 class WorkspacePatchBody(BasePatchBody, WorkspaceFields):
