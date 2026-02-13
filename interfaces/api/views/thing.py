@@ -541,7 +541,7 @@ def download_thing_file_attachment(
         return 404, "File attachment does not exist"
 
     file_obj = file_attachment.file_attachment.open("rb")
-    return 200, FileResponse(
+    return FileResponse(
         file_obj,
         as_attachment=True,
         filename=file_attachment.name,
