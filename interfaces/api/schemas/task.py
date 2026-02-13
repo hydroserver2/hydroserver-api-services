@@ -126,7 +126,7 @@ class TaskSchedulePatchBody(BasePatchBody, TaskScheduleFields):
 
 class TaskMappingPathFields(Schema):
     target_identifier: str
-    data_transformations: dict[str, Any] | list[Any] = Field(default_factory=dict)
+    data_transformations: list[Any] = Field(default_factory=list)
 
 
 class TaskMappingPathResponse(BaseGetResponse, TaskMappingPathFields):

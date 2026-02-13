@@ -91,10 +91,12 @@ from .observation import (
     ObservationBulkDeleteBody,
 )
 from .attachment import (
+    FileAttachmentQueryParameters,
     TagGetResponse,
     TagPostBody,
     TagDeleteBody,
     FileAttachmentDeleteBody,
+    FileAttachmentPatchBody,
     FileAttachmentGetResponse,
 )
 

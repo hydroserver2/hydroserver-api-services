@@ -33,7 +33,7 @@ _TRANSFORMER_ALIAS_MAP: dict[str, str] = {
     "target_identifier": "targetIdentifier",
     "source_identifier": "sourceIdentifier",
     "data_transformations": "dataTransformations",
-    "lookup_table_id": "lookupTableId",
+    "rating_curve_url": "ratingCurveUrl",
 }
 
 
@@ -372,6 +372,42 @@ def user_facing_error_from_exception(
                 "A required column was not found in the file header. "
                 "The source file may have changed or the header row may be set incorrectly. "
                 "Confirm the file layout and update the column mappings if needed."
+            )
+
+        if msg_str.startswith("Rating curve transformation is missing ratingCurveUrl"):
+            return EtlUserFacingError(
+                "A rating curve transformation is missing the rating curve URL. "
+                "Set a ratingCurveUrl for the mapping and run the job again."
+            )
+
+        if msg_str.startswith("Rating curve file not found at"):
+            return EtlUserFacingError(
+                "The configured rating curve file could not be found. "
+                "Verify the ratingCurveUrl is correct and points to an existing file."
+            )
+
+        if msg_str.startswith("Rating curve at") and "is empty" in msg_str:
+            return EtlUserFacingError(
+                "The configured rating curve file is empty. "
+                "Upload a valid rating curve file and run the job again."
+            )
+
+        if msg_str.startswith("Rating curve at") and "not a valid CSV file" in msg_str:
+            return EtlUserFacingError(
+                "The configured rating curve file is not a valid CSV file. "
+                "Upload a valid rating curve CSV using the standardized two-column format."
+            )
+
+        if msg_str.startswith("Rating curve at") and "at least two columns" in msg_str:
+            return EtlUserFacingError(
+                "The rating curve CSV must include two columns (input on the left, output on the right). "
+                "Update the file and run the job again."
+            )
+
+        if msg_str.startswith("Rating curve at") and "at least two numeric rows" in msg_str:
+            return EtlUserFacingError(
+                "The rating curve CSV must include at least two numeric rows. "
+                "Update the file and run the job again."
             )
 
         # JSON transformer common configuration errors
