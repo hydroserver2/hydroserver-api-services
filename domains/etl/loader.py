@@ -6,7 +6,7 @@ from typing import Any
 from hydroserverpy.etl.loaders.base import Loader
 import logging
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 from django.db.models import Min, Value
 from django.db.models.functions import Coalesce
 from domains.etl.models import Task
@@ -147,7 +147,7 @@ class HydroServerInternalLoader(Loader):
             }
         ).aggregate(
             earliest_end=Coalesce(
-                Min("phenomenon_end_time"), Value(datetime(1970, 1, 1))
+                Min("phenomenon_end_time"), Value(datetime(1970, 1, 1, tzinfo=dt_timezone.utc))
             )
         )[
             "earliest_end"
