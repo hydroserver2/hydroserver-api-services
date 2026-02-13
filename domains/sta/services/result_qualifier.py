@@ -87,6 +87,8 @@ class ResultQualifierService(ServiceUtils):
                 order_by,
                 list(get_args(ResultQualifierOrderByFields)),
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

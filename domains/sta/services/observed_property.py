@@ -84,6 +84,8 @@ class ObservedPropertyService(ServiceUtils):
                 list(get_args(ObservedPropertyOrderByFields)),
                 {"type": "observed_property_type"},
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

@@ -48,6 +48,8 @@ class TaskRunService(ServiceUtils):
                 order_by,
                 list(get_args(TaskRunOrderByFields)),
             )
+        else:
+            queryset = queryset.order_by("id")
 
         queryset, count = self.apply_pagination(queryset, response, page, page_size)
 

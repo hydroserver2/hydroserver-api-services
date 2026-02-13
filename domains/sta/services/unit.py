@@ -77,6 +77,8 @@ class UnitService(ServiceUtils):
                 list(get_args(UnitOrderByFields)),
                 {"type": "unit_type"},
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

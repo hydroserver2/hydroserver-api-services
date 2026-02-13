@@ -92,6 +92,8 @@ class DataConnectionService(ServiceUtils):
                 list(get_args(DataConnectionOrderByFields)),
                 {"type": "data_connection_type"},
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

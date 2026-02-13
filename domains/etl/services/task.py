@@ -225,6 +225,8 @@ class TaskService(ServiceUtils):
                 order_by,
                 [order_by_aliases.get(field, field) for field in list(get_args(TaskOrderByFields))]
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

@@ -168,6 +168,8 @@ class ThingService(ServiceUtils):
                     "country": "location__country",
                 },
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

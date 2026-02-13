@@ -156,6 +156,8 @@ class ObservationService(ServiceUtils):
                 order_by,
                 list(get_args(ObservationOrderByFields)),
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)

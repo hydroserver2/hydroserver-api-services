@@ -86,6 +86,8 @@ class APIKeyService(ServiceUtils):
             queryset = self.apply_ordering(
                 queryset, order_by, list(get_args(APIKeyOrderByFields))
             )
+        else:
+            queryset = queryset.order_by("id")
 
         queryset = queryset.visible(principal=principal).distinct()
 

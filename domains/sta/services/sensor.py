@@ -79,6 +79,8 @@ class SensorService(ServiceUtils):
                 list(get_args(SensorOrderByFields)),
                 {"model": "sensor_model"},
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
