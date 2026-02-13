@@ -426,6 +426,24 @@ def update_thing_file_attachment(
     )
 
 
+def _replace_thing_file_attachment(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    file: UploadedFile = File(...),
+):
+    """
+    Replace the file content for an existing thing file attachment.
+    """
+
+    return 200, thing_service.replace_file_attachment(
+        principal=request.principal,
+        uid=thing_id,
+        attachment_id=attachment_id,
+        file=file,
+    )
+
+
 @thing_router.put(
     "/{thing_id}/file-attachments/{attachment_id}/file",
     auth=[session_auth, bearer_auth, apikey_auth],
@@ -440,19 +458,43 @@ def update_thing_file_attachment(
     },
     by_alias=True,
 )
-def replace_thing_file_attachment(
+def replace_thing_file_attachment_put(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
     attachment_id: Path[int],
     file: UploadedFile = File(...),
 ):
-    """
-    Replace the file content for an existing thing file attachment.
-    """
+    return _replace_thing_file_attachment(
+        request=request,
+        thing_id=thing_id,
+        attachment_id=attachment_id,
+        file=file,
+    )
 
-    return 200, thing_service.replace_file_attachment(
-        principal=request.principal,
-        uid=thing_id,
+
+@thing_router.post(
+    "/{thing_id}/file-attachments/{attachment_id}/file",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        200: FileAttachmentGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        404: str,
+        413: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def replace_thing_file_attachment_post(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    file: UploadedFile = File(...),
+):
+    return _replace_thing_file_attachment(
+        request=request,
+        thing_id=thing_id,
         attachment_id=attachment_id,
         file=file,
     )
