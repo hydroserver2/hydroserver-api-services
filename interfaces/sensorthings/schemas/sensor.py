@@ -20,12 +20,18 @@ class SensorModel(Schema):
     )
 
 
-sensorEncodingTypes = Literal[
+KnownSensorEncodingTypes = Literal[
     "application/pdf",
     "http://www.opengis.net/doc/IS/SensorML/2.0",
     "text/html",
     "application/json",
+    "text/plain",
 ]
+
+# Legacy deployments may contain other valid MIME strings in this field.
+# Keep known values documented while accepting arbitrary encodings to avoid
+# response-validation 500s when reading existing records.
+sensorEncodingTypes = KnownSensorEncodingTypes | str
 
 
 class SensorMetadata(Schema):
