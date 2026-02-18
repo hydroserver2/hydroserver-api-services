@@ -75,7 +75,7 @@ class LocationEngine(LocationBaseEngine, SensorThingsUtils):
                         "properties": {},
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [location.latitude, location.longitude],
+                            "coordinates": [location.longitude, location.latitude],
                         },
                     },
                     "properties": {

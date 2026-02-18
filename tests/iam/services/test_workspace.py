@@ -130,7 +130,7 @@ def test_get_workspace(get_principal, principal, workspace, message, error_code)
     "principal, name, message, error_code",
     [
         ("owner", "New", "New", None),
-        ("owner", "Public", "Workspace name conflicts with an owned workspace", 409),
+        ("owner", "Public", "Workspace name or ID conflicts with an owned workspace", 409),
         ("admin", "New", "New", None),
         ("limited", "New", "You do not have permission to create this workspace", 403),
         ("apikey", "New", "You do not have permission to create this workspace", 403),

@@ -54,6 +54,7 @@ class ProcessingLevelDetailResponse(BaseGetResponse, ProcessingLevelFields):
 
 
 class ProcessingLevelPostBody(BasePostBody, ProcessingLevelFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = None
 
 

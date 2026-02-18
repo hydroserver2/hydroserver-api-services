@@ -84,6 +84,8 @@ class WorkspaceService(ServiceUtils):
                 order_by,
                 list(get_args(WorkspaceOrderByFields)),
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = queryset.select_related(
@@ -139,9 +141,13 @@ class WorkspaceService(ServiceUtils):
             raise HttpError(403, "You do not have permission to create this workspace")
 
         try:
-            workspace = Workspace.objects.create(owner=principal, **data.dict())
+            workspace = Workspace.objects.create(
+                pk=data.id, owner=principal, **data.dict()
+            )
         except IntegrityError:
-            raise HttpError(409, "Workspace name conflicts with an owned workspace")
+            raise HttpError(
+                409, "Workspace name or ID conflicts with an owned workspace"
+            )
 
         return self.get(principal, uid=workspace.id, expand_related=expand_related)
 
@@ -203,7 +209,8 @@ class WorkspaceService(ServiceUtils):
 
         if not Workspace.can_principal_create(new_owner):
             raise HttpError(
-                400, f"Workspace cannot be transferred to user '{data.new_owner}'"
+                400,
+                f"Workspace cannot be transferred to user '{data.new_owner}. User does not have permissions required to create a workspace.'",
             )
 
         if workspace.owner == new_owner:

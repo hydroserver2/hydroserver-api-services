@@ -56,6 +56,7 @@ class UnitDetailResponse(BaseGetResponse, UnitFields):
 
 
 class UnitPostBody(BasePostBody, UnitFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = None
 
 

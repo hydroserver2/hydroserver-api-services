@@ -63,6 +63,7 @@ class APIKeyDetailPostResponse(APIKeyDetailResponse, APIKeyGetFields):
 
 
 class APIKeyPostBody(BasePostBody, APIKeyFields):
+    id: Optional[uuid.UUID] = None
     role_id: uuid.UUID
 
 

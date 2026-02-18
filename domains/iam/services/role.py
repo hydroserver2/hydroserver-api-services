@@ -67,6 +67,8 @@ class RoleService(ServiceUtils):
                 order_by,
                 list(get_args(RoleOrderByFields)),
             )
+        else:
+            queryset = queryset.order_by("id")
 
         queryset = (
             queryset.visible(principal=principal)

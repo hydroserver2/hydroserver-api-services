@@ -75,6 +75,7 @@ class DataConnectionDetailResponse(BaseGetResponse, DataConnectionFields):
 
 
 class DataConnectionPostBody(BasePostBody, DataConnectionFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID] = None
     extractor: DataConnectionSettingsPostBody | None = None
     transformer: DataConnectionSettingsPostBody | None = None
