@@ -147,7 +147,7 @@ class HydroServerInternalLoader(Loader):
             }
         ).aggregate(
             earliest_end=Coalesce(
-                Min("phenomenon_end_time"), Value(datetime(1970, 1, 1, tzinfo=dt_timezone.utc))
+                Min("phenomenon_end_time"), Value(datetime(1880, 1, 1, tzinfo=dt_timezone.utc))
             )
         )[
             "earliest_end"
