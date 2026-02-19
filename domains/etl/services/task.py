@@ -5,6 +5,7 @@ from croniter import croniter
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet, Subquery, OuterRef
 from django.utils import timezone
 from django.conf import settings
@@ -224,6 +225,8 @@ class TaskService(ServiceUtils):
                 order_by,
                 [order_by_aliases.get(field, field) for field in list(get_args(TaskOrderByFields))]
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
@@ -279,15 +282,19 @@ class TaskService(ServiceUtils):
         if orchestration_system.workspace and orchestration_system.workspace_id != workspace.id:
             raise HttpError(400, "Task and orchestration system must belong to the same workspace.")
 
-        task = Task.objects.create(
-            name=data.name,
-            workspace=workspace,
-            data_connection=data_connection,
-            orchestration_system=orchestration_system,
-            extractor_variables=data.extractor_variables or {},
-            transformer_variables=data.transformer_variables or {},
-            loader_variables=data.loader_variables or {},
-        )
+        try:
+            task = Task.objects.create(
+                pk=data.id,
+                name=data.name,
+                workspace=workspace,
+                data_connection=data_connection,
+                orchestration_system=orchestration_system,
+                extractor_variables=data.extractor_variables or {},
+                transformer_variables=data.transformer_variables or {},
+                loader_variables=data.loader_variables or {},
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         task = self.update_scheduling(task, data.schedule.dict())
         task = self.update_mapping(task, [mapping.dict() for mapping in data.mappings] if data.mappings else None)

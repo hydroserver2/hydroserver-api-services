@@ -3,6 +3,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet
 from domains.iam.models import APIKey
 from domains.sta.models import Unit, UnitType
@@ -76,6 +77,8 @@ class UnitService(ServiceUtils):
                 list(get_args(UnitOrderByFields)),
                 {"type": "unit_type"},
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
@@ -127,10 +130,14 @@ class UnitService(ServiceUtils):
         if not Unit.can_principal_create(principal=principal, workspace=workspace):
             raise HttpError(403, "You do not have permission to create this unit")
 
-        unit = Unit.objects.create(
-            workspace=workspace,
-            **data.dict(include=set(UnitFields.model_fields.keys())),
-        )
+        try:
+            unit = Unit.objects.create(
+                pk=data.id,
+                workspace=workspace,
+                **data.dict(include=set(UnitFields.model_fields.keys())),
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(principal=principal, uid=unit.pk, expand_related=expand_related)
 

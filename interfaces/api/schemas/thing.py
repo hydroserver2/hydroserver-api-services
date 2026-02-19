@@ -156,6 +156,7 @@ class ThingDetailResponse(BaseGetResponse, ThingFields):
 
 
 class ThingPostBody(BasePostBody, ThingFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: uuid.UUID
     location: LocationPostBody
 

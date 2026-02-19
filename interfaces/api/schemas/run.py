@@ -1,5 +1,5 @@
 import uuid
-from typing import Literal
+from typing import Literal, Optional
 from datetime import datetime
 from ninja import Schema, Query
 from interfaces.api.types import ISODatetime
@@ -52,7 +52,7 @@ class TaskRunResponse(BaseGetResponse, TaskRunFields):
 
 
 class TaskRunPostBody(BasePostBody, TaskRunFields):
-    pass
+    id: Optional[uuid.UUID] = None
 
 
 class TaskRunPatchBody(BasePatchBody, TaskRunFields):

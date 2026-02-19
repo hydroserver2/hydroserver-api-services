@@ -3,6 +3,7 @@ from typing import Optional, Literal, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import QuerySet
 from domains.iam.models import APIKey
 from domains.sta.models import ObservedProperty, VariableType
@@ -83,6 +84,8 @@ class ObservedPropertyService(ServiceUtils):
                 list(get_args(ObservedPropertyOrderByFields)),
                 {"type": "observed_property_type"},
             )
+        else:
+            queryset = queryset.order_by("id")
 
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
@@ -138,10 +141,14 @@ class ObservedPropertyService(ServiceUtils):
                 403, "You do not have permission to create this observed property"
             )
 
-        observed_property = ObservedProperty.objects.create(
-            workspace=workspace,
-            **data.dict(include=set(ObservedPropertyFields.model_fields.keys())),
-        )
+        try:
+            observed_property = ObservedProperty.objects.create(
+                pk=data.id,
+                workspace=workspace,
+                **data.dict(include=set(ObservedPropertyFields.model_fields.keys())),
+            )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(
             principal=principal, uid=observed_property.id, expand_related=expand_related

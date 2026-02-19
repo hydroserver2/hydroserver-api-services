@@ -63,6 +63,7 @@ class ObservedPropertyDetailResponse(BaseGetResponse, ObservedPropertyFields):
 
 
 class ObservedPropertyPostBody(BasePostBody, ObservedPropertyFields):
+    id: Optional[uuid.UUID] = None
     workspace_id: Optional[uuid.UUID]
 
 

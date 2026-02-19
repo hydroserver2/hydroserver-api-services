@@ -2,6 +2,7 @@ import uuid
 from typing import Optional, get_args
 from ninja.errors import HttpError
 from django.http import HttpResponse
+from django.db import IntegrityError
 from django.contrib.auth import get_user_model
 from domains.iam.models import APIKey
 from domains.etl.models import TaskRun
@@ -51,6 +52,8 @@ class TaskRunService(ServiceUtils):
                 order_by,
                 list(get_args(TaskRunOrderByFields)),
             )
+        else:
+            queryset = queryset.order_by("id")
 
         queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
@@ -82,7 +85,6 @@ class TaskRunService(ServiceUtils):
         task = task_service.get_task_for_action(
             principal=principal, uid=task_id, action="edit", expand_related=True
         )
-
         task_run_data = data.dict(include=set(TaskRunFields.model_fields.keys()))
         task_run_data["result"] = normalize_task_run_result(
             status=task_run_data["status"],
@@ -90,10 +92,13 @@ class TaskRunService(ServiceUtils):
             transformer_raw=task_transformer_raw(task),
         )
 
-        task_run = TaskRun.objects.create(
-            task=task,
-            **task_run_data,
-        )
+        try:
+          task_run = TaskRun.objects.create(
+              task=task,
+              **task_run_data,
+          )
+        except IntegrityError:
+            raise HttpError(409, "The operation could not be completed due to a resource conflict.")
 
         return self.get(
             principal=principal,
