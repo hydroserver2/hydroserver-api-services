@@ -386,6 +386,34 @@ def user_facing_error_from_exception(
                 "Verify the ratingCurveUrl is correct and points to an existing file."
             )
 
+        if msg_str.startswith("Timed out while retrieving rating curve from"):
+            return EtlUserFacingError(
+                "The task timed out while trying to load the rating curve file. "
+                "Verify the file URL is reachable and run the job again."
+            )
+
+        if (
+            msg_str.startswith("Could not connect to rating curve URL")
+            or msg_str.startswith("Failed to retrieve rating curve from")
+            or msg_str.startswith("Rating curve request to")
+        ):
+            return EtlUserFacingError(
+                "The task could not download the configured rating curve file. "
+                "Verify the file exists and can be reached, then run the job again."
+            )
+
+        if msg_str.startswith("Authentication failed while retrieving rating curve from"):
+            return EtlUserFacingError(
+                "The task is not authorized to access the configured rating curve file. "
+                "Use a rating curve file stored in HydroServer and run the job again."
+            )
+
+        if msg_str.startswith("Unable to read rating curve file from"):
+            return EtlUserFacingError(
+                "The configured rating curve file could not be read. "
+                "Replace it with a valid CSV file and run the job again."
+            )
+
         if msg_str.startswith("Rating curve at") and "is empty" in msg_str:
             return EtlUserFacingError(
                 "The configured rating curve file is empty. "
