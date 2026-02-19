@@ -3,7 +3,7 @@ from typing import Optional
 from ninja import Router, Path, Query, File, Form
 from ninja.files import UploadedFile
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from interfaces.http.auth import bearer_auth, session_auth, apikey_auth, anonymous_auth
 from interfaces.http.request import HydroServerHttpRequest
 from interfaces.api.schemas import VocabularyQueryParameters
@@ -16,7 +16,9 @@ from interfaces.api.schemas import (
     TagGetResponse,
     TagPostBody,
     TagDeleteBody,
+    FileAttachmentQueryParameters,
     FileAttachmentGetResponse,
+    FileAttachmentPatchBody,
     FileAttachmentDeleteBody,
 )
 from domains.sta.services import ThingService
@@ -343,7 +345,9 @@ def remove_thing_tag(
     by_alias=True,
 )
 def get_thing_file_attachments(
-    request: HydroServerHttpRequest, thing_id: Path[uuid.UUID]
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    query: Query[FileAttachmentQueryParameters],
 ):
     """
     Get all file attachments associated with a Thing.
@@ -352,6 +356,7 @@ def get_thing_file_attachments(
     return 200, thing_service.get_file_attachments(
         principal=request.principal,
         uid=thing_id,
+        attachment_types=query.type,
     )
 
 
@@ -372,6 +377,8 @@ def add_thing_file_attachment(
     request: HydroServerHttpRequest,
     thing_id: Path[uuid.UUID],
     file_attachment_type: str = Form(...),
+    name: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
     file: UploadedFile = File(...),
 ):
     """
@@ -383,6 +390,141 @@ def add_thing_file_attachment(
         uid=thing_id,
         file=file,
         file_attachment_type=file_attachment_type,
+        name=name,
+        description=description,
+    )
+
+
+@thing_router.patch(
+    "/{thing_id}/file-attachments/{attachment_id}",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        200: FileAttachmentGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        404: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def update_thing_file_attachment(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    data: FileAttachmentPatchBody,
+):
+    """
+    Update a thing file attachment's metadata.
+    """
+
+    return 200, thing_service.update_file_attachment(
+        principal=request.principal,
+        uid=thing_id,
+        attachment_id=attachment_id,
+        data=data,
+    )
+
+
+def _replace_thing_file_attachment(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    file: UploadedFile = File(...),
+):
+    """
+    Replace the file content for an existing thing file attachment.
+    """
+
+    return 200, thing_service.replace_file_attachment(
+        principal=request.principal,
+        uid=thing_id,
+        attachment_id=attachment_id,
+        file=file,
+    )
+
+
+@thing_router.put(
+    "/{thing_id}/file-attachments/{attachment_id}/file",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        200: FileAttachmentGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        404: str,
+        413: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def replace_thing_file_attachment_put(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    file: UploadedFile = File(...),
+):
+    return _replace_thing_file_attachment(
+        request=request,
+        thing_id=thing_id,
+        attachment_id=attachment_id,
+        file=file,
+    )
+
+
+@thing_router.post(
+    "/{thing_id}/file-attachments/{attachment_id}/file",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        200: FileAttachmentGetResponse,
+        400: str,
+        401: str,
+        403: str,
+        404: str,
+        413: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def replace_thing_file_attachment_post(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    file: UploadedFile = File(...),
+):
+    return _replace_thing_file_attachment(
+        request=request,
+        thing_id=thing_id,
+        attachment_id=attachment_id,
+        file=file,
+    )
+
+
+@thing_router.delete(
+    "/{thing_id}/file-attachments/{attachment_id}",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        204: None,
+        400: str,
+        401: str,
+        403: str,
+        404: str,
+    },
+    by_alias=True,
+)
+def delete_thing_file_attachment(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+):
+    """
+    Remove a file attachment from a thing by id.
+    """
+
+    return 204, thing_service.delete_file_attachment(
+        principal=request.principal,
+        uid=thing_id,
+        attachment_id=attachment_id,
     )
 
 
@@ -411,4 +553,39 @@ def remove_thing_file_attachment(
         principal=request.principal,
         uid=thing_id,
         data=data,
+    )
+
+
+@thing_router.get(
+    "/{thing_id}/file-attachments/{attachment_id}/download",
+    auth=[session_auth, bearer_auth, apikey_auth, anonymous_auth],
+    response={200: None, 401: str, 403: str, 404: str},
+    by_alias=True,
+)
+def download_thing_file_attachment(
+    request: HydroServerHttpRequest,
+    thing_id: Path[uuid.UUID],
+    attachment_id: Path[int],
+    token: Optional[str] = None,
+):
+    """
+    Download a thing file attachment.
+    """
+
+    file_attachment = thing_service.get_file_attachment_for_download(
+        principal=request.principal,
+        uid=thing_id,
+        attachment_id=attachment_id,
+        token=token,
+    )
+
+    if not file_attachment.file_attachment:
+        return 404, "File attachment does not exist"
+
+    file_obj = file_attachment.file_attachment.open("rb")
+    return FileResponse(
+        file_obj,
+        as_attachment=True,
+        filename=file_attachment.name,
+        content_type="application/octet-stream",
     )

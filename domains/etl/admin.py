@@ -1,6 +1,13 @@
 from django.urls import path
 from django.contrib import admin
-from domains.etl.models import OrchestrationSystem, DataConnection, Task, TaskMapping, TaskMappingPath, TaskRun
+from domains.etl.models import (
+    OrchestrationSystem,
+    DataConnection,
+    Task,
+    TaskMapping,
+    TaskMappingPath,
+    TaskRun,
+)
 from hydroserver.admin import VocabularyAdmin
 
 

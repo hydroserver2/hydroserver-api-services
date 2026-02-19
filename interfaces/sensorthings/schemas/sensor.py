@@ -24,6 +24,7 @@ KnownSensorEncodingTypes = Literal[
     "application/pdf",
     "http://www.opengis.net/doc/IS/SensorML/2.0",
     "text/html",
+    "text/plain",
     "application/json",
     "text/plain",
 ]

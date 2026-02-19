@@ -349,11 +349,11 @@ else:
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "OPTIONS": {"location": "media"},
+            "OPTIONS": {"location": str(BASE_DIR / "media")},
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            "OPTIONS": {"location": "static"},
+            "OPTIONS": {"location": str(BASE_DIR / "static")},
         },
     }
 
