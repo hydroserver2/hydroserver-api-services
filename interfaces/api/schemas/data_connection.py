@@ -1,6 +1,7 @@
 import uuid
 from typing import Any, Literal, Optional
 from ninja import Schema, Field, Query
+from pydantic import EmailStr
 from interfaces.api.schemas import BaseGetResponse, BasePostBody, BasePatchBody, CollectionQueryParameters
 from interfaces.api.schemas import WorkspaceSummaryResponse
 
@@ -61,6 +62,7 @@ class DataConnectionFields(Schema):
 class DataConnectionSummaryResponse(BaseGetResponse, DataConnectionFields):
     id: uuid.UUID
     workspace_id: Optional[uuid.UUID] = None
+    notification_recipient_emails: list[EmailStr]
     extractor: DataConnectionSettingsResponse | None = None
     transformer: DataConnectionSettingsResponse | None = None
     loader: DataConnectionSettingsResponse | None = None
@@ -69,6 +71,7 @@ class DataConnectionSummaryResponse(BaseGetResponse, DataConnectionFields):
 class DataConnectionDetailResponse(BaseGetResponse, DataConnectionFields):
     id: uuid.UUID
     workspace: Optional[WorkspaceSummaryResponse] = None
+    notification_recipient_emails: list[EmailStr]
     extractor: DataConnectionSettingsResponse | None = None
     transformer: DataConnectionSettingsResponse | None = None
     loader: DataConnectionSettingsResponse | None = None
@@ -86,3 +89,7 @@ class DataConnectionPatchBody(BasePatchBody, DataConnectionFields):
     extractor: DataConnectionSettingsPatchBody | None = None
     transformer: DataConnectionSettingsPatchBody | None = None
     loader: DataConnectionSettingsPatchBody | None = None
+
+
+class DataConnectionNotificationRecipientPostBody(BasePostBody):
+    email: EmailStr

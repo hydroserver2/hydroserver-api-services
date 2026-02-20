@@ -102,7 +102,7 @@ from .attachment import (
 
 from .data_connection import (DataConnectionSummaryResponse, DataConnectionDetailResponse, DataConnectionPostBody,
                               DataConnectionPatchBody, DataConnectionFields, DataConnectionOrderByFields,
-                              DataConnectionQueryParameters)
+                              DataConnectionQueryParameters, DataConnectionNotificationRecipientPostBody)
 from .orchestration_system import (OrchestrationSystemSummaryResponse, OrchestrationSystemDetailResponse,
                                    OrchestrationSystemPostBody, OrchestrationSystemPatchBody,
                                    OrchestrationSystemFields, OrchestrationSystemOrderByFields,

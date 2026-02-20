@@ -123,6 +123,10 @@ class TaskService(ServiceUtils):
                 "name": task.data_connection.name,
                 "data_connection_type": task.data_connection.data_connection_type,
                 "workspace_id": task.data_connection.workspace.id,
+                "notification_recipient_emails": [
+                    notification_recipient.collaborator.user.email
+                    for notification_recipient in task.data_connection.notification_recipients.all()
+                ],
                 "extractor": {
                     "settings_type": task.data_connection.extractor_type,
                     "settings": task.data_connection.extractor_settings
@@ -155,7 +159,7 @@ class TaskService(ServiceUtils):
             "data_connection", "workspace", "orchestration_system", "periodic_task", "periodic_task__crontab",
             "periodic_task__interval"
         ).prefetch_related(
-            "mappings", "mappings__paths"
+            "mappings", "mappings__paths", "data_connection__notification_recipients__collaborator__user"
         )
 
     @staticmethod

@@ -12,6 +12,12 @@
     loader_type: HydroServer
     loader_settings: {}
 
+- model: etl.dataconnectionnotificationrecipient
+  pk: 019c7cfb-dc6c-771c-964e-0f58ce5758e0
+  fields:
+    data_connection: 019adb5c-da8b-7970-877d-c3b4ca37cc60
+    collaborator: 1000000012
+
 # ETL Global Data Connection
 - model: etl.dataconnection
   pk: 019bbd9d-ee62-7669-8db0-3ef50802f1d8

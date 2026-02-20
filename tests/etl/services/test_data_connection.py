@@ -8,7 +8,8 @@ from interfaces.api.schemas import (
     DataConnectionPostBody,
     DataConnectionPatchBody,
     DataConnectionSummaryResponse,
-    DataConnectionDetailResponse
+    DataConnectionDetailResponse,
+    DataConnectionNotificationRecipientPostBody
 )
 
 data_connection_service = DataConnectionService()
@@ -42,7 +43,7 @@ data_connection_service = DataConnectionService()
             ["Test ETL Data Connection", "Test Global ETL Data Connection"],
             4,
         ),
-        ("apikey", {}, ["Test Global ETL Data Connection"], 4),
+        ("apikey", {}, ["Test Global ETL Data Connection"], 5),
         ("unaffiliated", {}, ["Test Global ETL Data Connection"], 4),
         ("anonymous", {}, ["Test Global ETL Data Connection"], 4),
         # Test pagination and order_by
@@ -475,3 +476,127 @@ def test_delete_data_connection(
             principal=get_principal(principal), uid=uuid.UUID(data_connection)
         )
         assert data_connection_delete == "ETL Data Connection deleted"
+
+
+@pytest.mark.parametrize(
+    "principal, data_connection, email, message, error_code",
+    [
+        ("admin", "019adb5c-da8b-7970-877d-c3b4ca37cc60", "viewer@example.com", None, None),
+        ("owner", "019adb5c-da8b-7970-877d-c3b4ca37cc60", "viewer@example.com", None, None),
+        ("editor", "019adb5c-da8b-7970-877d-c3b4ca37cc60", "viewer@example.com", None, None),
+        (
+            "viewer",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "viewer@example.com",
+            "You do not have permission",
+            403
+        ),
+        (
+            "anonymous",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "viewer@example.com",
+            "ETL Data Connection does not exist",
+            404
+        ),
+        (
+            None,
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "viewer@example.com",
+            "ETL Data Connection does not exist",
+            404
+        ),
+        (
+            "owner",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "editor@example.com",
+            "Account with email",
+            400
+        ),
+        (
+            "owner",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "anonymous@example.com",
+            "No collaborator with email",
+            400
+        ),
+    ],
+)
+def test_add_notification_recipient(
+    get_principal, principal, data_connection, email, message, error_code
+):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            data_connection_service.add_notification_recipient(
+                principal=get_principal(principal), uid=uuid.UUID(data_connection),
+                data=DataConnectionNotificationRecipientPostBody(email=email)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        data_connection_add_notification_recipient = data_connection_service.add_notification_recipient(
+            principal=get_principal(principal), uid=uuid.UUID(data_connection),
+            data=DataConnectionNotificationRecipientPostBody(email=email)
+        )
+        assert data_connection_add_notification_recipient == "Data connection notification recipient added"
+
+
+@pytest.mark.parametrize(
+    "principal, data_connection, email, message, error_code",
+    [
+        ("admin", "019adb5c-da8b-7970-877d-c3b4ca37cc60", "editor@example.com", None, None),
+        ("owner", "019adb5c-da8b-7970-877d-c3b4ca37cc60", "editor@example.com", None, None),
+        ("editor", "019adb5c-da8b-7970-877d-c3b4ca37cc60", "editor@example.com", None, None),
+        (
+            "viewer",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "editor@example.com",
+            "You do not have permission",
+            403
+        ),
+        (
+            "anonymous",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "editor@example.com",
+            "ETL Data Connection does not exist",
+            404
+        ),
+        (
+            None,
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "editor@example.com",
+            "ETL Data Connection does not exist",
+            404
+        ),
+        (
+            "owner",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "viewer@example.com",
+            "Account with email",
+            400
+        ),
+        (
+            "owner",
+            "019adb5c-da8b-7970-877d-c3b4ca37cc60",
+            "anonymous@example.com",
+            "No collaborator with email",
+            400
+        ),
+    ],
+)
+def test_remove_notification_recipient(
+    get_principal, principal, data_connection, email, message, error_code
+):
+    if error_code:
+        with pytest.raises(HttpError) as exc_info:
+            data_connection_service.remove_notification_recipient(
+                principal=get_principal(principal), uid=uuid.UUID(data_connection),
+                data=DataConnectionNotificationRecipientPostBody(email=email)
+            )
+        assert exc_info.value.status_code == error_code
+        assert exc_info.value.message.startswith(message)
+    else:
+        data_connection_add_notification_recipient = data_connection_service.remove_notification_recipient(
+            principal=get_principal(principal), uid=uuid.UUID(data_connection),
+            data=DataConnectionNotificationRecipientPostBody(email=email)
+        )
+        assert data_connection_add_notification_recipient == "Data connection notification recipient removed"

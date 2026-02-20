@@ -593,3 +593,12 @@ def cleanup_etl_task_runs(self, days=14):
     """
 
     call_command("cleanup_etl_task_runs", f"--days={days}")
+
+
+@shared_task(bind=True, expires=10, name="etl.tasks.send_orchestration_notifications")
+def send_orchestration_notifications(self, data_connection_id, start_time, end_time):
+    """
+    Celery task to run the send_orchestration_notifications management command.
+    """
+
+    pass

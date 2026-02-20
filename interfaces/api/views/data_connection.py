@@ -6,7 +6,8 @@ from interfaces.http.request import HydroServerHttpRequest
 from interfaces.http.auth import bearer_auth, session_auth, apikey_auth
 from domains.etl.services import DataConnectionService
 from interfaces.api.schemas import (DataConnectionSummaryResponse, DataConnectionDetailResponse, DataConnectionPostBody,
-                                    DataConnectionPatchBody, DataConnectionQueryParameters)
+                                    DataConnectionPatchBody, DataConnectionQueryParameters,
+                                    DataConnectionNotificationRecipientPostBody)
 
 
 data_connection_router = Router(tags=["ETL Data Connections"])
@@ -143,4 +144,61 @@ def delete_data_connection(
 
     return 204, data_connection_service.delete(
         principal=request.principal, uid=data_connection_id
+    )
+
+
+@data_connection_router.post(
+    "/{data_connection_id}/notification-recipients",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        201: None,
+        400: str,
+        401: str,
+        403: str,
+        413: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def add_data_connection_notification_recipient(
+    request: HydroServerHttpRequest,
+    data_connection_id: Path[uuid.UUID],
+    data: DataConnectionNotificationRecipientPostBody
+):
+    """
+    Add a notification recipient to an ETL Data Connection.
+    """
+
+    return 201, data_connection_service.add_notification_recipient(
+        principal=request.principal,
+        uid=data_connection_id,
+        data=data,
+    )
+
+
+@data_connection_router.delete(
+    "/{data_connection_id}/notification-recipients",
+    auth=[session_auth, bearer_auth, apikey_auth],
+    response={
+        204: None,
+        400: str,
+        401: str,
+        403: str,
+        422: str,
+    },
+    by_alias=True,
+)
+def remove_data_connection_notification_recipient(
+    request: HydroServerHttpRequest,
+    data_connection_id: Path[uuid.UUID],
+    data: DataConnectionNotificationRecipientPostBody
+):
+    """
+    Remove a file attachment from a datastream.
+    """
+
+    return 204, data_connection_service.remove_notification_recipient(
+        principal=request.principal,
+        uid=data_connection_id,
+        data=data,
     )

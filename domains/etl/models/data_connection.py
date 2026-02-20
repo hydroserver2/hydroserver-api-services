@@ -1,8 +1,11 @@
 import uuid6
 from typing import Union, Literal, Optional, TYPE_CHECKING
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Value
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models.functions import Coalesce
 from domains.iam.models.utils import PermissionChecker
+from domains.iam.models import Collaborator
 
 if TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -51,6 +54,19 @@ class DataConnectionQuerySet(models.QuerySet):
             )
         else:
             return self.filter(Q(workspace__isnull=True))
+
+    def with_notification_recipients(self):
+        notification_recipient_emails = Coalesce(
+            ArrayAgg(
+                "notification_recipients__collaborator__user__email",
+                distinct=True,
+                filter=~Q(notification_recipients__collaborator__user__email__isnull=True),
+            ),
+            Value([]),
+        )
+        return self.annotate(
+            notification_recipient_emails=notification_recipient_emails
+        )
 
 
 class DataConnection(models.Model, PermissionChecker):
@@ -123,3 +139,57 @@ class DataConnection(models.Model, PermissionChecker):
         )
 
         return permissions
+
+
+class DataConnectionNotificationRecipientQuerySet(models.QuerySet):
+    def visible(self, principal: Optional[Union["User", "APIKey"]]):
+        if not principal:
+            return self.filter(Q(data_connection__workspace__isnull=True))
+        elif hasattr(principal, "account_type"):
+            if principal.account_type == "admin":
+                return self
+            else:
+                return self.filter(
+                    Q(data_connection__workspace__isnull=True)
+                    | Q(data_connection__workspace__owner=principal)
+                    | Q(
+                        data_connection__workspace__collaborators__user=principal,
+                        data_connection__workspace__collaborators__role__permissions__resource_type__in=[
+                            "*",
+                            "DataConnection",
+                        ],
+                        data_connection__workspace__collaborators__role__permissions__permission_type__in=[
+                            "*",
+                            "view",
+                        ],
+                    )
+                )
+        elif hasattr(principal, "workspace"):
+            return self.filter(
+                Q(data_connection__workspace__isnull=True)
+                | Q(
+                    data_connection__workspace__apikeys=principal,
+                    data_connection__workspace__apikeys__role__permissions__resource_type__in=[
+                        "*",
+                        "DataConnection",
+                    ],
+                    data_connection__workspace__apikeys__role__permissions__permission_type__in=[
+                        "*",
+                        "view",
+                    ],
+                )
+            )
+        else:
+            return self.filter(Q(data_connection__workspace__isnull=True))
+
+
+class DataConnectionNotificationRecipient(models.Model, PermissionChecker):
+    id = models.UUIDField(primary_key=True, default=uuid6.uuid7, editable=False)
+    data_connection = models.ForeignKey(
+        DataConnection, related_name="notification_recipients", on_delete=models.CASCADE
+    )
+    collaborator = models.ForeignKey(
+        Collaborator, related_name="data_connection_notifications", on_delete=models.CASCADE
+    )
+
+    objects = DataConnectionNotificationRecipientQuerySet.as_manager()

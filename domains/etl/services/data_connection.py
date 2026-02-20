@@ -5,13 +5,14 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import QuerySet
-from domains.iam.models import APIKey
-from domains.etl.models import DataConnection
+from domains.iam.models import APIKey, Collaborator
+from domains.etl.models import DataConnection, DataConnectionNotificationRecipient
 from interfaces.api.schemas import (
     DataConnectionSummaryResponse,
     DataConnectionDetailResponse,
     DataConnectionPostBody,
     DataConnectionPatchBody,
+    DataConnectionNotificationRecipientPostBody,
 )
 from interfaces.api.schemas.data_connection import (
     DataConnectionFields,
@@ -36,7 +37,7 @@ class DataConnectionService(ServiceUtils):
             data_connection = DataConnection.objects
             if expand_related:
                 data_connection = self.select_expanded_fields(data_connection)
-            data_connection = data_connection.get(pk=uid)
+            data_connection = data_connection.with_notification_recipients().get(pk=uid)
         except DataConnection.DoesNotExist:
             raise HttpError(
                 404 if not raise_400 else 400, "ETL Data Connection does not exist"
@@ -98,7 +99,8 @@ class DataConnectionService(ServiceUtils):
         if expand_related:
             queryset = self.select_expanded_fields(queryset)
 
-        queryset = queryset.visible(principal=principal).distinct()
+        queryset = queryset.visible(principal=principal)
+        queryset = queryset.with_notification_recipients().distinct()
 
         queryset, count = self.apply_pagination(queryset, response, page, page_size)
 
@@ -210,3 +212,62 @@ class DataConnectionService(ServiceUtils):
         data_connection.delete()
 
         return "ETL Data Connection deleted"
+
+    def add_notification_recipient(
+        self, principal: User | APIKey, uid: uuid.UUID, data: DataConnectionNotificationRecipientPostBody,
+    ):
+        data_connection = self.get_data_connection_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
+
+        try:
+            collaborator = Collaborator.objects.select_related("workspace", "user").get(
+                workspace=data_connection.workspace, user__email=data.email
+            )
+        except Collaborator.DoesNotExist:
+            raise HttpError(400, f"No collaborator with email '{data.email}' found")
+
+        data_connection_notification_recipient_emails = data_connection.notification_recipients.values_list(
+            "collaborator__user__email", flat=True
+        )
+
+        if collaborator.user.email in data_connection_notification_recipient_emails:
+            raise HttpError(
+                400,
+                f"Account with email '{data.email}' already receives notifications for the data connection",
+            )
+
+        DataConnectionNotificationRecipient.objects.create(
+            data_connection=data_connection,
+            collaborator=collaborator
+        )
+
+        return "Data connection notification recipient added"
+
+    def remove_notification_recipient(
+        self, principal: User | APIKey, uid: uuid.UUID, data: DataConnectionNotificationRecipientPostBody
+    ):
+        data_connection = self.get_data_connection_for_action(
+            principal=principal, uid=uid, action="edit"
+        )
+
+        try:
+            collaborator = Collaborator.objects.select_related("workspace", "user").get(
+                workspace=data_connection.workspace, user__email=data.email
+            )
+        except Collaborator.DoesNotExist:
+            raise HttpError(400, f"No collaborator with email '{data.email}' found")
+
+        try:
+            data_notification_recipient = DataConnectionNotificationRecipient.objects.get(
+                data_connection=data_connection, collaborator=collaborator
+            )
+        except DataConnectionNotificationRecipient.DoesNotExist:
+            raise HttpError(
+                400,
+                f"Account with email '{data.email}' does not receive notifications for the data connection",
+            )
+
+        data_notification_recipient.delete()
+
+        return "Data connection notification recipient removed"
