@@ -58,7 +58,7 @@ task_service = TaskService()
         # Test filtering
         (
             "owner",
-            {"task_type": "SDL"},
+            {"task_type": "ETL"},
             ["Test ETL Task"],
             7,
         ),
@@ -270,6 +270,126 @@ def test_create_task(
         )
         assert task_create["name"] == task_data.name
         assert TaskDetailResponse.from_orm(task_create)
+
+
+def test_create_aggregation_task_without_data_connection(get_principal):
+    task_data = TaskPostBody(
+        name="New Aggregation Task",
+        task_type="Aggregation",
+        workspace_id=uuid.UUID("b27c51a0-7374-462d-8a53-d97d47176c10"),
+        data_connection_id=None,
+        orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
+        schedule=TaskSchedulePostBody(
+            paused=True,
+            crontab="* * * * *",
+        ),
+        mappings=[
+            TaskMappingPostBody(
+                source_identifier="27c70b41-e845-40ea-8cc7-d1b40f89816b",
+                paths=[
+                    TaskMappingPathPostBody(
+                        target_identifier="e0506cac-3e50-4d0a-814d-7ae0146705b2",
+                        data_transformations=[
+                            {
+                                "type": "aggregation",
+                                "aggregationStatistic": "simple_mean",
+                                "timezoneMode": "fixedOffset",
+                                "timezone": "-0700",
+                            }
+                        ],
+                    )
+                ],
+            )
+        ],
+    )
+
+    task_create = task_service.create(
+        principal=get_principal("owner"),
+        data=task_data,
+    )
+    assert task_create["task_type"] == "Aggregation"
+    assert task_create["data_connection"] is None
+    assert TaskDetailResponse.from_orm(task_create)
+
+
+def test_create_etl_task_requires_data_connection(get_principal):
+    task_data = TaskPostBody(
+        name="New ETL Task Without Data Connection",
+        task_type="ETL",
+        workspace_id=uuid.UUID("b27c51a0-7374-462d-8a53-d97d47176c10"),
+        data_connection_id=None,
+        orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
+        schedule=TaskSchedulePostBody(
+            paused=True,
+            crontab="* * * * *",
+        ),
+        mappings=[
+            TaskMappingPostBody(
+                source_identifier="test",
+                paths=[TaskMappingPathPostBody(target_identifier="test")],
+            )
+        ],
+    )
+
+    with pytest.raises(HttpError) as exc_info:
+        task_service.create(
+            principal=get_principal("owner"),
+            data=task_data,
+        )
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.message == "ETL tasks require a data connection."
+
+
+def test_create_aggregation_task_requires_single_mapping(get_principal):
+    aggregation_transform = {
+        "type": "aggregation",
+        "aggregationStatistic": "simple_mean",
+        "timezoneMode": "fixedOffset",
+        "timezone": "-0700",
+    }
+
+    task_data = TaskPostBody(
+        name="Aggregation Task With Two Mappings",
+        task_type="Aggregation",
+        workspace_id=uuid.UUID("b27c51a0-7374-462d-8a53-d97d47176c10"),
+        data_connection_id=None,
+        orchestration_system_id=uuid.UUID("019aead4-df4e-7a08-a609-dbc96df6befe"),
+        schedule=TaskSchedulePostBody(
+            paused=True,
+            crontab="* * * * *",
+        ),
+        mappings=[
+            TaskMappingPostBody(
+                source_identifier="27c70b41-e845-40ea-8cc7-d1b40f89816b",
+                paths=[
+                    TaskMappingPathPostBody(
+                        target_identifier="e0506cac-3e50-4d0a-814d-7ae0146705b2",
+                        data_transformations=[aggregation_transform],
+                    )
+                ],
+            ),
+            TaskMappingPostBody(
+                source_identifier="6c0e4b78-13d7-43f6-b64e-f980f90db86f",
+                paths=[
+                    TaskMappingPathPostBody(
+                        target_identifier="df8e6b4d-3e4e-4ac0-b421-fe6f8bbd1e98",
+                        data_transformations=[aggregation_transform],
+                    )
+                ],
+            ),
+        ],
+    )
+
+    with pytest.raises(HttpError) as exc_info:
+        task_service.create(
+            principal=get_principal("owner"),
+            data=task_data,
+        )
+    assert exc_info.value.status_code == 400
+    assert (
+        exc_info.value.message
+        == "Aggregation tasks currently support exactly one mapping."
+    )
 
 
 @pytest.mark.parametrize(
